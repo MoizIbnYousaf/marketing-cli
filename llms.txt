@@ -1,0 +1,110 @@
+# mktg — Agent-Native Marketing Playbook CLI
+
+`mktg` is a TypeScript/Bun CLI that gives AI agents full CMO capabilities.
+One install = full marketing department for any project.
+
+## Project snapshot
+
+- Language: TypeScript
+- Runtime: Bun
+- Distribution: npm package (`bun install -g mktg`)
+- Scope: branding, launch packages, content generation, SEO, email sequences,
+  social media, lead magnets, content calendars, marketing audits
+- Output model: JSON-first (structured for agent consumption)
+- CLI style: explicit long flags, non-interactive, `--dry-run` for previews
+
+## Canonical entry points
+
+- Repository: https://github.com/MoizIbnYousaf/mktg
+- Command discovery:
+  - `mktg --help`
+  - `mktg <command> --help`
+  - `mktg schema` (introspect command schemas)
+  - `mktg list` (show available skills)
+
+## Install
+
+- npm/bun (recommended):
+  - `bun install -g mktg`
+- Then in any project:
+  - `mktg init`
+
+## Quick start
+
+- Initialize in a project:
+  - `mktg init` (detects project, scaffolds brand/, installs /cmo skill)
+- Check health:
+  - `mktg doctor`
+- Generate a launch package:
+  - `mktg launch`
+
+## How it works
+
+mktg has four components that work together:
+
+1. `mktg` CLI — infrastructure tool for setup, health checks, publishing
+2. `/cmo` skill — orchestration brain that teaches agents how to use everything
+3. `brand/` directory — persistent brand memory that compounds across sessions
+4. 38 marketing skills — SKILL.md files providing domain expertise
+
+Skills are installed into the agent's Claude Code config. The agent reads them
+to know HOW to do marketing. The CLI handles the infrastructure around it.
+
+## Common workflows
+
+- Full brand + launch package:
+  - `mktg init` then `/cmo` skill handles orchestration
+- Generate specific content:
+  - `mktg content --type landing-page`
+  - `mktg content --type email-sequence`
+  - `mktg content --type seo-article`
+- Social media:
+  - `mktg social --platform twitter`
+  - `mktg post --platform twitter --dry-run`
+- Content planning:
+  - `mktg calendar`
+- Marketing health check:
+  - `mktg audit`
+- Update skills:
+  - `mktg update`
+
+## Key design principles
+
+- Agent-first: built for agents to run, not humans
+- JSON output: structured, parseable, predictable
+- Progressive enhancement: every skill works at zero context, brand memory enhances
+- Self-bootstrapping: `mktg init` installs everything on any machine
+- No interactive prompts: all input via flags
+
+## Development and local validation
+
+- Install deps:
+  - `bun install`
+- Type check:
+  - `bun run typecheck`
+- Lint:
+  - `bun run lint`
+- Test:
+  - `bun test`
+
+## Source-of-truth docs in this repo
+
+- `CLAUDE.md`
+- `docs/brainstorms/` — original brainstorm and planning docs
+- `docs/plans/` — implementation plans
+- `docs/research/` — research and analysis
+- `skills/` — all 38 marketing skill definitions
+
+## Implementation notes for agents/tools
+
+- Use explicit long flags over short aliases
+- Prefer JSON output for automation paths
+- All commands support `--dry-run` for safe previews
+- Use `mktg schema <command>` to introspect expected inputs/outputs
+- Brand context is in `brand/` — read selectively, not all at once
+
+## Keywords
+
+marketing automation, brand strategy, content generation, SEO, email sequences,
+social media, launch strategy, lead magnets, content calendar, marketing audit,
+AI agent, CLI, TypeScript, Bun

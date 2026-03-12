@@ -25,7 +25,7 @@ The CLI is built agent-first (JSON output, structured errors, --dry-run, schema 
 
 `mktg` is a TypeScript/Bun CLI that gives AI agents full CMO capabilities. One install = full marketing department.
 
-**Three components:**
+**Four components:**
 1. `mktg` CLI — infrastructure tool (init, doctor, post, test, update)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (compounds across sessions)
@@ -46,6 +46,19 @@ The CLI is built agent-first (JSON output, structured errors, --dry-run, schema 
 4. **Self-bootstrapping** — `mktg init` installs everything on any machine.
 5. **Package deal** — CLI + /cmo skill + brand/ memory install together.
 
+## Discovering Commands
+
+**Before implementing or testing any command, run `--help` to confirm the exact interface.** The CLI is self-documenting:
+
+```bash
+mktg --help                    # List all commands
+mktg <command> --help          # Show flags and usage for a command
+mktg schema <command>          # Introspect expected inputs/outputs
+mktg list                      # Show all available skills
+```
+
+Do not memorize commands. Always check `--help` or `mktg schema` for the current interface.
+
 ## Commands
 
 ```
@@ -64,9 +77,75 @@ mktg list       — Show available skills
 mktg schema     — Introspect command schemas
 ```
 
+## Dev Workflow
+
+```bash
+bun install              # Install dependencies
+bun run build            # Build the CLI
+bun run typecheck        # Type check
+bun run lint             # Lint code
+bun test                 # Run tests
+```
+
+## PR Guardrails
+
+Before opening or updating a PR, always run:
+
+```bash
+bun run typecheck
+bun run lint
+bun test
+```
+
+If command help text or schemas changed, verify with `mktg schema` and `mktg --help`.
+
 ## Dev Notes
 
 - Use `bun` for all package operations
 - Functional patterns, no classes
 - Named exports only
+- ESM modules with `.js` extensions in imports
+- `node:` prefix for built-in modules
 - Keep files under 300 lines
+- Handle errors at boundaries, not deep in utilities
+- Never swallow errors silently
+
+## Debugging Principles
+
+- **Reproduce first**: Before fixing, run the failing test locally to confirm the issue. Don't assume you understand the bug.
+- **One change at a time**: Make one small fix, verify it works, then move to the next. Don't batch multiple changes.
+- **Re-run after each fix**: Re-run the specific failing test after each fix before running the full suite.
+- **One logical change per commit**: Keep commits narrowly scoped and reviewable.
+- **Never bypass checks**: Don't use `--no-verify`, don't push directly to `main`, don't skip tests.
+- **Verify before claiming done**: Run the specific failing test again to confirm it's fixed.
+
+## Definition of Done
+
+A change is done when:
+1. All checks pass (`typecheck`, `lint`, `test`)
+2. Key scenarios are validated (not just happy paths)
+3. The PR description includes what was changed, why, and what was tested
+
+For CLI behavior changes (flags, output, errors):
+- Add tests that assert both valid and invalid usage
+- Test structured JSON output by parsing it, not string matching
+- Verify `--dry-run` behavior for any command that has side effects
+
+## Agent Explainability
+
+For each substantial change, include:
+- Why this approach was chosen
+- One to two alternatives considered and trade-offs
+- Expected invocation examples and outputs
+- Edge cases and failure modes tested
+
+A change is not done if a reviewer cannot understand the behavior and trade-offs from the PR description.
+
+## References
+
+Detailed guidance on specific topics (only read when needed):
+
+- **Original brainstorm**: `docs/brainstorms/2026-03-11-marketing-playbook-brainstorm.md`
+- **Implementation plans**: `docs/plans/`
+- **Research & analysis**: `docs/research/`
+- **LLM quick-reference**: `llms.txt`
