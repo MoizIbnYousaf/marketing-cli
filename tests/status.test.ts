@@ -75,3 +75,166 @@ describe("mktg status", () => {
     expect(result.exitCode).toBe(0);
   });
 });
+
+describe("Health transitions", () => {
+  test("needs-setup → ready after init", async () => {
+    // Before init
+    const before = await statusHandler([], flags);
+    expect(before.ok).toBe(true);
+    if (!before.ok) return;
+    expect(before.data.health).toBe("needs-setup");
+
+    // After init
+    await initHandler(["--yes"], flags);
+    const after = await statusHandler([], flags);
+    expect(after.ok).toBe(true);
+    if (!after.ok) return;
+    expect(after.data.health).toBe("ready");
+  });
+
+  test("ready → incomplete when voice-profile deleted", async () => {
+    await initHandler(["--yes"], flags);
+
+    // Delete voice-profile.md
+    const { rm: rmFile } = await import("node:fs/promises");
+    await rmFile(join(tempDir, "brand", "voice-profile.md"));
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.health).toBe("incomplete");
+  });
+
+  test("ready → needs-setup when entire brand/ deleted", async () => {
+    await initHandler(["--yes"], flags);
+
+    const { rm: rmDir } = await import("node:fs/promises");
+    await rmDir(join(tempDir, "brand"), { recursive: true, force: true });
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.health).toBe("needs-setup");
+  });
+});
+
+describe("Status JSON shape for agent consumption", () => {
+  test("brand object has exactly 9 keys after init", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const brandKeys = Object.keys(result.data.brand);
+    expect(brandKeys).toHaveLength(9);
+    expect(brandKeys).toContain("voice-profile.md");
+    expect(brandKeys).toContain("positioning.md");
+    expect(brandKeys).toContain("audience.md");
+    expect(brandKeys).toContain("competitors.md");
+    expect(brandKeys).toContain("keyword-plan.md");
+    expect(brandKeys).toContain("creative-kit.md");
+    expect(brandKeys).toContain("stack.md");
+    expect(brandKeys).toContain("assets.md");
+    expect(brandKeys).toContain("learnings.md");
+  });
+
+  test("each brand entry has exists boolean", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      expect(typeof entry.exists).toBe("boolean");
+    }
+  });
+
+  test("skills has installed and total as numbers", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(typeof result.data.skills.installed).toBe("number");
+    expect(typeof result.data.skills.total).toBe("number");
+  });
+
+  test("content has totalFiles as number", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(typeof result.data.content.totalFiles).toBe("number");
+  });
+
+  test("status includes agents section", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data).toHaveProperty("agents");
+    expect(typeof result.data.agents.installed).toBe("number");
+    expect(typeof result.data.agents.total).toBe("number");
+  });
+});
+
+describe("Multi-project switching via --cwd", () => {
+  test("different cwds report different project names", async () => {
+    const dir1 = await mkdtemp(join(tmpdir(), "mktg-proj1-"));
+    const dir2 = await mkdtemp(join(tmpdir(), "mktg-proj2-"));
+
+    await Bun.write(join(dir1, "package.json"), JSON.stringify({ name: "project-alpha" }));
+    await Bun.write(join(dir2, "package.json"), JSON.stringify({ name: "project-beta" }));
+
+    const flags1 = { ...flags, cwd: dir1 };
+    const flags2 = { ...flags, cwd: dir2 };
+
+    const r1 = await statusHandler([], flags1);
+    const r2 = await statusHandler([], flags2);
+
+    expect(r1.ok).toBe(true);
+    expect(r2.ok).toBe(true);
+    if (!r1.ok || !r2.ok) return;
+
+    expect(r1.data.project).toBe("project-alpha");
+    expect(r2.data.project).toBe("project-beta");
+
+    const { rm: rmDir } = await import("node:fs/promises");
+    await rmDir(dir1, { recursive: true, force: true });
+    await rmDir(dir2, { recursive: true, force: true });
+  });
+
+  test("init in project A, status in project B still needs-setup", async () => {
+    const dirA = await mkdtemp(join(tmpdir(), "mktg-projA-"));
+    const dirB = await mkdtemp(join(tmpdir(), "mktg-projB-"));
+
+    const flagsA = { ...flags, cwd: dirA };
+    const flagsB = { ...flags, cwd: dirB };
+
+    await initHandler(["--yes"], flagsA);
+
+    const resultB = await statusHandler([], flagsB);
+    expect(resultB.ok).toBe(true);
+    if (!resultB.ok) return;
+    expect(resultB.data.health).toBe("needs-setup");
+
+    const { rm: rmDir } = await import("node:fs/promises");
+    await rmDir(dirA, { recursive: true, force: true });
+    await rmDir(dirB, { recursive: true, force: true });
+  });
+});
+
+describe("Idempotency", () => {
+  test("status called 3 times returns identical health", async () => {
+    const r1 = await statusHandler([], flags);
+    const r2 = await statusHandler([], flags);
+    const r3 = await statusHandler([], flags);
+
+    expect(r1.ok).toBe(true);
+    expect(r2.ok).toBe(true);
+    expect(r3.ok).toBe(true);
+    if (!r1.ok || !r2.ok || !r3.ok) return;
+
+    expect(r1.data.health).toBe(r2.data.health);
+    expect(r2.data.health).toBe(r3.data.health);
+  });
+});

@@ -622,3 +622,125 @@ describe("plan documentation", () => {
     expect(content).toContain("tiktok-slideshow");
   });
 });
+
+// === APP-STORE-SCREENSHOTS AND FRONTEND-SLIDES ===
+
+describe("app-store-screenshots skill", () => {
+  test("exists in manifest", () => {
+    expect(manifest.skills).toHaveProperty("app-store-screenshots");
+  });
+
+  test("is creative category, execution layer", () => {
+    expect(manifest.skills["app-store-screenshots"].category).toBe("creative");
+    expect(manifest.skills["app-store-screenshots"].layer).toBe("execution");
+  });
+
+  test("SKILL.md exists", async () => {
+    const path = join(rootDir, "skills", "app-store-screenshots", "SKILL.md");
+    expect(await Bun.file(path).exists()).toBe(true);
+  });
+
+  test("reads voice-profile and positioning", () => {
+    const reads = manifest.skills["app-store-screenshots"].reads;
+    expect(reads).toContain("voice-profile.md");
+    expect(reads).toContain("positioning.md");
+  });
+
+  test("redirects exist", () => {
+    expect(manifest.redirects["app-screenshots"]).toBe("app-store-screenshots");
+    expect(manifest.redirects["ios-screenshots"]).toBe("app-store-screenshots");
+    expect(manifest.redirects["aso-screenshots"]).toBe("app-store-screenshots");
+    expect(manifest.redirects["store-screenshots"]).toBe("app-store-screenshots");
+  });
+});
+
+describe("frontend-slides skill", () => {
+  test("exists in manifest", () => {
+    expect(manifest.skills).toHaveProperty("frontend-slides");
+  });
+
+  test("is creative category, execution layer", () => {
+    expect(manifest.skills["frontend-slides"].category).toBe("creative");
+    expect(manifest.skills["frontend-slides"].layer).toBe("execution");
+  });
+
+  test("SKILL.md exists", async () => {
+    const path = join(rootDir, "skills", "frontend-slides", "SKILL.md");
+    expect(await Bun.file(path).exists()).toBe(true);
+  });
+
+  test("has supporting files", async () => {
+    const base = join(rootDir, "skills", "frontend-slides");
+    expect(await Bun.file(join(base, "STYLE_PRESETS.md")).exists()).toBe(true);
+    expect(await Bun.file(join(base, "viewport-base.css")).exists()).toBe(true);
+    expect(await Bun.file(join(base, "animation-patterns.md")).exists()).toBe(true);
+    expect(await Bun.file(join(base, "html-template.md")).exists()).toBe(true);
+  });
+
+  test("redirects exist", () => {
+    expect(manifest.redirects["presentation"]).toBe("frontend-slides");
+    expect(manifest.redirects["pitch-deck"]).toBe("frontend-slides");
+    expect(manifest.redirects["html-slides"]).toBe("frontend-slides");
+    expect(manifest.redirects["ppt-conversion"]).toBe("frontend-slides");
+    expect(manifest.redirects["conference-slides"]).toBe("frontend-slides");
+  });
+});
+
+// === CMO PHILOSOPHY ===
+
+describe("cmo north star philosophy", () => {
+  const cmoPath = join(rootDir, "skills", "cmo", "SKILL.md");
+
+  test("has North Star section", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("## North Star");
+  });
+
+  test("describes builder persona", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("curious builder");
+    expect(content).toContain("marketing is not their strength");
+  });
+
+  test("CMO suggests rather than asks", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("You suggest");
+    expect(content).toContain("tell them what you'd do");
+  });
+
+  test("CMO asks smart questions", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("You ask smart questions");
+  });
+
+  test("CMO discusses high-stakes decisions", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("You discuss when it matters");
+  });
+
+  test("CMO teaches as it goes", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("You teach as you go");
+  });
+
+  test("has How You Talk to the Builder section", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("## How You Talk to the Builder");
+  });
+
+  test("handles vague, specific, wrong, and context-needed scenarios", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("When they're vague");
+    expect(content).toContain("When they're specific");
+    expect(content).toContain("When they're wrong");
+    expect(content).toContain("When you need more context");
+  });
+
+  test("has Conversational Guardrails", async () => {
+    const content = await Bun.file(cmoPath).text();
+    expect(content).toContain("## Conversational Guardrails");
+    expect(content).toContain("Never present a menu without a recommendation");
+    expect(content).toContain("Never assume the builder knows marketing terms");
+    expect(content).toContain("Push back when something won't work");
+  });
+});

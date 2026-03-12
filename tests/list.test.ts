@@ -13,7 +13,7 @@ const flags: GlobalFlags = {
 };
 
 describe("mktg list", () => {
-  test("returns 27 skills from manifest", async () => {
+  test("returns 32 skills from manifest", async () => {
     const result = await handler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;

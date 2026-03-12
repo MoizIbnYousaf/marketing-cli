@@ -79,3 +79,57 @@ describe("CLI integration", () => {
     expect(exitCode).toBe(0);
   });
 });
+
+describe("CLI flag combinations", () => {
+  test("--json --dry-run works together", async () => {
+    const { stdout, exitCode } = await run(["status", "--json", "--dry-run"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed).toBeDefined();
+    expect(exitCode).toBe(0);
+  });
+
+  test("--fields filters output", async () => {
+    const { stdout, exitCode } = await run(["list", "--json", "--fields", "total,installed"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.total).toBeDefined();
+    expect(parsed.installed).toBeDefined();
+    expect(parsed.skills).toBeUndefined();
+    expect(exitCode).toBe(0);
+  });
+
+  test("no arguments shows help", async () => {
+    const { stdout, exitCode } = await run([]);
+    expect(stdout).toContain("mktg");
+    expect(exitCode).toBe(0);
+  });
+
+  test("--cwd with nonexistent directory still runs", async () => {
+    const { stdout, exitCode } = await run(["status", "--json", "--cwd", "/tmp/mktg-nonexistent-dir-xyz"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.health).toBe("needs-setup");
+    expect(exitCode).toBe(0);
+  });
+});
+
+describe("CLI error output is always valid JSON", () => {
+  test("unknown command returns parseable JSON", async () => {
+    const { stdout } = await run(["foobar"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.error).toBeDefined();
+    expect(typeof parsed.error.code).toBe("string");
+    expect(typeof parsed.error.message).toBe("string");
+    expect(Array.isArray(parsed.error.suggestions)).toBe(true);
+  });
+
+  test("schema returns all 5 commands", async () => {
+    const { stdout, exitCode } = await run(["schema"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.commands).toContain("init");
+    expect(parsed.commands).toContain("doctor");
+    expect(parsed.commands).toContain("status");
+    expect(parsed.commands).toContain("list");
+    expect(parsed.commands).toContain("update");
+    expect(parsed.commands).toHaveLength(5);
+    expect(exitCode).toBe(0);
+  });
+});

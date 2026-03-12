@@ -32,7 +32,7 @@ describe("Manifest structure", () => {
     expect(typeof manifest.redirects).toBe("object");
   });
 
-  test("exactly 27 skills", () => {
+  test("exactly 32 skills", () => {
     expect(Object.keys(manifest.skills)).toHaveLength(32);
   });
 });
@@ -258,4 +258,53 @@ describe("Skill SKILL.md files exist", () => {
       expect(content.indexOf("---", 3)).toBeGreaterThan(3);
     });
   }
+});
+
+describe("Trigger quality", () => {
+  test("every must-have skill has at least 3 triggers", () => {
+    for (const [name, meta] of Object.entries(manifest.skills)) {
+      if (meta.tier === "must-have") {
+        expect(meta.triggers.length).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  test("no trigger is empty string", () => {
+    for (const [name, meta] of Object.entries(manifest.skills)) {
+      for (const trigger of meta.triggers) {
+        expect(trigger.trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("every category has at least 1 skill", () => {
+    const categories = new Set(Object.values(manifest.skills).map(m => m.category));
+    const expected = ["foundation", "strategy", "copy-content", "distribution", "creative", "seo", "conversion", "growth", "knowledge"];
+    for (const cat of expected) {
+      expect(categories.has(cat)).toBe(true);
+    }
+  });
+
+  test("every layer has at least 1 skill", () => {
+    const layers = new Set(Object.values(manifest.skills).map(m => m.layer));
+    for (const layer of VALID_LAYERS) {
+      expect(layers.has(layer)).toBe(true);
+    }
+  });
+});
+
+describe("Redirect quality", () => {
+  test("mode-based redirects reference valid base skills", () => {
+    for (const [from, to] of Object.entries(manifest.redirects)) {
+      const baseSkill = to.split(" ")[0];
+      expect(manifest.skills).toHaveProperty(baseSkill);
+    }
+  });
+
+  test("no redirect chain (redirect pointing to another redirect)", () => {
+    for (const [from, to] of Object.entries(manifest.redirects)) {
+      const baseTarget = to.split(" ")[0];
+      expect(manifest.redirects).not.toHaveProperty(baseTarget);
+    }
+  });
 });

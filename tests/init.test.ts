@@ -111,3 +111,37 @@ describe("mktg init", () => {
     expect(result.exitCode).toBe(0);
   });
 });
+
+describe("Init JSON input mode", () => {
+  test("accepts --json= input with business name", async () => {
+    const jsonInput = JSON.stringify({ business: "CEO App", goal: "grow" });
+    const result = await handler(["--yes", `--json=${jsonInput}`], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.project.name).toBe("CEO App");
+    expect(result.data.project.goal).toBe("grow");
+  });
+});
+
+describe("Init combined flags", () => {
+  test("--skip-brand --skip-skills creates minimal result", async () => {
+    const result = await handler(["--yes", "--skip-brand", "--skip-skills"], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.brand.created).toHaveLength(0);
+    expect(result.data.brand.skipped).toHaveLength(0);
+    expect(result.data.skills.installed).toHaveLength(0);
+  });
+});
+
+describe("Init installs agents", () => {
+  test("agents are reported in init result", async () => {
+    const result = await handler(["--yes"], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data).toHaveProperty("agents");
+    expect(Array.isArray(result.data.agents.installed)).toBe(true);
+  });
+});

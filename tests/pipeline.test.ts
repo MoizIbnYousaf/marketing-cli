@@ -119,7 +119,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(bunCheck?.status).toBe("pass");
   });
 
-  test("Step 6: list shows all 27 skills", async () => {
+  test("Step 6: list shows all 32 skills", async () => {
     const result = await listHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;

@@ -85,3 +85,71 @@ describe("mktg doctor", () => {
     expect(result.exitCode).toBe(0);
   });
 });
+
+describe("Doctor check categories", () => {
+  test("has brand, skills, and cli check categories", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const names = result.data.checks.map(c => c.name);
+    expect(names.some(n => n.startsWith("brand"))).toBe(true);
+    expect(names.some(n => n === "skills")).toBe(true);
+    expect(names.some(n => n.startsWith("cli-"))).toBe(true);
+  });
+
+  test("each check has name, status, and detail", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const check of result.data.checks) {
+      expect(typeof check.name).toBe("string");
+      expect(["pass", "fail", "warn"]).toContain(check.status);
+      expect(typeof check.detail).toBe("string");
+    }
+  });
+});
+
+describe("Doctor with partial state", () => {
+  test("brand-profiles fails, brand-append fails before init", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const profileCheck = result.data.checks.find(c => c.name === "brand-profiles");
+    const appendCheck = result.data.checks.find(c => c.name === "brand-append");
+    expect(profileCheck?.status).toBe("fail");
+    expect(appendCheck?.status).toBe("fail");
+  });
+
+  test("all brand checks pass after init", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const brandChecks = result.data.checks.filter(c => c.name.startsWith("brand"));
+    for (const check of brandChecks) {
+      expect(check.status).toBe("pass");
+    }
+  });
+
+  test("includes agent checks", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const agentCheck = result.data.checks.find(c => c.name === "agents");
+    expect(agentCheck).toBeDefined();
+  });
+
+  test("exit code is always 0 (even with failures)", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.exitCode).toBe(0);
+    // passed should be false since brand checks fail
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.passed).toBe(false);
+  });
+});
