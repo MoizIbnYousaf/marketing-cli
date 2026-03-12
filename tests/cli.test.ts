@@ -67,7 +67,7 @@ describe("CLI integration", () => {
   test("list --json returns skills", async () => {
     const { stdout, exitCode } = await run(["list", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(27);
+    expect(parsed.total).toBe(30);
     expect(exitCode).toBe(0);
   });
 

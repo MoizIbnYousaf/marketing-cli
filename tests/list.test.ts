@@ -18,7 +18,7 @@ describe("mktg list", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(27);
+    expect(result.data.total).toBe(30);
   });
 
   test("skills have required fields", async () => {

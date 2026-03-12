@@ -27,7 +27,7 @@ describe("loadManifest", () => {
 
   test("manifest has exactly 24 skills", async () => {
     const manifest = await loadManifest();
-    expect(Object.keys(manifest.skills)).toHaveLength(27);
+    expect(Object.keys(manifest.skills)).toHaveLength(30);
   });
 
   test("manifest has redirects", async () => {
@@ -40,7 +40,7 @@ describe("getSkillNames", () => {
   test("returns all 27 skill names", async () => {
     const manifest = await loadManifest();
     const names = getSkillNames(manifest);
-    expect(names).toHaveLength(27);
+    expect(names).toHaveLength(30);
     expect(names).toContain("cmo");
     expect(names).toContain("brand-voice");
     expect(names).toContain("marketing-psychology");
@@ -103,7 +103,7 @@ describe("groupByCategory", () => {
     for (const skills of Object.values(groups)) {
       total += skills.length;
     }
-    expect(total).toBe(27);
+    expect(total).toBe(30);
   });
 
   test("no skill appears in multiple groups", async () => {
@@ -124,7 +124,7 @@ describe("getInstallStatus", () => {
   test("returns status for all 27 skills", async () => {
     const manifest = await loadManifest();
     const status = await getInstallStatus(manifest);
-    expect(Object.keys(status)).toHaveLength(27);
+    expect(Object.keys(status)).toHaveLength(30);
 
     for (const [name, info] of Object.entries(status)) {
       expect(typeof info.installed).toBe("boolean");
@@ -169,7 +169,7 @@ describe("updateSkills", () => {
 
     // All should be either updated or unchanged
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(27);
+    expect(total).toBe(30);
   });
 
   test("dry-run reports without writing", async () => {
@@ -177,7 +177,7 @@ describe("updateSkills", () => {
     const result = await updateSkills(manifest, true);
 
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(27);
+    expect(total).toBe(30);
   });
 });
 

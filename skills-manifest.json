@@ -295,7 +295,40 @@
       "reads": ["voice-profile.md", "creative-kit.md", "positioning.md", "assets.md"],
       "writes": ["creative-kit.md", "assets.md"],
       "depends_on": ["brand-voice"],
-      "triggers": ["paper marketing", "design carousel", "create slides", "visual content", "instagram design", "social graphics", "paper prototype marketing", "design in paper", "create carousel", "slide design"],
+      "triggers": ["paper marketing", "design carousel", "create slides", "visual content", "instagram design", "social graphics", "paper prototype marketing", "design in paper", "create carousel", "slide design", "TikTok design", "slideshow design"],
+      "review_interval_days": 60
+    },
+    "slideshow-script": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "positioning.md", "audience.md"],
+      "writes": [],
+      "depends_on": ["brand-voice", "positioning-angles"],
+      "triggers": ["slideshow script", "generate scripts", "narrative scripts", "content scripts", "TikTok scripts", "carousel scripts", "storytelling frameworks"],
+      "review_interval_days": 60
+    },
+    "video-content": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["creative-kit.md"],
+      "writes": ["assets.md"],
+      "depends_on": [],
+      "triggers": ["make video", "video from slides", "animate slides", "render video", "video content", "assemble video", "ffmpeg video", "remotion render"],
+      "review_interval_days": 60
+    },
+    "tiktok-slideshow": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "creative-kit.md", "positioning.md", "audience.md", "assets.md"],
+      "writes": ["assets.md"],
+      "depends_on": ["brand-voice", "positioning-angles"],
+      "triggers": ["TikTok slideshow", "TikTok video", "make TikTok", "slideshow video", "TikTok content", "end-to-end video"],
       "review_interval_days": 60
     }
   },
@@ -316,6 +349,12 @@
     "programmatic-seo": "seo-content",
     "marketing-ideas": "brainstorm",
     "analytics-tracking": "cmo",
-    "paper-prototype": "paper-marketing"
+    "paper-prototype": "paper-marketing",
+    "tiktok": "tiktok-slideshow",
+    "tiktok-video": "tiktok-slideshow",
+    "slideshow": "tiktok-slideshow",
+    "video-assembly": "video-content",
+    "video-render": "video-content",
+    "content-creator": "tiktok-slideshow"
   }
 }

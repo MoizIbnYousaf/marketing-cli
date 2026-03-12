@@ -19,7 +19,7 @@ This needs to work on any machine — my Mac, a fresh VPS, anywhere. `mktg init`
 1. `mktg` CLI — infrastructure tool (5 commands: init, doctor, list, status, update)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
-4. 27 marketing skills — the knowledge (SKILL.md files agents read for domain expertise)
+4. 30 marketing skills — the knowledge (27 atomic + 3 orchestrators that chain skills together)
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
@@ -40,7 +40,7 @@ src/
 │   ├── brand.ts        # Brand dir management + freshness assessment
 │   ├── skills.ts       # Skill registry, install, integrity verification
 │   └── agents.ts       # Agent registry, install to ~/.claude/agents/
-skills/                  # 27 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 30 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 5 agent .md files installed to ~/.claude/agents/
 ├── research/            # brand-researcher, audience-researcher, competitive-scanner
@@ -62,6 +62,7 @@ agents-manifest.json     # Definitive agent list with metadata
 5. **Drop-in agents** — Add an agent by dropping .md file in `agents/` + updating `agents-manifest.json`.
 6. **Skills never call skills** — Skills read/write files. `/cmo` orchestrates. Agents never call agents.
 7. **Parallel by default** — Foundation building spawns 3 research agents simultaneously via the Agent tool.
+8. **Composable orchestrators** — Skills are Lego blocks, orchestrators are recipes. `/tiktok-slideshow` chains `/slideshow-script` → `/paper-marketing` → `/video-content`. Same blocks reuse for different platforms.
 
 ## Commands
 
@@ -75,7 +76,7 @@ mktg update     — Re-copy bundled skills to agent config
 
 **Global flags:** `--json`, `--dry-run`, `--fields`, `--cwd`, `--help`, `--version`
 
-## Skills (27 total)
+## Skills (30 total)
 
 Skills follow the drop-in contract. See `skills-manifest.json` for the full registry.
 
@@ -83,11 +84,12 @@ Skills follow the drop-in contract. See `skills-manifest.json` for the full regi
 **Strategy:** keyword-research, launch-strategy, pricing-strategy
 **Copy & Content:** direct-response-copy, seo-content, lead-magnet
 **Distribution:** content-atomizer, email-sequences, newsletter
-**Creative:** creative, marketing-demo, paper-marketing
+**Creative:** creative, marketing-demo, paper-marketing, slideshow-script, video-content
 **SEO:** seo-audit, ai-seo, competitor-alternatives
 **Conversion:** page-cro, conversion-flow-cro
 **Growth:** churn-prevention, referral-program, free-tool-strategy
 **Knowledge:** marketing-psychology
+**Orchestrators:** tiktok-slideshow (chains slideshow-script → paper-marketing → video-content)
 
 ## Dev Notes
 
