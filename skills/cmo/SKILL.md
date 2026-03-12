@@ -31,7 +31,11 @@ Follow this escalation pattern. Always start at the highest applicable level:
 ## On Activation (every time)
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
-2. If health is `"needs-setup"` → run `mktg init --yes` automatically. No user action needed.
+2. If health is `"needs-setup"`:
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 26 marketing skills."
+   - Options: "Yes, initialize marketing" / "No, not this project"
+   - If yes → run `mktg init --yes`
+   - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
 3. Assess: does `brand/` exist? Which files? Skills installed?
 4. Determine mode:
    - **FIRST RUN** — Brand files are templates. Run foundation skills to fill them with real data.
