@@ -106,6 +106,8 @@ When a request is ambiguous, use this matrix:
 | "video from slides" | `video-content` | `tiktok-slideshow` | Already has slides, just needs assembly. |
 | "slideshow script" | `slideshow-script` | `content-atomizer` | Scripts for visual slideshows, not text posts. |
 | "marketing video" | `tiktok-slideshow` or `marketing-demo` | `creative` | Slideshow = tiktok-slideshow. Product recording = marketing-demo. |
+| "design my script" | `paper-marketing` | `slideshow-script` | User already has scripts, just needs visual design. |
+| "I have slides, make video" | `video-content` | `paper-marketing` | User has PNGs, skip design entirely. |
 
 ## First 30 Minutes (New Project)
 

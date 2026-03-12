@@ -185,7 +185,7 @@ Options:
 3. "Change the copy" — user edits specific text
 ```
 
-**Write approved content to `marketing/content-specs/{name}.yaml`** so it persists for downstream skills (/video-content).
+**Write approved content to `marketing/content-specs/{name}.yaml`** so it persists for downstream skills (/video-content). If content specs already exist from `/slideshow-script`, do NOT overwrite them — they are the source of truth. Only write new specs when running standalone (no prior scripting phase).
 
 Do NOT proceed to Phase 3 until user approves variations AND content.
 
@@ -341,10 +341,17 @@ After user selects a variation:
      slide_count: {N}
    content_spec: "marketing/content-specs/{name}.yaml"
    brand_snapshot:
-     bg: "{hex}"
+     bg_primary: "{hex}"
+     bg_deep: "{hex}"
      accent: "{hex}"
-     text: "{hex}"
-     font: "{font_family}"
+     accent_muted: "{rgba}"
+     text_primary: "{hex}"
+     text_muted: "{rgba}"
+     divider: "{rgba}"
+     font_display: "{font_family}"
+     font_display_weights: [300, 400, 700]
+     font_body: "{font_family}"
+     font_body_weights: [300, 400]
    export_search_pattern: "{variation_name}@2x.png"
    extracted_jsx:
      slide_1: "{jsx}"

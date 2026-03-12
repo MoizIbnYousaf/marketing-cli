@@ -56,10 +56,13 @@ Check for these artifacts (in order of preference):
 4. **Slide directory** — user provides path to individual slide PNGs
 
 If handoff YAML exists, read it for:
-- Export file path or search pattern
-- Artboard dimensions (for slice coordinates)
-- Brand snapshot (colors for Remotion)
-- Content spec reference
+- `export_search_pattern` — filename pattern for the exported PNG
+- `artboard.width`, `artboard.height`, `artboard.slide_count` — for ffmpeg slice coordinates
+- `brand_snapshot` — full palette + fonts for Remotion `brand.ts` generation
+- `content_spec` — path to the content spec YAML for slide types and animation hints
+- `extracted_jsx` — optional HTML/CSS per slide for pixel-perfect Remotion reference
+
+Both handoff YAML and content spec YAML are needed for v2 Full tier. Handoff provides export/brand info, content spec provides slide content and animation hints.
 
 If no artifacts exist, ask the user:
 ```
