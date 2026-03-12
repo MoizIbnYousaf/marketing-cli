@@ -4,6 +4,7 @@
 import { ok, type CommandHandler } from "../types";
 import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
+import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
 import { join } from "node:path";
 
@@ -17,6 +18,7 @@ type StatusResult = {
   readonly project: string;
   readonly brand: Record<string, BrandEntry>;
   readonly skills: { readonly installed: number; readonly total: number };
+  readonly agents: { readonly installed: number; readonly total: number };
   readonly content: { readonly totalFiles: number };
   readonly health: "ready" | "incomplete" | "needs-setup";
 };
@@ -76,6 +78,18 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     (s) => s.installed,
   ).length;
 
+  // Load agent status
+  let agentInstalled = 0;
+  let agentTotal = 0;
+  try {
+    const agentManifest = await loadAgentManifest();
+    const agentStatus = await getAgentInstallStatus(agentManifest);
+    agentTotal = Object.keys(agentManifest.agents).length;
+    agentInstalled = Object.values(agentStatus).filter((s) => s.installed).length;
+  } catch {
+    // Agent manifest may not exist
+  }
+
   // Run checks in parallel
   const [brandStatuses, contentCount, projectName] = await Promise.all([
     getBrandStatus(cwd),
@@ -114,6 +128,10 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
       installed: installedCount,
       total: Object.keys(manifest.skills).length,
     },
+    agents: {
+      installed: agentInstalled,
+      total: agentTotal,
+    },
     content: { totalFiles: contentCount },
     health,
   };
@@ -150,6 +168,13 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     bold("  Skills") +
       dim(` ${result.skills.installed}/${result.skills.total} installed`),
   );
+
+  if (result.agents.total > 0) {
+    lines.push(
+      bold("  Agents") +
+        dim(` ${result.agents.installed}/${result.agents.total} installed`),
+    );
+  }
 
   if (contentCount > 0) {
     lines.push(bold("  Content") + dim(` ${contentCount} files`));

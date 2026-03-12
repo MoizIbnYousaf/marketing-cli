@@ -103,16 +103,23 @@ When a request is ambiguous, use this matrix:
 
 If the user's goal is unclear, start with `brainstorm` BEFORE foundation skills. Brainstorm determines the direction; foundation skills build the brand.
 
-Run 3 foundation skills IN PARALLEL:
-1. `brand-voice` → writes `brand/voice-profile.md`
-2. `audience-research` → writes `brand/audience.md`
-3. `competitive-intel` → writes `brand/competitors.md`
+**Launch 3 research agents IN PARALLEL using the Agent tool.** Each agent does deep web research (Exa MCP, web search) and writes its brand file independently. Spawn all 3 in a SINGLE message with 3 Agent tool calls:
+
+1. Agent `mktg-brand-researcher` — provide project name, URL if available, and context about what the project does
+2. Agent `mktg-audience-researcher` — provide project name, market space, and what problem it solves
+3. Agent `mktg-competitive-scanner` — provide project name, market space, and known competitors if any
+
+Each agent reads the corresponding skill methodology from `~/.claude/skills/` and uses Exa MCP for real research. They write directly to `brand/voice-profile.md`, `brand/audience.md`, and `brand/competitors.md`.
+
+**Wait for all 3 agents to complete.**
 
 THEN (needs all three):
-4. `positioning-angles` → writes `brand/positioning.md`
+4. `positioning-angles` skill → reads all three files, writes `brand/positioning.md`
 
 THEN (based on user goal):
 5. First execution skill matching the user's stated objective
+
+**Fallback:** If agents are not installed (e.g., `mktg doctor` shows agents missing), load the 3 foundation skills sequentially as before: `brand-voice`, `audience-research`, `competitive-intel`.
 
 ## Skill Redirects
 

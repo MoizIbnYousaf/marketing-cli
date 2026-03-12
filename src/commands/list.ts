@@ -1,8 +1,9 @@
 // mktg list — Show available skills with status
 // Reads from skills-manifest.json, groups by category, shows installed/missing.
 
-import { ok, type CommandHandler, type SkillCategory } from "../types";
+import { ok, type CommandHandler, type SkillCategory, type AgentCategory } from "../types";
 import { loadManifest, getInstallStatus } from "../core/skills";
+import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, isTTY } from "../core/output";
 
 type SkillEntry = {
@@ -14,8 +15,17 @@ type SkillEntry = {
   readonly triggers: readonly string[];
 };
 
+type AgentEntry = {
+  readonly name: string;
+  readonly category: AgentCategory;
+  readonly tier: "must-have" | "nice-to-have";
+  readonly installed: boolean;
+  readonly references_skill: string | null;
+};
+
 type ListResult = {
   readonly skills: readonly SkillEntry[];
+  readonly agents: readonly AgentEntry[];
   readonly total: number;
   readonly installed: number;
   readonly missing: number;
@@ -60,8 +70,25 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
     }),
   );
 
+  // Load agents
+  let agents: AgentEntry[] = [];
+  try {
+    const agentManifest = await loadAgentManifest();
+    const agentInstallStatus = await getAgentInstallStatus(agentManifest);
+    agents = Object.entries(agentManifest.agents).map(([name, meta]) => ({
+      name,
+      category: meta.category,
+      tier: meta.tier,
+      installed: agentInstallStatus[name]?.installed ?? false,
+      references_skill: meta.references_skill,
+    }));
+  } catch {
+    // Agent manifest may not exist
+  }
+
   const result: ListResult = {
     skills,
+    agents,
     total: skills.length,
     installed: skills.filter((s) => s.installed).length,
     missing: skills.filter((s) => !s.installed).length,
@@ -86,6 +113,17 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
       const status = skill.installed ? green("●") : red("●");
       const tier = skill.tier === "nice-to-have" ? dim(" (optional)") : "";
       lines.push(`  ${status} ${skill.name}${tier}`);
+    }
+    lines.push("");
+  }
+
+  // Show agents
+  if (agents.length > 0) {
+    lines.push(bold("Agents"));
+    for (const agent of agents) {
+      const status = agent.installed ? green("●") : red("●");
+      const ref = agent.references_skill ? dim(` → ${agent.references_skill}`) : "";
+      lines.push(`  ${status} mktg-${agent.name} ${dim(`[${agent.category}]`)}${ref}`);
     }
     lines.push("");
   }

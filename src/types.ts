@@ -148,6 +148,23 @@ export type SkillsManifest = {
   readonly redirects: Record<string, string>;
 };
 
+// Agent metadata types
+export type AgentCategory = "research" | "review";
+
+export type AgentManifestEntry = {
+  readonly category: AgentCategory;
+  readonly file: string;
+  readonly writes: readonly string[];
+  readonly reads: readonly string[];
+  readonly references_skill: string | null;
+  readonly tier: "must-have" | "nice-to-have";
+};
+
+export type AgentsManifest = {
+  readonly version: number;
+  readonly agents: Record<string, AgentManifestEntry>;
+};
+
 // Freshness levels for brand files
 export type FreshnessLevel = "current" | "stale" | "missing";
 

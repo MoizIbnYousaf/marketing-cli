@@ -3,27 +3,33 @@
 
 import { ok, type CommandHandler } from "../types";
 import { loadManifest, updateSkills } from "../core/skills";
+import { loadAgentManifest, updateAgents } from "../core/agents";
 import { bold, dim, green, yellow, isTTY } from "../core/output";
 
 type UpdateResult = {
-  readonly updated: readonly string[];
-  readonly unchanged: readonly string[];
-  readonly notBundled: readonly string[];
-  readonly total: number;
+  readonly skills: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
+  readonly agents: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
+  readonly totalSkills: number;
+  readonly totalAgents: number;
 };
 
 export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
   const manifest = await loadManifest();
-  const { updated, unchanged, notBundled } = await updateSkills(
-    manifest,
-    flags.dryRun,
-  );
+  const skillsUpdate = await updateSkills(manifest, flags.dryRun);
+
+  let agentsUpdate = { updated: [] as string[], unchanged: [] as string[], notBundled: [] as string[] };
+  try {
+    const agentManifest = await loadAgentManifest();
+    agentsUpdate = await updateAgents(agentManifest, flags.dryRun);
+  } catch {
+    // Agent manifest may not exist yet
+  }
 
   const result: UpdateResult = {
-    updated,
-    unchanged,
-    notBundled,
-    total: Object.keys(manifest.skills).length,
+    skills: skillsUpdate,
+    agents: agentsUpdate,
+    totalSkills: Object.keys(manifest.skills).length,
+    totalAgents: agentsUpdate.updated.length + agentsUpdate.unchanged.length + agentsUpdate.notBundled.length,
   };
 
   if (flags.json || !isTTY()) {
@@ -40,26 +46,36 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
     lines.push("");
   }
 
-  if (updated.length > 0) {
-    lines.push(green(`  ~ ${updated.length} skills updated`));
-    for (const name of updated) {
+  // Skills section
+  if (skillsUpdate.updated.length > 0) {
+    lines.push(green(`  ~ ${skillsUpdate.updated.length} skills updated`));
+    for (const name of skillsUpdate.updated) {
       lines.push(dim(`    ~ ${name}`));
     }
   }
 
-  if (unchanged.length > 0) {
-    lines.push(dim(`  = ${unchanged.length} skills unchanged`));
+  if (skillsUpdate.unchanged.length > 0) {
+    lines.push(dim(`  = ${skillsUpdate.unchanged.length} skills unchanged`));
   }
 
-  if (notBundled.length > 0) {
-    lines.push(yellow(`  ? ${notBundled.length} skills not bundled yet`));
-    for (const name of notBundled) {
-      lines.push(dim(`    ? ${name}`));
+  if (skillsUpdate.notBundled.length > 0) {
+    lines.push(yellow(`  ? ${skillsUpdate.notBundled.length} skills not bundled yet`));
+  }
+
+  // Agents section
+  if (agentsUpdate.updated.length > 0) {
+    lines.push(green(`  ~ ${agentsUpdate.updated.length} agents updated`));
+    for (const name of agentsUpdate.updated) {
+      lines.push(dim(`    ~ ${name}`));
     }
   }
 
+  if (agentsUpdate.unchanged.length > 0) {
+    lines.push(dim(`  = ${agentsUpdate.unchanged.length} agents unchanged`));
+  }
+
   lines.push("");
-  lines.push(dim(`  ${result.total} total skills in manifest`));
+  lines.push(dim(`  ${result.totalSkills} skills, ${result.totalAgents} agents in manifests`));
   lines.push("");
 
   return ok({ ...result, _display: lines.join("\n") } as unknown as UpdateResult);

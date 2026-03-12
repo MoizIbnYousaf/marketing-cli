@@ -1,0 +1,169 @@
+// mktg — Agent registry, install, and integrity verification
+// Reads agents-manifest.json, copies bundled agents to ~/.claude/agents/
+
+import { join, dirname } from "node:path";
+import { homedir } from "node:os";
+import type { AgentsManifest } from "../types";
+
+// Where agents get installed — auto-discovered by Claude Code
+const AGENTS_INSTALL_DIR = join(homedir(), ".claude", "agents");
+
+// Namespace prefix to avoid collisions with other agents
+const AGENT_PREFIX = "mktg-";
+
+// Resolve the package root (where agents-manifest.json lives)
+const getPackageRoot = (): string => {
+  const dir = import.meta.dir;
+  if (dir.endsWith("/core") || dir.endsWith("/core/")) {
+    return join(dir, "..", "..");
+  }
+  return join(dir, "..");
+};
+
+// Load the manifest from package root
+export const loadAgentManifest = async (): Promise<AgentsManifest> => {
+  const manifestPath = join(getPackageRoot(), "agents-manifest.json");
+  const file = Bun.file(manifestPath);
+  const exists = await file.exists();
+  if (!exists) {
+    throw new Error(`agents-manifest.json not found at ${manifestPath}`);
+  }
+  return file.json() as Promise<AgentsManifest>;
+};
+
+// Get all agent names from manifest
+export const getAgentNames = (manifest: AgentsManifest): string[] =>
+  Object.keys(manifest.agents);
+
+// Get the installed filename for an agent
+const installedName = (agentName: string): string =>
+  `${AGENT_PREFIX}${agentName}.md`;
+
+// Find the bundled agent source path
+const getBundledAgentPath = (manifest: AgentsManifest, agentName: string): string => {
+  const entry = manifest.agents[agentName];
+  if (!entry) throw new Error(`Agent ${agentName} not in manifest`);
+  return join(getPackageRoot(), "agents", entry.file);
+};
+
+// Check which agents are installed
+export const getAgentInstallStatus = async (
+  manifest: AgentsManifest,
+): Promise<Record<string, { installed: boolean; path: string }>> => {
+  const result: Record<string, { installed: boolean; path: string }> = {};
+
+  for (const name of getAgentNames(manifest)) {
+    const agentFile = join(AGENTS_INSTALL_DIR, installedName(name));
+    const exists = await Bun.file(agentFile).exists();
+    result[name] = { installed: exists, path: agentFile };
+  }
+
+  return result;
+};
+
+// Install all agents from the package to ~/.claude/agents/
+export const installAgents = async (
+  manifest: AgentsManifest,
+  dryRun: boolean = false,
+): Promise<{ installed: string[]; skipped: string[]; failed: string[] }> => {
+  const installed: string[] = [];
+  const skipped: string[] = [];
+  const failed: string[] = [];
+
+  // Ensure install dir exists
+  if (!dryRun) {
+    await Bun.$`mkdir -p ${AGENTS_INSTALL_DIR}`.quiet();
+  }
+
+  const writes: Promise<void>[] = [];
+
+  for (const name of getAgentNames(manifest)) {
+    const bundledPath = getBundledAgentPath(manifest, name);
+    const bundledFile = Bun.file(bundledPath);
+
+    const bundledExists = await bundledFile.exists();
+    if (!bundledExists) {
+      skipped.push(name);
+      continue;
+    }
+
+    if (dryRun) {
+      installed.push(name);
+      continue;
+    }
+
+    const installPath = join(AGENTS_INSTALL_DIR, installedName(name));
+
+    writes.push(
+      (async () => {
+        try {
+          const content = await bundledFile.text();
+          await Bun.write(installPath, content);
+          installed.push(name);
+        } catch {
+          failed.push(name);
+        }
+      })(),
+    );
+  }
+
+  await Promise.all(writes);
+
+  return { installed, skipped, failed };
+};
+
+// Update agents — re-copy bundled agents over installed ones
+export const updateAgents = async (
+  manifest: AgentsManifest,
+  dryRun: boolean = false,
+): Promise<{ updated: string[]; unchanged: string[]; notBundled: string[] }> => {
+  const updated: string[] = [];
+  const unchanged: string[] = [];
+  const notBundled: string[] = [];
+
+  for (const name of getAgentNames(manifest)) {
+    const bundledPath = getBundledAgentPath(manifest, name);
+    const installPath = join(AGENTS_INSTALL_DIR, installedName(name));
+
+    const bundledFile = Bun.file(bundledPath);
+    const installedFile = Bun.file(installPath);
+
+    const bundledExists = await bundledFile.exists();
+    if (!bundledExists) {
+      notBundled.push(name);
+      continue;
+    }
+
+    const installedExists = await installedFile.exists();
+    const bundledContent = await bundledFile.text();
+
+    if (installedExists) {
+      const installedContent = await installedFile.text();
+      if (bundledContent === installedContent) {
+        unchanged.push(name);
+        continue;
+      }
+    }
+
+    updated.push(name);
+    if (!dryRun) {
+      await Bun.write(installPath, bundledContent);
+    }
+  }
+
+  return { updated, unchanged, notBundled };
+};
+
+// Get the agents install directory path
+export const getAgentsInstallDir = (): string => AGENTS_INSTALL_DIR;
+
+// Synchronous manifest reader (cached)
+let _cachedAgentManifest: AgentsManifest | null = null;
+
+export const readAgentManifest = (): AgentsManifest => {
+  if (_cachedAgentManifest) return _cachedAgentManifest;
+  const manifestPath = join(getPackageRoot(), "agents-manifest.json");
+  const raw = require(manifestPath) as AgentsManifest;
+  _cachedAgentManifest = raw;
+  return raw;
+};

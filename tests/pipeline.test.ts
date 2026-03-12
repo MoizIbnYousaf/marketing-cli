@@ -156,8 +156,8 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     if (!result.ok) return;
 
     // After init + immediate update, all should be unchanged
-    expect(result.data.total).toBe(26);
-    expect(result.data.unchanged.length + result.data.updated.length + result.data.notBundled.length).toBe(26);
+    expect(result.data.totalSkills).toBe(26);
+    expect(result.data.skills.unchanged.length + result.data.skills.updated.length + result.data.skills.notBundled.length).toBe(26);
   });
 
   test("Step 8: re-init is idempotent", async () => {

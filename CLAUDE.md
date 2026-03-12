@@ -15,11 +15,12 @@ This needs to work on any machine — my Mac, a fresh VPS, anywhere. `mktg init`
 
 `mktg` is a TypeScript/Bun CLI that gives AI agents full CMO capabilities. One install = full marketing department.
 
-**Four components:**
+**Five components:**
 1. `mktg` CLI — infrastructure tool (5 commands: init, doctor, list, status, update)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
 4. 26 marketing skills — the knowledge (SKILL.md files agents read for domain expertise)
+5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
 
@@ -37,9 +38,14 @@ src/
 │   ├── output.ts       # JSON/TTY formatting, --fields filtering
 │   ├── errors.ts       # Structured errors, exit codes 0-6, sandboxPath()
 │   ├── brand.ts        # Brand dir management + freshness assessment
-│   └── skills.ts       # Skill registry, install, integrity verification
+│   ├── skills.ts       # Skill registry, install, integrity verification
+│   └── agents.ts       # Agent registry, install to ~/.claude/agents/
 skills/                  # 26 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
+agents/                  # 5 agent .md files installed to ~/.claude/agents/
+├── research/            # brand-researcher, audience-researcher, competitive-scanner
+└── review/              # content-reviewer, seo-analyst
+agents-manifest.json     # Definitive agent list with metadata
 ```
 
 - **Plan:** `docs/plans/2026-03-12-001-feat-mktg-cli-full-implementation-plan.md`
@@ -53,12 +59,14 @@ skills-manifest.json     # Definitive skill list with metadata
 2. **Agent-native** — Built for agents to run, not humans. Predictability over discoverability.
 3. **Self-bootstrapping** — `mktg init` installs everything on any machine.
 4. **Drop-in skills** — Add a skill by dropping SKILL.md + updating `skills-manifest.json`. No CLI code changes.
-5. **Skills never call skills** — Skills read/write files. `/cmo` orchestrates.
+5. **Drop-in agents** — Add an agent by dropping .md file in `agents/` + updating `agents-manifest.json`.
+6. **Skills never call skills** — Skills read/write files. `/cmo` orchestrates. Agents never call agents.
+7. **Parallel by default** — Foundation building spawns 3 research agents simultaneously via the Agent tool.
 
 ## Commands
 
 ```
-mktg init       — Detect project + build brand/ + install skills
+mktg init       — Detect project + build brand/ + install skills + install agents
 mktg doctor     — Health checks (brand files, skills, CLI tools)
 mktg list       — Show available skills with install status
 mktg status     — Project marketing state snapshot (JSON for agents)

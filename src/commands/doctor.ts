@@ -4,6 +4,7 @@
 import { ok, type CommandHandler } from "../types";
 import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames } from "../core/skills";
+import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { isTTY, writeStderr, green, red, yellow, dim, bold } from "../core/output";
 
 type CheckStatus = "pass" | "fail" | "warn";
@@ -107,6 +108,40 @@ const checkSkills = async (): Promise<Check[]> => {
   return checks;
 };
 
+// Check installed agents
+const checkAgents = async (): Promise<Check[]> => {
+  const checks: Check[] = [];
+
+  try {
+    const manifest = await loadAgentManifest();
+    const installStatus = await getAgentInstallStatus(manifest);
+    const total = getAgentNames(manifest).length;
+    const installed = Object.values(installStatus).filter((s) => s.installed).length;
+    const missing = total - installed;
+
+    if (missing === 0) {
+      checks.push({ name: "agents", status: "pass", detail: `${total} agents installed` });
+    } else {
+      const missingNames = Object.entries(installStatus)
+        .filter(([, s]) => !s.installed)
+        .map(([name]) => name);
+      checks.push({
+        name: "agents",
+        status: missing > total / 2 ? "fail" : "warn",
+        detail: `${installed}/${total} installed. Missing: ${missingNames.join(", ")}`,
+      });
+    }
+  } catch {
+    checks.push({
+      name: "agents",
+      status: "warn",
+      detail: "Agent manifest not found (optional)",
+    });
+  }
+
+  return checks;
+};
+
 // Check CLI tool availability
 const checkCLIs = async (): Promise<Check[]> => {
   const tools = [
@@ -134,13 +169,14 @@ const checkCLIs = async (): Promise<Check[]> => {
 
 export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
   // Run all checks in parallel
-  const [brandChecks, skillChecks, cliChecks] = await Promise.all([
+  const [brandChecks, skillChecks, agentChecks, cliChecks] = await Promise.all([
     checkBrand(flags.cwd),
     checkSkills(),
+    checkAgents(),
     checkCLIs(),
   ]);
 
-  const allChecks = [...brandChecks, ...skillChecks, ...cliChecks];
+  const allChecks = [...brandChecks, ...skillChecks, ...agentChecks, ...cliChecks];
   const hasFail = allChecks.some((c) => c.status === "fail");
   const passed = !hasFail;
 
@@ -160,6 +196,7 @@ export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
 
     printSection("Brand", brandChecks);
     printSection("Skills", skillChecks);
+    printSection("Agents", agentChecks);
     printSection("Tools", cliChecks);
 
     if (passed) {

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { ok, err, type CommandHandler, type CommandResult } from "../types";
 import { scaffoldBrand } from "../core/brand";
 import { loadManifest, installSkills, getSkillNames } from "../core/skills";
+import { loadAgentManifest, installAgents } from "../core/agents";
 import { missingInput, invalidArgs } from "../core/errors";
 import { isTTY, writeStderr, green, bold, dim, yellow } from "../core/output";
 import { handler as doctorHandler } from "./doctor";
@@ -12,6 +13,7 @@ import { handler as doctorHandler } from "./doctor";
 type InitResult = {
   readonly brand: { created: string[]; skipped: string[] };
   readonly skills: { installed: string[]; skipped: string[]; failed: string[] };
+  readonly agents: { installed: string[]; skipped: string[]; failed: string[] };
   readonly doctor: { passed: boolean };
   readonly project: { name: string; goal: string };
 };
@@ -129,7 +131,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   const projectName = input.business ?? project.name;
   const goal = input.goal ?? "launch";
 
-  const totalSteps = (initFlags.skipBrand ? 0 : 1) + (initFlags.skipSkills ? 0 : 1) + 1;
+  const totalSteps = (initFlags.skipBrand ? 0 : 1) + (initFlags.skipSkills ? 0 : 2) + 1;
   let step = 0;
 
   const stepLabel = () => {
@@ -176,7 +178,27 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
     }
   }
 
-  // Step 3: Run doctor
+  // Step 3: Install agents
+  let agentsResult = { installed: [] as string[], skipped: [] as string[], failed: [] as string[] };
+  if (!initFlags.skipSkills) {
+    if (isTTY() && !flags.json) {
+      writeStderr(`${stepLabel()} Installing marketing agents...`);
+    }
+    try {
+      const agentManifest = await loadAgentManifest();
+      agentsResult = await installAgents(agentManifest, flags.dryRun);
+      if (isTTY() && !flags.json) {
+        const total = agentsResult.installed.length;
+        writeStderr(`  ${green("✓")} ${total} agents installed to ~/.claude/agents/`);
+      }
+    } catch (e) {
+      if (isTTY() && !flags.json) {
+        writeStderr(`  ${yellow("●")} Could not install agents: ${e instanceof Error ? e.message : "unknown error"}`);
+      }
+    }
+  }
+
+  // Step 4: Run doctor
   if (isTTY() && !flags.json) {
     writeStderr(`${stepLabel()} Running health check...`);
   }
@@ -196,6 +218,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   return ok({
     brand: brandResult,
     skills: skillsResult,
+    agents: agentsResult,
     doctor: { passed: doctorPassed },
     project: { name: projectName, goal },
   });
