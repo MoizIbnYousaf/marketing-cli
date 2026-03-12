@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vibemarketing.dev/schemas/ad-matrix.schema.json",
+  "title": "Ad Testing Matrix",
+  "description": "Structured 12-ad testing matrix produced by /positioning-angles and /creative (ad mode). Maps hooks against formats to create a systematic ad testing grid. Designed for downstream automation -- feeding ad variants to Meta Ads, Google Ads, or other ad platforms for campaign creation.",
+  "type": "object",
+  "required": [
+    "matrix_name",
+    "created_date",
+    "hooks",
+    "formats",
+    "cells"
+  ],
+  "properties": {
+    "matrix_name": {
+      "type": "string",
+      "description": "Human-readable name for this test matrix, e.g. 'Q1 Launch Ad Matrix' or 'Lead Magnet Promotion Tests'.",
+      "minLength": 1
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date when this matrix was created."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "The skill that created this matrix, e.g. '/positioning-angles' or '/creative'."
+    },
+    "campaign_ref": {
+      "type": "string",
+      "description": "Path to the campaign this matrix belongs to, e.g. './campaigns/q1-launch/'."
+    },
+    "positioning_angle": {
+      "type": "string",
+      "description": "The positioning angle being tested across all ads in this matrix."
+    },
+    "target_audience": {
+      "type": "string",
+      "description": "The audience segment these ads target, e.g. 'Freelancers making $3-8k/month'."
+    },
+    "destination_url": {
+      "type": "string",
+      "description": "Landing page URL (or placeholder) that all ads in this matrix drive to."
+    },
+    "hooks": {
+      "type": "array",
+      "description": "The hook variations (rows in the matrix). Each hook is a different messaging angle or opening.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["hook_id", "hook_name", "hook_text"],
+        "properties": {
+          "hook_id": {
+            "type": "string",
+            "description": "Short identifier for this hook, e.g. 'H1', 'H2', 'H3'."
+          },
+          "hook_name": {
+            "type": "string",
+            "description": "Descriptive name for the hook angle, e.g. 'Pain Point', 'Social Proof', 'Curiosity Gap', 'Direct Benefit'."
+          },
+          "hook_text": {
+            "type": "string",
+            "description": "The actual hook copy or headline, e.g. 'Most freelancers undercharge by 40%. Here is the fix.'"
+          },
+          "psychology": {
+            "type": "string",
+            "description": "The persuasion principle at work, e.g. 'Loss aversion', 'Authority + specificity', 'Pattern interrupt'."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "formats": {
+      "type": "array",
+      "description": "The format variations (columns in the matrix). Each format is a different ad creative type.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["format_id", "format_name"],
+        "properties": {
+          "format_id": {
+            "type": "string",
+            "description": "Short identifier for this format, e.g. 'F1', 'F2', 'F3', 'F4'."
+          },
+          "format_name": {
+            "type": "string",
+            "description": "Creative format type, e.g. 'Static Image', 'Carousel', 'Short Video', 'UGC-Style'."
+          },
+          "platform": {
+            "type": "string",
+            "description": "Primary platform this format is optimized for, e.g. 'Meta', 'Google', 'LinkedIn', 'TikTok'."
+          },
+          "dimensions": {
+            "type": "string",
+            "description": "Image/video dimensions, e.g. '1080x1080', '1080x1920', '1200x628'."
+          },
+          "specs": {
+            "type": "string",
+            "description": "Any format-specific requirements, e.g. 'Max 30 seconds', '2-10 carousel cards', 'Text overlay under 20%'."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "cells": {
+      "type": "array",
+      "description": "The individual ad variants. Each cell is one hook crossed with one format, producing a unique ad creative.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["cell_id", "hook_id", "format_id"],
+        "properties": {
+          "cell_id": {
+            "type": "string",
+            "description": "Unique identifier for this cell, e.g. 'H1-F1', 'H2-F3'."
+          },
+          "hook_id": {
+            "type": "string",
+            "description": "Reference to the hook used in this cell."
+          },
+          "format_id": {
+            "type": "string",
+            "description": "Reference to the format used in this cell."
+          },
+          "headline": {
+            "type": "string",
+            "description": "Ad headline text for this specific variant."
+          },
+          "body_copy": {
+            "type": "string",
+            "description": "Ad body copy for this variant."
+          },
+          "cta_text": {
+            "type": "string",
+            "description": "Call-to-action button text, e.g. 'Download Free', 'Learn More', 'Get Started'."
+          },
+          "image_prompt": {
+            "type": "string",
+            "description": "AI image generation prompt for this ad creative (used by /creative)."
+          },
+          "image_path": {
+            "type": "string",
+            "description": "Path to the generated image file, if it exists."
+          },
+          "video_prompt": {
+            "type": "string",
+            "description": "AI video generation prompt for this ad creative (if video format)."
+          },
+          "video_path": {
+            "type": "string",
+            "description": "Path to the generated video file, if it exists."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "copy-ready", "creative-ready", "live", "paused", "completed"],
+            "description": "Current production status of this ad variant."
+          },
+          "performance": {
+            "type": "object",
+            "description": "Performance data once the ad is live. Populated after launch.",
+            "properties": {
+              "impressions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total impressions served."
+              },
+              "clicks": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total clicks."
+              },
+              "ctr": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Click-through rate as a percentage."
+              },
+              "conversions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total conversions (as defined by campaign goal)."
+              },
+              "cpa": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Cost per acquisition."
+              },
+              "spend": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Total ad spend on this variant."
+              },
+              "notes": {
+                "type": "string",
+                "description": "Performance observations, e.g. 'Best performer in first 48 hours'."
+              }
+            },
+            "additionalProperties": false
+          },
+          "notes": {
+            "type": "string",
+            "description": "Any additional notes about this specific ad variant."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "test_plan": {
+      "type": "object",
+      "description": "How to run the test systematically.",
+      "properties": {
+        "budget": {
+          "type": "string",
+          "description": "Recommended total test budget, e.g. '$500' or '$50/variant'."
+        },
+        "duration_days": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Recommended test duration in days."
+        },
+        "success_metric": {
+          "type": "string",
+          "description": "Primary metric to judge winners, e.g. 'CTR', 'CPA', 'Conversion rate'."
+        },
+        "kill_criteria": {
+          "type": "string",
+          "description": "When to kill underperformers, e.g. 'Under 0.5% CTR after 1000 impressions'."
+        },
+        "scale_criteria": {
+          "type": "string",
+          "description": "When to scale winners, e.g. 'Over 2% CTR after 48 hours'."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
