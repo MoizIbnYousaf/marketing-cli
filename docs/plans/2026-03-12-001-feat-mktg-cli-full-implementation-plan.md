@@ -12,21 +12,28 @@ deepened: 2026-03-12
 ## Enhancement Summary
 
 **Deepened on:** 2026-03-12
-**Agents used:** 13 (TypeScript reviewer, architecture strategist, security sentinel, performance oracle, pattern recognition, code simplicity, agent-native architecture, agent-native parity, best practices research, Bun docs research, v2 skills audit, marketingskills audit, phantom skills audit)
+**Refined on:** 2026-03-12
+**Agents used:** 13 initial + 5 refinement (skill consolidation, workflow chains, token budget, agent UX simulation, competitive patterns)
 
 ### Key Improvements
 
-1. **Radical simplification** — 13 commands → 5 core commands. The CLI is an installer + health checker, not a content orchestration platform. The 29 SKILL.md files ARE the product; the agent reads them and acts.
-2. **Revised skill inventory** — 43 source skills → 31 final (11 v2 all kept + 18 from marketingskills after cuts/merges + 2 new phantom skills to build). 10 marketingskills cut, 6 merged into 2.
-3. **Type-safe foundation** — `src/types.ts` with discriminated unions (`CommandResult<T>`), `tsconfig.json` with `strict` + `noUncheckedIndexedAccess`, `parseArgs` from `node:util`.
-4. **Security hardening** — `sandboxPath()` utility, argument arrays for all subprocesses (never shell interpolation), SHA-256 integrity hashes for skill installation, rate limiting for external actions.
-5. **Agent-native gaps filled** — `mktg status --json`, `--cwd` flag for multi-project, non-TTY never prompts, `--version` support, dynamic type discovery.
+1. **Radical simplification** — 13 commands → 5 core commands. The CLI is an installer + health checker, not a content orchestration platform.
+2. **Consolidated skill inventory** — 43 source → 31 after audit → **24 final** after refinement (5 merges + 2 absorptions into /cmo). Zero methodology lost.
+3. **Token budget trimmed** — ~280K tokens → ~218K tokens (22% reduction) via deduplication and lazy-loading references. Every SKILL.md targets <800 lines.
+4. **Agent UX blockers fixed** — `/cmo` skill is #1 priority, `_system/` path references inlined, disambiguation matrix added, stale SaaS references scrubbed.
+5. **Extensibility architecture** — Drop-in skill format, manifest-driven registry, `/cmo` reads manifest dynamically. "Add a skill" = drop SKILL.md + update manifest. Agent can do this autonomously.
+6. **Type-safe foundation** — `src/types.ts` with discriminated unions (`CommandResult<T>`), `tsconfig.json` with `strict` + `noUncheckedIndexedAccess`, `parseArgs` from `node:util`.
+7. **Security hardening** — `sandboxPath()` utility, argument arrays for all subprocesses, SHA-256 integrity hashes, rate limiting for external actions.
 
-### Critical Architectural Insight
+### Critical Architectural Insights
 
-> **The 29 SKILL.md files are the product, not the CLI.** The CLI's job is to get skills installed and brand/ scaffolded. Content generation, social posting, emailing — the agent does all of that by reading skills and calling tools directly. Building CLI wrappers around things the agent already knows how to do is redundant.
+> **The SKILL.md files are the product, not the CLI.** The CLI's job is to get skills installed and brand/ scaffolded. Everything else — the agent handles by reading skills and calling tools directly.
 >
 > — Code Simplicity Review
+
+> **The system must grow without code changes.** Adding a new marketing skill should never require touching CLI source code, rebuilding, or redeploying. Drop a SKILL.md, update the manifest, run `mktg update`. That's it.
+>
+> — Extensibility Principle
 
 ---
 
@@ -133,15 +140,66 @@ Three parallel audit agents analyzed all 43 source skills. Results:
 | **audience-research** | CRITICAL | `brand/audience.md` | 8 of 11 v2 skills read it |
 | **competitive-intel** | HIGH | `brand/competitors.md` | keyword-research, positioning-angles |
 
-### Final Skill Count: 31
+### Final Skill Count: 24 (revised from 31 after refinement agents)
 
-- 11 v2 deep skills (2 need modification)
-- 18 marketingskills (16 standalone + 2 merged from 6)
-- 2 new skills to build (audience-research, competitive-intel)
+**Refinement consolidation (31 → 24, -7 skills, -1,309 lines, zero methodology lost):**
+
+| Action | From | To | Skills Removed | Lines Saved |
+|--------|------|-----|:--------------:|------------:|
+| Merge A | seo-audit + site-architecture + schema-markup | seo-audit (3 modes: audit/architecture/schema) | 2 | ~448 |
+| Merge B | cold-email + copy-editing + direct-response-copy | direct-response-copy (3 modes: generate/cold-email/edit) | 2 | ~147 |
+| Merge C | marketing-ideas | /cmo references (ideas library) | 1 | ~167 |
+| Merge D | analytics-tracking | /cmo references (tracking guide) | 1 | ~309 |
+| Mode 1 | programmatic-seo | seo-content (scale mode) | 1 | ~238 |
+
+**Final 24 skills:**
+
+| # | Skill | Category | Notes |
+|---|-------|----------|-------|
+| 1 | `/cmo` | Foundation | Orchestrator + marketing-ideas ref + analytics ref |
+| 2 | `brand-voice` | Foundation | Voice DNA |
+| 3 | `positioning-angles` | Foundation | Positioning + angles |
+| 4 | `audience-research` | Foundation | Phantom — must build. 8 skills depend on it. |
+| 5 | `competitive-intel` | Foundation | Phantom — must build. |
+| 6 | `keyword-research` | Strategy | 6 Circles Method |
+| 7 | `launch-strategy` | Strategy | 5-phase launch framework |
+| 8 | `pricing-strategy` | Strategy | Van Westendorp, value-based |
+| 9 | `direct-response-copy` | Copy & Content | + cold-email mode + edit mode |
+| 10 | `seo-content` | Copy & Content | + programmatic-seo scale mode |
+| 11 | `lead-magnet` | Copy & Content | Concept + build |
+| 12 | `content-atomizer` | Distribution | 8-platform repurposing |
+| 13 | `email-sequences` | Distribution | 6 sequence types |
+| 14 | `newsletter` | Distribution | Editorial newsletters |
+| 15 | `creative` | Creative | 5 visual modes |
+| 16 | `seo-audit` | SEO | + architecture mode + schema mode |
+| 17 | `ai-seo` | SEO | AI search optimization |
+| 18 | `competitor-alternatives` | SEO | Comparison/alternative pages |
+| 19 | `page-cro` | Conversion | Landing + form + popup |
+| 20 | `conversion-flow-cro` | Conversion | Signup + onboarding + paywall |
+| 21 | `churn-prevention` | Growth | Cancel flows + dunning |
+| 22 | `referral-program` | Growth | Viral loops |
+| 23 | `free-tool-strategy` | Growth | Engineering as marketing |
+| 24 | `marketing-psychology` | Knowledge | 50+ psych principles |
+
+**Minimum viable for 90% coverage: 13 skills** (/cmo + skills 2-13). The remaining 11 ship but activate only when relevant.
+
+### Token Budget (from refinement analysis)
+
+**Current:** ~280K tokens across 71 files. **Target:** ~218K tokens (22% reduction).
+
+**Priority trimming:**
+1. Deduplicate Brand Memory / Output Format / Feedback sections repeated across 10 skills (~18K savings)
+2. Extract inline reference material to lazy-loaded files (~25K savings)
+3. Split oversized creative mode files (~15K savings)
+4. Trim output-format template library (~4K savings)
+
+**Target per SKILL.md:** <800 lines (~5K tokens). Model to follow: `positioning-angles` (767 lines + 5 reference files) and `remotion-best-practices` (61-line router + 37 granular rules).
 
 ### Integration Tools: All Dropped
 
-The entire `all-skills/marketingskills/tools/` directory (68 tools) is dropped. Every tool requires external SaaS API keys, violating the "no external SaaS" constraint. CLI-only integrations remain: `gws`, `playwright-cli`, `ffmpeg`, `gh`, Exa MCP.
+The entire `all-skills/marketingskills/tools/` directory (68 tools) is dropped. Every tool requires external SaaS API keys. CLI-only integrations remain: `gws`, `playwright-cli`, `ffmpeg`, `gh`, Exa MCP.
+
+**Stale SaaS references to scrub from v2 skills:** Mailchimp, ConvertKit, HubSpot, Buffer, Hootsuite, Replicate — all boomer-era dashboard tools. Replace with agentic tool detection via `brand/stack.md`. Skills should reference `gws` for email, `playwright-cli`/`ply` for social, `remotion` for video, `exa` for research.
 
 ---
 
@@ -171,30 +229,7 @@ skills-manifest.json          # Definitive skill list with metadata (name, sourc
 tsconfig.json                 # strict, noUncheckedIndexedAccess, exactOptionalPropertyTypes
 ```
 
-### Research Insights: Architecture Changes
-
-**Removed from original plan (per simplicity + agent-native reviews):**
-- `src/commands/launch.ts` — Agent follows skills directly, composes primitives
-- `src/commands/content.ts` — Skill-guided, not CLI-routed
-- `src/commands/social.ts` — Agent calls content-atomizer skill directly
-- `src/commands/calendar.ts` — Agent reasons from keyword-research + brand voice
-- `src/commands/post.ts` — `/cmo` instructs agent to call `playwright-cli` directly
-- `src/commands/email.ts` — `/cmo` instructs agent to call `gws` directly
-- `src/commands/audit.ts` — Agent uses direct-response-copy scoring rubric
-- `src/commands/test.ts` — Moved to `bun test` (tests/ directory)
-- `src/commands/schema.ts` — Over-engineering for 5 commands; `--help --json` suffices
-- `src/core/input.ts` — Validation logic merged into `errors.ts`
-- `src/core/config.ts` — No config file needed; brand/ is the config
-- `src/skills/context-matrix.ts` — Merged into `core/brand.ts`
-- `src/integrations/*` — Agent calls tools directly via skill instructions
-
-**Added (per agent-native + TypeScript + security reviews):**
-- `src/types.ts` — Shared type system (see TypeScript section below)
-- `src/commands/status.ts` — Project marketing state summary (most important missing command)
-- `skills-manifest.json` — Definitive skill list, replaces directory scanning
-- `tsconfig.json` — Strict mode configuration
-
-### Research Insights: TypeScript Type System
+### TypeScript Type System
 
 Define these before writing any commands (`src/types.ts`):
 
@@ -243,21 +278,23 @@ export type SkillCategory =
   | "foundation" | "strategy" | "copy-content" | "distribution"
   | "creative" | "conversion" | "seo" | "growth" | "knowledge";
 
+export type SkillLayer = "foundation" | "strategy" | "execution" | "distribution";
+
 export type SkillMeta = {
   readonly name: string;
   readonly source: SkillSource;
   readonly category: SkillCategory;
-  readonly requiredBrandFiles: readonly BrandFile[];
+  readonly layer: SkillLayer;
+  readonly reads: readonly BrandFile[];
+  readonly writes: readonly BrandFile[];
+  readonly dependsOn: readonly string[];
+  readonly triggers: readonly string[];
   readonly tier: "must-have" | "nice-to-have";
+  readonly reviewIntervalDays: number;
 };
-
-// Brand freshness
-export type FreshnessLevel = "current" | "dated" | "stale" | "expired";
 ```
 
-### Research Insights: Command Router
-
-Use a lazy-loading registry (not a switch statement):
+### Command Router
 
 ```typescript
 // src/cli.ts
@@ -270,11 +307,7 @@ const commands: Record<string, () => Promise<{ handler: CommandHandler }>> = {
 };
 ```
 
-Benefits: lazy loading (unused commands don't slow startup), type safety (every module must export `handler`), single source of truth for command registration.
-
-### Research Insights: Flag Parsing
-
-Use `parseArgs` from `node:util` (zero dependencies, Bun-compatible):
+### Flag Parsing
 
 ```typescript
 const { values, positionals } = parseArgs({
@@ -292,9 +325,7 @@ const { values, positionals } = parseArgs({
 });
 ```
 
-### Research Insights: Output Formatting
-
-Centralize in `output.ts` — commands return data, output formats it:
+### Output Formatting
 
 ```typescript
 export const formatOutput = <T>(
@@ -310,37 +341,13 @@ export const formatOutput = <T>(
 };
 ```
 
-### Research Insights: Bun-Specific Patterns
+### Bun Patterns
 
-From Bun framework docs research:
+- `Bun.file()` / `Bun.write()` for file I/O, `Bun.$` for subprocesses, `Bun.which()` for tool detection, `Bun.Glob` for scanning
+- `bun test` with `bun:test` imports — zero setup
+- `--target node` in build for npm portability, `#!/usr/bin/env bun` shebang for direct execution
 
-- **File I/O:** Use `Bun.file()` (lazy, Blob interface) and `Bun.write()` (10x faster than `fs.writeFile`)
-- **Subprocesses:** Use `Bun.$` shell for external CLI calls, `.quiet()` to capture output, `.nothrow()` for error handling
-- **Tool detection:** Use `Bun.which()` (synchronous, native) instead of `which` shell command
-- **Glob:** Use `new Bun.Glob("**/*.md")` with `.scan()` — native, faster than npm alternatives
-- **Testing:** Built-in `bun test` with `bun:test` imports — Jest-compatible, no setup
-- **Build target:** Keep `--target node` in build for npm portability, but use `#!/usr/bin/env bun` shebang for direct execution
-- **Startup:** Bun starts ~4x faster than Node — critical for CLI where agents call commands in tight loops
-
-```typescript
-// Shared subprocess helper using Bun shell
-import { $ } from "bun";
-
-export const runCLI = async (command: string, args: readonly string[]) => {
-  const which = Bun.which(command);
-  if (!which) {
-    return { ok: false, exitCode: 3 as const, error: {
-      code: "DEPENDENCY_MISSING",
-      message: `${command} not found on PATH`,
-      suggestions: [`Install ${command}`],
-    }};
-  }
-  const result = await $`${command} ${args.join(" ")}`.quiet().nothrow();
-  return { ok: result.exitCode === 0, stdout: result.stdout.toString(), exitCode: result.exitCode };
-};
-```
-
-### Research Insights: tsconfig.json
+### tsconfig.json
 
 ```json
 {
@@ -361,7 +368,154 @@ export const runCLI = async (command: string, args: readonly string[]) => {
 }
 ```
 
-`noUncheckedIndexedAccess` forces handling `undefined` when indexing arrays/records — exactly the defensiveness input hardening needs.
+---
+
+## Extensibility & Compounding Architecture
+
+The core design question: **how does an agent add a new marketing skill tomorrow without touching CLI source code?**
+
+### The Drop-In Skill Contract
+
+Every skill is a directory with one required file:
+
+```
+skills/
+└── my-new-skill/
+    ├── SKILL.md           # REQUIRED — the skill itself
+    └── references/        # OPTIONAL — lazy-loaded deep content
+        ├── examples.md
+        └── frameworks.md
+```
+
+**SKILL.md format contract** (the only thing a skill author needs to know):
+
+```markdown
+---
+name: my-new-skill
+description: One line — what this skill does
+category: foundation | strategy | copy-content | distribution | creative | seo | conversion | growth | knowledge
+tier: must-have | nice-to-have
+reads: [voice-profile.md, positioning.md]   # brand files this skill needs
+writes: [keyword-plan.md]                    # brand files this skill owns (exclusive)
+triggers: ["find keywords", "keyword research", "SEO topics"]  # natural language triggers for /cmo routing
+---
+
+## On Activation
+[What the agent does when this skill is invoked]
+
+## Workflow
+[Step-by-step instructions]
+
+## Output
+[What gets produced and where]
+```
+
+**That's it.** Follow the contract, drop the file, update the manifest. The skill works.
+
+### skills-manifest.json — The Registry
+
+```json
+{
+  "version": 1,
+  "skills": {
+    "brand-voice": {
+      "source": "v2",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": ["voice-profile.md"],
+      "writes": ["voice-profile.md"],
+      "depends_on": [],
+      "triggers": ["brand voice", "voice profile", "tone of voice"],
+      "review_interval_days": 90
+    }
+  },
+  "redirects": {
+    "copywriting": "direct-response-copy",
+    "content-strategy": "keyword-research",
+    "social-content": "content-atomizer",
+    "email-sequence": "email-sequences"
+  }
+}
+```
+
+**Key design decisions:**
+- `/cmo` reads this manifest dynamically — never hardcodes skill names
+- `redirects` map CUT/renamed skills to their replacements (agents never hit dead ends)
+- `writes` fields enforce ownership — only one skill can write to each brand file
+- `triggers` enable fuzzy routing — `/cmo` matches user intent to skills
+
+### How an Agent Adds a New Skill
+
+Scenario: "Hey agent, I found a great Twitter/X growth strategy. Add it to mktg."
+
+1. Agent creates `skills/x-growth/SKILL.md` following the contract
+2. Agent adds entry to `skills-manifest.json` with category, triggers, reads/writes
+3. Agent runs `mktg update` — skill gets installed to `~/.claude/skills/x-growth/`
+4. Agent runs `mktg doctor` — verifies the new skill passes health checks
+5. Next time `/cmo` is invoked, it reads the manifest and sees the new skill
+6. Done. No CLI code changes. No rebuild. No redeploy.
+
+### How Knowledge Compounds
+
+**Per-session:** `brand/learnings.md` (append-only) captures what worked and what didn't. Every skill's output section includes: "Append what worked/didn't to `brand/learnings.md`."
+
+**Per-skill:** Skills that read `learnings.md` adapt their approach. If a previous email sequence had 45% open rate with curiosity-gap subjects, `email-sequences` will lean into that pattern next time.
+
+**Per-project:** The `brand/` directory IS the compound memory. It grows richer with every marketing session. Skills at L0 (no context) produce generic output. At L4 (full brand context), they produce highly targeted, brand-consistent output.
+
+**Cross-project:** When you run `mktg init` on a new project, the skills are already installed globally. The agent already knows HOW to do marketing. Only the `brand/` context is project-specific. The learnings from CEO app's marketing make the skills themselves better (via skill updates), which benefits Halaali, HalalScreen, and every future project.
+
+### Growth Vectors
+
+| Vector | How It Works | Example |
+|--------|-------------|---------|
+| **New skill** | Drop SKILL.md + manifest entry | "Add a podcast marketing skill" |
+| **Skill mode** | Add mode file to existing skill's `modes/` | "Add a LinkedIn mode to content-atomizer" |
+| **Reference material** | Add to skill's `references/` | "Add B2B SaaS examples to direct-response-copy" |
+| **Brand enrichment** | Agent writes richer brand files over time | Voice profile gains nuance with each campaign |
+| **Learnings compounding** | `brand/learnings.md` grows with each session | "Listicle headlines outperform question headlines for this audience" |
+| **Skill improvement** | Agent rewrites SKILL.md based on learnings | "email-sequences could be better at segmentation — let me improve it" |
+
+### Workflow Chains (from refinement analysis)
+
+**First 30 minutes redesigned:** Run 3 foundation skills in parallel (brand-voice + audience-research + competitive-intel) instead of 2. Then positioning-angles. Then first execution skill. User gets 4/7 brand files + a tangible deliverable within 30 min.
+
+**Critical fix — structured handoffs:** Skills currently write free-form markdown but downstream skills need specific fields. Fix: YAML front-matter on all skill outputs (title, hook, headline, etc.) so the next skill in the chain can parse reliably.
+
+**Gateway skills ranked by unlock count:**
+1. `brand-voice` — unlocks 9 skills
+2. `audience-research` — unlocks 8 (phantom, must build first)
+3. `positioning-angles` — unlocks 6
+4. `competitive-intel` — unlocks 4 (phantom, must build)
+
+**Key constraint from competitive research:** **Skills never call skills.** Skills read/write files, `/cmo` orchestrates. Prevents God-skill antipattern. (Mirrors GitHub Actions model.)
+
+### Competitive Patterns to Adopt
+
+From competitive patterns research (refine-5):
+
+| Pattern | Source | How We Apply It |
+|---------|--------|----------------|
+| Skill dependency DAG | dbt's `ref()` model | Add `depends_on` to `skills-manifest.json` — agent knows prerequisite order |
+| Four skill layers | dbt (source/staging/intermediate/mart) | Classify skills: Foundation → Strategy → Execution → Distribution |
+| Review intervals per output | agent-skill-creator | `review_interval_days` in manifest replaces arbitrary freshness tiers |
+| Named workflow recipes | ActiveCampaign | Serializable chain definitions in `/cmo` the agent can execute deterministically |
+| Content readiness scoring | MarketMuse | `readiness_score` percentage in `mktg status --json` |
+| 30/70 create/distribute ratio | Solo founder consensus | Encode as planning heuristic in `/cmo` |
+| Skills never call skills | GitHub Actions | Skills read/write files only. `/cmo` orchestrates. |
+
+### Agent-Driven Skill Improvement Protocol
+
+When an agent notices a skill could be better (e.g., missing a framework, outdated pattern, weak in a specific area):
+
+1. Agent reads current SKILL.md
+2. Agent writes improved version to `skills/[name]/SKILL.md`
+3. Agent updates manifest if triggers/reads/writes changed
+4. Agent runs `mktg update` to install the improved version
+5. Agent appends to `brand/learnings.md`: "Improved [skill] — added [what]"
+
+This means **the marketing system gets smarter every time an agent uses it**. Not just the brand context — the skills themselves evolve.
 
 ---
 
@@ -376,7 +530,7 @@ export const runCLI = async (command: string, args: readonly string[]) => {
 1. **Type system + config** (`src/types.ts`, `tsconfig.json`, `skills-manifest.json`)
    - Define all shared types: `CommandResult<T>`, `CommandHandler`, `MktgError`, `GlobalFlags`, `BrandFile`, `SkillMeta`, `FreshnessLevel`
    - Create `tsconfig.json` with strict mode
-   - Create `skills-manifest.json` with all 31 skills' metadata (name, source, category, tier, requiredBrandFiles)
+   - Create `skills-manifest.json` with all 24 skills' metadata (name, source, category, tier, reads, writes, triggers) + redirects for CUT skills
 
 2. **Core infrastructure** (`src/core/`)
    - `output.ts` — Generic `formatOutput<T>`, JSON/TTY auto-detection, `--fields` filtering. Only `cli.ts` calls `process.exit()` (error boundary pattern).
@@ -389,7 +543,7 @@ export const runCLI = async (command: string, args: readonly string[]) => {
    - Interactive two-question onboarding only when TTY
    - Project detection: scan for package.json, README, existing brand/
    - Scaffold `brand/` directory with 9 template files (7 profile + 2 append-only)
-   - Install 31 skills to `~/.claude/skills/` using parallel `Bun.write()` with `Promise.all()`
+   - Install 24 skills to `~/.claude/skills/` using parallel `Bun.write()` with `Promise.all()`
    - Install `/cmo` skill
    - Auto-call doctor handler (in-process import, not subprocess)
    - `--json`, `--dry-run`, `--cwd` support
@@ -432,30 +586,53 @@ export const runCLI = async (command: string, args: readonly string[]) => {
    - `--version` returns `{"version": "0.1.0"}` in JSON mode
    - Only `cli.ts` calls `process.exit()` — commands return `CommandResult`
 
-9. **`/cmo` skill** (`skills/cmo/SKILL.md`)
+9. **`/cmo` skill** (`skills/cmo/SKILL.md`) — **#1 PRIORITY (from agent UX simulation)**
    - Single file under 300 lines (not 5 separate reference docs)
    - Absorbs `start-here` orchestration logic
-   - Absorbs `_system/brand-memory.md` and `_system/output-format.md`
-   - Contains inline: CLI reference, 7 workflows (as suggested patterns, not enforced sequences), brand memory rules, context matrix guidance, safety rules
-   - Key agent instructions: always run `mktg status --json` first, use `--dry-run` before external actions, call `playwright-cli`/`gws` directly for distribution
+   - Absorbs `_system/brand-memory.md` and `_system/output-format.md` — **INLINE, not by path reference** (skills installed to `~/.claude/skills/` won't have `_system/` next to them)
+   - Contains inline: CLI reference, 7 workflows, brand memory rules, context matrix, safety rules
+   - **Disambiguation matrix** — maps common requests to exactly one skill (e.g., "launch emails" → `email-sequences`, not `launch-strategy`)
+   - **Redirect table** — maps CUT skill names to replacements (reads from `skills-manifest.json`)
+   - **Missing context resolution** — when `audience.md` is missing, gather info ONCE and write it before proceeding (don't re-ask per skill)
+   - **Context switch protocol** — "When switching projects: (1) `mktg status --json --cwd <target>`, (2) verify project name, (3) never carry brand context across"
+   - **Skill improvement protocol** — agents can improve skills by rewriting SKILL.md + running `mktg update`
+   - Key agent instructions: always run `mktg status --json` first, use `--dry-run` before external actions, call agentic tools directly for distribution
+   - **References dir:** `skills/cmo/references/` with `ideas-library.md` (absorbed from marketing-ideas) and `analytics-guide.md` (absorbed from analytics-tracking)
 
 10. **Phantom skills** (write SKILL.md for each)
     - `audience-research` — Community mining, buyer profiles, watering holes. Owns `brand/audience.md`. 8 skills depend on its output.
     - `competitive-intel` — Competitor teardowns via web search. Owns `brand/competitors.md`. keyword-research and positioning-angles depend on it.
 
-11. **Skill modifications**
+11. **Skill modifications + consolidation merges**
     - `creative` — Provider-agnostic rewrite: make prompt-only the primary mode, remove hardcoded model names, add model registry via `brand/stack.md`
     - `start-here` — Merge orchestration logic into `/cmo`, keep as a stripped-down routing reference
     - `page-cro` — Absorb unique patterns from form-cro and popup-cro
     - Create `conversion-flow-cro` — Merge signup-flow-cro + onboarding-cro + paywall-upgrade-cro
+    - `seo-audit` — Absorb site-architecture + schema-markup as modes (Merge A)
+    - `direct-response-copy` — Add cold-email mode + edit mode from copy-editing (Merge B)
+    - `seo-content` — Add programmatic-seo as scale mode (Mode 1)
+    - `marketing-ideas` → `/cmo` references (Merge C)
+    - `analytics-tracking` → `/cmo` references (Merge D)
+    - **Scrub all stale SaaS references** from every v2 skill — replace with agentic tool detection
+
+12. **Structured handoff format** (from workflow chain analysis)
+    - Define YAML front-matter schema for all skill outputs (title, type, skill, date, key fields)
+    - Downstream skills parse front-matter to extract structured data instead of regex-matching free-form markdown
+    - Add `content-atomizer` promotion mode (repurpose content to promote a lead magnet/newsletter, not just atomize it)
+
+13. **Token trimming pass** (from token budget analysis)
+    - Strip duplicate Brand Memory / Output Format / Feedback sections from all SKILL.md files → single-line references (~18K tokens saved)
+    - Extract inline reference material to `references/` dirs (~25K tokens saved)
+    - Split oversized creative mode files (talking-head.md, ad-creative.md) into core + reference appendices (~15K tokens saved)
+    - Target: every SKILL.md under 800 lines
 
 **Success criteria:**
 - [ ] `mktg init` on a fresh project creates brand/ with 9 files
-- [ ] `mktg init` installs 31 skills to `~/.claude/skills/` with parallel writes
+- [ ] `mktg init` installs 24 skills to `~/.claude/skills/` with parallel writes
 - [ ] `mktg init --json '{"business":"CEO app","goal":"launch"}'` works non-interactively
 - [ ] Non-TTY stdin never prompts — emits `MISSING_INPUT` error
 - [ ] `mktg doctor` reports all-green after clean init (parallel checks)
-- [ ] `mktg list --json` shows all 31 skills with correct categories
+- [ ] `mktg list --json` shows all 24 skills with correct categories
 - [ ] `mktg status --json` returns brand state + content counts
 - [ ] `mktg --help --json` returns structured command list
 - [ ] `mktg --version` outputs version
@@ -464,9 +641,15 @@ export const runCLI = async (command: string, args: readonly string[]) => {
 - [ ] Structured errors with correct exit codes (0-6)
 - [ ] `sandboxPath()` rejects path traversal, absolute paths, symlinks
 - [ ] Skill installation verifies SHA-256 integrity
-- [ ] `/cmo` skill is complete single-file with all orchestration knowledge
+- [ ] `/cmo` skill is complete with disambiguation matrix, redirect table, context switch protocol, skill improvement protocol
 - [ ] `audience-research` and `competitive-intel` SKILL.md files written
 - [ ] `creative` skill reworked to be provider-agnostic
+- [ ] All 5 consolidation merges complete (31→24 skills)
+- [ ] Every SKILL.md under 800 lines (token trimming pass)
+- [ ] Zero stale SaaS references in any skill file
+- [ ] `_system/` path references replaced with inline instructions in all skills
+- [ ] `skills-manifest.json` includes redirects for all CUT skills
+- [ ] Agent can add a new skill by dropping SKILL.md + updating manifest (no CLI code changes)
 
 ### Phase 2: Prove on CEO App + Iterate
 
@@ -508,82 +691,25 @@ export const runCLI = async (command: string, args: readonly string[]) => {
 
 ## Security Considerations
 
-### Research Insights: Security Hardening
-
-From security sentinel review — **overall risk: HIGH** primarily due to file system writes + subprocess execution.
-
-**Critical fixes (Phase 1):**
-
-1. **`sandboxPath()` utility** — Centralized path validation before ANY file write:
-   ```typescript
-   export const sandboxPath = (input: string, root: string): ValidationResult<string> => {
-     if (path.isAbsolute(input)) return { valid: false, errors: [{ field: "path", reason: "Absolute paths rejected" }] };
-     const resolved = path.resolve(root, input);
-     if (!resolved.startsWith(root + path.sep)) return { valid: false, errors: [{ field: "path", reason: "Path traversal detected" }] };
-     // Check symlinks with lstat, reject for write operations
-     return { valid: true, value: resolved };
-   };
-   ```
-
-2. **Argument arrays for subprocesses** — Never shell-interpolate agent strings. Use `Bun.spawn()` with argument arrays or `Bun.$` with proper escaping.
-
-3. **Skill installation integrity** — SHA-256 checksums in `skills-manifest.json`. Verify before writing to `~/.claude/skills/`. Use restrictive file permissions (0644).
-
-4. **JSON payload validation** — Parse `--json` input then validate against strict schema. Only extract known keys. Reject `__proto__`, `constructor` keys. Size limit 64KB.
-
-5. **Error message sanitization** — Relative paths only in errors. No stack traces in production. Truncate echoed input.
-
-**Phase 2 fixes (when distribution added):**
-
-6. **Rate limiting** — Store last action timestamp in `.mktg-state.json`. Enforce minimum intervals (60s between posts, 5min between emails). `--force` to override.
-
-7. **Append-only file size caps** — 100KB max for `learnings.md` and `assets.md`. Archive when exceeded.
-
-8. **mktg test force dry-run** — E2E tests must use `--dry-run` on external integrations by default.
+1. **`sandboxPath()`** — Centralized path validation before any file write. Rejects absolute paths, traversal, symlinks.
+2. **Argument arrays** — Never shell-interpolate agent strings. `Bun.spawn()` with arrays or `Bun.$` with escaping.
+3. **Skill integrity** — SHA-256 checksums in manifest. Verify before writing to `~/.claude/skills/`.
+4. **JSON validation** — Strict schema, reject `__proto__`/`constructor`, 64KB size limit.
+5. **Error sanitization** — Relative paths only, no stack traces, truncate echoed input.
+6. **Rate limiting** (Phase 2) — Min intervals for external actions (60s posts, 5min emails). `--force` to override.
+7. **Append-only caps** — 100KB max for `learnings.md`/`assets.md`. Archive when exceeded.
 
 ---
 
-## Performance Considerations
+## Agent-Native Principles
 
-### Research Insights: Performance Optimizations
-
-From performance oracle review:
-
-| Priority | Optimization | Impact | Phase |
-|----------|-------------|--------|-------|
-| 1 | Lazy dynamic imports in command router | Halves startup for simple commands | 1 |
-| 2 | Parallel file writes in `init` via `Promise.all()` | 3-5x faster init | 1 |
-| 3 | Parallel health checks in `doctor` via `Promise.all()` | 3-5x faster doctor | 1 |
-| 4 | Build-time skill manifest (zero I/O for `list`/`status`) | <5ms for metadata commands | 1 |
-| 5 | Per-invocation brand file cache in `brand.ts` | Eliminates redundant reads | 2 |
-| 6 | In-process orchestration (import handlers, not subprocesses) | Avoids N× startup overhead | 2 |
-
----
-
-## Agent-Native Parity
-
-### Research Insights: Agent Gaps Fixed
-
-From agent-native architecture + parity reviews:
-
-| Gap | Fix | Priority |
-|-----|-----|----------|
-| Interactive prompts block agents | Non-TTY never prompts; emit `MISSING_INPUT` with example payload | CRITICAL |
-| No `--version` | Add `--version` (first command `/cmo` tells agents to run) | CRITICAL |
-| No `--help --json` | Structured command list for programmatic discovery | HIGH |
-| No project state snapshot | `mktg status --json` — brand files, content counts, freshness | HIGH |
-| No multi-project targeting | `--cwd <path>` global flag | HIGH |
-| `launch` bundles judgment | Keep as convenience; ensure all sub-operations independently callable | MEDIUM |
-| Content types not discoverable | Invalid type errors include valid options in `suggestions` | MEDIUM |
-| No confirmation flow for distribution | `/cmo` skill documents `--dry-run` → review → execute pattern | MEDIUM |
-| Context matrix enforced in code | Document in `/cmo` as guidance; let agent decide what to read | MEDIUM |
-| Exit code 1 overloaded | Separate: 1=not found, new 6=not implemented | LOW |
-
-### Key Architectural Principle
-
-> `mktg launch` should be a convenience wrapper, not a gate. Every sub-operation must be independently callable. The agent composes them; `launch` is just a suggested composition.
->
-> — Agent-Native Architecture Review
+- **Non-TTY never prompts** — emit `MISSING_INPUT` with example payload
+- **Every operation independently callable** — no bundled workflows that gate access
+- **`--json` everywhere** — structured output for programmatic consumption
+- **`--cwd` for multi-project** — agents work across projects without cd
+- **`--dry-run` before external actions** — `/cmo` teaches this pattern
+- **Exit codes 0-6** — distinct codes, not overloaded
+- **`--version` + `--help --json`** — agent can discover capabilities programmatically
 
 ---
 
@@ -594,7 +720,7 @@ From agent-native architecture + parity reviews:
 - [ ] `bun install -g mktg` installs globally and `mktg` command available
 - [ ] `mktg init` works on any project with 2-question onboarding (TTY) or `--json` (non-TTY)
 - [ ] `mktg init` self-bootstraps on fresh machines (new VPS, fresh Mac)
-- [ ] 31 skills installed to agent config dirs with integrity verification
+- [ ] 24 skills installed to agent config dirs with integrity verification
 - [ ] `/cmo` skill installed as single comprehensive file
 - [ ] `brand/` directory with 9 files scaffolded
 - [ ] 5 commands implemented: `init`, `doctor`, `list`, `status`, `update`
@@ -617,14 +743,23 @@ From agent-native architecture + parity reviews:
 
 ---
 
-## Dependencies & Prerequisites
+## Dependencies & Prerequisites — Agentic Tools Only
 
-- **Bun** — runtime and package manager
-- **gws** — Google Workspace CLI for email (used by agent directly, not CLI-wrapped)
-- **playwright-cli** — browser automation for social posting (used by agent directly)
-- **ffmpeg** — video/audio processing (used by agent directly)
-- **Exa MCP** — web/competitor research (used by skills at runtime)
-- **gh** — GitHub CLI for marketing site deploys
+The mktg system exclusively uses **agentic tools** — CLIs and MCPs that agents can invoke programmatically. No SaaS dashboards, no GUI-dependent services, no boomer marketing stack.
+
+| Tool | What It Does | How Agent Uses It |
+|------|-------------|-------------------|
+| **Bun** | Runtime + package manager | CLI execution, `Bun.file()`, `Bun.$` |
+| **Remotion** | Programmatic video generation | Agent writes React components → renders video. The gold standard of agentic marketing tools. |
+| **playwright-cli / ply** | Browser automation | Agent posts to social platforms, takes screenshots, runs CRO audits |
+| **gws** | Google Workspace CLI | Agent sends emails, manages newsletters |
+| **ffmpeg** | Video/audio processing | Agent processes media for content-atomizer |
+| **Exa MCP** | Web search + company research | Agent researches competitors, finds audience watering holes |
+| **gh** | GitHub CLI | Agent deploys marketing sites, manages issues |
+
+**What we DON'T use:** Mailchimp, ConvertKit, HubSpot, Buffer, Hootsuite, Replicate, or any tool that requires a human to log into a dashboard. If an agent can't invoke it from a terminal, it doesn't belong here.
+
+**Future agentic tools to watch:** Any CLI/MCP that lets agents autonomously create, distribute, or measure marketing content. The skill contract makes adding new tool integrations trivial — update the skill that uses it, done.
 
 ---
 
@@ -633,7 +768,7 @@ From agent-native architecture + parity reviews:
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | Skill format incompatibility between Claude Code and Codex | Skills don't work on one platform | Test on both platforms in Phase 1 |
-| 31 skills too many for initial install | Slow init | Parallel writes; install must-have (24) by default, `--all` for full set |
+| 24 skills too many for initial install | Slow init | Parallel writes; install must-have (24) by default, `--all` for full set |
 | `/cmo` skill exceeds 300 lines | Hard to maintain | Split into `/cmo` + one reference doc max if needed |
 | Agent can't compose skills without `mktg launch` | Marketing output requires manual orchestration | `/cmo` skill documents workflow patterns; add `launch` in Phase 2 if needed |
 | `audience-research` phantom skill is hard to build well | 8 skills produce worse output without audience data | Start with basic template; agent enhances via web search |
@@ -661,17 +796,10 @@ From agent-native architecture + parity reviews:
 - Bun docs: [bun.sh/docs](https://bun.sh/docs) — file I/O, shell, glob, test runner, executables
 - `node:util` `parseArgs` — built-in flag parsing
 
-### Review Agent Findings (Full Transcripts)
+### Refinement Agent Findings
 
-- TypeScript reviewer: `src/types.ts` architecture, `tsconfig.json`, `parseArgs`, `satisfies` pattern
-- Architecture strategist: command registry, error boundary, `skills-manifest.json`, init decomposition
-- Security sentinel: `sandboxPath()`, subprocess argument arrays, skill integrity hashes, rate limiting
-- Performance oracle: lazy imports, parallel I/O, brand file cache, in-process orchestration
-- Pattern recognition: command metadata, naming conventions, God module risks, error propagation
-- Code simplicity: 13→5 commands, 23→7 source files, YAGNI violations
-- Agent-native architecture: primitives over workflows, `mktg status`, dynamic discovery, `brand/context.md`
-- Agent-native parity: non-TTY handling, `--version`, `--cwd`, confirmation flow
-- V2 skills audit: all 11 keep, creative needs provider rewrite, start-here merges into /cmo
-- Marketingskills audit: 32→18, 10 cut, 6 merged into 2, ai-seo upgraded to must-have
-- Phantom skills audit: 5 phantoms confirmed, audience-research most critical, tools/ directory dropped
-- Bun framework docs: `Bun.file()`, `Bun.$`, `Bun.Glob`, `Bun.which()`, test runner patterns
+- **Skill consolidation** (refine-1): 31→24 skills via 5 merges. -1,309 lines, zero methodology lost.
+- **Token budget** (refine-3): ~62K tokens (22%) trimmable via deduplication + lazy-loading. Target <800 lines per SKILL.md.
+- **Agent UX simulation** (refine-4): 5 critical blockers identified. `/cmo` placeholder is #1 blocker. `_system/` paths break on install. Stale SaaS refs confuse agents.
+- **Workflow chains** (refine-2): 7 workflows mapped with handoff risks. 6 broken chains found (no structured output schemas, missing content-atomizer promotion mode). First 30 min redesigned: 3 parallel foundation skills.
+- **Competitive patterns** (refine-5): 10 patterns to steal. Top: skill dependency DAG from dbt, 4-layer classification, review intervals, skills-never-call-skills constraint, 30/70 create/distribute ratio.

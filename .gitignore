@@ -4,6 +4,7 @@ dist/
 .env.local
 *.log
 .DS_Store
+bun.lock
 .claude/
 brand/
 marketing/
