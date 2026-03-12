@@ -585,6 +585,97 @@ Phase 5 should always output a comparison matrix, even if user picks fast:
 
 This helps the user make an informed choice AND documents WHY a variation won.
 
+### Improvement 8: 5 Different Scripts, Not 5 Layouts of 1 Script
+
+**This is the biggest paradigm shift.**
+
+Currently: 5 agents get the SAME copy and create 5 visual interpretations. User picks 1, throws away 4. That's 80% waste.
+
+The better model: generate 5 **different narrative scripts** first, then design each with a matching visual direction. Now ALL 5 are publishable — you post them across different days, platforms, or audiences.
+
+```
+Current:    1 script  × 5 visual layouts  = 1 usable output (pick 1, waste 4)
+Improved:   5 scripts × 5 visual layouts  = 5 usable outputs (post all 5)
+```
+
+**How this works in practice:**
+
+Given the HalalScreen positioning angle "The 30-Second Active Gate", generate 5 different narrative approaches:
+
+| Script | Hook | Story Arc | CTA Angle |
+|--------|------|-----------|-----------|
+| 1. Stat-Led | "30 seconds." | Number → proof → mechanism → payoff | "Do Dhikr. Unlock Your Phone." |
+| 2. Problem-Agitate | "Every app blocker makes you wait." | Pain → twist → solution | "There's a better way." |
+| 3. Social Proof | "4.9 stars. 10K downloads." | Evidence → why → join the movement | "Join 10K Muslims" |
+| 4. Storytelling | "My phone was the first thing I touched every morning." | Before → moment of change → after | "What changed?" |
+| 5. Provocative | "You unlock your phone 150 times a day." | Shocking stat → reframe → spiritual flip | "What if each one started with remembrance?" |
+
+Each script has a DIFFERENT narrative, DIFFERENT hook, DIFFERENT proof points. And each gets a visual direction that MATCHES its story:
+
+| Script | Best Visual Direction | Why |
+|--------|---------------------|-----|
+| Stat-Led | Data-Led (giant numbers) | Numbers ARE the design |
+| Problem-Agitate | Contrast Play (tension) | Before/after, problem/solution |
+| Social Proof | Structured (grid, stars) | Evidence-based, organized |
+| Storytelling | Atmospheric (personal) | Emotional, intimate |
+| Provocative | Bold Minimal (one idea) | Let the provocation breathe |
+
+**New Phase 2 Flow:**
+
+```
+Phase 2a: Determine content type (TikTok, carousel, etc.)
+Phase 2b: Generate 5 narrative scripts from positioning angle
+         (NEW — slideshow scripting phase)
+Phase 2c: Map each script to a visual direction
+Phase 2d: Present all 5 script+design pairs for approval
+Phase 2e: User approves → write 5 content spec YAMLs
+```
+
+**Implementation**: This becomes a new **slideshow-scripting** phase inside /paper-marketing (or a separate `/slideshow-script` skill that /cmo routes to before /paper-marketing). It reads `brand/positioning.md` for angles, `brand/audience.md` for pain points, and `brand/voice-profile.md` for tone — then generates 5 different narrative scripts using proven TikTok/social storytelling frameworks.
+
+**Scripting Frameworks Available:**
+- **AIDA**: Attention → Interest → Desire → Action
+- **PAS**: Problem → Agitate → Solution
+- **BAB**: Before → After → Bridge
+- **Star-Story-Solution**: Hook character → conflict → resolution
+- **Stat-Flip**: Surprising data → reframe → call to action
+
+Each framework produces a fundamentally different narrative from the same positioning angle.
+
+### Improvement 9: /frontend-design Skill Inside Paper Agents
+
+The Paper MCP designer agents currently work from the Paper HTML rules reference doc alone. They should ALSO load the `/frontend-design` skill for higher-quality visual execution.
+
+**What /frontend-design adds:**
+- Swiss editorial typography principles (contrast between display and label weights)
+- Deliberate spacing rhythm (tighter for related elements, generous for hero content)
+- Color restraint ("one intense color moment is stronger than five")
+- Scale contrast (very large headline next to small muted text)
+- Asymmetric layout instinct (not everything centered, not everything on a grid)
+
+**How to integrate:**
+
+Each Paper MCP agent prompt gets an additional instruction:
+
+```markdown
+## Design Quality
+You have the /frontend-design skill available. Follow these principles:
+- Typography: maximize contrast between display (700, 200px+) and label (300, 14px)
+- Spacing: tighter to group related elements, generous to let hero content breathe
+- Color: one accent moment per slide, not five. Gold is your one color — use it sparingly.
+- Layout: favor asymmetry over centered-everything. Offset hero text slightly.
+- Scale: dramatic differences. "30" should be 3x larger than "seconds." not 1.5x.
+```
+
+This is especially powerful combined with Improvement 8 (different scripts) because now each agent is making DESIGN decisions informed by the narrative structure, not just filling the same layout template with text.
+
+**Agent tool loading:**
+```
+subagent_type: "general-purpose"
+prompt: "...Read the /frontend-design skill at ~/.claude/skills/frontend-design/SKILL.md
+         for design principles. Apply them to your Paper MCP work..."
+```
+
 ---
 
 ## 9. /paper-marketing Audit
