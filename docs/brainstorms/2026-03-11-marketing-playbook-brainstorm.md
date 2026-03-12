@@ -254,7 +254,11 @@ Full pipeline test on a test project — real everything, no mocks:
 22. **npm/bun package** — Published to npm, installable with `bun install -g mktg`.
 23. **Social warming playbook** — Platform-specific account warming strategies baked into the social skill (TikTok, X, LinkedIn engagement patterns).
 24. **Content calendar** — `mktg calendar` generates 30-day content plan across all platforms from keyword plan + brand voice.
-25. **Package deal** — `mktg init` installs the CLI tools AND the `/cmo` skill into the agent. One command = agent becomes a fully capable CMO. The CLI is the toolbox, `/cmo` is the brain, `brand/` is the memory. All three install together.
+25. **Package deal** — `mktg init` installs the CLI tools AND the `/cmo` skill into the agent. One command = agent becomes a fully capable CMO.
+26. **Skills ≠ CLI commands** — Two separate concerns:
+    - **Skills** = marketing knowledge (SKILL.md files) that agents load into context. Brand-voice, positioning, copy, email, SEO, etc. The agent READS these to know how to do marketing.
+    - **CLI** = infrastructure tool for operational actions. Install, configure, health check, distribute, test. The agent RUNS this for setup and external actions (posting, emailing, testing).
+    - The agent reads `/cmo` skill for strategy, reads individual skills for domain knowledge, and uses `mktg` CLI for infrastructure.
 
 ## Resolved Questions
 
