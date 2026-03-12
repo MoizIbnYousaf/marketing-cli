@@ -1,449 +1,203 @@
 ---
 name: conversion-flow-cro
-description: >
-  Optimize the full conversion funnel -- signup, activation/onboarding, and
-  upgrade/paywall. Use when users drop off during registration, fail to
-  activate after signing up, or don't convert from free to paid. Three phases
-  covered: Signup Flow (reduce form friction, increase completions),
-  Activation & Onboarding (drive users to their aha moment fast), and
-  Upgrade & Paywall (convert free users at the right moment). Triggers on:
-  signup flow, onboarding, paywall, upgrade flow, conversion funnel,
-  activation, registration friction, people aren't signing up, users sign up
-  but don't stick, free users won't upgrade, trial conversion, reduce signup
-  dropoff, first-run experience, feature gate, upsell, time to value.
-  Reads: voice-profile.md, audience.md. Writes: nothing (advisory skill).
-category: conversion
-tier: nice-to-have
-reads:
-  - voice-profile.md
-  - audience.md
-writes: []
-triggers:
-  - signup flow
-  - onboarding
-  - paywall
-  - upgrade flow
-  - conversion funnel
-  - activation
-  - registration friction
-  - signup dropoff
-  - trial conversion
-  - feature gate
-  - upsell
-  - free to paid
-  - first-run experience
-  - time to value
-  - users aren't activating
-  - people aren't signing up
-  - nobody completes registration
+description: |
+  Optimizes multi-step conversion flows including signup, onboarding, upgrade, and checkout. Maps each step, identifies friction and drop-off points, applies progressive disclosure and friction reduction principles, and provides redesigned copy and UX for every step.
+allowed-tools: []
 ---
 
-# /conversion-flow-cro -- Full-Funnel Conversion Optimization
+# Conversion Flow CRO
 
-Users move through a journey: **Signup -> Activation -> Upgrade**. A leak at
-any stage kills downstream numbers. This skill covers all three stages so you
-can audit and fix the entire funnel or zoom into one phase.
+## Purpose
 
-Pick your phase or run the full audit:
+Audit and optimize any multi-step conversion flow — signup, onboarding, trial-to-paid, checkout, upgrade. Map every step, find where people drop off, and fix each screen with specific copy and UX changes.
 
-| Phase | Focus | Key Metric |
-|-------|-------|------------|
-| Signup | Reduce friction, increase completions | Form completion rate |
-| Activation | Drive to aha moment fast | Activation rate, time-to-value |
-| Upgrade | Convert at the right moment | Free-to-paid conversion rate |
+## Reads
 
----
+- `brand/audience.md` — Personas, pain points, motivation levels at each stage
 
-## On Activation
+## Workflow
 
-On every invocation, check for existing brand context.
+### Step 1: Map the Current Flow
 
-### Reads (if they exist)
+Document every screen/step in the flow:
 
-| File | What it provides | How it shapes output |
-|------|-----------------|---------------------|
-| ./brand/voice-profile.md | Brand tone, personality | Aligns all CTA copy, microcopy, and error messages to brand voice |
-| ./brand/audience.md | Buyer personas, pain points | Determines which friction points matter most, what trust signals to use, what the aha moment likely is |
+```
+Flow: [Signup / Onboarding / Upgrade / Checkout]
 
-### How to use brand context
+Step 1: [Page/Screen name]
+- URL/Route: [path]
+- Fields/Actions: [what user must do]
+- Copy: [headline, body, CTA]
+- Friction points: [identified issues]
 
-1. **If both files exist** -- Use voice for all copy recommendations, use audience to prioritize which funnel stages and friction points to address first.
-2. **If only audience exists** -- Prioritize fixes based on persona. Use neutral professional tone for copy.
-3. **If only voice exists** -- Apply voice to all copy. Use general best practices for prioritization.
-4. **If neither exists** -- Skill works fine standalone. Use the frameworks below with general best practices.
+Step 2: [Next screen]
+...
 
----
+Total steps: [N]
+Total required fields: [N]
+Total decisions: [N]
+Estimated completion time: [X minutes]
+```
 
-## Phase 1: Signup Flow Optimization
+### Step 2: Identify Drop-Off Points
 
-Goal: Get users from "interested" to "account created" with minimum friction.
+For each step, assess drop-off risk:
 
-### Core Principles
+| Risk Factor | Score 1-5 | Notes |
+|------------|-----------|-------|
+| Too many fields | | More than 3 per step = high risk |
+| Unclear value | | User doesn't know why this step matters |
+| Unexpected ask | | Requesting info that feels premature |
+| No progress signal | | User doesn't know how far along they are |
+| Decision fatigue | | Too many choices without guidance |
+| Trust gap | | Asking for sensitive info without context |
+| Technical friction | | Slow load, validation errors, mobile issues |
 
-1. **Minimize required fields** -- Every field reduces conversion. For each one ask: do we need this before they can use the product? Can we collect it later?
-2. **Show value before asking for commitment** -- Can they experience the product before creating an account?
-3. **Reduce perceived effort** -- Progress indicators, smart defaults, pre-fill when possible.
-4. **Remove uncertainty** -- Clear expectations ("Takes 30 seconds"), show what happens after signup.
+### Step 3: Apply Friction Reduction
 
-### Field Priority Framework
+For each step, apply these principles:
 
-| Priority | Fields | Rationale |
-|----------|--------|-----------|
-| Essential | Email (or phone), Password | Minimum for account creation |
-| Often needed | Name | Personalization |
-| Usually deferrable | Company, Role, Team size, Phone, Address | Collect via progressive profiling |
+#### Progressive Disclosure
+- Ask for minimum info at each step
+- Defer optional fields to later (post-signup settings)
+- Start with the easiest, most natural question
+- Example: Email only -> Name -> Company -> Role (not all at once)
 
-### Field-by-Field Optimization
+#### Single-Field Starts
+- First interaction should be ONE field or ONE click
+- "Enter your email to get started" > 5-field signup form
+- Google/GitHub OAuth as primary option, email form as secondary
 
-- **Email**: Single field, inline validation, typo detection (gmial.com -> gmail.com), clear errors
-- **Password**: Show/hide toggle, requirements shown upfront (not after failure), allow paste, strength meter over rigid rules, consider passwordless
-- **Name**: Single "Full name" vs First/Last (test it). Only require if immediately used
-- **Social auth**: Place prominently. B2C: Google, Apple. B2B: Google, Microsoft, SSO. Often higher conversion than email forms
-- **Phone**: Defer unless essential. If required, explain why. Proper input type with country code
+#### Smart Defaults
+- Pre-select the most common option
+- Use detection (timezone, language, company size from email domain)
+- Show recommended plan with visual emphasis
 
-### Single-Step vs Multi-Step
+#### Motivation Maintenance
+- Show progress (Step 2 of 4)
+- Remind of value at each step ("You're 1 step away from [outcome]")
+- Use micro-commitments (each step delivers a small win)
+- Show social proof inline ("12,000 teams completed this step today")
 
-**Single-step** works when: 3 or fewer fields, simple products, high-intent visitors.
+#### Social Proof Injection Points
+- Before payment: "Join [X] companies already using [Product]"
+- During onboarding: "[Role] at [Company] set this up in 3 minutes"
+- At upgrade prompt: "[X]% of free users upgrade within [Y] days"
 
-**Multi-step** works when: 4+ fields needed, products needing segmentation.
+#### Urgency Without Sleaze
+- Real deadlines: "Trial ends in 7 days" (if true)
+- Opportunity cost: "Teams using [feature] save [X] hours/week"
+- Progress anchoring: "You've already set up [X] — unlock [Y] to get full value"
+- Never: fake countdown timers, "only 2 left", manufactured scarcity
 
-**Multi-step best practices:**
-- Show progress indicator
-- Lead with easy questions (name, email)
-- Harder questions later (after psychological commitment)
-- Each step completable in seconds
-- Allow back navigation, save progress
+### Step 4: Redesign Each Step
 
-**Progressive commitment pattern:**
-1. Email only (lowest barrier)
-2. Password + name
-3. Customization questions (optional)
+For every step in the flow, output:
 
-### Trust and Friction Reduction
+```markdown
+### Step [N]: [Name]
 
-**At the form level:**
-- "No credit card required" (if true)
-- Privacy note: "We'll never share your email"
-- Testimonial near signup form
-- Security badges if relevant
-
-**Error handling:**
-- Inline validation (not just on submit)
-- Specific messages ("Email already registered" + recovery path)
-- Don't clear form on error
-- Focus on the problem field
-
-**Microcopy rules:**
-- Placeholder text for examples, not labels
-- Labels must stay visible (not just placeholders -- they disappear on focus)
-- Help text only when needed, close to field
-
-### Mobile Signup
-
-- 44px+ touch targets
-- Appropriate keyboard types (email, tel)
-- Autofill support
-- Single column layout
-- Sticky CTA button
-
-### Post-Submit
-
-- Clear confirmation with immediate next step
-- If email verification required: explain what to do, easy resend, check spam reminder, option to change email
-- Consider delaying verification until necessary
-- Let users explore while awaiting verification
-
-### Signup Metrics
-
-| Metric | What it tells you |
-|--------|-------------------|
-| Form start rate | Are people even trying? |
-| Form completion rate | Where's the friction? |
-| Field-level drop-off | Which field kills it? |
-| Time to complete | Is it too long? |
-| Error rate by field | What's confusing? |
-| Mobile vs desktop completion | Device-specific issues? |
-
----
-
-## Phase 2: Activation and Onboarding
-
-Goal: Get users from "account created" to "experienced core value" as fast as possible.
-
-### Core Principles
-
-1. **Time-to-value is everything** -- Remove every step between signup and core value.
-2. **One goal per session** -- Focus first session on one successful outcome. Advanced features come later.
-3. **Do, don't show** -- Interactive beats tutorial. Doing the thing beats learning about the thing.
-4. **Progress creates motivation** -- Show advancement, celebrate completions, make the path visible.
-
-### Define Your Activation Event
-
-The action that correlates most strongly with retention:
-- What do retained users do that churned users don't?
-- What's the earliest indicator of future engagement?
-
-**Examples by product type:**
-- Project management: Create first project + add collaborator
-- Analytics: Install tracking + see first report
-- Design tool: Create first design + export/share
-- Marketplace: Complete first transaction
-- Content app: Publish or share first piece
-
-### Immediate Post-Signup (First 30 Seconds)
-
-| Approach | Best For | Risk |
-|----------|----------|------|
-| Product-first | Simple products, mobile apps | Blank slate overwhelm |
-| Guided setup | Products needing personalization | Adds friction before value |
-| Value-first | Products with demo/sample data | May not feel "real" |
-
-**Whatever you choose:** Clear single next action. No dead ends. Progress indication if multi-step.
-
-### Onboarding Checklist Pattern
-
-**When to use:** Multiple setup steps, several features to discover, self-serve products.
-
-**Best practices:**
-- 3-7 items (not overwhelming)
-- Order by value (most impactful first)
-- Start with quick wins
-- Progress bar / completion percentage
-- Celebration on completion
-- Dismiss option (don't trap users)
-
-### Empty States
-
-Empty states are onboarding opportunities, not dead ends.
-
-**Good empty state:**
-- Explains what this area is for
-- Shows what it looks like with data (preview/illustration)
-- Clear primary action to add first item
-- Optional: Pre-populate with example data
-
-### Tooltips and Guided Tours
-
-- Max 3-5 steps per tour
-- Dismissable at any time
-- Don't repeat for returning users
-- Use for complex UI or features that aren't self-evident
-
-### Multi-Channel Onboarding
-
-**Trigger-based emails coordinated with in-app:**
-- Welcome email (immediate)
-- Incomplete onboarding (24h, 72h)
-- Activation achieved (celebration + next step)
-- Feature discovery (days 3, 7, 14)
-
-**Email should:** Reinforce in-app actions (not duplicate), drive back to product with specific CTA, personalize based on actions taken.
-
-### Handling Stalled Users
-
-**Detection:** Define "stalled" (X days inactive, incomplete setup).
-
-**Re-engagement tactics:**
-1. Email sequence -- Reminder of value, address blockers, offer help
-2. In-app recovery -- Welcome back, pick up where left off
-3. Personal outreach -- For high-value accounts
-
-### Activation Metrics
-
-| Metric | What it tells you |
-|--------|-------------------|
-| Activation rate | % reaching activation event |
-| Time to activation | How long to first value |
-| Onboarding completion | % completing setup |
-| Day 1/7/30 retention | Return rate by timeframe |
-| Step-level drop-off | Which step loses people |
-
----
-
-## Phase 3: Upgrade and Paywall
-
-Goal: Convert free or trial users to paid at the moment they've experienced enough value.
-
-### Core Principles
-
-1. **Value before ask** -- User must have experienced real value first. Upgrade should feel like natural next step. Timing: after aha moment, not before.
-2. **Show, don't just tell** -- Demonstrate paid feature value, preview what they're missing, make upgrade tangible.
-3. **Friction-free path** -- Easy to upgrade when ready. Don't make them hunt for pricing.
-4. **Respect the no** -- Don't trap or pressure. Easy to continue free. Maintain trust for future conversion.
-
-### Paywall Trigger Points
-
-**Feature gates** -- When user clicks a paid-only feature:
-- Clear explanation of why it's paid
-- Show what the feature does
-- Quick path to unlock
-- Option to continue without
-
-**Usage limits** -- When user hits a limit:
-- Clear indication of limit reached
-- Show what upgrading provides
-- Don't block abruptly (grace period or soft limit)
-
-**Trial expiration** -- When trial is ending:
-- Early warnings (7, 3, 1 day)
-- Clear "what happens" on expiration
-- Summarize value received during trial
-
-**Time-based prompts** -- After X days of free use:
-- Gentle upgrade reminder
-- Highlight unused paid features
-- Easy to dismiss
-
-### Paywall Screen Components
-
-1. **Headline** -- Focus on benefit: "Unlock [Feature] to [Benefit]"
-2. **Value demonstration** -- Preview, before/after, "With Pro you could..."
-3. **Feature comparison** -- Key differences, current plan marked
-4. **Pricing** -- Clear, simple. Annual vs monthly if applicable
-5. **Social proof** -- Customer quotes, usage stats
-6. **CTA** -- Value-oriented: "Start Getting [Benefit]"
-7. **Escape hatch** -- Clear "Not now" or "Continue with Free"
-
-### Timing and Frequency
-
-**When to show:** After value moment, after activation, when hitting genuine limits.
-
-**When NOT to show:** During onboarding (too early), when user is in a flow, repeatedly after dismissal.
-
-**Frequency rules:** Limit per session. Cool-down after dismiss (days, not hours). Track annoyance signals.
-
-### Upgrade Flow Optimization
-
-- Minimize steps from paywall to payment
-- Keep in-context if possible (don't redirect away)
-- Pre-fill known information
-- Post-upgrade: immediate access, confirmation, guide to new features
-
-### Anti-Patterns
-
-**Dark patterns to avoid:**
-- Hiding the close button
-- Confusing plan selection
-- Guilt-trip copy ("No, I don't want to grow my business")
-
-**Conversion killers:**
-- Asking before value delivered
-- Too frequent prompts
-- Blocking critical flows
-- Complicated upgrade process
-
-### Upgrade Metrics
-
-| Metric | What it tells you |
-|--------|-------------------|
-| Paywall impression rate | How often users see upgrade prompts |
-| Click-through to upgrade | Is the pitch working? |
-| Completion rate | Is the payment flow smooth? |
-| Revenue per user | Are you capturing value? |
-| Churn rate post-upgrade | Did the promise match reality? |
-
----
-
-## Full-Funnel Audit Checklist
-
-Run this when you want to assess the entire conversion journey.
-
-### Signup Audit
-
-- [ ] Can you count the required fields on one hand?
-- [ ] Is social auth available and prominent?
-- [ ] Are error messages inline and specific?
-- [ ] Does mobile signup work with thumb-only navigation?
-- [ ] Is there a clear value proposition above the form?
-- [ ] Are deferrable fields actually deferred?
-
-### Activation Audit
-
-- [ ] Is the activation event defined and measurable?
-- [ ] Can a new user reach the aha moment in under 5 minutes?
-- [ ] Are empty states actionable (not just "nothing here yet")?
-- [ ] Is there an onboarding checklist or guided flow?
-- [ ] Are stalled users detected and re-engaged?
-- [ ] Do trigger-based emails complement in-app onboarding?
-
-### Upgrade Audit
-
-- [ ] Do paywalls appear after value, not before?
-- [ ] Is there a clear escape hatch on every upgrade prompt?
-- [ ] Is the path from paywall to payment under 3 steps?
-- [ ] Are upgrade prompts frequency-capped?
-- [ ] Does the paywall show what the user gains (not just what's locked)?
-- [ ] Is post-upgrade experience smooth (immediate access, guidance)?
-
----
-
-## Experiment Ideas by Phase
-
-### Signup Experiments
-
-- Single-step vs multi-step flow
-- Social auth prominent vs email form prominent
-- Reduce to email-only first step
-- "No credit card required" messaging
-- CTA text variations ("Get Started" vs "Create Free Account")
-- Remove optional fields entirely
-
-### Activation Experiments
-
-- Product-first vs guided setup post-signup
-- Checklist with 3 items vs 5 items vs 7 items
-- Pre-populated demo data vs blank slate
-- Tooltip tour vs video walkthrough vs neither
-- Welcome email timing (immediate vs 1 hour delay)
-
-### Upgrade Experiments
-
-- Trigger timing (after aha moment vs after X days)
-- Headline variations on paywall
-- Feature comparison vs benefit-focused copy
-- Soft limit (warning) vs hard limit (block)
-- Trial length variations (7 vs 14 vs 30 days)
-- Annual vs monthly pricing emphasis
-
----
-
-## Output Formats
-
-### Audit Report
-
-For each issue found across any phase:
-- **Phase**: Signup / Activation / Upgrade
-- **Issue**: What's wrong
-- **Impact**: Why it matters (estimated impact if possible)
-- **Fix**: Specific recommendation
-- **Priority**: High / Medium / Low
-
-### Recommended Changes
-
-Organized by effort:
-1. **Quick wins** -- Same-day fixes (copy changes, field removal, error messages)
-2. **High-impact changes** -- Week-level effort (flow restructuring, new components)
-3. **Test hypotheses** -- Things to A/B test before committing
-
-### Flow Redesign (if requested)
-
-- Phase-by-phase flow diagram
-- Recommended field set with rationale
-- Copy for CTAs, labels, placeholders, errors
-- Onboarding checklist items
-- Paywall screen components
-- Metrics plan for each phase
-
----
-
-## Assessment Questions
-
-Ask only what brand context doesn't already cover:
-
-1. What does the current signup flow look like (steps, fields, completion rate)?
-2. What happens immediately after signup?
-3. What action most correlates with long-term retention (the aha moment)?
-4. Where in the funnel are users dropping off most?
-5. What's the current free-to-paid conversion rate?
-6. What features or limits trigger upgrade prompts?
-7. Is this mobile, web, or both?
+**Current State:**
+- Headline: "[current]"
+- Fields: [list]
+- CTA: "[current]"
+- Issues: [specific problems]
+
+**Redesigned:**
+- Headline: "[new — ties to value]"
+- Fields: [reduced/reordered list]
+- CTA: "[new — action + outcome]"
+- Supporting copy: "[anxiety reducer or motivation booster]"
+- Social proof: "[inline proof element]"
+
+**Changes Made:**
+1. [Specific change + reasoning]
+2. [Specific change + reasoning]
+
+**Expected Impact:** [Drop-off reduction estimate]
+```
+
+### Step 5: A/B Test Suggestions
+
+For each high-impact change, define a test:
+
+```markdown
+## A/B Test: [Test Name]
+
+**Hypothesis:** Changing [element] from [A] to [B] will increase [metric] by [X]% because [reasoning].
+
+**Control:** [Current version]
+**Variant:** [New version]
+**Primary metric:** [Conversion rate at this step]
+**Secondary metric:** [Overall flow completion rate]
+**Sample size needed:** [Estimate based on current traffic]
+**Duration:** [Minimum 2 weeks or X conversions]
+```
+
+## Flow-Specific Patterns
+
+### Signup Flow
+- Goal: Minimize time-to-value
+- Ideal: 1-2 steps max before product access
+- Pattern: Email -> Magic link -> Product (skip password creation)
+- Anti-pattern: Email -> Password -> Verify email -> Profile -> Team -> Product
+
+### Onboarding Flow
+- Goal: Reach "aha moment" fast
+- Ideal: 3-5 steps, each delivering visible value
+- Pattern: Welcome -> Import data OR use template -> See first result -> Invite team
+- Anti-pattern: Long feature tour -> Settings configuration -> Empty state
+
+### Trial-to-Paid Flow
+- Goal: Demonstrate value before asking for money
+- Ideal: Usage triggers upgrade prompt, not calendar
+- Pattern: Hit feature limit -> See what you'd unlock -> One-click upgrade
+- Anti-pattern: Day 13 email -> Pricing page -> Checkout -> Success
+
+### Checkout Flow
+- Goal: Reduce payment anxiety
+- Ideal: 1-2 steps with full transparency
+- Pattern: Plan summary -> Payment (with guarantees visible) -> Confirmation
+- Anti-pattern: Plan -> Billing info -> Review -> Confirm -> Upsell -> Success
+
+## Copy Templates Per Step
+
+### First Touch (Signup)
+- "Get started free — no credit card required"
+- "Create your [product] in 60 seconds"
+- "Join [X] [role]s already using [Product]"
+
+### Mid-Flow (Onboarding Step)
+- "Nice — you're [X]% set up"
+- "Most [role]s complete this in under 2 minutes"
+- "This step unlocks [specific feature/outcome]"
+
+### Commitment Point (Payment/Upgrade)
+- "You've already [achievement] — unlock [next level]"
+- "Plans start at $[X]/mo. Cancel anytime."
+- "[X]-day money-back guarantee. No questions asked."
+
+### Completion
+- "You're all set. Here's what to do first:"
+- "[Product] is ready. Your first [outcome] is [X] away."
+
+## Output
+
+Each flow audit produces:
+- Visual flow map (current state with step count, fields, decisions)
+- Drop-off risk assessment per step
+- Redesigned copy and UX for each step
+- Prioritized A/B test suggestions
+- Before/after comparison of total flow friction score
+- Implementation checklist ordered by impact
+
+## Quality Checks
+
+- [ ] Total steps reduced or justified
+- [ ] Every field has a clear reason to exist at that step
+- [ ] Progress indicator present throughout
+- [ ] Value reminder at each step
+- [ ] Social proof placed at high-anxiety moments
+- [ ] CTA copy is action + outcome, not generic
+- [ ] Mobile experience considered for every step
+- [ ] Error states are helpful, not punishing

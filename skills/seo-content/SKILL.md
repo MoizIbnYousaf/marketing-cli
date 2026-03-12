@@ -344,21 +344,10 @@ After saving, present:
 
 ---
 
-## Feedback Collection
+## Feedback
 
-After saving, present:
-```
-How did this land?
-a) Great -- ready to publish as-is
-b) Good -- made minor edits
-c) Rewrote significantly
-d) Have not published yet
-```
+Feedback: Append learnings to brand/learnings.md.
 
-Log responses to `./brand/learnings.md`. If (b) or (c), ask what changed to
-improve future output.
-
----
 
 ## Implementation Notes
 

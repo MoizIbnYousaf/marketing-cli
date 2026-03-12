@@ -1,9 +1,8 @@
 ---
 name: pricing-strategy
-description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' 'monetization,' 'how much should I charge,' 'my pricing is wrong,' 'pricing page,' 'annual vs monthly,' 'per seat pricing,' or 'should I offer a free plan.' Use this whenever someone is figuring out what to charge or how to structure their plans. For in-app upgrade screens, see paywall-upgrade-cro."
-metadata:
-  version: 1.1.0
+description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' 'monetization,' 'how much should I charge,' 'my pricing is wrong,' 'pricing page,' 'annual vs monthly,' 'per seat pricing,' or 'should I offer a free plan.' Use this whenever someone is figuring out what to charge or how to structure their plans."
 category: strategy
+tier: strategy
 reads:
   - brand/positioning.md
   - brand/audience.md
@@ -15,31 +14,26 @@ triggers:
   - freemium
   - how much should I charge
   - pricing page
+metadata:
+  version: 1.1.0
 ---
-
-
-## On Activation
-
-1. Check if `brand/` directory exists in the project root.
-2. If it does, read available files: `voice-profile.md`, `positioning.md`, `audience.md`, `creative-kit.md`, `stack.md`, `learnings.md`.
-3. Apply any loaded brand context to enhance output quality.
-4. If `brand/` does not exist, proceed without it — this skill works standalone.
 
 # Pricing Strategy
 
-You are an expert in SaaS pricing and monetization strategy. Your goal is to help design pricing that captures value, drives growth, and aligns with customer willingness to pay.
+You are an expert in pricing and monetization strategy. Your goal is to help design pricing that captures value, drives growth, and aligns with customer willingness to pay.
 
-## Before Starting
+## On Activation
 
-**Check for product marketing context first:**
-If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
+1. Check if `brand/` directory exists in the project root
+2. If it exists, read `brand/brand-kit.md` and `brand/audience.md` for context
+3. Use that context and only ask for information not already covered or specific to this task
 
 Gather this context (ask if not provided):
 
 ### 1. Business Context
-- What type of product? (SaaS, marketplace, e-commerce, service)
+- What type of product? (SaaS, marketplace, e-commerce, service, app)
 - What's your current pricing (if any)?
-- What's your target market? (SMB, mid-market, enterprise)
+- What's your target market? (SMB, mid-market, enterprise, consumer)
 - What's your go-to-market motion? (self-serve, sales-led, hybrid)
 
 ### 2. Value & Competition
@@ -62,15 +56,15 @@ Gather this context (ask if not provided):
 
 ### The Three Pricing Axes
 
-**1. Packaging** — What's included at each tier?
+**1. Packaging** -- What's included at each tier?
 - Features, limits, support level
 - How tiers differ from each other
 
-**2. Pricing Metric** — What do you charge for?
+**2. Pricing Metric** -- What do you charge for?
 - Per user, per usage, flat fee
 - How price scales with value
 
-**3. Price Point** — How much do you charge?
+**3. Price Point** -- How much do you charge?
 - The actual dollar amounts
 - Perceived value vs. cost
 
@@ -78,10 +72,10 @@ Gather this context (ask if not provided):
 
 Price should be based on value delivered, not cost to serve:
 
-- **Customer's perceived value** — The ceiling
-- **Your price** — Between alternatives and perceived value
-- **Next best alternative** — The floor for differentiation
-- **Your cost to serve** — Only a baseline, not the basis
+- **Customer's perceived value** -- The ceiling
+- **Your price** -- Between alternatives and perceived value
+- **Next best alternative** -- The floor for differentiation
+- **Your cost to serve** -- Only a baseline, not the basis
 
 **Key insight:** Price between the next best alternative and perceived value.
 
@@ -91,7 +85,7 @@ Price should be based on value delivered, not cost to serve:
 
 ### What is a Value Metric?
 
-The value metric is what you charge for—it should scale with the value customers receive.
+The value metric is what you charge for -- it should scale with the value customers receive.
 
 **Good value metrics:**
 - Align price with value delivered
@@ -105,16 +99,15 @@ The value metric is what you charge for—it should scale with the value custome
 |--------|----------|---------|
 | Per user/seat | Collaboration tools | Slack, Notion |
 | Per usage | Variable consumption | AWS, Twilio |
-| Per feature | Modular products | HubSpot add-ons |
-| Per contact/record | CRM, email tools | Mailchimp |
+| Per contact/record | CRM, email tools | Email platforms |
 | Per transaction | Payments, marketplaces | Stripe |
 | Flat fee | Simple products | Basecamp |
 
 ### Choosing Your Value Metric
 
 Ask: "As a customer uses more of [metric], do they get more value?"
-- If yes → good value metric
-- If no → price doesn't align with value
+- If yes -> good value metric
+- If no -> price doesn't align with value
 
 ---
 
@@ -128,10 +121,10 @@ Ask: "As a customer uses more of [metric], do they get more value?"
 
 ### Tier Differentiation
 
-- **Feature gating** — Basic vs. advanced features
-- **Usage limits** — Same features, different limits
-- **Support level** — Email → Priority → Dedicated
-- **Access** — API, SSO, custom branding
+- **Feature gating** -- Basic vs. advanced features
+- **Usage limits** -- Same features, different limits
+- **Support level** -- Email -> Priority -> Dedicated
+- **Access** -- API, SSO, custom branding
 
 **For detailed tier structures and persona-based packaging**: See [references/tier-structure.md](references/tier-structure.md)
 
@@ -174,16 +167,12 @@ Identifies which features customers value most:
 - Very low churn (<3% monthly)
 - Strong unit economics
 
-**Product signals:**
-- Significant value added since last pricing
-- Product more mature/stable
-
 ### Price Increase Strategies
 
-1. **Grandfather existing** — New price for new customers only
-2. **Delayed increase** — Announce 3-6 months out
-3. **Tied to value** — Raise price but add features
-4. **Plan restructure** — Change plans entirely
+1. **Grandfather existing** -- New price for new customers only
+2. **Delayed increase** -- Announce 3-6 months out
+3. **Tied to value** -- Raise price but add features
+4. **Plan restructure** -- Change plans entirely
 
 ---
 
@@ -215,7 +204,7 @@ Identifies which features customers value most:
 
 ### Before Setting Prices
 - [ ] Defined target customer personas
-- [ ] Researched competitor pricing
+- [ ] Researched competitor pricing (use Exa MCP or firecrawl)
 - [ ] Identified your value metric
 - [ ] Conducted willingness-to-pay research
 - [ ] Mapped features to tiers
@@ -244,8 +233,4 @@ Identifies which features customers value most:
 
 - **churn-prevention**: For cancel flows, save offers, and reducing revenue churn
 - **page-cro**: For optimizing pricing page conversion
-- **copywriting**: For pricing page copy
 - **marketing-psychology**: For pricing psychology principles
-- **ab-test-setup**: For testing pricing changes
-- **revops**: For deal desk processes and pipeline pricing
-- **sales-enablement**: For proposal templates and pricing presentations

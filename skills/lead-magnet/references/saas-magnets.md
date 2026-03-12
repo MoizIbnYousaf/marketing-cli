@@ -14,25 +14,21 @@ SaaS companies have evolved beyond simple PDF downloads. The most successful use
 
 ---
 
-## HubSpot
 
 ### Website Grader (Free Tool)
 A tool that scans any website and provides performance scores across SEO, security, mobile, and performance.
 
 **Why it works:**
 - Instant personalized results (not generic advice)
-- Reveals problems HubSpot products solve
 - Zero friction (just enter URL)
 - Shareable results create viral loop
 
-**The bridge:** Website audit reveals gaps → HubSpot marketing tools address those gaps
 
 ### Sales Plan Template
 Downloadable template for creating a structured sales plan.
 
 **Why it works:**
 - Immediate utility for sales teams
-- Showcases HubSpot's sales methodology
 - Template creates repeated usage
 - Natural fit for CRM conversation
 
@@ -40,16 +36,14 @@ Downloadable template for creating a structured sales plan.
 Annual research report with data from thousands of marketers.
 
 **Why it works:**
-- Positions HubSpot as thought leader
 - Data is genuinely valuable and unique
 - Referenced by others (creates backlinks)
 - Demonstrates market understanding
 
-**Key HubSpot pattern:** Multiple lead magnets for different stages and personas, all connecting to the same product ecosystem.
 
 ---
 
-## Ahrefs
+## exa MCP or web search
 
 ### Free Webmaster Tools
 A constrained version of their SEO toolkit available for free—site audit, backlink checker, keyword explorer (limited).
@@ -73,7 +67,7 @@ Comprehensive SEO guides that rank for target keywords and include in-context to
 
 ---
 
-## Semrush
+## exa MCP or web search
 
 ### Free Trial + Freemium Hybrid
 Offers both a 7-day free trial of full features AND a limited free plan.
@@ -160,8 +154,7 @@ Thousands of free templates created by Notion and community.
 Offer a genuinely useful free tool, capture users, upsell.
 
 **Examples:**
-- HubSpot Website Grader
-- Ahrefs Webmaster Tools
+- exa MCP or web search Webmaster Tools
 - Canva free design tools
 
 **Key insight:** The free tool should be good enough to use forever AND limited enough that power users want more.
@@ -201,7 +194,6 @@ Provide ready-to-use templates that work with your product.
 
 **Examples:**
 - Notion templates
-- HubSpot marketing templates
 - Zapier pre-built workflows
 
 **Key insight:** Templates lower the barrier to product adoption while demonstrating use cases.

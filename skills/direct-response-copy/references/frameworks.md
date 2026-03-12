@@ -14,7 +14,6 @@ Frameworks beat templates — they teach thinking patterns, not copy-paste short
 **Structure:** Current painful situation → Ideal future → Your product as the bridge.
 **Best for:** Transformation-driven offers with clear before/after. Emotional decision-makers.
 
-> Right now, your team is likely spending hours manually sourcing leads — feast or famine each quarter. Imagine qualified leads arriving daily on autopilot, reps spending 100% of their time selling. That's what our platform does. Companies like HubSpot saw a 40% pipeline increase within 90 days. Can I show you how?
 
 ## QVC — Question, Value, CTA
 

@@ -106,7 +106,6 @@ Provide affiliates with:
 
 **Built-in options:**
 - Stripe (basic referral tracking)
-- HubSpot (CRM-integrated)
 - Segment (tracking and analytics)
 
 ### Affiliate Program Tools

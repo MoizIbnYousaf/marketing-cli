@@ -28,51 +28,18 @@ No SaaS tools needed. Systematic research plus web search.
 
 ---
 
-## Brand Memory Integration
 
-On every invocation, check for existing brand context.
+## On Activation
 
-### Reads (if they exist)
-
-| File | What it provides | How it shapes output |
-|------|-----------------|---------------------|
-| ./brand/voice-profile.md | Brand tone, personality | Confirms audience-voice alignment — a playful brand implies a different audience than an enterprise one |
-| ./brand/competitors.md | Named competitors, their positioning | Seeds audience discovery — look at who competitors target, find underserved segments |
-
-### Writes
-
-| File | What it contains |
-|------|-----------------|
-| ./brand/audience.md | Complete audience profile with personas, pain points, watering holes (profile file, create-or-overwrite) |
-| ./brand/learnings.md | Appends audience research insights and surprising findings |
-
-### Context Loading Behavior
-
-1. Check whether `./brand/` exists.
-2. If it exists, read `voice-profile.md` and `competitors.md` if present.
-3. If loaded, show the user what you found:
-   ```
-   Brand context loaded:
-   ├── Voice Profile   ✓ "{tone summary}"
-   └── Competitors     ✓ "{N competitors found}"
-
-   Using this to shape audience research.
-   ```
-4. If files are missing, proceed without them. Note at the end:
-   ```
-   Tip: Run /brand-voice and /competitive-intel to enrich future audience updates.
-   ```
-
-### Returning Visit Behavior
-
-If `./brand/audience.md` already exists:
-- Read it and display the current primary persona
-- Ask: "You already have an audience profile. Do you want to refine it with fresh research, add a new segment, or start from scratch?"
-- **Refine** — keep existing personas, run fresh web search, update with new findings
-- **Add segment** — add a new persona to the existing profile
-- **Start fresh** — full process below
+1. Read `brand/` files if they exist for project context
+2. Use available context to skip questions the user has already answered
 
 ---
+
+## Brand Memory
+
+Brand memory: Follow brand memory protocol in /cmo skill.
+
 
 ## The core job
 

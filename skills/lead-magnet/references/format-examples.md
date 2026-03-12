@@ -27,10 +27,8 @@ Interactive experiences that ask questions and provide personalized results.
 - Detailed report on your "fascination advantage"
 - Results lead to books, courses, certification
 
-**HubSpot's Website Grader**
 - Enter URL, get instant website analysis
 - Scores across multiple dimensions
-- Problems revealed → HubSpot solutions offered
 
 ### When to Use
 - When personalization adds value
@@ -63,7 +61,6 @@ Downloadable documents that teach, explain, or provide frameworks.
 - Contrarian angle (what you believe is wrong)
 - Emotionally charged topic
 
-**HubSpot's State of Marketing Report**
 - Original research and data
 - Industry authority positioning
 - Annual refresh creates recurring lead gen
@@ -104,7 +101,6 @@ Ready-to-use documents that provide structure for specific tasks.
 - Shows product flexibility
 - Community-created content scales endlessly
 
-**HubSpot's Sales Plan Template**
 - Fills a specific need (planning)
 - Showcases sales methodology
 - Leads naturally to CRM conversation
@@ -145,7 +141,7 @@ Interactive tools that process inputs and provide personalized outputs.
 - Supports business case building
 - Multiple calculators for different use cases
 
-**Ahrefs' Free Webmaster Tools**
+**exa MCP or web search' Free Webmaster Tools**
 - Constrained version of paid product
 - Genuine utility at free tier
 - Natural upgrade path

@@ -15,7 +15,7 @@ This reference document contains the visual psychology, anti-generic techniques,
 5. [Style Vocabulary Taxonomy](#part-5-style-vocabulary-taxonomy)
 6. [Leading Brand Visual Identities](#part-6-leading-brand-visual-identities)
 7. [Platform-Specific Visual Strategy](#part-7-platform-specific-visual-strategy)
-8. [Prompt Construction for Image Generation](#part-8-prompt-construction-for-image-generation)
+8. [Prompt Construction for the configured image model](#part-8-prompt-construction-for-image-generation)
 9. [Text Rendering & Typography in AI Images](#part-9-text-rendering--typography-in-ai-images)
 10. [Brand Consistency Across Multiple Generations](#part-10-brand-consistency-across-multiple-generations)
 11. [Prompt Templates](#part-11-prompt-templates)
@@ -771,9 +771,9 @@ As AI-generated content floods feeds with hyper-polished digital imagery, audien
 
 ---
 
-## Part 8: Prompt Construction for Image Generation
+## Part 8: Prompt Construction for the configured image model
 
-These guidelines apply to modern image generation models. Check `brand/stack.md` for the specific model configured in your project. The principles are universal across providers.
+the configured image model (see brand/stack.md) is the default image model for the creative engine. These guidelines are specific to how this model interprets prompts.
 
 ### The Prompt Formula
 
@@ -784,16 +784,17 @@ These guidelines apply to modern image generation models. Check `brand/stack.md`
 [TECHNICAL reference for texture/processing]
 ```
 
-### How Modern Image Models Read Prompts
+### How the configured image model Reads Prompts
 
-**What works well across models:**
-- Detailed natural language descriptions with specific visual anchors
-- Multiple style references combined coherently
-- Camera and lens references (translates to appropriate depth of field, perspective, etc.)
-- Specific color names, palettes, and hex codes
-- Complex multi-element compositions (when limited to 2-3 key elements)
+**What it does well:**
+- Follows detailed natural language descriptions faithfully
+- Handles multiple style references without confusion
+- Renders text and typography better than most models
+- Understands camera and lens references (translates to appropriate depth of field, perspective, etc.)
+- Responds well to specific color names and palettes
+- Handles complex multi-element compositions
 
-**Common limitations across models:**
+**What it struggles with:**
 - Very long prompts (500+ words) — keep under 300 words for reliability
 - Abstract concepts without visual anchors — always give it something concrete
 - Exact spatial relationships between many objects — keep compositions to 2-3 key elements
@@ -827,7 +828,7 @@ WEAK ─────────────────────────
 
 ### Lighting as Mood Control
 
-Lighting is the single most impactful prompt element after the subject. Nano Banana Pro responds particularly well to specific lighting descriptions.
+Lighting is the single most impactful prompt element after the subject. the configured image model responds particularly well to specific lighting descriptions.
 
 | Lighting Description | Mood It Creates | When to Use |
 |---------------------|-----------------|-------------|
@@ -852,7 +853,7 @@ Never say "colorful" or "vibrant colors." Always specify the palette.
 "muted earth tones: sand, warm grey, dried sage, soft clay"
 ```
 
-**Nano Banana Pro understands hex codes** in prompts. Using them produces more precise color results than generic color names alone.
+**the configured image model understands hex codes** in prompts. Using them produces more precise color results than generic color names alone.
 
 ### Quality and Realism Modifiers
 
@@ -889,7 +890,7 @@ Never say "colorful" or "vibrant colors." Always specify the palette.
 
 ## Part 9: Text Rendering & Typography in AI Images
 
-Nano Banana Pro has significantly better text rendering capabilities than previous generation models. However, text in AI-generated images still requires specific techniques to get clean results.
+the configured image model has significantly better text rendering capabilities than previous generation models. However, text in AI-generated images still requires specific techniques to get clean results.
 
 ### When to Render Text in the Image vs. Overlay Later
 
@@ -935,7 +936,7 @@ Bad:  'a sign that says something about being open'
 | Text does not interact with lighting | Add: "text catching the same [lighting description] as the scene" |
 | Text floats unnaturally | Specify the surface: "text painted on the wall", "text engraved in the surface" |
 
-### Typography Style Keywords for Nano Banana Pro
+### Typography Style Keywords for Image Generation
 
 ```
 Serif:        "elegant serif", "classic roman", "editorial serif", "high-contrast serif"
@@ -1001,7 +1002,7 @@ After the 5-direction exploration process (described in SKILL.md), create a styl
 
 **1. Anchor Colors with Hex Codes**
 
-Nano Banana Pro understands hex codes. Using them produces more consistent color results than descriptive names.
+Modern image models understand hex codes. Using them produces more consistent color results than descriptive names.
 
 ```
 Less consistent: "warm orange and cream"
@@ -1036,7 +1037,7 @@ When you find a generation you like, note the seed. Use that seed with modified 
 
 **5. Reference Image Workflow**
 
-For maximum consistency, use the image editing capability of Nano Banana Pro:
+For maximum consistency, use the image editing capability of your configured image model:
 1. Generate the first image and approve it
 2. For subsequent images, provide the approved image as `image_input` with a prompt describing the variation
 3. This anchors the model to the established visual style

@@ -1,503 +1,292 @@
 ---
 name: creative
-description: "AI creative production engine for product photos, videos, social graphics, talking heads, and ad creative. One engine, multiple modes, shared brand kit. Triggers on: image, video, ad creative, hero image, social graphics, banner, thumbnail, product photo, creative assets, visual content, generate image, make a video, social post graphic, ad design, talking head."
+description: |
+  Generate visual asset briefs, ad copy variants, AI image prompts, and video scripts. Produces complete creative briefs with specs, storyboards, and Remotion-compatible video scripts. Triggers on: creative brief, ad creative, image prompt, video script, storyboard, visual assets, banner, thumbnail, ad copy, social graphics, brand visuals, Remotion.
 category: creative
-tier: must-have
+tier: core
 reads:
   - brand/voice-profile.md
-  - brand/positioning.md
   - brand/creative-kit.md
 writes:
   - brand/creative-kit.md
-  - brand/assets.md
+  - marketing/creative/{campaign}/
+depends-on:
+  - brand-voice
 triggers:
-  - image
-  - video
+  - creative brief
   - ad creative
-  - hero image
-  - social graphics
+  - image prompt
+  - video script
+  - storyboard
+  - visual assets
   - banner
   - thumbnail
-  - product photo
-  - creative assets
-  - visual content
-  - generate image
-  - make a video
-  - talking head
-  - ad design
+  - ad copy
+  - social graphics
+  - brand visuals
+  - remotion
+  - video ad
+allowed-tools: []
 ---
 
-# Creative Engine
+# Creative Assets
 
-**One engine. Every visual asset your brand needs.**
-
-This skill routes you to the right creative mode, manages your brand identity across all outputs, and handles prompt construction so you describe what you want and get production-ready assets.
-
-Read `brand/` context per project conventions. Follow all output formatting rules from the project's output format conventions.
-
----
+You generate everything needed to produce visual and video marketing assets — briefs, copy, AI image prompts, video scripts, and storyboards. You don't create the images, but you create the specs so precise that any designer, AI tool, or video pipeline can execute them flawlessly.
 
 ## On Activation
 
-When this skill is activated:
-
-1. Read `brand/creative-kit.md` — if it does not exist, run the Brand Kit setup (see below)
-2. Read `brand/stack.md` — detect which image/video tools are available in the project
-3. Read `brand/voice-profile.md` and `brand/positioning.md` for brand context
-4. Ask the user what they are making (see mode selection below)
-5. If a style has been locked previously for this project, load it from `brand/creative-kit.md` under "Locked Style Principles"
-
-If `brand/stack.md` does not exist or lists no generation tools, default to **prompt-only mode** — generate optimized prompts the user can paste into any image/video tool.
+1. Read `brand/creative-kit.md` — if it exists, use these brand guidelines for all output
+2. Read `brand/voice-profile.md` — match copy tone to brand voice
+3. If `brand/creative-kit.md` doesn't exist and the user needs brand visuals, offer to build it (see Creative Kit Builder below)
+4. Ask: What type of asset? What platform? What's the campaign goal?
 
 ---
 
-## What Are We Making?
+## Creative Kit Builder
 
-When this skill is invoked, start here:
+If no `brand/creative-kit.md` exists, build one:
 
-```
-What are we making?
-
-  1. Product photos      hero shots, lifestyle, e-commerce flats
-  2. Product videos      reveals, orbits, demos, unboxings
-  3. Social graphics     posts, stories, thumbnails, ads
-  4. Talking head        presenters, UGC-style, testimonials
-  5. Ad creative         paid social, display, video ads
-  6. Free generation     anything else — describe it
-```
-
-Each mode has its own playbook in `modes/`. The creative engine handles:
-- Brand consistency (every mode reads from the same brand kit)
-- Model selection (reads `brand/stack.md` for available tools, picks the right one)
-- Quality control (built-in review and iteration workflow)
-- Batch generation (campaign-scale parallel production)
-
+```yaml
 ---
+brand_name: "Name"
+last_updated: 2026-03-12
+---
+```
 
-## First-Time Setup
-
-### Step 1: Detect Available Tools
-
-Check `brand/stack.md` for what generation tools are configured. The stack file should list available tools with their type and status:
+### Sections to Create
 
 ```markdown
-# Creative Stack
+# Creative Kit
 
-## Last Verified: [date]
+## Color Palette
+- Primary: #hex (name) — usage: CTAs, headers, key elements
+- Secondary: #hex (name) — usage: backgrounds, accents
+- Neutral: #hex (name) — usage: text, borders
+- Accent: #hex (name) — usage: highlights, alerts
 
-| Tool | Type | Status | Notes |
-|------|------|--------|-------|
-| [image model/tool] | image | Active | Default image generation |
-| [video model/tool] | video | Active | Default video generation |
-| remotion | video-edit | Active | Programmatic video composition |
-| ffmpeg | processing | Active | Video/image processing |
-```
-
-If `brand/stack.md` does not exist, create it by probing the environment:
-
-```bash
-# Check for ffmpeg
-which ffmpeg && ffmpeg -version | head -1
-
-# Check for remotion
-bunx remotion --version 2>/dev/null || npx remotion --version 2>/dev/null
-
-# Check for any configured API tokens (image/video generation)
-# Look in .env for relevant keys without printing values
-grep -l "API" .env 2>/dev/null
-```
-
-Record what is available. The skill adapts to whatever tools exist.
-
-### Step 2: Prompt-Only Mode (No Generation Tools)
-
-If no image/video generation tools are detected:
-
-1. **Do not block the skill.** Switch to prompt-only mode.
-2. Show: "No generation tools detected — running in prompt-only mode. I'll generate optimized prompts you can paste into any image/video tool."
-3. Follow the same creative workflow (brand kit, style exploration, mode selection) but output:
-   - The exact prompt text, optimized for the target tool
-   - Recommended tool/model and settings
-   - Aspect ratio and resolution specifications
-   - Style exclusions and guardrails
-4. Format prompt output as a copyable code block.
-
-The prompt engineering and brand-consistent creative direction are valuable on their own.
-
----
-
-## Brand Kit — Creative Identity
-
-### Building the Brand Kit
-
-On the first creative run, build `brand/creative-kit.md`. This file is the visual DNA that every mode reads from. Without it, outputs will be inconsistent across assets.
-
-**Prompt the user for:**
-
-```markdown
-# Brand Creative Kit
-
-## Brand Colors
-- **Primary:** [hex + name, e.g., #2563EB "Electric Blue"]
-- **Secondary:** [hex + name]
-- **Accent:** [hex + name]
-- **Background:** [hex + name, e.g., #0F172A "Deep Navy"]
-- **Text:** [hex + name, e.g., #F8FAFC "Near White"]
-
-## Typography Direction
-- **Headlines:** [style, e.g., "Bold, modern sans-serif, high impact"]
-- **Body:** [style, e.g., "Clean, readable, neutral weight"]
-- **Display/Hero:** [style, e.g., "Oversized, condensed, all-caps for impact"]
-
-## Visual Style
-- **Photography preference:** [e.g., "Lifestyle over studio, warm natural light"]
-- **Illustration style:** [e.g., "Flat vector with subtle gradients, no outlines"]
-- **Overall mood:** [e.g., "Confident, warm, premium but not pretentious"]
-- **What to avoid:** [e.g., "Stock photo vibes, clip art, neon/fluorescent colors"]
+## Typography
+- Headlines: Font Name, weight, size range
+- Body: Font Name, weight, size range
+- Code/Mono: Font Name (if applicable)
 
 ## Logo
-- **Path:** [relative path to logo file, or "not yet provided"]
-- **Usage notes:** [e.g., "White version on dark backgrounds, primary on light"]
+- Primary: [description/location]
+- Icon-only: [description/location]
+- Dark background variant: [description/location]
+- Minimum size: Xpx
+- Clear space: X around all sides
 
-## Competitor Visual References
-- **Competitor 1:** [name + what to learn/avoid from their visuals]
-- **Competitor 2:** [name + what to learn/avoid]
+## Photography Style
+- Style: [lifestyle, product, abstract, editorial]
+- Mood: [energetic, calm, professional, playful]
+- Color treatment: [bright, muted, high-contrast, warm]
+- Subjects: [people, products, environments, concepts]
 
-## Reference Screenshots
-[Links or paths to screenshots of visual styles the brand admires]
+## Illustration / Graphics Style
+- Style: [flat, 3D, hand-drawn, geometric, isometric]
+- Line weight: [thin, medium, bold]
+- Color usage: [brand colors only, extended palette]
+
+## Brand Don'ts
+- Never: [specific things to avoid]
 ```
 
-**If the user does not have a brand kit yet:**
-1. Ask for their website URL or existing social profiles
-2. Analyze the visual patterns (colors, typography, mood)
-3. Propose a creative kit based on what you observe
-4. Refine with the user until locked
-
-### Using the Brand Kit
-
-Every mode reads `creative-kit.md` before generating any asset:
-- Color palette is injected into prompts automatically
-- Typography preferences guide text rendering decisions
-- Visual style keywords are appended to every prompt
-- "What to avoid" items become prompt guardrails
+Write to `brand/creative-kit.md`.
 
 ---
 
-## Style Exploration Process
+## Asset Types
 
-This is the core creative methodology. It applies to every mode, every time.
+### 1. Ad Copy Variants
 
-### The 5-Direction Exploration
-
-When starting any new creative project (not a one-off generation):
-
-**Step 1: Generate 5 Different Approaches**
-
-Do not generate 5 similar images. Generate 5 genuinely different creative directions:
-
-```
-Direction 1: [Name] — The safe, expected approach for this category
-Direction 2: [Name] — The opposite of Direction 1
-Direction 3: [Name] — Borrowed from a completely different industry
-Direction 4: [Name] — Emotion-first (prioritizes feeling over information)
-Direction 5: [Name] — The wild card (break a convention)
-```
-
-Each direction should have a distinct visual strategy — different lighting, composition, color treatment, mood, and reference point.
-
-**Step 2: Present All 5 for Review**
-
-```markdown
-## Creative Direction Exploration
-
-### Direction 1: [Name]
-![Preview](path-or-url)
-**Strategy:** [why this approach]
-**Vibe:** [emotional register]
-**Risk level:** Low — category standard
-
-### Direction 2: [Name]
-![Preview](path-or-url)
-**Strategy:** [why this approach]
-**Vibe:** [emotional register]
-**Risk level:** Medium — against convention
-
-[... repeat for all 5]
-
----
-
-**Which direction resonates?**
-- Pick one to develop
-- Combine elements: "I like the lighting from 2 with the composition of 4"
-- Request variations on any direction
-- Start over with different constraints
-```
-
-**Step 3: User Picks Direction or Combines Elements**
-
-The user rarely picks one direction entirely. They usually combine: "I like the warmth of 3 but the composition of 1." This is the valuable feedback.
-
-**Step 4: Lock Style Principles**
-
-Once direction is chosen, document the locked style in `brand/creative-kit.md`:
-
-```markdown
-## Locked Style Principles
-
-**Color Treatment:** [specific palette and grading]
-**Lighting:** [specific direction, quality, temperature]
-**Composition:** [specific framing and layout rules]
-**Mood:** [specific emotional register]
-**Technical:** [camera reference, texture, processing]
-**Anti-patterns:** [what specifically to avoid]
-```
-
-**Step 5: Execute at Scale Using Locked Principles**
-
-With style locked, generate all campaign assets using the same principles. Brand kit + locked style = consistency across dozens of assets.
-
-### When to Skip the 5-Direction Process
-
-- User says "just generate [specific thing]" — they know what they want
-- Single asset request with clear specifications
-- Follow-up assets that should match an already-locked style
-- User explicitly says "skip exploration"
-
----
-
-## Smart Model Selection
-
-Read `brand/stack.md` for available tools. The user describes what they want — the engine picks the tool. Never ask the user which model to use.
-
-```
-USER REQUEST
-|
-+-- Contains "image" / "photo" / "graphic" / "picture" / "thumbnail"
-|   --> Use default image tool from brand/stack.md
-|
-+-- Contains "video" / "clip" / "animation" / "motion"
-|   +-- Is this hero/flagship content?
-|   |   +-- Yes --> Run multiple video tools in parallel (if available)
-|   |   +-- No --> Use default video tool from brand/stack.md
-|   +-- Needs editing/composition? --> Use remotion
-|   +-- Needs processing (trim, resize, convert)? --> Use ffmpeg
-|
-+-- Contains "talking head" / "presenter" / "lip sync"
-|   --> Use lip-sync tool from brand/stack.md
-|   --> Use ffmpeg for post-processing
-|
-+-- Contains "ad" / "advertisement" / "paid social" / "display ad"
-|   --> Route to modes/ad-creative.md
-|   --> Uses image tool for stills, video tool for video ads
-|
-+-- Unclear / general
-    --> Ask: "Is this a still image, a video, or something else?"
-```
-
-### Video Composition with Remotion
-
-For composed videos (multi-clip sequences, text overlays, transitions):
-- Use remotion for programmatic video composition
-- Use ffmpeg for processing (trim, resize, format conversion, concatenation)
-- Individual clips can come from any generation tool; remotion assembles them
-
-### Tier Strategy — Test Cheap, Ship Quality
-
-If `brand/stack.md` lists multiple tools at different quality/cost tiers:
-
-```
-TESTING       --> Cheapest/fastest tool for exploring directions
-PRODUCTION    --> Default quality tool for final assets
-PREMIUM       --> Best quality tool for hero/flagship content
-```
-
-Generate many cheap variants to find what works, then regenerate winners at production quality.
-
----
-
-## Batch Generation — Campaign Scale
-
-For campaigns that need many assets, use parallel task agents.
-
-### Parallel Image Generation
-
-When generating a set of images (e.g., 10 product photos):
-
-```
-Task 1: Generate hero image — 16:9, dramatic lighting
-Task 2: Generate product front — 1:1, clean white background
-Task 3: Generate product angle — 1:1, 45-degree view
-Task 4: Generate lifestyle shot — 4:5, in-context usage
-Task 5: Generate detail close-up — 1:1, macro style
-```
-
-Each task:
-1. Reads the brand kit for style consistency
-2. Reads the locked style principles (if established)
-3. Constructs the prompt following references/VISUAL_INTELLIGENCE.md guidelines
-4. Calls the generation tool with the correct payload
-5. Saves the output to the correct directory
-6. Reports back with the result and quality assessment
-
-### Batch Limits
-
-- Space batches to avoid hitting rate limits on generation APIs
-- For large batches (20+ assets), generate in waves of 5-8
-- Monitor for throttling and back off when needed
-
----
-
-## File Output Conventions
-
-### Directory Structure
-
-```
-marketing/creative/
-+-- explorations/
-|   +-- [project-name]/
-|       +-- direction-1.png
-|       +-- direction-2.png
-|
-+-- product-photos/
-|   +-- hero/
-|   +-- lifestyle/
-|   +-- ecommerce/
-|   +-- detail/
-|
-+-- videos/
-|   +-- hero/
-|   +-- product-reveals/
-|   +-- social-clips/
-|
-+-- social-graphics/
-|   +-- instagram/
-|   +-- linkedin/
-|   +-- twitter/
-|   +-- tiktok/
-|   +-- youtube/
-|
-+-- talking-heads/
-|   +-- source-videos/
-|   +-- audio/
-|   +-- output/
-|
-+-- ad-creative/
-|   +-- paid-social/
-|   +-- display/
-|   +-- video-ads/
-|
-+-- exports/
-    +-- [campaign-name]/
-```
-
-### Naming Convention
-
-```
-[asset-type]-[descriptor]-[aspect-ratio]-[version].ext
-
-Examples:
-hero-product-floating-16x9-v1.png
-lifestyle-morning-coffee-4x5-v2.png
-reveal-bottle-orbit-16x9-v1.mp4
-social-announcement-sale-1x1-v1.png
-```
-
----
-
-## Mode Files
-
-Each mode contains the specific playbook for that asset type:
-
-| Mode | File | What It Covers |
-|------|------|----------------|
-| Product Photos | `modes/product-photos.md` | Hero shots, lifestyle, e-commerce flats, detail close-ups |
-| Product Videos | `modes/product-videos.md` | Reveals, orbits, demos, unboxings, before/after |
-| Social Graphics | `modes/social-graphics.md` | Platform-specific posts, stories, thumbnails |
-| Talking Head | `modes/talking-head.md` | Presenter videos, UGC-style, testimonials, lip-sync |
-| Ad Creative | `modes/ad-creative.md` | Paid social, display, video ads, A/B variants |
-| Free Generation | (no mode file) | Uses brand kit + stack directly |
-
----
-
-## Quality Gate
-
-Before delivering any creative asset, verify:
-
-### Technical
-- [ ] Resolution appropriate for intended use
-- [ ] No AI artifacts (distorted hands, melted text, impossible geometry)
-- [ ] Sharp focus on primary subject
-- [ ] Correct aspect ratio for platform
-
-### Brand Alignment
-- [ ] Colors match creative-kit.md palette
-- [ ] Typography direction is consistent
-- [ ] Mood matches brand personality
-- [ ] Nothing in the "what to avoid" list appears
-
-### Strategic
-- [ ] Asset serves its communication goal
-- [ ] Composition supports the intended use (text space if needed)
-- [ ] Visual hierarchy is clear (one focal point, one message)
-- [ ] Differentiated from competitors (not category-generic)
-
-### Platform
-- [ ] Correct dimensions for target platform
-- [ ] Works at thumbnail/preview size
-- [ ] Hooks within 3 seconds (video)
-- [ ] Text legible at mobile size (if applicable)
-
----
-
-## Handoff Protocols
-
-### Receiving Work from Other Skills
-
-The creative engine can receive briefs from other skills:
+For each ad, generate 3-5 copy variants:
 
 ```yaml
-creative_brief:
-  subject: "what to create"
-  audience: "who it is for"
-  message: "key communication point"
-  platform: "where it will be published"
-  style_notes: "any visual direction"
+---
+asset_type: ad_copy
+platform: facebook | google | linkedin | twitter
+campaign: "campaign-name"
+goal: awareness | consideration | conversion
+audience: "target segment"
+---
 ```
 
-### Delivering to Other Skills
+**Per variant:**
+```markdown
+### Variant A: [Angle Name]
+- **Headline**: (25-40 chars for Google, 40 chars FB, 150 chars LinkedIn)
+- **Primary text**: Platform-specific body copy
+- **Description**: Secondary text line
+- **CTA button**: Shop Now | Learn More | Sign Up | Get Started
+- **Angle**: benefit | social-proof | urgency | curiosity | pain-point
+```
 
-```yaml
-creative_delivery:
-  assets:
-    - path: "marketing/creative/product-photos/hero/hero-product-16x9-v1.png"
-      type: "image"
-      dimensions: "1280x720"
-      prompt_used: "the exact prompt"
-    - path: "marketing/creative/videos/hero/reveal-16x9-v1.mp4"
-      type: "video"
-      duration: "5s"
-      tool_used: "from brand/stack.md"
-  brand_kit: "brand/creative-kit.md"
-  style_locked: true
+**Platform specs:**
+
+| Platform | Headline | Primary Text | Description |
+|----------|----------|-------------|-------------|
+| Facebook/IG | 40 chars | 125 chars (above fold) | 30 chars |
+| Google Search | 30 chars x3 | 90 chars x2 | — |
+| LinkedIn | 70 chars | 150 chars (above fold) | — |
+| Twitter/X | — | 280 chars total | — |
+
+### 2. AI Image Prompts
+
+Generate detailed prompts for AI image generation tools (Midjourney, DALL-E, Flux):
+
+```markdown
+### Image: [Description]
+
+**Prompt:**
+[Detailed prompt with subject, composition, lighting, style, mood, colors]
+
+**Negative prompt:**
+[What to exclude: text, watermarks, specific artifacts]
+
+**Specs:**
+- Aspect ratio: 16:9 | 1:1 | 4:5 | 9:16
+- Style reference: [photographer, art style, or example]
+- Use case: [where this image will be used]
+```
+
+**Prompt writing rules:**
+- Be specific about composition: "centered subject," "rule of thirds," "close-up"
+- Specify lighting: "soft natural light," "studio lighting," "golden hour"
+- Include mood words: "energetic," "minimal," "warm," "professional"
+- Reference brand colors when relevant
+- Always include aspect ratio for the target platform
+- Avoid vague descriptors — "beautiful" means nothing to an AI
+
+### 3. Video Scripts
+
+For each video, output a complete script with timing:
+
+```markdown
+### Video: [Title]
+
+**Type:** explainer | ad | social | demo | testimonial
+**Duration:** Xs
+**Platform:** YouTube | TikTok | Instagram Reels | LinkedIn | Website
+**Aspect ratio:** 16:9 | 9:16 | 1:1
+
+#### Script
+
+| Time | Visual | Audio/Voiceover | Text Overlay |
+|------|--------|-----------------|--------------|
+| 0-3s | [Hook visual] | [Hook line] | [Bold text] |
+| 3-8s | [Problem visual] | [Problem narration] | — |
+| 8-15s | [Solution visual] | [Solution narration] | [Key benefit] |
+| 15-25s | [Demo/proof] | [Supporting detail] | — |
+| 25-30s | [CTA screen] | [CTA voiceover] | [CTA text + URL] |
+```
+
+**Video rules by platform:**
+
+| Platform | Duration | Aspect | Hook Window |
+|----------|----------|--------|-------------|
+| TikTok/Reels | 15-60s | 9:16 | First 1-2s |
+| YouTube Shorts | 15-60s | 9:16 | First 2-3s |
+| YouTube (long) | 2-10min | 16:9 | First 5-10s |
+| LinkedIn | 30-90s | 1:1 or 16:9 | First 3s |
+| Website hero | 15-30s | 16:9 | Immediate |
+| Ads (FB/IG) | 6-15s | varies | First 1s |
+
+### 4. Remotion Video Scripts
+
+For programmatic video generation using Remotion:
+
+```typescript
+// Remotion composition structure
+// Duration: 30s at 30fps = 900 frames
+
+// Scene 1: Hook (0-90 frames / 0-3s)
+{
+  text: "Hook headline",
+  background: "#hex",
+  animation: "fadeIn",
+  duration: 90,
+}
+
+// Scene 2: Problem (90-240 frames / 3-8s)
+{
+  text: "Problem statement",
+  background: "#hex",
+  animation: "slideUp",
+  duration: 150,
+}
+
+// Scene 3: Solution (240-450 frames / 8-15s)
+// ...
+```
+
+**Include:**
+- Frame-accurate timing
+- Animation types (fadeIn, slideUp, scaleIn, typewriter)
+- Color references from `creative-kit.md`
+- Font specifications
+- Asset placeholders (logo position, product screenshot areas)
+
+### 5. Thumbnail / Banner Briefs
+
+```markdown
+### Thumbnail: [Title]
+
+**Dimensions:** WxH px
+**Platform:** YouTube | Blog | Social
+**Elements:**
+- Background: [color/gradient/image description]
+- Primary text: "[Text]" — font, size, color, position
+- Secondary text: "[Text]" — font, size, color, position
+- Person/product: [description, position]
+- Brand element: [logo placement, badge]
+
+**Composition notes:**
+[Rule of thirds, focal point, contrast, readability at small sizes]
+
+**AI image prompt (if needed):**
+[Detailed prompt for background or key visual]
 ```
 
 ---
 
-## What's Next After Creative Production
+## Platform Dimension Reference
 
-After generating creative assets, suggest next steps:
+| Asset | Dimensions | Format |
+|-------|-----------|--------|
+| Facebook ad | 1200x628 | JPG/PNG |
+| Instagram post | 1080x1080 | JPG/PNG |
+| Instagram Story/Reel | 1080x1920 | JPG/MP4 |
+| Twitter/X post | 1200x675 | JPG/PNG |
+| LinkedIn post | 1200x627 | JPG/PNG |
+| YouTube thumbnail | 1280x720 | JPG |
+| Blog hero | 1200x630 | JPG/PNG/WebP |
+| Email header | 600x200 | JPG/PNG |
+| Favicon | 32x32, 16x16 | ICO/PNG |
+| OG image | 1200x630 | JPG/PNG |
+
+---
+
+## Output Structure
 
 ```
-WHAT'S NEXT
-
-Your creative assets are generated and saved. Next moves:
-
-> /content-atomizer  Create platform-specific variants
-                     for social distribution (~10 min)
-> /direct-response-copy  If these visuals need
-                     accompanying copy — landing pages,
-                     ads, or email (~15 min)
-> /cmo               Review your full project status
-
-Or tell me what you are working on and I will route you.
+marketing/creative/{campaign}/
+├── brief.md             # Campaign creative brief
+├── ad-copy-variants.md  # Copy variants per platform
+├── image-prompts.md     # AI image generation prompts
+├── video-scripts.md     # Video scripts with timing
+├── remotion/            # Remotion-specific scripts
+│   └── composition.md
+└── thumbnails.md        # Thumbnail/banner briefs
 ```
+
+**Integration**: Remotion for programmatic video, ffmpeg for processing, AI image tools for generation.
+
+---
+
+## Related Skills
+
+- **brand-voice**: Voice consistency across all creative copy
+- **direct-response-copy**: Ad copy that converts
+- **content-atomizer**: Generates content that needs creative assets
+- **launch-strategy**: Creative assets for launch campaigns
+- **seo-content**: Blog hero images and OG images

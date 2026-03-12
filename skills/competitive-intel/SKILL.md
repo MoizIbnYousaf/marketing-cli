@@ -29,51 +29,18 @@ No SaaS tools needed. Systematic web research.
 
 ---
 
-## Brand Memory Integration
 
-On every invocation, check for existing brand context.
+## On Activation
 
-### Reads (if they exist)
-
-| File | What it provides | How it shapes output |
-|------|-----------------|---------------------|
-| ./brand/voice-profile.md | Brand positioning, tone | Frames competitive analysis — compare against your own positioning to find differentiation |
-| ./brand/audience.md | Target personas, pain points | Focuses research on competitors targeting the same audience |
-
-### Writes
-
-| File | What it contains |
-|------|-----------------|
-| ./brand/competitors.md | Complete competitive landscape with teardowns and gaps (profile file, create-or-overwrite) |
-| ./brand/learnings.md | Appends competitive insights and strategic observations |
-
-### Context Loading Behavior
-
-1. Check whether `./brand/` exists.
-2. If it exists, read `voice-profile.md` and `audience.md` if present.
-3. If loaded, show the user what you found:
-   ```
-   Brand context loaded:
-   ├── Voice Profile   ✓ "{positioning summary}"
-   └── Audience        ✓ "{primary persona summary}"
-
-   Using this to focus competitive research.
-   ```
-4. If files are missing, proceed without them. Note at the end:
-   ```
-   Tip: Run /brand-voice and /audience-research to enrich future competitive analysis.
-   ```
-
-### Returning Visit Behavior
-
-If `./brand/competitors.md` already exists:
-- Read it and display the known competitors
-- Ask: "You already have competitive intel. Do you want to update with fresh research, add new competitors, or start from scratch?"
-- **Update** — keep existing competitors, search for new data, refresh findings
-- **Add** — add new competitors to the existing analysis
-- **Start fresh** — full process below
+1. Read `brand/` files if they exist for project context
+2. Use available context to skip questions the user has already answered
 
 ---
+
+## Brand Memory
+
+Brand memory: Follow brand memory protocol in /cmo skill.
+
 
 ## The core job
 

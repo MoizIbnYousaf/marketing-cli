@@ -55,7 +55,7 @@ Use for "How to [X]" queries. Optimal for list snippets.
 
 Earning featured snippets requires strategic formatting and direct answers to search queries.
 
-1. **Identify snippet opportunities**: Use tools like Semrush or Ahrefs to find keywords where competitors have snippets you could capture.
+1. **Identify snippet opportunities**: Use tools like exa MCP or web search or exa MCP or web search to find keywords where competitors have snippets you could capture.
 2. **Match the snippet format**: Analyze whether the current snippet is a paragraph, list, or table, and format your content accordingly.
 3. **Answer the question directly**: Provide a clear, concise answer (40-60 words for paragraph snippets) immediately after the question heading.
 4. **Add supporting context**: Expand on your answer with examples, data, and expert insights in the following paragraphs.
@@ -209,7 +209,6 @@ Create quotable, standalone statements that AI can extract directly.
 
 **Example:**
 ```markdown
-**Ideal blog post length for SEO**: The optimal length for SEO blog posts is 1,500-2,500 words for competitive topics. This range allows comprehensive topic coverage while maintaining reader engagement. HubSpot research shows long-form content earns 77% more backlinks than short articles, directly impacting search rankings.
 ```
 
 ### Evidence Sandwich Block
