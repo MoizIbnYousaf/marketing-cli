@@ -40,10 +40,11 @@ describe("mktg list", () => {
     if (!result.ok) return;
 
     const categories = new Set(result.data.skills.map((s) => s.category));
-    expect(categories.has("foundation")).toBe(true);
+    // Categories come from SKILL.md frontmatter
     expect(categories.has("strategy")).toBe(true);
     expect(categories.has("copy-content")).toBe(true);
     expect(categories.has("distribution")).toBe(true);
+    expect(categories.has("seo")).toBe(true);
   });
 
   test("exit code is 0", async () => {

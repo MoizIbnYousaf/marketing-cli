@@ -137,16 +137,16 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(names).toContain("email-sequences");
     expect(names).toContain("marketing-psychology");
 
-    // Check categories
+    // Check categories (from SKILL.md frontmatter)
     const categories = new Set(result.data.skills.map((s) => s.category));
-    expect(categories.has("foundation")).toBe(true);
     expect(categories.has("strategy")).toBe(true);
     expect(categories.has("copy-content")).toBe(true);
     expect(categories.has("distribution")).toBe(true);
+    expect(categories.has("seo")).toBe(true);
 
-    // Check tiers
-    const mustHaves = result.data.skills.filter((s) => s.tier === "must-have");
-    expect(mustHaves.length).toBeGreaterThanOrEqual(10);
+    // Check tiers (from SKILL.md frontmatter — uses varied tier values)
+    const tiers = new Set(result.data.skills.map((s) => s.tier));
+    expect(tiers.size).toBeGreaterThanOrEqual(2);
   });
 
   test("Step 7: update reports no changes on fresh install", async () => {

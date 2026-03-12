@@ -1,17 +1,20 @@
 // mktg list — Show available skills with status
-// Reads from skills-manifest.json, groups by category, shows installed/missing.
+// Uses the skill registry to discover and display skills from SKILL.md frontmatter.
+// Falls back to skills-manifest.json for install status and redirects.
 
-import { ok, type CommandHandler, type SkillCategory } from "../types";
-import { loadManifest, getInstallStatus } from "../core/skills";
-import { bold, dim, green, red, isTTY } from "../core/output";
+import { ok, type CommandHandler, type SkillCategory } from "../types.js";
+import { loadManifest, getInstallStatus } from "../core/skills.js";
+import { bold, dim, green, red, yellow, isTTY } from "../core/output.js";
+import { buildRegistry, type RegistryEntry } from "../lib/registry.js";
 
 type SkillEntry = {
   readonly name: string;
-  readonly category: SkillCategory;
-  readonly tier: "must-have" | "nice-to-have";
-  readonly layer: string;
+  readonly category: string;
+  readonly tier: string;
+  readonly description: string;
   readonly installed: boolean;
   readonly triggers: readonly string[];
+  readonly valid: boolean;
 };
 
 type ListResult = {
@@ -19,10 +22,12 @@ type ListResult = {
   readonly total: number;
   readonly installed: number;
   readonly missing: number;
+  readonly invalid: number;
 };
 
-const CATEGORY_LABELS: Record<SkillCategory, string> = {
+const CATEGORY_LABELS: Record<string, string> = {
   foundation: "Foundation",
+  brand: "Brand",
   strategy: "Strategy",
   "copy-content": "Copy & Content",
   distribution: "Distribution",
@@ -45,26 +50,32 @@ const CATEGORY_ORDER: readonly SkillCategory[] = [
   "knowledge",
 ];
 
+const getCategoryLabel = (cat: string): string =>
+  CATEGORY_LABELS[cat] ?? cat.charAt(0).toUpperCase() + cat.slice(1);
+
 export const handler: CommandHandler<ListResult> = async (_args, flags) => {
-  const manifest = await loadManifest();
+  const [registry, manifest] = await Promise.all([
+    buildRegistry(),
+    loadManifest(),
+  ]);
   const installStatus = await getInstallStatus(manifest);
 
-  const skills: SkillEntry[] = Object.entries(manifest.skills).map(
-    ([name, meta]) => ({
-      name,
-      category: meta.category,
-      tier: meta.tier,
-      layer: meta.layer,
-      installed: installStatus[name]?.installed ?? false,
-      triggers: meta.triggers,
-    }),
-  );
+  const skills: SkillEntry[] = registry.skills.map((entry: RegistryEntry) => ({
+    name: entry.name,
+    category: entry.frontmatter.category,
+    tier: entry.frontmatter.tier,
+    description: entry.frontmatter.description,
+    installed: installStatus[entry.name]?.installed ?? false,
+    triggers: entry.frontmatter.triggers,
+    valid: entry.valid,
+  }));
 
   const result: ListResult = {
     skills,
     total: skills.length,
     installed: skills.filter((s) => s.installed).length,
     missing: skills.filter((s) => !s.installed).length,
+    invalid: registry.invalid,
   };
 
   // JSON mode returns raw data
@@ -77,15 +88,47 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
   lines.push(bold(`mktg skills (${result.installed}/${result.total} installed)`));
   lines.push("");
 
-  for (const category of CATEGORY_ORDER) {
-    const categorySkills = skills.filter((s) => s.category === category);
-    if (categorySkills.length === 0) continue;
+  // Group skills by category from frontmatter
+  const categories = new Map<string, SkillEntry[]>();
+  for (const skill of skills) {
+    const cat = skill.category || "uncategorized";
+    const group = categories.get(cat) ?? [];
+    group.push(skill);
+    categories.set(cat, group);
+  }
 
-    lines.push(bold(CATEGORY_LABELS[category]));
+  // Display known categories in order first, then any extras
+  const displayedCategories = new Set<string>();
+
+  for (const category of CATEGORY_ORDER) {
+    const categorySkills = categories.get(category);
+    if (!categorySkills || categorySkills.length === 0) continue;
+    displayedCategories.add(category);
+
+    lines.push(bold(getCategoryLabel(category)));
     for (const skill of categorySkills) {
-      const status = skill.installed ? green("●") : red("●");
-      const tier = skill.tier === "nice-to-have" ? dim(" (optional)") : "";
-      lines.push(`  ${status} ${skill.name}${tier}`);
+      lines.push(formatSkillLine(skill));
+    }
+    lines.push("");
+  }
+
+  // Show remaining categories not in CATEGORY_ORDER
+  for (const [category, categorySkills] of categories) {
+    if (displayedCategories.has(category)) continue;
+
+    lines.push(bold(getCategoryLabel(category)));
+    for (const skill of categorySkills) {
+      lines.push(formatSkillLine(skill));
+    }
+    lines.push("");
+  }
+
+  // Show validation warnings
+  if (result.invalid > 0) {
+    const invalidSkills = skills.filter((s) => !s.valid);
+    lines.push(yellow(`${result.invalid} skill(s) with validation issues:`));
+    for (const skill of invalidSkills) {
+      lines.push(yellow(`  ! ${skill.name}`));
     }
     lines.push("");
   }
@@ -101,4 +144,11 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
   }
 
   return ok({ ...result, _display: lines.join("\n") } as unknown as ListResult);
+};
+
+const formatSkillLine = (skill: SkillEntry): string => {
+  const status = skill.installed ? green("●") : red("●");
+  const tier = skill.tier === "nice-to-have" ? dim(" (optional)") : "";
+  const validity = skill.valid ? "" : yellow(" !");
+  return `  ${status} ${skill.name}${tier}${validity}`;
 };
