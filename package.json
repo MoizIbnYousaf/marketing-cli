@@ -10,11 +10,14 @@
     "build": "bun build src/cli.ts --outdir dist --target node",
     "dev": "bun run src/cli.ts",
     "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
     "doctor": "bun run src/cli.ts doctor"
   },
   "keywords": ["marketing", "cli", "agent", "ai", "playbook"],
   "license": "MIT",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "typescript": "^5.9.3"
   }
 }
