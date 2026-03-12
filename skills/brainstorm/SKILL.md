@@ -113,7 +113,7 @@ After writing the brief:
 
 "The brainstorm is complete. Brief saved to `marketing/brainstorms/[filename]`. Run `/cmo` to execute the next step (`/[next-skill]`), or invoke `/<next-skill>` directly."
 
-Do not list all 26 skills. Recommend the ONE next skill based on the brief.
+Do not list all 27 skills. Recommend the ONE next skill based on the brief.
 
 ## Anti-Patterns
 

@@ -32,8 +32,8 @@ describe("Manifest structure", () => {
     expect(typeof manifest.redirects).toBe("object");
   });
 
-  test("exactly 24 skills", () => {
-    expect(Object.keys(manifest.skills)).toHaveLength(26);
+  test("exactly 27 skills", () => {
+    expect(Object.keys(manifest.skills)).toHaveLength(27);
   });
 });
 

@@ -27,7 +27,7 @@ describe("loadManifest", () => {
 
   test("manifest has exactly 24 skills", async () => {
     const manifest = await loadManifest();
-    expect(Object.keys(manifest.skills)).toHaveLength(26);
+    expect(Object.keys(manifest.skills)).toHaveLength(27);
   });
 
   test("manifest has redirects", async () => {
@@ -37,10 +37,10 @@ describe("loadManifest", () => {
 });
 
 describe("getSkillNames", () => {
-  test("returns all 26 skill names", async () => {
+  test("returns all 27 skill names", async () => {
     const manifest = await loadManifest();
     const names = getSkillNames(manifest);
-    expect(names).toHaveLength(26);
+    expect(names).toHaveLength(27);
     expect(names).toContain("cmo");
     expect(names).toContain("brand-voice");
     expect(names).toContain("marketing-psychology");
@@ -103,7 +103,7 @@ describe("groupByCategory", () => {
     for (const skills of Object.values(groups)) {
       total += skills.length;
     }
-    expect(total).toBe(26);
+    expect(total).toBe(27);
   });
 
   test("no skill appears in multiple groups", async () => {
@@ -121,10 +121,10 @@ describe("groupByCategory", () => {
 });
 
 describe("getInstallStatus", () => {
-  test("returns status for all 26 skills", async () => {
+  test("returns status for all 27 skills", async () => {
     const manifest = await loadManifest();
     const status = await getInstallStatus(manifest);
-    expect(Object.keys(status)).toHaveLength(26);
+    expect(Object.keys(status)).toHaveLength(27);
 
     for (const [name, info] of Object.entries(status)) {
       expect(typeof info.installed).toBe("boolean");
@@ -148,7 +148,7 @@ describe("installSkills", () => {
     const manifest = await loadManifest();
     const result = await installSkills(manifest);
 
-    // Should install all 26 (all are bundled now)
+    // Should install all 27 (all are bundled now)
     expect(result.installed.length).toBeGreaterThan(0);
     expect(result.failed).toHaveLength(0);
   });
@@ -169,7 +169,7 @@ describe("updateSkills", () => {
 
     // All should be either updated or unchanged
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(26);
+    expect(total).toBe(27);
   });
 
   test("dry-run reports without writing", async () => {
@@ -177,7 +177,7 @@ describe("updateSkills", () => {
     const result = await updateSkills(manifest, true);
 
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(26);
+    expect(total).toBe(27);
   });
 });
 

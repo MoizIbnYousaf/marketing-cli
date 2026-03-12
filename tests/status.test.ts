@@ -67,7 +67,7 @@ describe("mktg status", () => {
 
     expect(result.data.skills).toHaveProperty("installed");
     expect(result.data.skills).toHaveProperty("total");
-    expect(result.data.skills.total).toBe(26);
+    expect(result.data.skills.total).toBe(27);
   });
 
   test("exit code is 0", async () => {

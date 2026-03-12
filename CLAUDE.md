@@ -19,7 +19,7 @@ This needs to work on any machine — my Mac, a fresh VPS, anywhere. `mktg init`
 1. `mktg` CLI — infrastructure tool (5 commands: init, doctor, list, status, update)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
-4. 26 marketing skills — the knowledge (SKILL.md files agents read for domain expertise)
+4. 27 marketing skills — the knowledge (SKILL.md files agents read for domain expertise)
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
@@ -40,7 +40,7 @@ src/
 │   ├── brand.ts        # Brand dir management + freshness assessment
 │   ├── skills.ts       # Skill registry, install, integrity verification
 │   └── agents.ts       # Agent registry, install to ~/.claude/agents/
-skills/                  # 26 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 27 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 5 agent .md files installed to ~/.claude/agents/
 ├── research/            # brand-researcher, audience-researcher, competitive-scanner
@@ -75,7 +75,7 @@ mktg update     — Re-copy bundled skills to agent config
 
 **Global flags:** `--json`, `--dry-run`, `--fields`, `--cwd`, `--help`, `--version`
 
-## Skills (26 total)
+## Skills (27 total)
 
 Skills follow the drop-in contract. See `skills-manifest.json` for the full registry.
 
@@ -83,7 +83,7 @@ Skills follow the drop-in contract. See `skills-manifest.json` for the full regi
 **Strategy:** keyword-research, launch-strategy, pricing-strategy
 **Copy & Content:** direct-response-copy, seo-content, lead-magnet
 **Distribution:** content-atomizer, email-sequences, newsletter
-**Creative:** creative, marketing-demo
+**Creative:** creative, marketing-demo, paper-marketing
 **SEO:** seo-audit, ai-seo, competitor-alternatives
 **Conversion:** page-cro, conversion-flow-cro
 **Growth:** churn-prevention, referral-program, free-tool-strategy

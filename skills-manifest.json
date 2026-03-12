@@ -286,6 +286,17 @@
       "depends_on": ["brand-voice"],
       "triggers": ["product demo", "demo video", "walkthrough video", "feature showcase", "record demo", "marketing video", "screen recording", "GIF demo", "product tour"],
       "review_interval_days": 90
+    },
+    "paper-marketing": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "creative-kit.md", "positioning.md", "assets.md"],
+      "writes": ["creative-kit.md", "assets.md"],
+      "depends_on": ["brand-voice"],
+      "triggers": ["paper marketing", "design carousel", "create slides", "visual content", "instagram design", "social graphics", "paper prototype marketing", "design in paper", "create carousel", "slide design"],
+      "review_interval_days": 60
     }
   },
   "redirects": {
@@ -304,6 +315,7 @@
     "copy-editing": "direct-response-copy",
     "programmatic-seo": "seo-content",
     "marketing-ideas": "brainstorm",
-    "analytics-tracking": "cmo"
+    "analytics-tracking": "cmo",
+    "paper-prototype": "paper-marketing"
   }
 }
