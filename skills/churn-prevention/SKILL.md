@@ -1,7 +1,7 @@
 ---
 name: churn-prevention
 description: |
-  Designs cancel flow UX, dunning email sequences, win-back campaigns, and retention triggers. Covers the full churn prevention lifecycle from health scoring to payment recovery to reactivation, with ready-to-use copy templates for every touchpoint.
+  Designs cancel flow UX, dunning email sequences, win-back campaigns, and retention triggers. Covers the full churn prevention lifecycle from early warning signals to 90-day win-back. Use when someone mentions 'churn', 'retention', 'cancel flow', 'dunning', 'win-back', 'users leaving', 'reducing churn', 'keep users', or wants to prevent customers from canceling. Handles both voluntary churn (unhappy users) and involuntary churn (failed payments).
 allowed-tools: []
 ---
 
@@ -60,6 +60,11 @@ Health score thresholds:
 - **60-79:** Monitor — proactive check-in
 - **40-59:** At risk — intervention needed
 - **0-39:** Critical — immediate outreach
+
+## Brand Integration
+
+- **audience.md** → Churn signals vary by persona. Power users churn from missing features; casual users churn from confusion. Tailor intervention messaging to the persona's primary motivation.
+- **voice-profile.md** → Cancel flow copy must match brand voice. A playful brand says 'We'll miss you! Here's what you'll lose...' A professional brand says 'Before you go, here's a summary of your account value.' Win-back emails must sound like the brand, not like a desperate ex.
 
 ### Step 3: Design Cancel Flow
 

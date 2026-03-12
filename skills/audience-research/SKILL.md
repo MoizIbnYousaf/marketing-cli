@@ -2,16 +2,13 @@
 name: audience-research
 description: >
   Build detailed buyer personas and audience profiles from research. Use when
-  starting a project, when content feels unfocused, or when you need to know
-  who you're selling to before writing anything. Three approaches — Community
-  Mining (find where the audience lives online), Persona Build (demographics +
-  psychographics + jobs-to-be-done), or Quick Profile (5 questions, instant
-  persona). Uses Exa MCP for web research when available. Triggers on: who are
-  my users, audience research, buyer persona, target market, who am I selling
-  to, define my audience, customer profile, ideal customer. Outputs a structured
-  audience profile saved to ./brand/audience.md that 8+ content skills reference.
-  Dependencies: none (foundation skill). Reads: voice-profile.md, competitors.md.
-  Writes: audience.md.
+  starting a project, when content feels unfocused, when you don't know who
+  you're talking to, when conversion is low because messaging doesn't resonate,
+  or when any skill needs audience.md but it doesn't exist. Triggers on
+  'audience', 'buyer persona', 'ideal customer', 'target market', 'watering
+  holes', 'who am I selling to', 'customer research', or 'audience profile'.
+  Three approaches: Quick Profile, Persona Build, Community Mining — picks the
+  right one based on available context.
 ---
 
 # /audience-research -- Know Who You're Talking To
@@ -257,6 +254,27 @@ primary_persona: [name]
 | L2 | + competitor data from competitors.md | Differentiated personas, competitive gaps |
 | L3 | + web research via Exa MCP | Real quotes, verified watering holes, data-backed |
 | L4 | + existing audience.md (refinement) | Evolved personas with historical learning |
+
+---
+
+## Worked Example
+
+**Project:** Halaali (halal food delivery app)
+
+**Persona: Sarah, the Busy Muslim Mom**
+- Age: 32, lives in suburbs, works part-time
+- Pain: 'I spend 30 minutes every night figuring out what's halal on DoorDash'
+- Goal: Feed her family halal food without the mental load
+- Watering holes: Muslim mom Facebook groups, halal food Instagram, local mosque WhatsApp
+- Language mine: 'I just want to order without checking every single ingredient'
+- Buying trigger: Sees a friend post about it in her WhatsApp group
+
+**Persona: Ahmed, the College Student**
+- Age: 20, lives on campus, limited budget
+- Pain: 'The only halal option near me is one overpriced restaurant'
+- Goal: Affordable halal food delivered to his dorm
+- Watering holes: r/islam, Muslim Student Association Discord, TikTok
+- Language mine: 'Why is halal food always 2x the price?'
 
 ---
 

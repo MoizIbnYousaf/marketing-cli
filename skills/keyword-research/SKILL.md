@@ -2,16 +2,12 @@
 name: keyword-research
 description: >
   Strategic keyword research powered by web search and brand context. Use when
-  someone needs content strategy, topic ideas, SEO planning, or asks what should
-  I write about. Uses the 6 Circles Method to expand from seed keywords, validates
-  with live SERP data, clusters into content pillars, and maps to a prioritized
-  content plan. Triggers on: keyword research for X, content strategy for X, what
-  topics should I cover, SEO strategy, content calendar, topic clusters, what
-  should I write about, content gaps, competitor keywords. Outputs prioritized
-  keyword clusters with content recommendations saved to ./brand/keyword-plan.md
-  and individual content briefs to ./campaigns/content-plan/. Dependencies: none
-  (but enhanced by brand context). Reads: positioning.md, audience.md,
-  competitors.md. Writes: keyword-plan.md.
+  someone needs a content strategy, when they don't know what to write about,
+  when SEO planning is needed, when content isn't attracting search traffic, or
+  when any skill needs keyword-plan.md. Triggers on 'keywords', 'keyword
+  research', 'SEO topics', 'content topics', 'what should I write about',
+  'content strategy', 'blog ideas', or 'search traffic'. 8-phase process from
+  seed to content brief.
 category: seo
 tier: strategy
 reads:
@@ -248,6 +244,10 @@ keywords covering:
 
 This is the data-backed research layer. For each pillar-level keyword and the
 top 30-50 expanded keywords, pull live search data.
+
+### If Web Search Is Unavailable
+
+Proceed with Phase 1 (seed generation) and Phase 2 (6 Circles expansion) using brand context only. Skip Phase 3 entirely but note the limitation to the user: 'Keyword clusters are based on strategic assessment, not live SERP data. Validate against actual search results before committing to content production.' Cluster and prioritize based on brand alignment and audience pain points rather than search volume.
 
 ### Step 1: Google Autocomplete Mining
 
@@ -612,6 +612,22 @@ If the user says "write it" or similar, hand off to /seo-content with:
 
 
 > See references/keyword-examples.md for a complete worked example.
+
+---
+
+## Worked Example
+
+**Cluster: 'halal food delivery'**
+
+| Keyword | Volume | Difficulty | Intent | Priority |
+|---|---|---|---|---|
+| halal food delivery near me | 12,100 | 45 | Transactional | P1 |
+| halal restaurants that deliver | 3,600 | 38 | Transactional | P1 |
+| is doordash halal | 2,900 | 22 | Informational | P2 |
+| halal meal prep delivery | 1,300 | 31 | Transactional | P2 |
+| zabihah delivery | 880 | 15 | Navigational | P3 |
+
+**Content brief:** Target 'halal food delivery near me' with a city-specific landing page template (programmatic SEO). Target 'is doordash halal' with a comparison article linking to Halaali.
 
 ---
 

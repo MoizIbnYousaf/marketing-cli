@@ -19,7 +19,7 @@ This needs to work on any machine — my Mac, a fresh VPS, anywhere. `mktg init`
 1. `mktg` CLI — infrastructure tool (5 commands: init, doctor, list, status, update)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
-4. 30 marketing skills — the knowledge (27 atomic + 3 orchestrators that chain skills together)
+4. 32 marketing skills — the knowledge (29 atomic + 3 orchestrators that chain skills together)
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
@@ -84,7 +84,7 @@ Skills follow the drop-in contract. See `skills-manifest.json` for the full regi
 **Strategy:** keyword-research, launch-strategy, pricing-strategy
 **Copy & Content:** direct-response-copy, seo-content, lead-magnet
 **Distribution:** content-atomizer, email-sequences, newsletter
-**Creative:** creative, marketing-demo, paper-marketing, slideshow-script, video-content
+**Creative:** creative, marketing-demo, paper-marketing, slideshow-script, video-content, app-store-screenshots, frontend-slides
 **SEO:** seo-audit, ai-seo, competitor-alternatives
 **Conversion:** page-cro, conversion-flow-cro
 **Growth:** churn-prevention, referral-program, free-tool-strategy

@@ -1,13 +1,6 @@
 ---
 name: video-content
-description: >
-  Three-tier video pipeline: ffmpeg Quick → ffmpeg Enhanced (Ken Burns) →
-  Remotion Animated. Takes static slides (from Paper MCP export or any PNGs)
-  and produces platform-ready video. ffmpeg bookend architecture: ffmpeg at
-  START (slice artboard into slides) and END (audio mix, two-pass encode,
-  thumbnail, GIF preview). Triggers on "make video", "video from slides",
-  "animate slides", "render video", "video content", "assemble video",
-  "ffmpeg video", "remotion render".
+description: "Three-tier video pipeline: ffmpeg Quick (5s, instant) → ffmpeg Enhanced with Ken Burns (15s, polished) → Remotion Animated (60-90s, production-grade). Takes static slides from Paper MCP or any PNGs and assembles them into video. Use when someone has slides and wants video, says 'make video', 'video from slides', 'animate slides', 'render video', 'video content', 'assemble video', 'ffmpeg video', or 'remotion render'. Reads handoff YAML from /paper-marketing for seamless chaining."
 allowed-tools:
   - Bash(mktg status *)
   - Bash(ffmpeg *)

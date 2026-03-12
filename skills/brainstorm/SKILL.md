@@ -1,7 +1,7 @@
 ---
 name: brainstorm
 description: |
-  Structured marketing brainstorming when direction is unclear. Use when the agent doesn't know which skill to run, the user's request has multiple valid interpretations, or campaign/content/channel strategy needs exploration before execution. Produces a structured marketing brief that feeds back into /cmo for skill routing.
+  Structured marketing brainstorming when direction is unclear. Use when the agent doesn't know which skill to run, the user is vague about what they need, there are multiple valid marketing paths, or someone says 'I don't know where to start', 'what should we market', 'explore approaches', 'help me think through this', 'marketing ideas', or 'what campaign should I run'. Explores 2-3 approaches and recommends the best path forward with a specific next-skill handoff.
 allowed-tools: []
 ---
 
@@ -114,6 +114,22 @@ After writing the brief:
 "The brainstorm is complete. Brief saved to `marketing/brainstorms/[filename]`. Run `/cmo` to execute the next step (`/[next-skill]`), or invoke `/<next-skill>` directly."
 
 Do not list all 27 skills. Recommend the ONE next skill based on the brief.
+
+## Worked Example
+
+**User request:** 'I just built a halal food delivery app, what should I do for marketing?'
+
+**Approach 1: Community-Led Growth**
+Build presence in Muslim community spaces (mosque WhatsApp groups, MSA Discords, halal food Instagram). Create shareable content that spreads through existing trust networks.
+→ next-skill: audience-research
+
+**Approach 2: SEO + Content**
+Capture 'halal food delivery' search traffic with city-specific landing pages. Write comparison content ('Is DoorDash halal?') to redirect competitor traffic.
+→ next-skill: keyword-research
+
+**Recommended:** Approach 1 — community trust is the moat for halal products. SEO is Phase 2 after you have testimonials to feature.
+
+---
 
 ## Anti-Patterns
 

@@ -1,7 +1,7 @@
 ---
 name: referral-program
 description: |
-  Designs viral referral programs with incentive structures, sharing mechanics, and tracking. Covers one-sided, two-sided, and tiered models. Includes viral coefficient calculation, incentive psychology, referral copy, and launch strategy for maximum adoption.
+  Designs viral referral programs with incentive structures, sharing mechanics, and tracking. Covers one-sided, two-sided, tiered, and milestone models with viral coefficient calculations. Use when someone wants word-of-mouth growth, viral loops, invite programs, or says 'referral', 'viral loop', 'word of mouth', 'invite program', 'refer a friend', 'growth loop', or 'referral incentive'. Includes anti-fraud measures and copy templates for both referrer and referee.
 allowed-tools: []
 ---
 
@@ -51,6 +51,11 @@ Selection criteria:
 - Customer lifetime value (can you afford the incentive?)
 - Network effects (does the product get better with more users?)
 - Purchase frequency (one-time vs recurring)
+
+## Brand Integration
+
+- **audience.md** → Incentive type depends on audience. B2B audiences prefer account credits. B2C audiences prefer discounts or free months. Developer audiences prefer swag or extended trials.
+- **positioning.md** → Referral messaging reinforces the brand's positioning angle, not generic 'share with a friend' copy. If positioning is around simplicity, the referral CTA is 'Know someone drowning in complexity?'
 
 ### Step 2: Define the Incentive
 

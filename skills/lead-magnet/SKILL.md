@@ -1,7 +1,7 @@
 ---
 name: lead-magnet
 description: |
-  Create high-converting free resources that capture emails and build trust. Produces complete lead magnets (ebooks, checklists, templates, swipe files, toolkits) plus the landing page copy, thank-you page, and follow-up email sequence. Triggers on: lead magnet, freebie, opt-in, email capture, free download, checklist, template, swipe file, ebook, gated content.
+  Create high-converting free resources that capture emails and build trust. Produces complete lead magnets (ebooks, checklists, templates, toolkits, quizzes) with landing page copy, thank-you page, and follow-up email sequence. Use when someone needs a list-building asset, wants to grow their email list, needs an opt-in incentive, or says 'lead magnet', 'ebook', 'checklist', 'template', 'free resource', 'opt-in', 'grow my list', or 'email capture'. Every lead magnet passes a 4-gate quality test before shipping.
 category: content
 tier: core
 reads:
@@ -54,6 +54,14 @@ Before building anything, the concept must pass all four:
 4. **Buyer-adjacent** — Attracts people who could become customers, not freebie seekers
 
 If it fails any test, pick a different angle.
+
+---
+
+## Brand Integration
+
+- **voice-profile.md** → Match voice tone in headlines, opening paragraphs, and CTAs. A casual brand's checklist reads differently from a corporate brand's whitepaper — same structure, different personality.
+- **audience.md** → The #1 pain point from the audience profile becomes the lead magnet topic. Don't guess — use the persona's exact language for the headline.
+- **keyword-plan.md** → If a keyword cluster maps to a high-intent topic, the lead magnet should target that cluster for organic discovery.
 
 ---
 

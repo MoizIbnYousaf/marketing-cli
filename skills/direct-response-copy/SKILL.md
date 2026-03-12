@@ -1,6 +1,6 @@
 ---
 name: direct-response-copy
-description: "Write copy that converts. Use when writing landing pages, emails, sales copy, headlines, CTAs, social posts, cold emails, or any persuasive content. Also use when editing or scoring existing copy. Triggers on: make this convert, write copy for X, help me sell X, punch this up, write a landing page, write sales copy, score this copy, generate headline variants, write a cold email, cold outreach, edit this copy, review my copy, tighten this up, copy sweep, proofread."
+description: "Write copy that converts. Use when writing landing pages, emails, sales copy, headlines, CTAs, social posts, cold emails, or any persuasive text. Triggers on 'copy', 'copywriting', 'sales copy', 'landing page copy', 'cold email', 'headlines', 'write me a page', 'make this convert', 'rewrite this copy', or any request involving persuasive writing. Three modes: Generate (write from scratch), Edit (improve existing copy with Seven Sweeps), Cold Email (outbound sequences). If someone has text that needs to sell harder, this is the skill."
 category: copy
 tier: core
 reads:
@@ -291,6 +291,21 @@ Rate on 7 dimensions (1-10 each):
 **Voice**: Passive throughout. No "I" or "you." Hedging: "some may find," "can potentially." No contractions.
 
 Real humans use contractions, write fragments sometimes, have opinions without hedging, and make unexpected word choices.
+
+---
+
+## Worked Example
+
+**Landing page hero — Generate mode**
+
+**Before (generic):** 'The best halal food delivery platform'
+**After (positioned):**
+
+Headline: Order halal food you actually trust.
+Subhead: Every restaurant on Halaali is verified by certified halal inspectors. Not algorithms. Not self-reported labels. Real people checking real kitchens.
+CTA: Find halal restaurants near me →
+
+Scoring: Hook (9/10) — specific trust angle. Clarity (8/10) — one idea per line. CTA (9/10) — benefit-focused, not 'Sign Up'.
 
 ---
 

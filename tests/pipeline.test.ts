@@ -35,7 +35,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(result.data.health).toBe("needs-setup");
     // Skills are global (~/.claude/skills/), so count may be >0 from prior runs
     expect(typeof result.data.skills.installed).toBe("number");
-    expect(result.data.skills.total).toBe(30);
+    expect(result.data.skills.total).toBe(32);
     expect(result.data.content.totalFiles).toBe(0);
 
     // All brand files should be missing
@@ -97,7 +97,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
 
     // Skills should be installed
     expect(result.data.skills.installed).toBeGreaterThan(0);
-    expect(result.data.skills.total).toBe(30);
+    expect(result.data.skills.total).toBe(32);
   });
 
   test("Step 5: doctor passes after init", async () => {
@@ -124,8 +124,8 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(30);
-    expect(result.data.skills).toHaveLength(30);
+    expect(result.data.total).toBe(32);
+    expect(result.data.skills).toHaveLength(32);
 
     // Check skill names
     const names = result.data.skills.map((s) => s.name);
@@ -156,8 +156,8 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     if (!result.ok) return;
 
     // After init + immediate update, all should be unchanged
-    expect(result.data.totalSkills).toBe(30);
-    expect(result.data.skills.unchanged.length + result.data.skills.updated.length + result.data.skills.notBundled.length).toBe(30);
+    expect(result.data.totalSkills).toBe(32);
+    expect(result.data.skills.unchanged.length + result.data.skills.updated.length + result.data.skills.notBundled.length).toBe(32);
   });
 
   test("Step 8: re-init is idempotent", async () => {

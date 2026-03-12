@@ -409,9 +409,9 @@ describe("cmo routing for orchestrator skills", () => {
     expect(content).toContain('"I have slides, make video"');
   });
 
-  test("skill count updated to 30", async () => {
+  test("skill count updated to 32", async () => {
     const content = await Bun.file(cmoPath).text();
-    expect(content).toContain("30 marketing skills");
+    expect(content).toContain("32 marketing skills");
   });
 });
 
@@ -574,9 +574,9 @@ describe("orchestrator dependency chain integrity", () => {
 // === CLAUDE.MD CONSISTENCY ===
 
 describe("CLAUDE.md consistency", () => {
-  test("documents 30 skills", async () => {
+  test("documents 32 skills", async () => {
     const content = await Bun.file(join(rootDir, "CLAUDE.md")).text();
-    expect(content).toContain("30 marketing skills");
+    expect(content).toContain("32 marketing skills");
   });
 
   test("documents orchestrator pattern in principles", async () => {

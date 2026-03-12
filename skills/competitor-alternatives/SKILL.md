@@ -1,7 +1,6 @@
 ---
 name: competitor-alternatives
-description: |
-  Creates high-converting "X vs Y" and "X alternatives" SEO pages that capture comparison search traffic. Researches competitor strengths and weaknesses, builds feature comparison matrices, writes verdict copy, and outputs publish-ready markdown with schema markup and YAML frontmatter.
+description: "Creates high-converting 'X vs Y' and 'X alternatives' SEO pages that capture comparison search traffic. Researches competitors, writes honest comparison content, and adds schema markup (FAQPage, ItemList). Use when someone needs alternatives pages, comparison content, or says 'alternatives page', 'vs page', 'comparison', 'competitor alternatives', 'X vs Y page', or wants to capture competitor brand search traffic with SEO content."
 allowed-tools: []
 ---
 
@@ -34,6 +33,10 @@ Pull from `competitors.md` and generate the full keyword set:
 - `[competitor] pricing` (price-sensitive)
 
 Prioritize by: search volume estimate > purchase intent > your win rate against that competitor.
+
+### If Web Search Is Unavailable
+
+Use data from brand/competitors.md if it exists. Ask the user directly for: competitor pricing, key strengths/weaknesses, and notable reviews or complaints they've seen. Note limitation: 'Competitor data is based on provided context, not live research. Verify current pricing and features before publishing.'
 
 ### Step 2: Research Each Competitor
 
@@ -158,6 +161,11 @@ Use these to write honest, credible verdicts:
 **The Segmenter:** "[Competitor] is the right choice for [persona A]. But if you're [persona B], [Your Product] will save you [specific outcome]."
 
 **The Switcher:** "If you're already using [Competitor] and frustrated by [common complaint], [Your Product] solves that with [specific feature]."
+
+## Brand Integration
+
+- **positioning.md** → Every comparison verdict ties back to the positioning angle. Don't just compare features — compare through the lens of your unique value proposition.
+- **competitors.md** → Use teardown data for accurate, specific claims. Vague comparisons destroy credibility. Cite specific features, pricing, and limitations.
 
 ## CTA Templates
 

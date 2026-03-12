@@ -1,7 +1,7 @@
 ---
 name: creative
 description: |
-  Generate visual asset briefs, ad copy variants, AI image prompts, and video scripts. Produces complete creative briefs with specs, storyboards, and Remotion-compatible video scripts. Triggers on: creative brief, ad creative, image prompt, video script, storyboard, visual assets, banner, thumbnail, ad copy, social graphics, brand visuals, Remotion.
+  Generate visual asset briefs, ad copy variants, AI image prompts, and video scripts. Produces complete creative briefs for any marketing channel including social ads, display ads, video, and thumbnails. Use when someone needs marketing visuals, ad creative, image prompts, video scripts, or says 'creative', 'visual', 'image', 'graphic', 'ad copy', 'thumbnail', 'video script', 'ad creative', or 'marketing assets'. Includes platform-specific dimensions and Remotion composition templates.
 category: creative
 tier: core
 reads:
@@ -39,6 +39,14 @@ You generate everything needed to produce visual and video marketing assets — 
 2. Read `brand/voice-profile.md` — match copy tone to brand voice
 3. If `brand/creative-kit.md` doesn't exist and the user needs brand visuals, offer to build it (see Creative Kit Builder below)
 4. Ask: What type of asset? What platform? What's the campaign goal?
+
+---
+
+## Brand Integration
+
+- **voice-profile.md** → Headlines and ad copy match brand personality. Playful brands use wordplay and emoji. Serious brands use declarative statements and data.
+- **creative-kit.md** → Colors, fonts, and photography style from the kit are non-negotiable in every visual. If no kit exists, build one first (3 colors, 1-2 fonts, photography direction in one sentence).
+- **positioning.md** → Every creative asset reinforces the positioning angle. The visual should make the viewer feel the positioning, not just read it.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: conversion-flow-cro
 description: |
-  Optimizes multi-step conversion flows including signup, onboarding, upgrade, and checkout. Maps each step, identifies friction and drop-off points, applies progressive disclosure and friction reduction principles, and provides redesigned copy and UX for every step.
+  Optimizes multi-step conversion flows including signup, onboarding, upgrade, and checkout. Maps each step, identifies friction and drop-off risks, then recommends specific copy/UX changes with A/B test plans. Use when someone says 'signup flow', 'onboarding optimization', 'checkout conversion', 'paywall optimization', 'activation rate', 'funnel analysis', 'why are users dropping off', or wants to improve any multi-step user journey. If they mention a flow with multiple steps that leads to conversion, this is the skill.
 allowed-tools: []
 ---
 
@@ -159,6 +159,16 @@ For each high-impact change, define a test:
 - Ideal: 1-2 steps with full transparency
 - Pattern: Plan summary -> Payment (with guarantees visible) -> Confirmation
 - Anti-pattern: Plan -> Billing info -> Review -> Confirm -> Upsell -> Success
+
+## Worked Example
+
+**Before:** 8-step signup requiring name, email, password, company, role, team size, use case, phone
+**After:** 3-step progressive flow:
+1. Email only → instant access to limited features
+2. After first value moment → ask name + role (contextualized: 'Help us personalize your experience')
+3. After 3 sessions → ask company + team size (gated behind upgrade)
+
+**Expected impact:** 40-60% improvement in signup completion rate. Progressive disclosure works because each ask feels justified by the value already delivered.
 
 ## Copy Templates Per Step
 

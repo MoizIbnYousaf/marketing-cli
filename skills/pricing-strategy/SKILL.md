@@ -1,6 +1,6 @@
 ---
 name: pricing-strategy
-description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing,' 'pricing tiers,' 'freemium,' 'free trial,' 'packaging,' 'price increase,' 'value metric,' 'Van Westendorp,' 'willingness to pay,' 'monetization,' 'how much should I charge,' 'my pricing is wrong,' 'pricing page,' 'annual vs monthly,' 'per seat pricing,' or 'should I offer a free plan.' Use this whenever someone is figuring out what to charge or how to structure their plans."
+description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing', 'price', 'monetization', 'freemium', 'Van Westendorp', 'how much should I charge', 'pricing tiers', 'good-better-best', or is deciding between free and paid models. Covers value-based pricing, tier structure, price psychology, and competitor benchmarking."
 category: strategy
 tier: strategy
 reads:
@@ -103,6 +103,12 @@ The value metric is what you charge for -- it should scale with the value custom
 | Per transaction | Payments, marketplaces | Stripe |
 | Flat fee | Simple products | Basecamp |
 
+## Brand Integration
+
+- **positioning.md** → Premium positioning supports premium pricing. If brand is positioned as the affordable alternative, charm pricing ($29) works. If positioned as the premium choice, round pricing ($100) signals quality.
+- **audience.md** → Willingness to pay varies by persona. Enterprise buyers care about ROI, not price. Indie developers care about value per dollar. Price anchoring targets the persona's reference points.
+- **competitors.md** → Competitor pricing sets the reference frame. Price above competitors only if positioning justifies it. Price below only if you can sustain the margin.
+
 ### Choosing Your Value Metric
 
 Ask: "As a customer uses more of [metric], do they get more value?"
@@ -201,6 +207,10 @@ Identifies which features customers value most:
 ---
 
 ## Pricing Checklist
+
+### If Web Search Is Unavailable
+
+Ask the user to provide competitor pricing tiers directly. Proceed with value-based pricing analysis using brand context (positioning.md, audience.md, competitors.md). Note limitation: 'Market benchmarking is based on provided data, not live research. Validate competitor pricing before finalizing strategy.'
 
 ### Before Setting Prices
 - [ ] Defined target customer personas

@@ -2,12 +2,12 @@
 name: seo-content
 description: >
   Create high-quality, SEO-optimized content that ranks AND reads like a human
-  wrote it. Performs live SERP gap analysis, integrates People Also Ask questions,
-  generates Article + FAQ JSON-LD schema markup, and writes publication-ready
-  content to disk. Supports content refresh mode and programmatic SEO at scale.
-  Triggers on: blog post, SEO article, long-form content, rankable content,
-  programmatic SEO, pages at scale, write SEO content for X, create article for
-  keyword, refresh article, update blog post.
+  wrote it. Performs live SERP gap analysis, writes with anti-AI detection
+  techniques, and adds schema markup. Use when someone needs a blog post,
+  article, SEO page, or wants content that drives search traffic. Triggers on
+  'SEO content', 'blog post', 'article', 'SERP', 'programmatic SEO', 'content
+  at scale', 'write a post about', 'rank for', or 'search-optimized content'.
+  Two modes: single article or programmatic SEO at scale.
 category: copy-content
 tier: must-have
 reads:
@@ -283,6 +283,23 @@ You can layer multiple playbooks (e.g., "Best coworking spaces in San Diego").
 - [ ] Proper heading structure and schema markup
 - [ ] Connected to site architecture, no orphan pages
 - [ ] In XML sitemap, crawlable, no conflicting noindex
+
+---
+
+## Worked Example
+
+**Target keyword:** 'is doordash halal'
+**SERP gap:** Top 5 results are forum posts and outdated blog articles. No definitive guide exists.
+
+**Article outline:**
+1. H1: Is DoorDash Halal? The Complete Guide for Muslim Families
+2. Quick answer (Featured Snippet target): 'DoorDash itself doesn't verify halal status...'
+3. How to find halal restaurants on DoorDash (step-by-step with screenshots)
+4. The problem with DoorDash's halal filter (cross-contamination, no certification)
+5. Better alternatives for guaranteed halal delivery
+6. FAQ schema: 'Does DoorDash have halal options?' / 'How do I know if a restaurant is really halal?'
+
+**Word count:** 1,800 (benchmark: top 3 results average 1,200 — we go deeper)
 
 ---
 

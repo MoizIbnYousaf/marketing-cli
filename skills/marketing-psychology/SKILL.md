@@ -1,7 +1,7 @@
 ---
 name: marketing-psychology
 description: |
-  Knowledge skill that applies behavioral psychology and persuasion principles to any marketing asset. Covers Cialdini's 6 principles, cognitive biases, and decision-making frameworks. Enhances other skills' output — never runs standalone.
+  Knowledge skill that applies behavioral psychology and persuasion principles to any marketing asset. Covers Cialdini's 6 principles, cognitive biases, and ethical persuasion frameworks. This skill is invoked BY other skills to enhance their output — use it whenever copy needs psychological leverage, when a landing page feels flat, when email sequences lack urgency, or when any marketing asset needs to be more persuasive. Also use when someone says 'make this more convincing', 'add urgency', 'psychological triggers', or 'persuasion framework'.
 allowed-tools: []
 ---
 
@@ -36,6 +36,14 @@ Determine what marketing asset is being optimized:
 
 Not every principle applies to every asset. Match principles to context.
 
+## How to Use This Skill
+
+This is a knowledge skill — it enhances other skills' output rather than producing standalone deliverables.
+
+**Invocation pattern:** When another skill produces copy or UX, ask: 'Apply marketing psychology principles to this asset.' This skill audits the output and suggests principle-specific rewrites.
+
+**Example:** After /direct-response-copy produces a landing page, apply this skill to audit the hero for anchoring, the CTA for scarcity, and the testimonials for social proof.
+
 ## Cialdini's 6 Principles of Persuasion
 
 ### 1. Reciprocity
@@ -49,6 +57,8 @@ People feel obligated to return favors. Give value first, ask second.
 
 **Before:** "Sign up for our product"
 **After:** "Here's a free audit of your [X]. Want to fix these issues automatically? [Start free trial]"
+
+**Why this works:** Giving value before asking creates an obligation loop — the free checklist makes the paid product feel like a natural next step, not a cold ask.
 
 **Where it works best:** Lead magnets, free tools, onboarding emails, content marketing
 
@@ -64,6 +74,8 @@ People who take small steps continue in the same direction. Micro-commitments bu
 
 **Before:** "Buy our annual plan for $299/year"
 **After:** "Start your free project -> See your first results -> Upgrade when you're ready"
+
+**Why this works:** Each small yes builds psychological momentum — once someone has invested time and seen results, saying yes to payment feels consistent with their prior actions.
 
 **Where it works best:** Signup flows, onboarding, pricing pages, email sequences
 
@@ -86,6 +98,8 @@ People follow the actions of others, especially similar others.
 **Before:** "Our product is great"
 **After:** "12,847 marketing teams use [Product] to save 10+ hours/week. Here's what [Similar Company] achieved in 30 days."
 
+**Why this works:** Humans use others' behavior as a decision shortcut — specific numbers and named peers eliminate the need to evaluate the product independently.
+
 **Where it works best:** Every asset. No exceptions. Always include social proof.
 
 ### 4. Authority
@@ -103,6 +117,8 @@ People defer to experts and credible sources.
 **Before:** "We help with email marketing"
 **After:** "Built by the team that scaled [Company]'s email list from 0 to 500K subscribers"
 
+**Why this works:** Concrete credentials transfer trust instantly — the reader borrows confidence from the known achievement rather than evaluating your claim from scratch.
+
 **Where it works best:** Landing pages, about pages, sales emails, B2B proposals
 
 ### 5. Liking
@@ -118,6 +134,8 @@ People buy from people (and brands) they like. Similarity, compliments, and coop
 
 **Before:** "Our enterprise-grade solution leverages AI-powered analytics"
 **After:** "We were tired of staring at spreadsheets too. So we built [Product]."
+
+**Why this works:** Mirroring the audience's frustration signals "we're one of you" — people trust and buy from those who understand their lived experience.
 
 **Where it works best:** Brand voice, about pages, founder stories, email tone
 
@@ -140,6 +158,8 @@ People value what's limited. Real scarcity drives action; manufactured scarcity 
 **Before:** "Sign up anytime"
 **After:** "Launch pricing: $29/mo for the first 500 customers (347 claimed)" — only if real
 
+**Why this works:** Real scarcity activates fear of missing out on a genuine opportunity — the specific count (347/500) makes the constraint feel tangible and urgent without feeling manufactured.
+
 **Where it works best:** Pricing pages, launch campaigns, limited offers (when genuine)
 
 ## Cognitive Biases for Marketing
@@ -150,6 +170,8 @@ People feel losses 2x more intensely than equivalent gains. Frame around what th
 
 **Before:** "Save 10 hours per week with [Product]"
 **After:** "You're losing 10 hours every week to [manual task]. [Product] gives them back."
+
+**Why this works:** The pain of losing 10 hours hits harder than the pleasure of saving them — reframing a gain as a recovered loss doubles the emotional weight.
 
 **Application:** Cancel flows, upgrade prompts, trial expiration emails, feature comparison
 
@@ -202,6 +224,8 @@ Too many options -> decision paralysis -> no action. Reduce choices, add recomme
 
 **Before:** 5 plan tiers with 40 feature comparison rows
 **After:** 3 plans, "Most Popular" badge on middle tier, "Not sure? Start with Pro" CTA
+
+**Why this works:** Reducing options from 5 to 3 eliminates decision paralysis, and the "Most Popular" badge gives permission to stop comparing — the crowd already chose for you.
 
 ### Zero-Risk Bias
 

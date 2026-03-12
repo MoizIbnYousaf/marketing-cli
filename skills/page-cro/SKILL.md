@@ -1,7 +1,7 @@
 ---
 name: page-cro
 description: |
-  Audits existing landing pages for conversion rate optimization. Scores hero section, CTA placement, social proof, objection handling, and form friction. Generates prioritized recommendations with before/after copy suggestions using AIDA, PAS, and above-the-fold frameworks.
+  Audits existing landing pages for conversion rate optimization. Scores hero section, CTA placement, social proof, objection handling, and form friction on a 1-10 scale. Use when someone says 'audit my landing page', 'improve conversions', 'why isn't my page converting', 'CRO audit', 'landing page feedback', 'optimize my signup page', or anything about improving an existing page's performance. If they have a live URL and want it to convert better, this is the skill.
 allowed-tools: []
 ---
 
@@ -55,6 +55,10 @@ Score each element 1-10 with specific reasoning.
 2. Who is it for?
 3. Why should I care?
 4. What do I do next?
+
+### Why This Works
+
+Each recommendation is grounded in conversion psychology: social proof leverages conformity bias, anxiety reducers counter loss aversion, and benefit-focused CTAs activate approach motivation. The 5-second test works because users form lasting first impressions in 50ms — if the value prop isn't instant, bounce rates spike.
 
 #### CTA Audit
 
@@ -187,6 +191,12 @@ Everything visible without scrolling must include:
 | Action + Timeframe | "Get started in 2 minutes" |
 | Action + Risk Reversal | "Try free for 14 days" |
 | Action + Specificity | "Build your first workflow" |
+
+## Worked Example
+
+- **Hero: 7/10** — Headline is benefit-focused but subhead is too long. Recommend: cut to 8 words.
+- **CTA: 5/10** — Generic 'Sign Up' button. Recommend: 'Start your free trial' with benefit reinforcement.
+- **Social Proof: 3/10** — No testimonials above fold. Recommend: add 1-2 customer quotes near CTA.
 
 ## Output
 

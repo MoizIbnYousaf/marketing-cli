@@ -1,6 +1,6 @@
 ---
 name: launch-strategy
-description: "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,' 'beta launch,' 'early access,' 'waitlist,' 'product update,' 'how do I launch this,' 'launch checklist,' 'GTM plan,' or 'we're about to ship.' Use this whenever someone is preparing to release something publicly. For ongoing marketing after launch, see marketing-ideas."
+description: "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch plan', 'go to market', 'Product Hunt', 'beta launch', 'how do I launch', 'pre-launch', 'launch checklist', or is about to ship something and needs a distribution plan. Even vague requests like 'I'm almost done building, what now?' should trigger this skill."
 category: growth
 tier: strategy
 reads:
@@ -110,6 +110,14 @@ Tap into someone else's audience to shortcut the hardest part -- getting noticed
 
 Borrowed channels give instant credibility, but only work if you convert borrowed attention into owned relationships.
 
+### ORB Prioritization Matrix
+
+| Audience Size | Focus | Why |
+|---|---|---|
+| < 1,000 | Owned channels only (blog, email list) | Build foundation before spending on reach |
+| 1K - 10K | Owned + Rented (social, SEO, ads) | Enough audience to test paid channels |
+| 10K+ | All three: Owned + Rented + Borrowed (partnerships, press) | Leverage existing reach for maximum amplification |
+
 ---
 
 ## Five-Phase Launch Approach
@@ -184,6 +192,15 @@ Open the floodgates.
 - Product Hunt, BetaList, Hacker News, etc.
 
 **Goal:** Maximum visibility and conversion to paying users.
+
+### Timeline Guidance
+
+| Phase | Duration | Signal to Advance |
+|---|---|---|
+| Internal Alpha | 2-4 weeks | Core flow works, <10 users giving feedback |
+| Beta | 4-8 weeks | 50-500 users, NPS > 30, key bugs fixed |
+| Early Access | 2-4 weeks | Growing waitlist, retention metrics stable |
+| Full Launch | 1 week intense + ongoing | All channels activated, monitoring metrics |
 
 ---
 
@@ -280,6 +297,14 @@ Add dedicated sections about the new feature/product across your site.
 - [ ] Comparison pages published
 - [ ] Gather and act on feedback
 - [ ] Plan next launch moment
+
+### If Launch Stalls
+
+1. Survey existing users for unmet needs (the product may be fine but the messaging wrong)
+2. Refresh positioning — run /positioning-angles to find a new angle
+3. Try a different rented channel (if Twitter didn't work, try Reddit or newsletters)
+4. Revisit borrowed partnerships — find aligned creators or communities
+5. Consider a re-launch with new framing (many successful products launched 2-3 times)
 
 ---
 

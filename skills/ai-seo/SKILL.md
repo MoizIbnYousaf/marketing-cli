@@ -1,7 +1,6 @@
 ---
 name: ai-seo
-description: |
-  Optimize content for AI search engines — ChatGPT, Perplexity, Claude, Gemini, and AI Overviews. Covers entity optimization, conversational query targeting, structured data for AI citation, and answer-engine optimization (AEO). Triggers on: AI SEO, AI search, Perplexity optimization, ChatGPT ranking, AI Overview, answer engine, LLMO, GEO, AEO, cited by AI, AI visibility.
+description: "Optimize content for AI search engines — ChatGPT, Perplexity, Claude, Gemini, and AI Overviews. Covers entity optimization, structured data, citation-worthy formatting, and platform-specific strategies. Use when someone wants visibility in AI-generated answers, says 'AI SEO', 'AI search', 'LLM optimization', 'ChatGPT ranking', 'Perplexity citations', 'AI Overviews', or wants their content cited by AI assistants. The new SEO frontier — if you're only optimizing for Google, you're already behind."
 category: seo
 tier: core
 reads:
@@ -54,6 +53,11 @@ AI search: User asks question → AI reads sources → AI synthesizes answer →
 - Being cited once compounds — AI engines build entity graphs that persist.
 
 ---
+
+## Brand Integration
+
+- **voice-profile.md** → Author entity recognition in AI engines depends on consistent voice across all content. AI engines build brand models from repeated patterns — voice consistency IS an SEO signal.
+- **keyword-plan.md** → Target queries where the brand has genuine authority. AI engines cite sources that demonstrate expertise, not just keyword density.
 
 ## Step 1: AI Visibility Audit
 

@@ -1,6 +1,6 @@
 ---
 name: brand-voice
-description: "Define or extract a consistent brand voice that other skills can use. Three modes: Extract (analyze existing content), Build (construct from scratch), or Auto-Scrape (provide a URL, skill does the research). Use when starting a project, when copy sounds generic, or when output needs to sound like a specific person/brand. Triggers on: what's my voice, analyze my brand, help me define my voice, make this sound like me, voice guide, brand personality, analyze my website."
+description: "Define or extract a consistent brand voice that other skills can use. Three modes: Extract (analyze existing content), Build (interview-based), Auto-Scrape (from URL). Use when copy sounds generic, when starting any new project, when voice feels inconsistent across channels, when onboarding a new brand, or when any skill needs voice-profile.md but it doesn't exist yet. This is always the first skill to run for a new project."
 category: foundation
 tier: must-have
 reads:
@@ -80,6 +80,15 @@ User provides a URL. Skill uses Exa MCP to research the brand's public presence.
 3. Extract voice patterns using the same DNA framework as Mode 1
 4. Present findings and ask user to confirm/adjust
 5. Generate voice profile
+
+## Mode Selection
+
+Not sure which mode? Here's the decision tree:
+- **Have 3+ pieces of existing content** (blog posts, emails, landing pages) → Mode 1: Extract
+- **Starting fresh with no content** → Mode 2: Build via interview
+- **Have a live website URL** → Mode 3: Auto-Scrape
+
+If the brand has both a website AND existing content, prefer Mode 1 (Extract) — it captures the voice the brand already uses, which is more authentic than what a URL scan reveals.
 
 ---
 

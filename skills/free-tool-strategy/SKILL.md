@@ -1,7 +1,7 @@
 ---
 name: free-tool-strategy
 description: |
-  Plans free tools, calculators, generators, and interactive widgets that attract target audience through search and social, demonstrate product value, and funnel users to the paid product. Engineering as marketing — build once, acquire forever.
+  Plans free tools, calculators, generators, and interactive widgets that attract target audience through search and social sharing. Engineering as marketing — build something useful, capture leads. Use when someone wants to build a free tool for marketing, says 'free tool', 'calculator', 'generator', 'engineering as marketing', 'side project marketing', 'interactive widget', or wants to attract users through utility. Includes search volume validation, UX flow templates, and conversion hook design.
 allowed-tools: []
 ---
 
@@ -74,6 +74,12 @@ Score each idea:
 | Shareability | 15% | |
 | Data capture opportunity | 10% | |
 
+## Brand Integration
+
+- **audience.md** → The tool must solve a pain point your audience actually has. Use the persona's job-to-be-done, not a generic utility.
+- **keyword-plan.md** → Tool names and landing pages target keyword clusters from the plan. The tool IS the SEO strategy — it ranks for high-intent queries.
+- **positioning.md** → The conversion hook connects the free tool to your paid product's positioning angle. The tool demonstrates the value; the product delivers it at scale.
+
 ### Step 3: Validate Search Volume
 
 For each tool candidate, check:
@@ -95,6 +101,10 @@ Kill the idea if:
 - Total search volume < 1,000/month
 - Top 3 results are high-authority sites with excellent tools
 - Tool requires ongoing data maintenance you can't sustain
+
+### If Web Search Is Unavailable
+
+Assess tool viability based on: (1) audience pain intensity from brand/audience.md, (2) user's direct knowledge of search intent, (3) competitive landscape from brand/competitors.md. Skip search volume validation but note: 'Tool concept is validated on strategic merit, not search data. Run keyword validation before investing in development.'
 
 ### Step 4: Design Tool UX Flow
 

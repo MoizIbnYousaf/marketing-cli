@@ -2,16 +2,12 @@
 name: competitive-intel
 description: >
   Research and analyze competitors to find positioning gaps and strategic
-  opportunities. Use when entering a market, when positioning feels weak, or
-  when you need to understand the competitive landscape before creating content.
-  Three modes — Quick Scan (identify top competitors fast), Deep Teardown
-  (full messaging + strategy analysis), or Gap Finder (find what nobody else
-  is doing). Uses Exa MCP for competitor research when available. Triggers on:
-  competitive analysis, who are my competitors, competitor research, what are
-  my competitors doing, competitive landscape, who am I competing with, market
-  analysis, competitor teardown. Outputs a structured competitor profile saved
-  to ./brand/competitors.md. Dependencies: none (foundation skill). Reads:
-  voice-profile.md, audience.md. Writes: competitors.md.
+  opportunities. Use when entering a market, when positioning feels weak, when
+  you need to differentiate, when preparing for a launch, or when any skill
+  needs competitors.md. Triggers on 'competitors', 'competitive analysis',
+  'competitor teardown', 'market landscape', 'who else does this', 'how are we
+  different', or 'competitor research'. Three modes: Quick Scan (5 min), Deep
+  Teardown (15 min), Gap Finder (10 min).
 ---
 
 # /competitive-intel -- Know What You're Up Against
@@ -269,6 +265,20 @@ primary_gap: [one-line summary of biggest opportunity]
 | L2 | + audience.md, voice-profile.md | Audience-aware analysis, positioning-aware gaps |
 | L3 | + web research via Exa MCP | Live data, real messaging, verified claims |
 | L4 | + existing competitors.md (update) | Evolved intel with trend tracking over time |
+
+---
+
+## Worked Example
+
+**Quick Scan: Halal food delivery market**
+
+| Competitor | Positioning | Pricing | Strength | Weakness |
+|---|---|---|---|---|
+| DoorDash | General delivery, halal filter buried | $3-6 delivery + markup | Massive selection | No halal verification |
+| Zabihah.com | Restaurant directory, no delivery | Free listings | Trusted brand, 20yr history | No ordering, just reviews |
+| HalalEats | Halal-only delivery, 3 cities | $5 delivery + 15% markup | Halal-certified restaurants | Tiny coverage area |
+
+**Gap found:** No one owns 'verified halal + affordable delivery + nationwide.' DoorDash has reach but no trust. Zabihah has trust but no delivery. Halaali can own the intersection.
 
 ---
 

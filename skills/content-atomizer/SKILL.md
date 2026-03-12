@@ -1,7 +1,7 @@
 ---
 name: content-atomizer
 description: |
-  Take one piece of long-form content and atomize it into 10-20 platform-specific posts. Turns blog posts, podcasts, videos, and newsletters into Twitter/X threads, LinkedIn posts, Instagram captions, Reddit posts, and more. Triggers on: repurpose this, atomize, turn this into posts, social content from blog, content repurposing, break this down for social.
+  Take one piece of long-form content and atomize it into 10-20 platform-specific posts. Turns blog posts, podcasts, videos, and newsletters into Twitter threads, LinkedIn posts, Reddit comments, Instagram carousels, and email snippets. Use when someone has existing content and wants to distribute it across platforms, says 'repurpose', 'atomize', 'social posts', 'content distribution', 'cross-post', 'turn this into tweets', or wants maximum reach from minimum content creation effort.
 category: content
 tier: core
 reads:
@@ -33,6 +33,15 @@ You take one piece of long-form content and extract 10-20 standalone social post
 2. Read `brand/audience.md` — know which platforms matter and how the audience behaves on each
 3. Accept the source content (blog post, newsletter, video transcript, podcast transcript)
 4. If no source provided, check `marketing/content/` for recent articles
+
+---
+
+## Brand Integration
+
+Brand files shape how content gets adapted per platform:
+
+- **voice-profile.md** → Each platform gets the same voice in different registers. Twitter gets punchy voice (short, sharp). LinkedIn gets authoritative voice (complete thoughts, data). Reddit gets authentic voice (conversational, no marketing speak). The voice DNA stays constant; the register shifts.
+- **audience.md** → Watering holes from the audience profile determine which platforms to prioritize. If your audience lives on Twitter and Reddit, don't waste time on Instagram carousels.
 
 ---
 

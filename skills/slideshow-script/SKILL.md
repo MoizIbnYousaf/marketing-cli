@@ -1,13 +1,6 @@
 ---
 name: slideshow-script
-description: >
-  Generate 5 different narrative scripts for visual slideshows from a single
-  positioning angle. Each script uses a different storytelling framework
-  (AIDA, PAS, BAB, Star-Story-Solution, Stat-Flip) so all 5 outputs are
-  publishable — not 5 layouts of 1 script. Writes structured content spec
-  YAMLs that downstream skills (/paper-marketing, /video-content) consume.
-  Triggers on "slideshow script", "generate scripts", "narrative scripts",
-  "content scripts", "TikTok scripts", "carousel scripts".
+description: "Generate 5 different narrative scripts for visual slideshows from a single positioning angle. Each script uses a different storytelling framework (AIDA, PAS, BAB, Stat-Flip, Myth-Buster) producing genuinely different stories, not layout variations. Use when someone needs TikTok scripts, carousel scripts, slideshow narratives, or says 'slideshow script', 'generate scripts', 'narrative scripts', 'content scripts', 'TikTok scripts', or 'storytelling frameworks'. Outputs YAML content specs that chain to /paper-marketing."
 allowed-tools:
   - Bash(mktg status *)
 ---

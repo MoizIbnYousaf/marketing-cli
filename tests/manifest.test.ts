@@ -33,7 +33,7 @@ describe("Manifest structure", () => {
   });
 
   test("exactly 27 skills", () => {
-    expect(Object.keys(manifest.skills)).toHaveLength(30);
+    expect(Object.keys(manifest.skills)).toHaveLength(32);
   });
 });
 

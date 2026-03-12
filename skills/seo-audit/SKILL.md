@@ -1,6 +1,6 @@
 ---
 name: seo-audit
-description: When the user wants to audit, review, or diagnose SEO issues, plan site architecture, or implement schema markup. Use when the user mentions "SEO audit," "technical SEO," "why am I not ranking," "SEO issues," "on-page SEO," "meta tags review," "SEO health check," "my traffic dropped," "lost rankings," "not showing up in Google," "site isn't ranking," "page speed," "core web vitals," "crawl errors," "indexing issues," "site structure," "page hierarchy," "information architecture," "navigation design," "URL structure," "breadcrumbs," "internal linking strategy," "what pages do I need," "schema markup," "structured data," "JSON-LD," "rich snippets," "rich results," "FAQ schema," "product schema." For building pages at scale, see programmatic-seo. For AI search optimization, see ai-seo.
+description: "When the user wants to audit, review, or diagnose SEO issues, plan site architecture, or implement schema markup. Use when someone says 'SEO audit', 'technical SEO', 'site architecture', 'schema markup', 'internal linking', 'why isn't my site ranking', 'site health check', 'crawl issues', or 'fix my SEO'. Three modes: Full Audit (comprehensive health check), Architecture (URL structure and internal linking), Schema (JSON-LD structured data). Covers crawlability, indexation, Core Web Vitals, and on-page factors."
 category: seo
 tier: core
 reads:
@@ -50,6 +50,11 @@ This skill operates in three modes. Select based on what the user needs:
 4. Ask only for information not already available from brand files
 
 ---
+
+## Brand Integration
+
+- **keyword-plan.md** → Audit priorities align with target keywords. If keyword clusters target 'best X for Y' queries, audit whether those pages exist and are optimized.
+- **voice-profile.md** → Meta descriptions and title tags should reflect brand voice. Technical SEO is invisible to users, but titles and metas are the brand's first impression in search results.
 
 ## Mode: Audit (Default)
 
@@ -293,6 +298,10 @@ Combine using `@graph`:
 **Free** — Google Search Console, PageSpeed Insights, Rich Results Test, Schema Validator, Bing Webmaster Tools
 **Paid (if available)** — Screaming Frog, Sitebulb
 **For research** — Use Exa MCP or web search for competitive analysis
+
+### If Web Search Is Unavailable
+
+Proceed with all technical audits (crawlability, indexation, site speed, on-page SEO, schema detection) — these don't require web search. Skip competitive benchmarking and SERP position analysis. Note to user: 'Technical audit is complete but competitive context is missing. Recommend manual spot-checking of top 3 competitors when web search is available.'
 
 ---
 

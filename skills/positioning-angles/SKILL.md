@@ -1,6 +1,6 @@
 ---
 name: positioning-angles
-description: "Find the angle that makes something sell. Use when launching a product, creating a lead magnet, writing a landing page, crafting an offer, or when marketing isn't converting. Searches competitor messaging to map the saturated landscape, loads brand memory for context-aware positioning, then generates 3-5 distinct angles with a starred recommendation. Writes chosen angle to ./brand/positioning.md and optionally seeds a 12-ad testing matrix. Triggers on: find angles for X, how should I position X, what's the hook, why isn't this selling, make this stand out, differentiate this, or when copy/landing page work needs a strong angle first."
+description: "Find the angle that makes something sell. Use when copy isn't converting, when marketing feels generic, when positioning is weak, when launching a product, creating a lead magnet, writing a landing page, or entering a crowded market. Triggers on 'positioning', 'angles', 'differentiation', 'unique selling', 'how do I stand out', 'what makes us different', 'value proposition', or 'messaging framework'. Generates 8 positioning angles with competitive web research and validation."
 category: brand
 tier: foundation
 reads:
@@ -286,6 +286,21 @@ Make the guarantee the headline.
 > "Try it for [time period]. [Specific guarantee]."
 
 Works when: Risk is the primary objection. Confidence in delivery is high.
+
+---
+
+## Worked Example
+
+**Product:** Halaali (halal food delivery)
+**Market awareness:** Stage 2 (Problem-Aware)
+
+**Top 3 angles generated:**
+
+1. **Unique Mechanism** — 'The only delivery app with on-site halal inspectors' (differentiator: human verification vs. self-reported labels)
+2. **Enemy** — 'DoorDash calls it halal. We actually check.' (names the villain: unverified halal claims)
+3. **Transformation** — 'From ingredient-checking every order to ordering with your eyes closed' (before/after emotional state)
+
+**Recommended:** Angle 2 (Enemy) — creates urgency, names a known frustration, and positions Halaali as the trusted alternative.
 
 ---
 

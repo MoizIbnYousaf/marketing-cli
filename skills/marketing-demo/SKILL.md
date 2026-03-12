@@ -1,7 +1,7 @@
 ---
 name: marketing-demo
 description: |
-  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, and polished Remotion compositions with transitions and branded overlays. Use when the user wants a product demo video, walkthrough GIF, feature showcase, social media clip, or any visual asset showing the product in action.
+  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, or wants to show their product in action. Even if they just say 'show what it does' or 'make a video of the app' — this is the skill.
 allowed-tools:
   - Bash(ply *)
   - Bash(ffmpeg *)
@@ -26,6 +26,15 @@ For brand memory protocol, see /cmo [rules/brand-memory.md](../cmo/rules/brand-m
    command -v npx && echo "remotion: available" || echo "remotion: unavailable"
    ```
 5. If `ply` or `ffmpeg` missing, warn and suggest install.
+
+## Shot Duration Rules
+
+| Demo Type | Duration per Shot | Notes |
+|-----------|------------------|-------|
+| Quick overview | 0.5-1s | Fast cuts, build excitement |
+| Feature demo | 2-3s | Time to read + comprehend |
+| Walkthrough | 4-5s | Instructional pacing |
+| Social clip | 1-2s | Attention-grabbing, fast |
 
 ## Step 1: Determine Demo Type
 
@@ -132,6 +141,10 @@ src/
 - Pull brand colors from `brand/creative-kit.md`
 - 30fps for smooth playback, 1280x720 or 1920x1080
 - Add text overlays calling out features with `<Sequence>`
+
+### Error Recovery
+
+If ply interaction fails at shot N (page doesn't load, element not found, timeout), skip to shot N+1 and document the failure in the shot list. After all shots complete, review skipped shots and retry once. If still failing, use manual screenshots as fallback.
 
 ## Step 4: Convert & Output
 

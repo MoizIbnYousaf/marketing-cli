@@ -330,6 +330,28 @@
       "depends_on": ["brand-voice", "positioning-angles"],
       "triggers": ["TikTok slideshow", "TikTok video", "make TikTok", "slideshow video", "TikTok content", "end-to-end video"],
       "review_interval_days": 60
+    },
+    "frontend-slides": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "creative-kit.md", "positioning.md"],
+      "writes": ["assets.md"],
+      "depends_on": ["brand-voice"],
+      "triggers": ["slides", "presentation", "pitch deck", "HTML slides", "conference talk", "PPT conversion", "slideshow presentation", "frontend slides"],
+      "review_interval_days": 90
+    },
+    "app-store-screenshots": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "positioning.md", "creative-kit.md"],
+      "writes": ["assets.md"],
+      "depends_on": ["brand-voice"],
+      "triggers": ["app store screenshots", "App Store", "screenshot generator", "iOS screenshots", "marketing screenshots", "phone mockup", "app store assets", "ASO screenshots"],
+      "review_interval_days": 90
     }
   },
   "redirects": {
@@ -355,6 +377,15 @@
     "slideshow": "tiktok-slideshow",
     "video-assembly": "video-content",
     "video-render": "video-content",
-    "content-creator": "tiktok-slideshow"
+    "content-creator": "tiktok-slideshow",
+    "app-screenshots": "app-store-screenshots",
+    "ios-screenshots": "app-store-screenshots",
+    "aso-screenshots": "app-store-screenshots",
+    "store-screenshots": "app-store-screenshots",
+    "presentation": "frontend-slides",
+    "pitch-deck": "frontend-slides",
+    "html-slides": "frontend-slides",
+    "ppt-conversion": "frontend-slides",
+    "conference-slides": "frontend-slides"
   }
 }

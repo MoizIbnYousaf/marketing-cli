@@ -1,7 +1,7 @@
 ---
 name: email-sequences
 description: |
-  Build automated email flows that nurture, convert, and retain. Creates complete sequences for welcome, nurture, launch, re-engagement, and onboarding flows with subject lines, preview text, body copy, CTAs, timing, and personalization. Triggers on: email sequence, welcome series, nurture flow, launch emails, drip campaign, onboarding emails, re-engagement, email automation, win-back emails.
+  Build automated email flows that nurture, convert, and retain. Creates complete sequences for welcome, nurture, launch, re-engagement, and onboarding with subject lines, body copy, timing, and A/B test plans. Use when someone needs email automation, a drip campaign, welcome series, launch emails, or says 'email sequence', 'drip campaign', 'welcome series', 'onboarding emails', 'nurture flow', 'automated emails', or 'email marketing'. Includes deliverability rules and spam avoidance.
 category: email
 tier: core
 reads:
@@ -38,6 +38,16 @@ You build automated email flows that move people from stranger to customer. Each
 3. Read `brand/positioning.md` — know the product angle and differentiation
 4. If brand files don't exist, ask: What do you sell? Who's receiving these? What action do you want them to take?
 5. Check `marketing/emails/` for existing sequences — avoid overlap
+
+---
+
+## Brand Integration
+
+Brand files shape every email in the sequence:
+
+- **voice-profile.md** → Tone across all emails. If voice is friendly/casual, open with 'Hey {{first_name}}!' and use contractions. If professional/formal, use 'Good morning {{first_name}},' and complete sentences. Voice consistency across a 7-email sequence is what builds trust.
+- **audience.md** → Pain points drive email hooks. Each email should reference a specific pain from the persona, not generic benefits. If audience is time-starved founders, lead with efficiency. If audience is creative professionals, lead with inspiration.
+- **positioning.md** → The unique angle appears in every CTA and subject line. Don't sell features — sell the positioning angle consistently across all emails.
 
 ---
 
@@ -224,6 +234,20 @@ For each sequence, suggest tests:
 3. **From name** (MEDIUM) — Personal vs brand vs "Name from Brand"
 4. **CTA format** (LOW) — Button vs text link vs "reply to this email"
 5. **Email length** (LOW) — Short (150 words) vs long (400 words)
+
+---
+
+## Worked Example
+
+**Sequence: Welcome (halal food delivery app)**
+
+| # | Day | Subject | Hook | CTA |
+|---|---|---|---|---|
+| 1 | 0 | Welcome to Halaali 🎉 | You just made halal ordering effortless | Browse restaurants near you |
+| 2 | 1 | Your first order is on us | $10 off because trying new things should be easy | Use code FIRST10 |
+| 3 | 3 | How we verify every restaurant | The story behind our halal certification process | See our standards |
+| 4 | 7 | Sarah's favorite weekly order | Real customer story: 'I stopped checking ingredients' | Order Sarah's picks |
+| 5 | 14 | You haven't ordered yet? | Quick poll: what's holding you back? | Take 30-sec survey |
 
 ---
 

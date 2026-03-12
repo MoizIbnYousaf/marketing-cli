@@ -1,7 +1,7 @@
 ---
 name: newsletter
 description: |
-  Design, write, and grow editorial newsletters with consistent voice and format. Creates newsletter strategy, templates, individual issues, growth tactics, and engagement optimization. Triggers on: newsletter, write a newsletter, email newsletter, weekly update, curated email, editorial email, subscriber growth, newsletter strategy.
+  Design, write, and grow editorial newsletters with consistent voice and format. Creates newsletter strategy, templates, and growth playbook. Use when someone wants to start a newsletter, improve an existing one, grow subscribers, or says 'newsletter', 'editorial', 'weekly email', 'subscriber growth', 'newsletter template', or 'email digest'. Covers curated, editorial, and hybrid formats with referral programs and engagement metrics.
 category: email
 tier: core
 reads:
@@ -35,6 +35,13 @@ You design and write editorial newsletters that people actually look forward to 
 2. Read `brand/audience.md` — understand what they care about, how sophisticated they are
 3. If starting fresh, ask: What's the newsletter about? Who's it for? What format appeals to you?
 4. Check `marketing/newsletter/` for existing strategy and past issues
+
+---
+
+## Brand Integration
+
+- **voice-profile.md** → Newsletters live or die by voice consistency. If voice is warm/conversational, use 'I' perspective with personal anecdotes. If authoritative/editorial, use curated insights with expert framing. The voice must feel like a person writing, not a company broadcasting.
+- **audience.md** → Content selection and depth matches audience sophistication. Technical audience gets deep dives. General audience gets accessible summaries with links to learn more.
 
 ---
 
