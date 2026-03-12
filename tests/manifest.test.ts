@@ -33,7 +33,7 @@ describe("Manifest structure", () => {
   });
 
   test("exactly 24 skills", () => {
-    expect(Object.keys(manifest.skills)).toHaveLength(24);
+    expect(Object.keys(manifest.skills)).toHaveLength(26);
   });
 });
 
@@ -182,7 +182,7 @@ describe("Redirect validation", () => {
     expect(manifest.redirects["copywriting"]).toBe("direct-response-copy");
     expect(manifest.redirects["content-strategy"]).toBe("keyword-research");
     expect(manifest.redirects["social-content"]).toBe("content-atomizer");
-    expect(manifest.redirects["marketing-ideas"]).toBe("cmo");
+    expect(manifest.redirects["marketing-ideas"]).toBe("brainstorm");
   });
 });
 

@@ -13,12 +13,12 @@ const flags: GlobalFlags = {
 };
 
 describe("mktg list", () => {
-  test("returns 24 skills from manifest", async () => {
+  test("returns 26 skills from manifest", async () => {
     const result = await handler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(24);
+    expect(result.data.total).toBe(26);
   });
 
   test("skills have required fields", async () => {

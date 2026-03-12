@@ -17,7 +17,7 @@ describe("Result constructors", () => {
   test("ok() preserves complex data types", () => {
     const data = {
       skills: [{ name: "brand-voice", installed: true }],
-      count: 24,
+      count: 26,
       nested: { deep: { value: true } },
     };
     const result = ok(data);

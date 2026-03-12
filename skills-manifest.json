@@ -264,6 +264,28 @@
       "depends_on": [],
       "triggers": ["psychology", "persuasion", "cognitive bias", "behavioral", "cialdini"],
       "review_interval_days": 180
+    },
+    "brainstorm": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": ["voice-profile.md", "audience.md", "positioning.md", "learnings.md"],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["brainstorm", "help me think through", "what should we market", "explore approaches", "I don't know where to start", "what campaign", "how should we position", "what should I do next", "marketing ideas"],
+      "review_interval_days": 30
+    },
+    "marketing-demo": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "positioning.md", "creative-kit.md", "stack.md"],
+      "writes": [],
+      "depends_on": ["brand-voice"],
+      "triggers": ["product demo", "demo video", "walkthrough video", "feature showcase", "record demo", "marketing video", "screen recording", "GIF demo", "product tour"],
+      "review_interval_days": 90
     }
   },
   "redirects": {
@@ -281,7 +303,7 @@
     "cold-email": "direct-response-copy",
     "copy-editing": "direct-response-copy",
     "programmatic-seo": "seo-content",
-    "marketing-ideas": "cmo",
+    "marketing-ideas": "brainstorm",
     "analytics-tracking": "cmo"
   }
 }
