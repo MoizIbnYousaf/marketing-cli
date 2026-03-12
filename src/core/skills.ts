@@ -10,9 +10,15 @@ const SKILLS_INSTALL_DIR = join(homedir(), ".claude", "skills");
 
 // Resolve the package root (where skills-manifest.json lives)
 const getPackageRoot = (): string => {
-  // When running from src/, go up one level
-  // When running from dist/, go up one level
-  return join(dirname(import.meta.dir), "..");
+  // import.meta.dir is the directory of the current file
+  // In dev: src/core/ → go up 2 levels to project root
+  // In dist: dist/ → go up 1 level to project root
+  const dir = import.meta.dir;
+  if (dir.endsWith("/core") || dir.endsWith("/core/")) {
+    return join(dir, "..", "..");
+  }
+  // Built file lives in dist/ — go up one level
+  return join(dir, "..");
 };
 
 // Load the manifest from package root
