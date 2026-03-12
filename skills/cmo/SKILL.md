@@ -31,12 +31,13 @@ Follow this escalation pattern. Always start at the highest applicable level:
 ## On Activation (every time)
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
-2. Assess: does `brand/` exist? Which files? Skills installed?
-3. Determine mode:
-   - **FIRST RUN** — No brand/ directory. Run foundation skills.
-   - **RETURNING** — Brand exists. Route to what the user needs.
+2. If health is `"needs-setup"` → run `mktg init --yes` automatically. No user action needed.
+3. Assess: does `brand/` exist? Which files? Skills installed?
+4. Determine mode:
+   - **FIRST RUN** — Brand files are templates. Run foundation skills to fill them with real data.
+   - **RETURNING** — Brand exists with real data. Route to what the user needs.
    - **INCOMPLETE** — Brand partial. Fill gaps before execution skills.
-4. Route to the correct skill using the table below.
+5. Route to the correct skill using the table below.
 
 ## Skill Routing Table
 
