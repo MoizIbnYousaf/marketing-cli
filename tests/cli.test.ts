@@ -121,15 +121,20 @@ describe("CLI error output is always valid JSON", () => {
     expect(Array.isArray(parsed.error.suggestions)).toBe(true);
   });
 
-  test("schema returns all 5 commands", async () => {
+  test("schema returns all 9 commands", async () => {
     const { stdout, exitCode } = await run(["schema"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toContain("init");
-    expect(parsed.commands).toContain("doctor");
-    expect(parsed.commands).toContain("status");
-    expect(parsed.commands).toContain("list");
-    expect(parsed.commands).toContain("update");
-    expect(parsed.commands).toHaveLength(5);
+    const names = parsed.commands.map((c: { name: string }) => c.name);
+    expect(names).toContain("init");
+    expect(names).toContain("doctor");
+    expect(names).toContain("status");
+    expect(names).toContain("list");
+    expect(names).toContain("update");
+    expect(names).toContain("schema");
+    expect(names).toContain("skill");
+    expect(names).toContain("brand");
+    expect(names).toContain("content");
+    expect(parsed.commands).toHaveLength(9);
     expect(exitCode).toBe(0);
   });
 });

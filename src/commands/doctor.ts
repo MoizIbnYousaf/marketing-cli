@@ -1,11 +1,25 @@
 // mktg doctor — Health checks for brand files, skills, and CLI dependencies
 // All checks run in parallel. Returns structured pass/fail/warn.
 
-import { ok, type CommandHandler } from "../types";
+import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { isTTY, writeStderr, green, red, yellow, dim, bold } from "../core/output";
+
+export const schema: CommandSchema = {
+  name: "doctor",
+  description: "Health checks for brand files, skills, agents, and CLI dependencies",
+  flags: [],
+  output: {
+    "passed": "boolean — true if no checks failed",
+    "checks": "Array<{name, status, detail}> — individual check results",
+  },
+  examples: [
+    { args: "mktg doctor --json", description: "Run all health checks" },
+  ],
+  vocabulary: ["doctor", "health check", "diagnose"],
+};
 
 type CheckStatus = "pass" | "fail" | "warn";
 

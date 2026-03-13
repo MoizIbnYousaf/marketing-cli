@@ -2,13 +2,36 @@
 // Non-TTY never prompts. Agent-first.
 
 import { join } from "node:path";
-import { ok, err, type CommandHandler, type CommandResult } from "../types";
+import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { scaffoldBrand } from "../core/brand";
 import { loadManifest, installSkills, getSkillNames } from "../core/skills";
 import { loadAgentManifest, installAgents } from "../core/agents";
-import { missingInput, invalidArgs } from "../core/errors";
+import { missingInput, invalidArgs, parseJsonInput } from "../core/errors";
 import { isTTY, writeStderr, green, bold, dim, yellow } from "../core/output";
 import { handler as doctorHandler } from "./doctor";
+
+export const schema: CommandSchema = {
+  name: "init",
+  description: "Detect project, scaffold brand/, install skills and agents",
+  flags: [
+    { name: "--skip-brand", type: "boolean", required: false, description: "Skip brand/ scaffolding" },
+    { name: "--skip-skills", type: "boolean", required: false, description: "Skip skill and agent installation" },
+    { name: "--yes", type: "boolean", required: false, description: "Accept defaults without prompting" },
+    { name: "--json", type: "string", required: false, description: "JSON input for non-interactive mode" },
+  ],
+  output: {
+    "project.name": "string — detected project name",
+    "brand.created": "string[] — brand files created",
+    "skills.installed": "string[] — skills installed",
+    "agents.installed": "string[] — agents installed",
+    "doctor.passed": "boolean — health check result",
+  },
+  examples: [
+    { args: "mktg init --yes", description: "Init with defaults" },
+    { args: "mktg init --json '{\"business\":\"SaaS\",\"goal\":\"launch\"}'", description: "Non-interactive init" },
+  ],
+  vocabulary: ["init", "setup", "initialize", "get started"],
+};
 
 type InitResult = {
   readonly brand: { created: string[]; skipped: string[] };
@@ -79,12 +102,9 @@ const getInput = async (
 ): Promise<CommandResult<InitInput>> => {
   // JSON input from flag
   if (flags.jsonInput) {
-    try {
-      const parsed = JSON.parse(flags.jsonInput) as InitInput;
-      return ok(parsed);
-    } catch {
-      return invalidArgs("Invalid JSON input for init");
-    }
+    const parsed = parseJsonInput<InitInput>(flags.jsonInput);
+    if (!parsed.ok) return invalidArgs(parsed.message);
+    return ok(parsed.data);
   }
 
   // --yes mode: use defaults
