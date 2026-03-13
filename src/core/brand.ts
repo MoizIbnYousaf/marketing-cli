@@ -25,6 +25,32 @@ const BRAND_TEMPLATES = {
   "learnings.md": `# Marketing Learnings\n\n<!-- Append-only. Agent records what worked and what didn't. -->\n`,
 } as const satisfies Record<BrandFile, string>;
 
+// Export for use by skill-lifecycle (template detection)
+export { BRAND_TEMPLATES };
+
+// Pre-compute template SHA-256 hashes for fast comparison
+let _templateHashes: Record<BrandFile, string> | null = null;
+
+const getTemplateHashes = (): Record<BrandFile, string> => {
+  if (_templateHashes) return _templateHashes;
+  const hashes = {} as Record<BrandFile, string>;
+  for (const file of BRAND_FILES) {
+    const hasher = new Bun.CryptoHasher("sha256");
+    hasher.update(BRAND_TEMPLATES[file]);
+    hashes[file] = hasher.digest("hex");
+  }
+  _templateHashes = hashes;
+  return hashes;
+};
+
+// Check if file content matches the template (hasn't been customized)
+export const isTemplateContent = (file: BrandFile, content: string): boolean => {
+  const hashes = getTemplateHashes();
+  const hasher = new Bun.CryptoHasher("sha256");
+  hasher.update(content);
+  return hasher.digest("hex") === hashes[file];
+};
+
 // Scaffold brand/ directory — creates files that don't exist
 export const scaffoldBrand = async (
   projectRoot: string,

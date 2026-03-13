@@ -42,39 +42,45 @@ describe("mktg skill namespace", () => {
     expect(sugText).toContain("validate");
   });
 
-  test("mktg skill info --json returns NOT_IMPLEMENTED with exit code 6", async () => {
+  test("mktg skill info --json without name returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["skill", "info", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("Missing skill name");
   });
 
-  test("mktg skill validate --json returns NOT_IMPLEMENTED with exit code 6", async () => {
+  test("mktg skill validate --json without path returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["skill", "validate", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("Missing path");
   });
 
-  test("mktg skill graph --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg skill graph --json returns full DAG", async () => {
     const { stdout, exitCode } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(0);
+    expect(Array.isArray(parsed.nodes)).toBe(true);
+    expect(Array.isArray(parsed.edges)).toBe(true);
+    expect(Array.isArray(parsed.roots)).toBe(true);
+    expect(Array.isArray(parsed.order)).toBe(true);
+    expect(typeof parsed.hasCycles).toBe("boolean");
   });
 
-  test("mktg skill check --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg skill check --json without name returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["skill", "check", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
-  test("mktg skill register --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg skill register --json without path returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["skill", "register", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
   test("mktg skill blah --json returns INVALID_ARGS with suggestions", async () => {
