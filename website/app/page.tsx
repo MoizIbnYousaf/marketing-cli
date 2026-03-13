@@ -1,13 +1,9 @@
+import { Features } from "@/components/Features";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
 import { TerminalDemo } from "@/components/TerminalDemo";
 
 const placeholderSections = [
-  {
-    id: "features",
-    title: "Features",
-    description: "Agent-native workflows, composable skills, and brand memory — all in one place.",
-  },
   {
     id: "skills",
     title: "Skills",
@@ -32,6 +28,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <TerminalDemo />
+        <Features />
 
         {placeholderSections.map((section) => (
           <section
