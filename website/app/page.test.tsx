@@ -24,7 +24,9 @@ describe("HomePage", () => {
     expect(markup).toContain("Browse the full playbook");
     expect(markup).toContain("Testimonials");
     expect(markup).toContain("What people are saying");
-    expect(markup).toContain("Install");
+    expect(markup).toContain("How it works");
+    expect(markup).toContain("Let your agent market");
+    expect(markup).toContain("Install mktg now");
     expect(markup).toContain("Built for agents, by agents");
     expect(markup).toContain("section id=\"features\"");
     expect(markup).toContain("section id=\"testimonials\"");
