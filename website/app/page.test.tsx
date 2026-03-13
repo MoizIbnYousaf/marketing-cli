@@ -3,10 +3,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import HomePage from "./page";
 
+const getHeadingLevels = (markup: string) =>
+  [...markup.matchAll(/<h([1-6])\b[^>]*>/g)].map((match) => Number(match[1]));
+
 describe("HomePage", () => {
   test("renders the nav, hero, footer, and page sections with a single h1", () => {
     const markup = renderToStaticMarkup(<HomePage />);
-    const h1Matches = markup.match(/<h1/g) ?? [];
+    const headingLevels = getHeadingLevels(markup);
     const featuresIndex = markup.indexOf('section id="features"');
     const skillsIndex = markup.indexOf('section id="skills"');
     const testimonialsIndex = markup.indexOf('section id="testimonials"');
@@ -39,6 +42,11 @@ describe("HomePage", () => {
     expect(installIndex).toBeGreaterThan(testimonialsIndex);
     expect(footerIndex).toBeGreaterThan(installIndex);
     expect(markup.trim().endsWith("</footer>")).toBe(true);
-    expect(h1Matches).toHaveLength(1);
+    expect(headingLevels.filter((level) => level === 1)).toHaveLength(1);
+
+    headingLevels.reduce((previousLevel, currentLevel) => {
+      expect(currentLevel - previousLevel).toBeLessThanOrEqual(1);
+      return currentLevel;
+    });
   });
 });

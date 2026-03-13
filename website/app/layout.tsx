@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { SOFTWARE_APPLICATION_JSON_LD } from "./site-metadata";
 import "./globals.css";
+
+export { metadata } from "./site-metadata";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,11 +15,6 @@ const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
 });
-
-export const metadata: Metadata = {
-  title: "mktg",
-  description: "The agent-native marketing playbook.",
-};
 
 type RootLayoutProps = {
   children: ReactNode;
@@ -31,6 +28,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-slate-950 font-sans text-slate-50 antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: SOFTWARE_APPLICATION_JSON_LD }}
+        />
         {children}
       </body>
     </html>

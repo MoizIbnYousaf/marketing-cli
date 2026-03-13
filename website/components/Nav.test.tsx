@@ -196,6 +196,20 @@ describe("Nav", () => {
     expect(document.body.style.overflow).toBe("");
   });
 
+  test("closes the mobile menu when Escape is pressed", () => {
+    const view = renderNav();
+    const toggle = view.scope.getByRole("button", { name: /open navigation menu/i });
+
+    fireEvent.click(toggle);
+
+    expect(view.scope.getByRole("dialog", { name: "Mobile navigation menu" })).toBeDefined();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(view.scope.queryByRole("dialog", { name: "Mobile navigation menu" })).toBeNull();
+    expect(document.body.style.overflow).toBe("");
+  });
+
   test("uses explicit smooth scrolling offsets for anchor links", () => {
     const view = renderNav();
     const installSection = document.getElementById("install");

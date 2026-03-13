@@ -125,6 +125,7 @@ describe("TerminalDemo", () => {
       "mktg status",
       "mktg doctor",
     ]);
+    expect(tabs.every((tab) => tab.getAttribute("tabindex") === "0")).toBe(true);
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
     expect(panel.getAttribute("aria-labelledby")).toBe(tabs[0].id);
     expect(panel.className).toContain("overflow-y-auto");

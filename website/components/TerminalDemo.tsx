@@ -166,7 +166,7 @@ export function TerminalDemo({ animationConfig }: TerminalDemoProps) {
                   id={`terminal-demo-tab-${demo.id}`}
                   type="button"
                   role="tab"
-                  tabIndex={isActive ? 0 : -1}
+                  tabIndex={0}
                   aria-controls={PANEL_ID}
                   aria-selected={isActive}
                   onClick={() => activateTab(index)}
