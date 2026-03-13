@@ -1,3 +1,5 @@
+import { ScrollReveal } from "@/components/ScrollReveal";
+
 type Testimonial = {
   name: string;
   role: string;
@@ -40,7 +42,7 @@ export function Testimonials() {
       aria-labelledby="testimonials-heading"
       className="scroll-mt-28 border-t border-slate-800/80 px-6 py-24 sm:px-10 lg:py-28"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
+      <ScrollReveal className="mx-auto flex w-full max-w-6xl flex-col gap-12">
         <div className="max-w-3xl space-y-5">
           <p className="font-mono text-xs uppercase tracking-[0.32em] text-emerald-300">
             Testimonials
@@ -95,7 +97,7 @@ export function Testimonials() {
             </article>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }

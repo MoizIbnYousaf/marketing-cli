@@ -1,5 +1,6 @@
 import type { SVGProps } from "react";
 
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { MARKETING_SKILL_COUNT } from "@/lib/site-stats";
 
 type FeatureIconProps = SVGProps<SVGSVGElement> & {
@@ -147,7 +148,7 @@ export function Features() {
       aria-labelledby="features-heading"
       className="border-t border-slate-800/80 px-6 py-24 sm:px-10 lg:py-28"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
+      <ScrollReveal className="mx-auto flex w-full max-w-6xl flex-col gap-12">
         <div className="max-w-3xl space-y-5">
           <p className="font-mono text-xs uppercase tracking-[0.32em] text-emerald-300">
             Features
@@ -197,7 +198,7 @@ export function Features() {
             </article>
           ))}
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }

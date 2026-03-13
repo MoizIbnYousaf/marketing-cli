@@ -7,6 +7,8 @@ describe("HomePage", () => {
   test("renders the nav, hero, footer, and page sections with a single h1", () => {
     const markup = renderToStaticMarkup(<HomePage />);
     const h1Matches = markup.match(/<h1/g) ?? [];
+    const featuresIndex = markup.indexOf('section id="features"');
+    const skillsIndex = markup.indexOf('section id="skills"');
     const testimonialsIndex = markup.indexOf('section id="testimonials"');
     const installIndex = markup.indexOf('section id="install"');
     const footerIndex = markup.indexOf("<footer");
@@ -29,8 +31,11 @@ describe("HomePage", () => {
     expect(markup).toContain("Install mktg now");
     expect(markup).toContain("Built for agents, by agents");
     expect(markup).toContain("section id=\"features\"");
+    expect(markup).toContain("section id=\"skills\"");
     expect(markup).toContain("section id=\"testimonials\"");
     expect(markup).toContain("section id=\"install\"");
+    expect(skillsIndex).toBeGreaterThan(featuresIndex);
+    expect(testimonialsIndex).toBeGreaterThan(skillsIndex);
     expect(installIndex).toBeGreaterThan(testimonialsIndex);
     expect(footerIndex).toBeGreaterThan(installIndex);
     expect(markup.trim().endsWith("</footer>")).toBe(true);

@@ -147,7 +147,7 @@ export function Nav() {
     () =>
       (sectionId: SectionId) =>
         cn(
-          "rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
+          "inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950",
           activeSection === sectionId &&
             "bg-slate-900/80 text-emerald-300 ring-1 ring-emerald-400/40",
         ),
@@ -196,7 +196,7 @@ export function Nav() {
           type="button"
           aria-label="Scroll to top"
           onClick={scrollToTop}
-          className="rounded-full px-2 py-2 text-left font-mono text-lg font-semibold tracking-[0.24em] text-slate-50 transition hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          className="inline-flex min-h-11 items-center rounded-full px-2 py-2 text-left font-mono text-lg font-semibold tracking-[0.24em] text-slate-50 transition hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
         >
           mktg
         </button>
@@ -223,7 +223,7 @@ export function Nav() {
             href={GITHUB_REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+            className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           >
             GitHub
           </a>
@@ -293,7 +293,7 @@ export function Nav() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={closeMobileMenu}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900 hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900 hover:text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               GitHub
             </a>

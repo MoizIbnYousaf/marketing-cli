@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { ScrollReveal } from "@/components/ScrollReveal";
+
 const INSTALL_COMMAND = "npx mktg init";
 const CTA_URL = "https://github.com/moizibnyousaf/mktg";
 
@@ -86,7 +88,7 @@ export function InstallCTA() {
       aria-labelledby="install-heading"
       className="scroll-mt-28 border-t border-slate-800/80 bg-[linear-gradient(180deg,rgba(2,6,23,0.7),rgba(15,23,42,0.96)_24%,rgba(2,6,23,1))] px-6 py-24 sm:px-10 lg:py-28"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 rounded-[2rem] border border-slate-800/80 bg-slate-950/80 p-8 shadow-[0_30px_120px_-60px_rgba(16,185,129,0.45)] backdrop-blur-xl sm:p-10 lg:gap-16 lg:p-14">
+      <ScrollReveal className="mx-auto flex w-full max-w-6xl flex-col gap-12 rounded-[2rem] border border-slate-800/80 bg-slate-950/80 p-8 shadow-[0_30px_120px_-60px_rgba(16,185,129,0.45)] backdrop-blur-xl sm:p-10 lg:gap-16 lg:p-14">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(360px,1.05fr)] lg:items-start">
           <div className="space-y-6">
             <p className="font-mono text-xs uppercase tracking-[0.32em] text-emerald-300">
@@ -204,7 +206,7 @@ export function InstallCTA() {
             Install mktg now
           </a>
         </div>
-      </div>
+      </ScrollReveal>
     </section>
   );
 }
