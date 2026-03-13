@@ -26,6 +26,14 @@ It writes generic copy. It doesn't know your voice. It forgets your audience by 
 
 ---
 
+## How It Works
+
+<p align="center">
+  <img src="explainer.gif" alt="How mktg works — animated explainer" width="720">
+</p>
+
+---
+
 <p align="center">
   <img src="demo.gif" alt="mktg demo — init, doctor, status" width="720">
 </p>
@@ -325,3 +333,9 @@ Contributions welcome. The easiest ways to help:
 ## License
 
 [MIT](LICENSE) — Use freely. Build on it.
+
+---
+
+## Acknowledgments
+
+- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills) — the breadth skill collection that inspired many of mktg's 39 skills

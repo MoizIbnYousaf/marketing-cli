@@ -1,0 +1,21 @@
+{
+  "name": "mktg-explainer",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render MktgExplainer --codec gif",
+    "render:mp4": "remotion render MktgExplainer out/explainer.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.261",
+    "@remotion/google-fonts": "4.0.261",
+    "@remotion/transitions": "4.0.261",
+    "react": "^19",
+    "react-dom": "^19",
+    "remotion": "4.0.261"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

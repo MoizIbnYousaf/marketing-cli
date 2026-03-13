@@ -11,3 +11,8 @@ marketing/
 demo.webm
 demo-setup.sh
 /tmp/mktg-demo-path
+.venv/
+media/
+explainer/out/
+explainer/node_modules/
+explainer/bun.lock
