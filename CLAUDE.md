@@ -2,24 +2,24 @@
 
 ## Vision
 
-I (Moiz) work across many projects — CEO app, Halaali, HalalScreen, SkillCreator, and more. Every one of them needs marketing but I don't have time to manually do it all. The idea: **one install gives my agent a complete CMO brain** that can autonomously handle end-to-end marketing for any project.
+`mktg` gives an AI agent a complete CMO brain: durable brand memory, parallel research, and a packaged marketing playbook that can work across projects and machines.
 
 The skills and the CLI are two separate things that work in perfect unison:
 - **Skills** = marketing knowledge (SKILL.md files) the agent reads to know HOW to do marketing
 - **CLI** = infrastructure tool the agent runs for setup, health checks, and skill management
 - **`/cmo` skill** = the glue that teaches the agent how to orchestrate skills + CLI together
 
-This needs to work on any machine — my Mac, a fresh VPS, anywhere. `mktg init` self-bootstraps everything: installs skills into the agent's config, scaffolds `brand/` directory, runs doctor to verify. No manual setup.
+This needs to work on any machine. `mktg init` self-bootstraps everything: installs skills into the agent's config, scaffolds `brand/`, and runs doctor to verify the setup.
 
 ## What This Is
 
 `mktg` is a TypeScript/Bun CLI that gives AI agents full CMO capabilities. One install = full marketing department.
 
 **Five components:**
-1. `mktg` CLI — infrastructure tool (5 commands: init, doctor, list, status, update)
+1. `mktg` CLI — infrastructure tool (9 top-level commands: init, doctor, list, status, update, schema, skill, brand, run)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
-4. 32 marketing skills — the knowledge (29 atomic + 3 orchestrators that chain skills together)
+4. 39 marketing skills — the knowledge
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
@@ -33,14 +33,18 @@ src/
 │   ├── doctor.ts       # Health checks (brand, skills, CLIs)
 │   ├── list.ts         # Show available skills with status
 │   ├── status.ts       # Project marketing state snapshot
-│   └── update.ts       # Re-copy skills from package to agent config
+│   ├── update.ts       # Re-copy skills from package to agent config
+│   ├── schema.ts       # CLI self-discovery
+│   ├── skill.ts        # Skill lifecycle subcommands
+│   ├── brand.ts        # Brand lifecycle subcommands
+│   └── run.ts          # Load a skill for agent consumption
 ├── core/
 │   ├── output.ts       # JSON/TTY formatting, --fields filtering
 │   ├── errors.ts       # Structured errors, exit codes 0-6, sandboxPath()
 │   ├── brand.ts        # Brand dir management + freshness assessment
 │   ├── skills.ts       # Skill registry, install, integrity verification
 │   └── agents.ts       # Agent registry, install to ~/.claude/agents/
-skills/                  # 30 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 39 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 5 agent .md files installed to ~/.claude/agents/
 ├── research/            # brand-researcher, audience-researcher, competitive-scanner
@@ -48,8 +52,6 @@ agents/                  # 5 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
 ```
 
-- **Plan:** `docs/plans/2026-03-12-001-feat-mktg-cli-full-implementation-plan.md`
-- **Brainstorm:** `docs/brainstorms/2026-03-11-marketing-playbook-brainstorm.md`
 - **Agent-first:** JSON output, structured errors, exit codes, --dry-run, schema introspection
 - **CLI-only integrations:** gws, playwright-cli, Remotion, ffmpeg, Exa MCP
 
@@ -72,11 +74,15 @@ mktg doctor     — Health checks (brand files, skills, CLI tools)
 mktg list       — Show available skills with install status
 mktg status     — Project marketing state snapshot (JSON for agents)
 mktg update     — Re-copy bundled skills to agent config
+mktg schema     — Introspect commands, flags, and outputs
+mktg skill      — Skill lifecycle management
+mktg brand      — Brand lifecycle management
+mktg run        — Load a skill and log execution
 ```
 
 **Global flags:** `--json`, `--dry-run`, `--fields`, `--cwd`, `--help`, `--version`
 
-## Skills (30 total)
+## Skills (39 total)
 
 Skills follow the drop-in contract. See `skills-manifest.json` for the full registry.
 

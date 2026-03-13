@@ -11,8 +11,14 @@ marketing/
 demo.webm
 demo-setup.sh
 /tmp/mktg-demo-path
+__pycache__/
+*.pyc
 .venv/
 media/
 explainer/out/
 explainer/node_modules/
 explainer/bun.lock
+agent-orchestrator.yaml
+.factory/
+all-skills/
+.mktg/

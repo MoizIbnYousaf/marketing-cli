@@ -6,7 +6,7 @@
   <a href="https://github.com/MoizIbnYousaf/mktg/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-10b981" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/skills-39-10b981" alt="39 Skills">
   <img src="https://img.shields.io/badge/agents-5-10b981" alt="5 Agents">
-  <img src="https://img.shields.io/badge/tests-655-10b981" alt="655 Tests">
+  <img src="https://img.shields.io/badge/tests-extensive-10b981" alt="Extensive test suite">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript Strict">
 </p>
 
@@ -43,11 +43,10 @@ It writes generic copy. It doesn't know your voice. It forgets your audience by 
 ## Quick Start
 
 ```bash
-bun install -g mktg
-mktg init
+bun install -g mktg && mktg init
 ```
 
-That's it. `init` detects your project, scaffolds `brand/`, installs 39 skills to `~/.claude/skills/`, installs 5 research agents to `~/.claude/agents/`, and runs `doctor` to verify everything works.
+That's it. `init` detects your project, scaffolds `brand/`, installs 39 skills to `~/.claude/skills/`, installs 5 marketing agents to `~/.claude/agents/`, and runs `doctor` to verify everything works.
 
 Then use `/cmo` in Claude Code:
 
@@ -80,13 +79,13 @@ Other marketing skill repos give you a folder of markdown files and wish you luc
 | | mktg | Other skill repos |
 |---|---|---|
 | **Install** | `bun install -g mktg && mktg init` | `git clone` + manually copy files |
-| **CLI** | 8 commands, JSON output, exit codes, `--dry-run` | None |
+| **CLI** | 9 top-level commands, JSON output, exit codes, `--dry-run` | None |
 | **Memory** | 9 brand files that compound across sessions | Stateless — starts from scratch every time |
 | **Health checks** | `mktg doctor` with pass/warn/fail diagnostics | None |
 | **Skill lifecycle** | Dependency DAG, freshness tracking, versioning | Flat directory of markdown |
 | **Integration checks** | Proactive env var verification before routing | Fails mid-execution |
 | **Schema introspection** | `mktg schema --json` for agent self-discovery | None |
-| **Tests** | 655 tests (real file I/O, no mocks) | 0 |
+| **Tests** | Extensive Bun tests (real file I/O, no mocks) | 0 |
 | **Orchestrator** | `/cmo` with routing table, disambiguation, guardrails | Command menus |
 
 ---
@@ -237,6 +236,9 @@ Foundation research launches all 3 research agents **in parallel** — brand, au
 | `mktg list` | Show all 39 skills with install status and metadata |
 | `mktg update` | Re-install skills from latest package version |
 | `mktg schema` | Introspect all commands, flags, and output shapes |
+| `mktg skill` | Inspect, validate, register, and analyze skills |
+| `mktg brand` | Export, import, diff, and review brand memory |
+| `mktg run` | Load a skill for agent consumption and log execution |
 
 Every command supports `--json` for agent consumption, `--dry-run` for safe previews, and `--fields` for selective output.
 
@@ -266,7 +268,7 @@ $ mktg doctor --json | jq '.checks[] | select(.name | startswith("integration"))
 src/
 ├── cli.ts              # Entry point, command router
 ├── types.ts            # All shared TypeScript types
-├── commands/           # 8 commands (init, doctor, list, status, update, schema, skill, brand)
+├── commands/           # 9 top-level commands (init, doctor, list, status, update, schema, skill, brand, run)
 └── core/               # Shared modules (output, errors, brand, skills, agents, integrations)
 
 skills/                 # 39 SKILL.md files → installed to ~/.claude/skills/
@@ -303,7 +305,7 @@ cd mktg
 
 bun install           # Install dependencies
 bun run dev doctor    # Run locally
-bun test              # 655 tests, real file I/O, no mocks
+bun test              # Extensive Bun test suite, real file I/O, no mocks
 bun x tsc --noEmit    # Type check
 bun run build         # Build
 ```
@@ -313,9 +315,9 @@ bun run build         # Build
 - `src/` — CLI source (TypeScript, ~4,400 lines)
 - `skills/` — 39 SKILL.md files (~42,000 lines of marketing expertise)
 - `agents/` — 5 agent definitions
-- `tests/` — 655 tests across 28 test files
+- `tests/` — Bun test suite for CLI and runtime behavior
 - `website/` — Next.js marketing site
-- `docs/` — Plans, brainstorms, and validation docs
+- `docs/` — Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
 
 ---
 

@@ -6,7 +6,7 @@ export const SITE_DESCRIPTION =
   "One install gives AI agents a complete CMO brain with brand memory, parallel research, and 39 composable marketing skills.";
 
 export const SITE_OG_IMAGE =
-  "https://placehold.co/1200x630/020617/f8fafc/png?text=mktg";
+  "https://raw.githubusercontent.com/MoizIbnYousaf/mktg/main/banner.svg";
 
 export const SOFTWARE_APPLICATION_STRUCTURED_DATA = {
   "@context": "https://schema.org",
