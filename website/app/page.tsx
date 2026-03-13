@@ -1,3 +1,4 @@
+import { Footer } from "@/components/Footer";
 import { Features } from "@/components/Features";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
@@ -50,6 +51,7 @@ export default function HomePage() {
           </section>
         ))}
       </main>
+      <Footer />
     </>
   );
 }
