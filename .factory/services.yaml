@@ -1,0 +1,15 @@
+commands:
+  install: cd website && bun install
+  dev: cd website && PORT=3200 bun run dev
+  build: cd website && bun run build
+  typecheck: cd website && bun x tsc --noEmit
+  lint: cd website && bun run lint
+  test: cd website && bun run test
+
+services:
+  web:
+    start: cd /Users/moizibnyousaf/projects/mktg/website && PORT=3200 bun run dev &
+    stop: lsof -ti :3200 | xargs kill -9 2>/dev/null || true
+    healthcheck: curl -sf http://localhost:3200
+    port: 3200
+    depends_on: []
