@@ -10,7 +10,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["marketing", "cmo", "what should I do", "marketing plan", "next steps"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "brand-voice": {
       "source": "v2",
@@ -21,7 +22,8 @@
       "writes": ["voice-profile.md"],
       "depends_on": [],
       "triggers": ["brand voice", "voice profile", "tone of voice", "brand personality"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "positioning-angles": {
       "source": "v2",
@@ -32,7 +34,8 @@
       "writes": ["positioning.md"],
       "depends_on": ["brand-voice", "audience-research"],
       "triggers": ["positioning", "angles", "differentiation", "unique selling"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "audience-research": {
       "source": "new",
@@ -43,7 +46,8 @@
       "writes": ["audience.md"],
       "depends_on": [],
       "triggers": ["audience", "buyer persona", "ideal customer", "target market", "watering holes"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "competitive-intel": {
       "source": "new",
@@ -54,7 +58,8 @@
       "writes": ["competitors.md"],
       "depends_on": [],
       "triggers": ["competitors", "competitive analysis", "competitor teardown", "market landscape"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "keyword-research": {
       "source": "v2",
@@ -65,7 +70,8 @@
       "writes": ["keyword-plan.md"],
       "depends_on": ["audience-research", "competitive-intel"],
       "triggers": ["keywords", "keyword research", "SEO topics", "content topics", "six circles"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "launch-strategy": {
       "source": "v1",
@@ -76,7 +82,8 @@
       "writes": [],
       "depends_on": ["brand-voice", "positioning-angles"],
       "triggers": ["launch", "product launch", "go to market", "Product Hunt", "launch plan"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "pricing-strategy": {
       "source": "v1",
@@ -87,7 +94,8 @@
       "writes": [],
       "depends_on": ["audience-research"],
       "triggers": ["pricing", "price", "monetization", "freemium", "Van Westendorp"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "direct-response-copy": {
       "source": "v2",
@@ -98,7 +106,8 @@
       "writes": [],
       "depends_on": ["brand-voice"],
       "triggers": ["copy", "copywriting", "sales copy", "landing page copy", "cold email", "copy editing", "headlines"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "seo-content": {
       "source": "v2",
@@ -109,7 +118,8 @@
       "writes": [],
       "depends_on": ["brand-voice", "keyword-research"],
       "triggers": ["SEO content", "blog post", "article", "SERP", "programmatic SEO", "content at scale"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "lead-magnet": {
       "source": "v2",
@@ -120,7 +130,8 @@
       "writes": [],
       "depends_on": ["brand-voice", "audience-research"],
       "triggers": ["lead magnet", "ebook", "checklist", "template", "free resource", "opt-in"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "content-atomizer": {
       "source": "v2",
@@ -131,7 +142,8 @@
       "writes": [],
       "depends_on": ["brand-voice"],
       "triggers": ["repurpose", "atomize", "social posts", "content distribution", "cross-post"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "email-sequences": {
       "source": "v2",
@@ -142,7 +154,8 @@
       "writes": [],
       "depends_on": ["brand-voice", "audience-research"],
       "triggers": ["email sequence", "drip campaign", "welcome series", "onboarding emails", "nurture"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "newsletter": {
       "source": "v2",
@@ -153,7 +166,8 @@
       "writes": [],
       "depends_on": ["brand-voice"],
       "triggers": ["newsletter", "editorial", "weekly email", "subscriber"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "creative": {
       "source": "v2",
@@ -164,7 +178,8 @@
       "writes": ["creative-kit.md"],
       "depends_on": ["brand-voice"],
       "triggers": ["creative", "visual", "image", "graphic", "video", "thumbnail"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "seo-audit": {
       "source": "v1",
@@ -175,7 +190,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["SEO audit", "technical SEO", "site architecture", "schema markup", "internal linking"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "ai-seo": {
       "source": "v1",
@@ -186,7 +202,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["AI SEO", "AI search", "LLM optimization", "ChatGPT ranking"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "competitor-alternatives": {
       "source": "v1",
@@ -197,7 +214,8 @@
       "writes": [],
       "depends_on": ["competitive-intel"],
       "triggers": ["alternatives page", "vs page", "comparison", "competitor alternatives"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "page-cro": {
       "source": "v1",
@@ -208,7 +226,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["CRO", "conversion rate", "landing page audit", "form optimization", "popup"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "conversion-flow-cro": {
       "source": "new",
@@ -219,7 +238,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["signup flow", "onboarding flow", "paywall", "upgrade flow", "activation"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "churn-prevention": {
       "source": "v1",
@@ -230,7 +250,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["churn", "retention", "cancel flow", "dunning", "win-back"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "referral-program": {
       "source": "v1",
@@ -241,7 +262,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["referral", "viral loop", "word of mouth", "invite program"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "free-tool-strategy": {
       "source": "v1",
@@ -252,7 +274,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["free tool", "engineering as marketing", "side project marketing"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "marketing-psychology": {
       "source": "v1",
@@ -263,7 +286,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["psychology", "persuasion", "cognitive bias", "behavioral", "cialdini"],
-      "review_interval_days": 180
+      "review_interval_days": 180,
+      "version": "1.0.0"
     },
     "brainstorm": {
       "source": "new",
@@ -274,7 +298,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["brainstorm", "help me think through", "what should we market", "explore approaches", "I don't know where to start", "what campaign", "how should we position", "what should I do next", "marketing ideas"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "create-skill": {
       "source": "new",
@@ -285,7 +310,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["create a skill", "new skill", "add a marketing skill", "skill template", "extend the playbook"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "deepen-plan": {
       "source": "new",
@@ -296,7 +322,8 @@
       "writes": [],
       "depends_on": ["audience-research", "competitive-intel", "keyword-research"],
       "triggers": ["deepen this plan", "strengthen strategy", "research gaps in plan", "enhance this plan", "make this plan stronger"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "document-review": {
       "source": "new",
@@ -307,7 +334,8 @@
       "writes": [],
       "depends_on": [],
       "triggers": ["review brand files", "audit marketing docs", "check brand consistency", "brand health check", "are my brand files complete"],
-      "review_interval_days": 30
+      "review_interval_days": 30,
+      "version": "1.0.0"
     },
     "marketing-demo": {
       "source": "new",
@@ -318,7 +346,8 @@
       "writes": [],
       "depends_on": ["brand-voice"],
       "triggers": ["product demo", "demo video", "walkthrough video", "feature showcase", "record demo", "marketing video", "screen recording", "GIF demo", "product tour"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "paper-marketing": {
       "source": "new",
@@ -329,7 +358,8 @@
       "writes": ["creative-kit.md", "assets.md"],
       "depends_on": ["brand-voice"],
       "triggers": ["paper marketing", "design carousel", "create slides", "visual content", "instagram design", "social graphics", "paper prototype marketing", "design in paper", "create carousel", "slide design", "TikTok design", "slideshow design"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "slideshow-script": {
       "source": "new",
@@ -340,7 +370,8 @@
       "writes": [],
       "depends_on": ["brand-voice", "positioning-angles"],
       "triggers": ["slideshow script", "generate scripts", "narrative scripts", "content scripts", "TikTok scripts", "carousel scripts", "storytelling frameworks"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "video-content": {
       "source": "new",
@@ -351,7 +382,8 @@
       "writes": ["assets.md"],
       "depends_on": [],
       "triggers": ["make video", "video from slides", "animate slides", "render video", "video content", "assemble video", "ffmpeg video", "remotion render"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "tiktok-slideshow": {
       "source": "new",
@@ -362,7 +394,8 @@
       "writes": ["assets.md"],
       "depends_on": ["brand-voice", "positioning-angles"],
       "triggers": ["TikTok slideshow", "TikTok video", "make TikTok", "slideshow video", "TikTok content", "end-to-end video"],
-      "review_interval_days": 60
+      "review_interval_days": 60,
+      "version": "1.0.0"
     },
     "frontend-slides": {
       "source": "new",
@@ -373,7 +406,8 @@
       "writes": ["assets.md"],
       "depends_on": ["brand-voice"],
       "triggers": ["slides", "presentation", "pitch deck", "HTML slides", "conference talk", "PPT conversion", "slideshow presentation", "frontend slides"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     },
     "app-store-screenshots": {
       "source": "new",
@@ -384,7 +418,8 @@
       "writes": ["assets.md"],
       "depends_on": ["brand-voice"],
       "triggers": ["app store screenshots", "App Store", "screenshot generator", "iOS screenshots", "marketing screenshots", "phone mockup", "app store assets", "ASO screenshots"],
-      "review_interval_days": 90
+      "review_interval_days": 90,
+      "version": "1.0.0"
     }
   },
   "redirects": {

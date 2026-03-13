@@ -153,3 +153,26 @@ describe("Doctor with partial state", () => {
     expect(result.data.passed).toBe(false);
   });
 });
+
+describe("Doctor graph check", () => {
+  test("includes skill-graph check", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const graphCheck = result.data.checks.find(c => c.name === "skill-graph");
+    expect(graphCheck).toBeDefined();
+    expect(graphCheck!.status).toBe("pass");
+  });
+
+  test("skill-graph check reports node and edge counts", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const graphCheck = result.data.checks.find(c => c.name === "skill-graph");
+    expect(graphCheck!.detail).toContain("No cycles");
+    expect(graphCheck!.detail).toContain("skills");
+    expect(graphCheck!.detail).toContain("edges");
+  });
+});

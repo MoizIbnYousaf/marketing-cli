@@ -5,21 +5,28 @@ import { resolve, relative, isAbsolute } from "node:path";
 import { lstatSync } from "node:fs";
 import { err, type CommandResult, type ExitCode } from "../types";
 
+// Documentation URLs for common errors
+export const DOCS = {
+  skills: "https://github.com/moizibnyousaf/mktg#skills",
+  brand: "https://github.com/moizibnyousaf/mktg#brand-files",
+  commands: "https://github.com/moizibnyousaf/mktg#commands",
+} as const;
+
 // Named error constructors for common cases
-export const notFound = (what: string, suggestions: readonly string[] = []): CommandResult<never> =>
-  err("NOT_FOUND", `${what} not found`, suggestions, 1);
+export const notFound = (what: string, suggestions: readonly string[] = [], docs?: string): CommandResult<never> =>
+  err("NOT_FOUND", `${what} not found`, suggestions, 1, docs);
 
-export const invalidArgs = (message: string, suggestions: readonly string[] = []): CommandResult<never> =>
-  err("INVALID_ARGS", message, suggestions, 2);
+export const invalidArgs = (message: string, suggestions: readonly string[] = [], docs?: string): CommandResult<never> =>
+  err("INVALID_ARGS", message, suggestions, 2, docs);
 
-export const missingDep = (dep: string, suggestions: readonly string[] = []): CommandResult<never> =>
-  err("MISSING_DEPENDENCY", `Required dependency not found: ${dep}`, suggestions, 3);
+export const missingDep = (dep: string, suggestions: readonly string[] = [], docs?: string): CommandResult<never> =>
+  err("MISSING_DEPENDENCY", `Required dependency not found: ${dep}`, suggestions, 3, docs);
 
-export const skillFailed = (skill: string, message: string): CommandResult<never> =>
-  err("SKILL_FAILED", `Skill '${skill}' failed: ${message}`, [], 4);
+export const skillFailed = (skill: string, message: string, docs?: string): CommandResult<never> =>
+  err("SKILL_FAILED", `Skill '${skill}' failed: ${message}`, [], 4, docs);
 
-export const networkError = (message: string): CommandResult<never> =>
-  err("NETWORK_ERROR", message, ["Check your internet connection"], 5);
+export const networkError = (message: string, docs?: string): CommandResult<never> =>
+  err("NETWORK_ERROR", message, ["Check your internet connection"], 5, docs);
 
 export const notImplemented = (command: string): CommandResult<never> =>
   err("NOT_IMPLEMENTED", `Command '${command}' is not yet implemented`, ["mktg --help"], 6);

@@ -44,6 +44,16 @@ export const formatOutput = <T>(
   flags: GlobalFlags,
 ): string => {
   if (!result.ok) {
+    if (isTTY() && !flags.json) {
+      const lines = [
+        `Error: ${result.error.message}`,
+        ...result.error.suggestions.map(s => `  ${s}`),
+      ];
+      if (result.error.docs) {
+        lines.push(`Docs: ${result.error.docs}`);
+      }
+      return lines.join("\n");
+    }
     return JSON.stringify({ error: result.error }, null, 2);
   }
 

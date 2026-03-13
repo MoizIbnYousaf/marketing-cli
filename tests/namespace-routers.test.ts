@@ -118,35 +118,37 @@ describe("mktg brand namespace", () => {
     expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
-  test("error lists valid subcommands (export, import, reset, freshness)", async () => {
+  test("error lists valid subcommands (export, import, freshness, diff)", async () => {
     const { stdout } = await run(["brand", "--json"]);
     const parsed = JSON.parse(stdout);
     const sugText = parsed.error.suggestions.join(" ");
     expect(sugText).toContain("export");
     expect(sugText).toContain("import");
-    expect(sugText).toContain("reset");
     expect(sugText).toContain("freshness");
+    expect(sugText).toContain("diff");
   });
 
-  test("mktg brand export --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg brand export --json returns brand bundle", async () => {
     const { stdout, exitCode } = await run(["brand", "export", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(0);
+    expect(parsed.version).toBe(1);
+    expect(parsed.exportedAt).toBeDefined();
+    expect(parsed.files).toBeDefined();
   });
 
-  test("mktg brand import --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg brand import --json without --file returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["brand", "import", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
-  test("mktg brand reset --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg brand reset --json returns INVALID_ARGS (removed)", async () => {
     const { stdout, exitCode } = await run(["brand", "reset", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
   test("mktg brand freshness --json returns freshness data", async () => {
@@ -173,49 +175,4 @@ describe("mktg brand namespace", () => {
   });
 });
 
-// ---------- content namespace ----------
-
-describe("mktg content namespace", () => {
-  test("mktg content --json returns INVALID_ARGS with exit code 2", async () => {
-    const { stdout, exitCode } = await run(["content", "--json"]);
-    const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(2);
-    expect(parsed.error.code).toBe("INVALID_ARGS");
-  });
-
-  test("error lists valid subcommands (list, stats)", async () => {
-    const { stdout } = await run(["content", "--json"]);
-    const parsed = JSON.parse(stdout);
-    const sugText = parsed.error.suggestions.join(" ");
-    expect(sugText).toContain("list");
-    expect(sugText).toContain("stats");
-  });
-
-  test("mktg content list --json returns NOT_IMPLEMENTED with exit code 6", async () => {
-    const { stdout, exitCode } = await run(["content", "list", "--json"]);
-    const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
-  });
-
-  test("mktg content stats --json returns NOT_IMPLEMENTED", async () => {
-    const { stdout, exitCode } = await run(["content", "stats", "--json"]);
-    const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
-  });
-
-  test("mktg content blah --json returns INVALID_ARGS", async () => {
-    const { stdout, exitCode } = await run(["content", "blah", "--json"]);
-    const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(2);
-    expect(parsed.error.code).toBe("INVALID_ARGS");
-  });
-
-  test("content unknown subcommand suggestions include valid subcommands", async () => {
-    const { stdout } = await run(["content", "blah", "--json"]);
-    const parsed = JSON.parse(stdout);
-    const sugText = parsed.error.suggestions.join(" ");
-    expect(sugText).toContain("mktg content list");
-  });
-});
+// content namespace removed — stubs deleted (see plan task #1)

@@ -23,7 +23,7 @@ describe("CLI help includes all 9 commands", () => {
   test("--help output contains all 9 command names", async () => {
     const { stdout, exitCode } = await run(["--help"]);
     expect(exitCode).toBe(0);
-    const commandNames = ["init", "doctor", "status", "list", "update", "schema", "skill", "brand", "content"];
+    const commandNames = ["init", "doctor", "status", "list", "update", "schema", "skill", "brand"];
     for (const cmd of commandNames) {
       expect(stdout).toContain(cmd);
     }
@@ -42,7 +42,6 @@ describe("CLI help includes all 9 commands", () => {
     expect(names).toContain("schema");
     expect(names).toContain("skill");
     expect(names).toContain("brand");
-    expect(names).toContain("content");
     // Every command should have a non-empty description
     for (const cmd of parsed.commands) {
       expect(typeof cmd.description).toBe("string");
@@ -50,10 +49,10 @@ describe("CLI help includes all 9 commands", () => {
     }
   });
 
-  test("--help --json has 9 commands", async () => {
+  test("--help --json has 8 commands", async () => {
     const { stdout } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toHaveLength(9);
+    expect(parsed.commands).toHaveLength(8);
   });
 });
 

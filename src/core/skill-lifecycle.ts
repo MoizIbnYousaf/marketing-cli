@@ -622,13 +622,20 @@ export const unregisterSkill = async (
 
 // --- Evaluate skill (overlap + novelty analysis) ---
 
+export const tokenize = (s: string): Set<string> =>
+  new Set(s.toLowerCase().trim().split(/[\s\-_]+/).filter(w => w.length > 0));
+
+export const jaccardSimilarity = (a: Set<string>, b: Set<string>): number => {
+  if (a.size === 0 && b.size === 0) return 1;
+  let intersection = 0;
+  for (const word of a) if (b.has(word)) intersection++;
+  const union = a.size + b.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+};
+
 export const triggerSimilarity = (a: string, b: string): boolean => {
-  const al = a.toLowerCase().trim();
-  const bl = b.toLowerCase().trim();
-  if (al === bl) return true;
-  // Short triggers (<=4 chars) are too generic for substring matching — require exact match
-  if (al.length <= 4 || bl.length <= 4) return false;
-  return al.includes(bl) || bl.includes(al);
+  if (a.toLowerCase().trim() === b.toLowerCase().trim()) return true;
+  return jaccardSimilarity(tokenize(a), tokenize(b)) >= 0.5;
 };
 
 export const evaluateSkill = (
@@ -650,10 +657,20 @@ export const evaluateSkill = (
       entry.triggers.some(et => triggerSimilarity(t, et)),
     );
     if (shared.length > 0) {
+      const triggerOverlap = shared.length / Math.max(fmTriggers.length, 1);
+      const readsOverlap = fmReads.length > 0
+        ? fmReads.filter(f => entry.reads.includes(f)).length / fmReads.length
+        : 0;
+      const writesOverlap = fmWrites.length > 0
+        ? fmWrites.filter(f => entry.writes.includes(f)).length / fmWrites.length
+        : 0;
+      const compositeScore = Math.round((triggerOverlap * 0.4 + readsOverlap * 0.3 + writesOverlap * 0.3) * 100);
+
       triggerOverlaps.push({
         skill: name,
         sharedTriggers: shared,
-        overlapPercent: Math.round((shared.length / Math.max(fmTriggers.length, 1)) * 100),
+        overlapPercent: Math.round(triggerOverlap * 100),
+        compositeScore,
       });
     }
   }

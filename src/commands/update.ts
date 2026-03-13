@@ -25,13 +25,14 @@ export const schema: CommandSchema = {
 type UpdateResult = {
   readonly skills: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
   readonly agents: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
+  readonly versionChanges: readonly { skill: string; from: string; to: string }[];
   readonly totalSkills: number;
   readonly totalAgents: number;
 };
 
 export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
   const manifest = await loadManifest();
-  const skillsUpdate = await updateSkills(manifest, flags.dryRun);
+  const skillsUpdate = await updateSkills(manifest, flags.dryRun, flags.cwd);
 
   let agentsUpdate = { updated: [] as string[], unchanged: [] as string[], notBundled: [] as string[] };
   try {
@@ -44,6 +45,7 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
   const result: UpdateResult = {
     skills: skillsUpdate,
     agents: agentsUpdate,
+    versionChanges: skillsUpdate.versionChanges,
     totalSkills: Object.keys(manifest.skills).length,
     totalAgents: agentsUpdate.updated.length + agentsUpdate.unchanged.length + agentsUpdate.notBundled.length,
   };
@@ -76,6 +78,13 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
 
   if (skillsUpdate.notBundled.length > 0) {
     lines.push(yellow(`  ? ${skillsUpdate.notBundled.length} skills not bundled yet`));
+  }
+
+  if (skillsUpdate.versionChanges.length > 0) {
+    lines.push(green(`  ↑ ${skillsUpdate.versionChanges.length} version changes`));
+    for (const vc of skillsUpdate.versionChanges) {
+      lines.push(dim(`    ${vc.skill}: ${vc.from} → ${vc.to}`));
+    }
   }
 
   // Agents section

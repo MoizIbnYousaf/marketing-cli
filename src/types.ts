@@ -24,6 +24,7 @@ export type MktgError = {
   readonly code: string;
   readonly message: string;
   readonly suggestions: readonly string[];
+  readonly docs?: string;
 };
 
 // Discriminated union for command results
@@ -44,9 +45,10 @@ export const err = (
   message: string,
   suggestions: readonly string[],
   exitCode: ExitCode = 1,
+  docs?: string,
 ): CommandResult<never> => ({
   ok: false,
-  error: { code, message, suggestions },
+  error: { code, message, suggestions, ...(docs && { docs }) },
   exitCode,
 });
 
@@ -97,6 +99,14 @@ export const BRAND_APPEND_FILES: readonly BrandFile[] = [
   "learnings.md",
 ] as const;
 
+// Brand bundle for export/import portability
+export type BrandBundle = {
+  readonly version: 1;
+  readonly exportedAt: string; // ISO 8601
+  readonly project: string;
+  readonly files: Partial<Record<BrandFile, { content: string; sha256: string }>>;
+};
+
 // Skill metadata types
 export type SkillSource = "v2" | "v1" | "new";
 
@@ -141,6 +151,7 @@ export type SkillManifestEntry = {
   readonly depends_on: readonly string[];
   readonly triggers: readonly string[];
   readonly review_interval_days: number;
+  readonly version?: string; // semver string for per-skill versioning
 };
 
 export type SkillsManifest = {
@@ -282,6 +293,7 @@ export type SkillOverlapEntry = {
   readonly skill: string;
   readonly sharedTriggers: readonly string[];
   readonly overlapPercent: number;
+  readonly compositeScore?: number;
 };
 
 export type SkillBrandOverlap = {

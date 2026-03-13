@@ -76,6 +76,7 @@ const getBundledSkillPath = (skillName: string): string =>
 export const installSkills = async (
   manifest: SkillsManifest,
   dryRun: boolean = false,
+  cwd?: string,
 ): Promise<{ installed: string[]; skipped: string[]; failed: string[] }> => {
   const installed: string[] = [];
   const skipped: string[] = [];
@@ -146,6 +147,16 @@ export const installSkills = async (
 
   await Promise.all(writes);
 
+  // Write installed versions to .mktg/skill-versions.json
+  if (!dryRun && cwd && installed.length > 0) {
+    const versions = await readSkillVersions(cwd);
+    for (const name of installed) {
+      const entry = manifest.skills[name];
+      if (entry?.version) versions[name] = entry.version;
+    }
+    await writeSkillVersions(cwd, versions);
+  }
+
   return { installed, skipped, failed };
 };
 
@@ -154,7 +165,8 @@ export const installSkills = async (
 export const updateSkills = async (
   manifest: SkillsManifest,
   dryRun: boolean = false,
-): Promise<{ updated: string[]; unchanged: string[]; notBundled: string[] }> => {
+  cwd?: string,
+): Promise<{ updated: string[]; unchanged: string[]; notBundled: string[]; versionChanges: Array<{ skill: string; from: string; to: string }> }> => {
   const updated: string[] = [];
   const unchanged: string[] = [];
   const notBundled: string[] = [];
@@ -230,11 +242,55 @@ export const updateSkills = async (
     }
   }
 
-  return { updated, unchanged, notBundled };
+  // Track version changes
+  const versionChanges: Array<{ skill: string; from: string; to: string }> = [];
+  if (cwd) {
+    const installedVersions = await readSkillVersions(cwd);
+    for (const name of [...updated, ...unchanged]) {
+      const manifestVersion = manifest.skills[name]?.version ?? "unknown";
+      const installedVersion = installedVersions[name] ?? "unknown";
+      if (manifestVersion !== installedVersion) {
+        versionChanges.push({ skill: name, from: installedVersion, to: manifestVersion });
+      }
+    }
+    // Write updated versions
+    if (!dryRun && versionChanges.length > 0) {
+      for (const change of versionChanges) {
+        installedVersions[change.skill] = change.to;
+      }
+      await writeSkillVersions(cwd, installedVersions);
+    }
+  }
+
+  return { updated, unchanged, notBundled, versionChanges };
 };
 
 // Get the skills install directory path
 export const getSkillsInstallDir = (): string => SKILLS_INSTALL_DIR;
+
+// --- Per-skill version tracking ---
+
+type SkillVersionsFile = Record<string, string>; // { "brand-voice": "1.0.0" }
+
+const MKTG_DIR = ".mktg";
+const VERSIONS_FILE = "skill-versions.json";
+
+export const readSkillVersions = async (cwd: string): Promise<SkillVersionsFile> => {
+  const filePath = join(cwd, MKTG_DIR, VERSIONS_FILE);
+  const file = Bun.file(filePath);
+  if (!(await file.exists())) return {};
+  try {
+    return await file.json() as SkillVersionsFile;
+  } catch {
+    return {};
+  }
+};
+
+export const writeSkillVersions = async (cwd: string, versions: SkillVersionsFile): Promise<void> => {
+  const dirPath = join(cwd, MKTG_DIR);
+  await mkdir(dirPath, { recursive: true });
+  await Bun.write(join(dirPath, VERSIONS_FILE), JSON.stringify(versions, null, 2) + "\n");
+};
 
 // --- Sync/convenience aliases used by list, status, update commands ---
 

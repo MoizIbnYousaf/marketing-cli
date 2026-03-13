@@ -5,6 +5,7 @@ import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
+import { buildGraph } from "../core/skill-lifecycle";
 import { isTTY, writeStderr, green, red, yellow, dim, bold } from "../core/output";
 
 export const schema: CommandSchema = {
@@ -156,6 +157,27 @@ const checkAgents = async (): Promise<Check[]> => {
   return checks;
 };
 
+// Check skill dependency graph for cycles
+const checkGraph = async (): Promise<Check[]> => {
+  try {
+    const manifest = await loadManifest();
+    const graph = buildGraph(manifest);
+    return [{
+      name: "skill-graph",
+      status: graph.hasCycles ? "warn" : "pass",
+      detail: graph.hasCycles
+        ? "Dependency cycle detected — skill execution order is undefined"
+        : `No cycles (${graph.nodes.length} skills, ${graph.edges.length} edges)`,
+    }];
+  } catch (e) {
+    return [{
+      name: "skill-graph",
+      status: "warn",
+      detail: e instanceof Error ? e.message : "Failed to build skill graph",
+    }];
+  }
+};
+
 // Check CLI tool availability
 const checkCLIs = async (): Promise<Check[]> => {
   const tools = [
@@ -183,14 +205,15 @@ const checkCLIs = async (): Promise<Check[]> => {
 
 export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
   // Run all checks in parallel
-  const [brandChecks, skillChecks, agentChecks, cliChecks] = await Promise.all([
+  const [brandChecks, skillChecks, agentChecks, graphChecks, cliChecks] = await Promise.all([
     checkBrand(flags.cwd),
     checkSkills(),
     checkAgents(),
+    checkGraph(),
     checkCLIs(),
   ]);
 
-  const allChecks = [...brandChecks, ...skillChecks, ...agentChecks, ...cliChecks];
+  const allChecks = [...brandChecks, ...skillChecks, ...agentChecks, ...graphChecks, ...cliChecks];
   const hasFail = allChecks.some((c) => c.status === "fail");
   const passed = !hasFail;
 
@@ -211,6 +234,7 @@ export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
     printSection("Brand", brandChecks);
     printSection("Skills", skillChecks);
     printSection("Agents", agentChecks);
+    printSection("Graph", graphChecks);
     printSection("Tools", cliChecks);
 
     if (passed) {

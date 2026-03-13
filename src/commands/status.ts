@@ -2,7 +2,7 @@
 // The most important command for agents. /cmo reads this first on every activation.
 
 import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
-import { getBrandStatus, isTemplateContent } from "../core/brand";
+import { getBrandStatus, isTemplateContent, computeBrandHashes, saveBrandHashes } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
@@ -150,6 +150,12 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     content: { totalFiles: contentCount },
     health,
   };
+
+  // Save brand hashes as baseline for `mktg brand diff` (skip on dry-run)
+  if (!flags.dryRun) {
+    const hashes = await computeBrandHashes(cwd);
+    await saveBrandHashes(cwd, hashes);
+  }
 
   if (flags.json || !isTTY()) {
     return ok(result);

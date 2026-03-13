@@ -2,7 +2,7 @@
 // Reads from skills-manifest.json, groups by category, shows installed/missing.
 
 import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory } from "../types";
-import { loadManifest, getInstallStatus } from "../core/skills";
+import { loadManifest, getInstallStatus, readSkillVersions } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, isTTY } from "../core/output";
 
@@ -31,6 +31,8 @@ type SkillEntry = {
   readonly layer: string;
   readonly installed: boolean;
   readonly triggers: readonly string[];
+  readonly installedVersion: string | null;
+  readonly latestVersion: string | null;
 };
 
 type AgentEntry = {
@@ -75,7 +77,10 @@ const CATEGORY_ORDER: readonly SkillCategory[] = [
 
 export const handler: CommandHandler<ListResult> = async (_args, flags) => {
   const manifest = await loadManifest();
-  const installStatus = await getInstallStatus(manifest);
+  const [installStatus, installedVersions] = await Promise.all([
+    getInstallStatus(manifest),
+    readSkillVersions(flags.cwd),
+  ]);
 
   const skills: SkillEntry[] = Object.entries(manifest.skills).map(
     ([name, meta]) => ({
@@ -85,6 +90,8 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
       layer: meta.layer,
       installed: installStatus[name]?.installed ?? false,
       triggers: meta.triggers,
+      installedVersion: installedVersions[name] ?? null,
+      latestVersion: meta.version ?? null,
     }),
   );
 

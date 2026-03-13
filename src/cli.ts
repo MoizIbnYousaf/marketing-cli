@@ -19,8 +19,8 @@ Commands:
   update     Force-update skills
   schema     Introspect CLI commands and output shapes
   skill      Skill lifecycle management (info, validate, graph, check, register)
-  brand      Brand memory management (export, import, reset, freshness)
-  content    Content registry and statistics (list, stats)
+  brand      Brand memory management (export, import, freshness)
+  run        Load a skill and log execution
 
 Flags:
   --json           Machine-readable JSON output
@@ -78,7 +78,7 @@ const COMMANDS: Record<string, () => Promise<{ handler: (args: readonly string[]
   schema: () => import("./commands/schema"),
   skill: () => import("./commands/skill"),
   brand: () => import("./commands/brand"),
-  content: () => import("./commands/content"),
+  run: () => import("./commands/run"),
 };
 
 // Format a command schema as readable help text

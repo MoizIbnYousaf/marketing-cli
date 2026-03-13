@@ -183,7 +183,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
     }
     try {
       const manifest = await loadManifest();
-      skillsResult = await installSkills(manifest, flags.dryRun);
+      skillsResult = await installSkills(manifest, flags.dryRun, flags.cwd);
       if (isTTY() && !flags.json) {
         const total = skillsResult.installed.length;
         writeStderr(`  ${green("✓")} ${total} skills installed to ~/.claude/skills/`);

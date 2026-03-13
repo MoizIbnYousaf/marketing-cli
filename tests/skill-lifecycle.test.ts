@@ -788,7 +788,7 @@ describe("mktg skill unregister", () => {
 
 // ==================== Unit tests: parseFrontmatter ====================
 
-import { parseFrontmatter, buildGraph, validateSkill, evaluateSkill, triggerSimilarity } from "../src/core/skill-lifecycle";
+import { parseFrontmatter, buildGraph, validateSkill, evaluateSkill, triggerSimilarity, tokenize, jaccardSimilarity } from "../src/core/skill-lifecycle";
 import { readManifest } from "../src/core/skills";
 
 describe("parseFrontmatter", () => {
@@ -1216,6 +1216,48 @@ describe("evaluateSkill (unit)", () => {
 
 // ==================== triggerSimilarity (unit) ====================
 
+describe("tokenize (unit)", () => {
+  test("splits on spaces, hyphens, and underscores", () => {
+    const tokens = tokenize("brand-voice profile_test");
+    expect(tokens).toEqual(new Set(["brand", "voice", "profile", "test"]));
+  });
+
+  test("lowercases all tokens", () => {
+    const tokens = tokenize("SEO Content");
+    expect(tokens).toEqual(new Set(["seo", "content"]));
+  });
+
+  test("filters empty strings", () => {
+    const tokens = tokenize("  spaced  out  ");
+    expect(tokens.size).toBeGreaterThan(0);
+    expect(tokens.has("")).toBe(false);
+  });
+});
+
+describe("jaccardSimilarity (unit)", () => {
+  test("identical sets return 1", () => {
+    expect(jaccardSimilarity(new Set(["a", "b"]), new Set(["a", "b"]))).toBe(1);
+  });
+
+  test("disjoint sets return 0", () => {
+    expect(jaccardSimilarity(new Set(["a"]), new Set(["b"]))).toBe(0);
+  });
+
+  test("two empty sets return 1", () => {
+    expect(jaccardSimilarity(new Set(), new Set())).toBe(1);
+  });
+
+  test("partial overlap returns correct ratio", () => {
+    // {seo, content} vs {seo, content, strategy} = 2/3
+    const result = jaccardSimilarity(new Set(["seo", "content"]), new Set(["seo", "content", "strategy"]));
+    expect(result).toBeCloseTo(2 / 3, 5);
+  });
+
+  test("single word vs two words: 1/2", () => {
+    expect(jaccardSimilarity(new Set(["seo"]), new Set(["seo", "content"]))).toBe(0.5);
+  });
+});
+
 describe("triggerSimilarity (unit)", () => {
   test("exact match returns true", () => {
     expect(triggerSimilarity("SEO content", "SEO content")).toBe(true);
@@ -1225,19 +1267,31 @@ describe("triggerSimilarity (unit)", () => {
     expect(triggerSimilarity("SEO Content", "seo content")).toBe(true);
   });
 
-  test("longer substring match works for triggers > 4 chars", () => {
+  test("high Jaccard overlap returns true", () => {
+    // {seo, content} vs {seo, content, strategy} = 2/3 >= 0.5
     expect(triggerSimilarity("SEO content", "SEO content strategy")).toBe(true);
   });
 
-  test("short trigger (<=4 chars) requires exact match", () => {
-    expect(triggerSimilarity("SEO", "SEO content")).toBe(false);
+  test("single-word partial match at threshold returns true", () => {
+    // {seo} vs {seo, content} = 1/2 = 0.5 >= 0.5
+    expect(triggerSimilarity("SEO", "SEO content")).toBe(true);
   });
 
-  test("short trigger exact match works", () => {
+  test("single-word exact match works", () => {
     expect(triggerSimilarity("SEO", "SEO")).toBe(true);
   });
 
-  test("no match returns false", () => {
+  test("no word overlap returns false", () => {
     expect(triggerSimilarity("email marketing", "video production")).toBe(false);
+  });
+
+  test("low overlap returns false", () => {
+    // {brand, voice, profile} vs {content, marketing, strategy} = 0/6 = 0
+    expect(triggerSimilarity("brand voice profile", "content marketing strategy")).toBe(false);
+  });
+
+  test("word reordering still matches", () => {
+    // {brand, voice, profile} vs {voice, profile, brand} = 3/3 = 1.0
+    expect(triggerSimilarity("brand voice profile", "voice profile brand")).toBe(true);
   });
 });

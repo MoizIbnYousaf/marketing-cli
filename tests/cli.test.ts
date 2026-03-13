@@ -133,8 +133,7 @@ describe("CLI error output is always valid JSON", () => {
     expect(names).toContain("schema");
     expect(names).toContain("skill");
     expect(names).toContain("brand");
-    expect(names).toContain("content");
-    expect(parsed.commands).toHaveLength(9);
+    expect(parsed.commands).toHaveLength(8);
     expect(exitCode).toBe(0);
   });
 });
