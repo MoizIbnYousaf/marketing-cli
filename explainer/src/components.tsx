@@ -14,9 +14,10 @@ export const BrandBox: React.FC<{
   color?: string;
   subtitle?: string;
   width?: number;
+  fontSize?: number;
   glowing?: boolean;
   style?: React.CSSProperties;
-}> = ({ label, color = EMERALD, subtitle, width = 220, glowing = false, style }) => {
+}> = ({ label, color = EMERALD, subtitle, width = 320, fontSize = 28, glowing = false, style }) => {
   const glow = color === EMERALD ? EMERALD_GLOW : BLUE_GLOW;
   return (
     <div
@@ -24,26 +25,28 @@ export const BrandBox: React.FC<{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 8,
+        gap: 12,
         ...style,
       }}
     >
       <div
         style={{
           width,
-          padding: "14px 24px",
-          border: `1.5px solid ${color}`,
-          borderRadius: 12,
+          padding: "20px 32px",
+          border: `2px solid ${color}`,
+          borderRadius: 16,
           background: glowing
             ? `radial-gradient(ellipse at center, ${glow}, ${BG})`
             : BG,
-          boxShadow: glowing ? `0 0 30px ${glow}, 0 0 60px ${glow}` : "none",
+          boxShadow: glowing
+            ? `0 0 40px ${glow}, 0 0 80px ${glow}, inset 0 0 30px ${glow}`
+            : `0 0 0 1px rgba(255,255,255,0.03)`,
           textAlign: "center",
           fontFamily: "Inter, sans-serif",
-          fontSize: 18,
-          fontWeight: 600,
+          fontSize,
+          fontWeight: 700,
           color,
-          letterSpacing: "-0.01em",
+          letterSpacing: "-0.02em",
         }}
       >
         {label}
@@ -52,10 +55,10 @@ export const BrandBox: React.FC<{
         <span
           style={{
             fontFamily: "Inter, sans-serif",
-            fontSize: 13,
+            fontSize: 18,
             color: MUTED,
-            fontWeight: 400,
-            letterSpacing: "0.04em",
+            fontWeight: 500,
+            letterSpacing: "0.06em",
             textTransform: "uppercase",
           }}
         >
@@ -73,7 +76,7 @@ export const TypedText: React.FC<{
   fontSize?: number;
   color?: string;
   mono?: boolean;
-}> = ({ text, startFrame, charFrames = 2, fontSize = 20, color = MUTED, mono = true }) => {
+}> = ({ text, startFrame, charFrames = 2, fontSize = 36, color = MUTED, mono = true }) => {
   const frame = useCurrentFrame();
   const elapsed = Math.max(0, frame - startFrame);
   const chars = Math.min(text.length, Math.floor(elapsed / charFrames));
@@ -86,7 +89,7 @@ export const TypedText: React.FC<{
         fontFamily: mono ? "'JetBrains Mono', monospace" : "Inter, sans-serif",
         fontSize,
         color,
-        fontWeight: mono ? 400 : 500,
+        fontWeight: mono ? 400 : 600,
       }}
     >
       {text.slice(0, chars)}
@@ -107,8 +110,8 @@ export const GridBackground: React.FC = () => {
           linear-gradient(${GRID} 1px, transparent 1px),
           linear-gradient(90deg, ${GRID} 1px, transparent 1px)
         `,
-        backgroundSize: "60px 60px",
-        opacity: 0.4,
+        backgroundSize: "80px 80px",
+        opacity: 0.3,
       }}
     />
   );
@@ -131,11 +134,12 @@ export const FadeIn: React.FC<{
     durationInFrames: duration,
   });
 
+  const dist = 50;
   const translateMap = {
-    up: `translateY(${interpolate(progress, [0, 1], [30, 0])}px)`,
-    down: `translateY(${interpolate(progress, [0, 1], [-30, 0])}px)`,
-    left: `translateX(${interpolate(progress, [0, 1], [40, 0])}px)`,
-    right: `translateX(${interpolate(progress, [0, 1], [-40, 0])}px)`,
+    up: `translateY(${interpolate(progress, [0, 1], [dist, 0])}px)`,
+    down: `translateY(${interpolate(progress, [0, 1], [-dist, 0])}px)`,
+    left: `translateX(${interpolate(progress, [0, 1], [dist, 0])}px)`,
+    right: `translateX(${interpolate(progress, [0, 1], [-dist, 0])}px)`,
     none: "none",
   };
 
@@ -152,68 +156,17 @@ export const FadeIn: React.FC<{
   );
 };
 
-export const AnimatedArrow: React.FC<{
-  from: { x: number; y: number };
-  to: { x: number; y: number };
-  delay?: number;
-  color?: string;
-}> = ({ from, to, delay = 0, color = BLUE }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const progress = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 200 },
-    durationInFrames: 20,
-  });
-
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.sqrt(dx * dx + dy * dy);
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: from.x,
-        top: from.y,
-        width: length * progress,
-        height: 2,
-        background: `linear-gradient(90deg, transparent, ${color})`,
-        transform: `rotate(${angle}deg)`,
-        transformOrigin: "0 50%",
-        opacity: progress,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          right: -4,
-          top: -4,
-          width: 10,
-          height: 10,
-          borderRight: `2px solid ${color}`,
-          borderBottom: `2px solid ${color}`,
-          transform: "rotate(-45deg)",
-          opacity: progress > 0.8 ? 1 : 0,
-        }}
-      />
-    </div>
-  );
-};
-
 export const ProgressBar: React.FC<{
   progress: number;
   width?: number;
-}> = ({ progress, width = 500 }) => {
+  height?: number;
+}> = ({ progress, width = 800, height = 16 }) => {
   return (
     <div
       style={{
         width,
-        height: 8,
-        borderRadius: 4,
+        height,
+        borderRadius: height / 2,
         background: GRID,
         overflow: "hidden",
       }}
@@ -222,11 +175,31 @@ export const ProgressBar: React.FC<{
         style={{
           width: `${progress * 100}%`,
           height: "100%",
-          borderRadius: 4,
+          borderRadius: height / 2,
           background: `linear-gradient(90deg, ${EMERALD}, ${BLUE})`,
-          boxShadow: `0 0 20px ${EMERALD_GLOW}`,
+          boxShadow: `0 0 30px ${EMERALD_GLOW}, 0 4px 20px rgba(16, 185, 129, 0.3)`,
         }}
       />
     </div>
   );
 };
+
+export const Headline: React.FC<{
+  children: React.ReactNode;
+  size?: number;
+  color?: string;
+}> = ({ children, size = 52, color = TEXT }) => (
+  <div
+    style={{
+      fontFamily: "Inter, sans-serif",
+      fontSize: size,
+      fontWeight: 700,
+      color,
+      letterSpacing: "-0.03em",
+      lineHeight: 1.2,
+      textAlign: "center",
+    }}
+  >
+    {children}
+  </div>
+);

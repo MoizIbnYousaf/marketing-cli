@@ -9,23 +9,27 @@ import {
 } from "remotion";
 import { loadFont as loadInter } from "@remotion/google-fonts/Inter";
 import { loadFont as loadJetBrains } from "@remotion/google-fonts/JetBrainsMono";
-import { BG, EMERALD, BLUE, TEXT, MUTED, RED, GRID, EMERALD_GLOW, BLUE_GLOW } from "./theme";
-import { BrandBox, TypedText, GridBackground, FadeIn, ProgressBar } from "./components";
+import {
+  BG, EMERALD, BLUE, TEXT, MUTED, RED, GRID,
+  EMERALD_GLOW, BLUE_GLOW,
+} from "./theme";
+import {
+  BrandBox, TypedText, GridBackground, FadeIn, ProgressBar, Headline,
+} from "./components";
 
 loadInter("normal", { weights: ["400", "500", "600", "700", "800"], subsets: ["latin"] });
 loadJetBrains("normal", { weights: ["400", "500"], subsets: ["latin"] });
 
 const FPS = 30;
 
-// ── Act 1: The Problem (0–6s = frames 0–180) ────────────
+// ── Act 1: The Problem (0–6s) ────────────────────────────
 
 const Act1: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const fadeOut = interpolate(frame, [150, 180], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  const fadeOut = interpolate(frame, [155, 180], [1, 0], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
   return (
@@ -34,53 +38,54 @@ const Act1: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         opacity: fadeOut,
+        padding: "0 120px",
       }}
     >
       {/* Agent box */}
-      <FadeIn delay={5} duration={20}>
-        <BrandBox label="AI Agent" color={MUTED} width={280} />
+      <FadeIn delay={3} duration={15}>
+        <BrandBox label="AI Agent" color={MUTED} width={380} fontSize={34} />
       </FadeIn>
 
       {/* Prompt typing */}
-      <div style={{ marginTop: 30, textAlign: "center" }}>
+      <div style={{ marginTop: 40, textAlign: "center" }}>
         <TypedText
           text={`"help me market this app"`}
-          startFrame={25}
-          fontSize={22}
+          startFrame={20}
+          fontSize={36}
           color={MUTED}
         />
       </div>
 
       {/* Bad output */}
-      <FadeIn delay={65} duration={15}>
+      <FadeIn delay={60} duration={12}>
         <div
           style={{
-            marginTop: 20,
+            marginTop: 32,
             fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 20,
+            fontSize: 34,
             color: RED,
-            opacity: 0.9,
+            textAlign: "center",
           }}
         >
           "Generic copy. No voice. No memory."
         </div>
       </FadeIn>
 
-      {/* Loop arrow — circular indicator */}
-      <FadeIn delay={90} duration={15}>
+      {/* Loop */}
+      <FadeIn delay={85} duration={12}>
         <div
           style={{
-            marginTop: 16,
+            marginTop: 20,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 12,
           }}
         >
-          <span style={{ fontSize: 20, color: MUTED, opacity: 0.6 }}>↻</span>
+          <span style={{ fontSize: 32, color: MUTED, opacity: 0.6 }}>↻</span>
           <span
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 14,
+              fontSize: 24,
               color: MUTED,
               opacity: 0.5,
             }}
@@ -90,37 +95,28 @@ const Act1: React.FC = () => {
         </div>
       </FadeIn>
 
-      {/* Bottom tagline */}
-      <FadeIn delay={110} duration={20} style={{ position: "absolute", bottom: 120 }}>
-        <span
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: 28,
-            fontWeight: 600,
-            color: MUTED,
-            letterSpacing: "-0.02em",
-          }}
-        >
+      {/* Tagline */}
+      <FadeIn delay={108} duration={18} style={{ position: "absolute", bottom: 140 }}>
+        <Headline size={48} color={MUTED}>
           Every session starts from zero.
-        </span>
+        </Headline>
       </FadeIn>
     </AbsoluteFill>
   );
 };
 
-// ── Act 2: One Install (6–10s = frames 0–120) ───────────
+// ── Act 2: One Install (6–10s) ───────────────────────────
 
 const Act2: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Command types in, then burst into components
-  const burstStart = 50;
+  const burstStart = 45;
 
-  const cmdOpacity = interpolate(frame, [0, 5, burstStart - 5, burstStart], [0, 1, 1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const cmdOpacity = interpolate(
+    frame, [0, 5, burstStart - 8, burstStart], [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
 
   const burstProgress = spring({
     frame: frame - burstStart,
@@ -129,8 +125,7 @@ const Act2: React.FC = () => {
   });
 
   const fadeOut = interpolate(frame, [100, 120], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
   return (
@@ -145,98 +140,90 @@ const Act2: React.FC = () => {
       <div style={{ opacity: cmdOpacity, textAlign: "center" }}>
         <TypedText
           text="bun install -g mktg && mktg init"
-          startFrame={5}
+          startFrame={3}
           charFrames={1}
-          fontSize={26}
+          fontSize={40}
           color={EMERALD}
         />
       </div>
 
-      {/* Three component boxes burst out */}
+      {/* Three component boxes */}
       <div
         style={{
           display: "flex",
-          gap: 60,
-          marginTop: 40,
+          gap: 80,
+          marginTop: 60,
           opacity: burstProgress,
-          transform: `scale(${interpolate(burstProgress, [0, 1], [0.5, 1])})`,
+          transform: `scale(${interpolate(burstProgress, [0, 1], [0.6, 1])})`,
         }}
       >
-        <FadeIn delay={burstStart} direction="left" duration={20}>
-          <BrandBox label="CLI" color={EMERALD} subtitle="infrastructure" glowing />
+        <FadeIn delay={burstStart} direction="left" duration={18}>
+          <BrandBox label="CLI" color={EMERALD} width={300} fontSize={32} subtitle="infrastructure" glowing />
         </FadeIn>
-        <FadeIn delay={burstStart + 5} direction="up" duration={20}>
-          <BrandBox label="39 Skills" color={BLUE} subtitle="knowledge" glowing />
+        <FadeIn delay={burstStart + 4} direction="up" duration={18}>
+          <BrandBox label="39 Skills" color={BLUE} width={300} fontSize={32} subtitle="knowledge" glowing />
         </FadeIn>
-        <FadeIn delay={burstStart + 10} direction="right" duration={20}>
-          <BrandBox label="Brand Memory" color={EMERALD} subtitle="compounding state" glowing />
+        <FadeIn delay={burstStart + 8} direction="right" duration={18}>
+          <BrandBox label="Brand Memory" color={EMERALD} width={340} fontSize={32} subtitle="compounding state" glowing />
         </FadeIn>
       </div>
     </AbsoluteFill>
   );
 };
 
-// ── Act 3: Parallel Research (10–18s = frames 0–240) ─────
+// ── Act 3: Parallel Research (10–18s) ────────────────────
 
-const AgentDot: React.FC<{
+const AgentColumn: React.FC<{
   label: string;
   file: string;
   delay: number;
-  x: number;
-}> = ({ label, file, delay, x }) => {
+}> = ({ label, file, delay }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const appear = spring({
-    frame: frame - delay,
-    fps,
+    frame: frame - delay, fps,
     config: { damping: 15, stiffness: 200 },
   });
 
   const arrowProgress = spring({
-    frame: frame - delay - 15,
-    fps,
+    frame: frame - delay - 12, fps,
     config: { damping: 200 },
-    durationInFrames: 25,
+    durationInFrames: 20,
   });
 
   const fileAppear = spring({
-    frame: frame - delay - 30,
-    fps,
+    frame: frame - delay - 25, fps,
     config: { damping: 15, stiffness: 150 },
   });
 
   return (
     <div
       style={{
-        position: "absolute",
-        left: x,
-        top: 280,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: 280,
-        transform: `translateX(-140px)`,
+        flex: 1,
       }}
     >
       {/* Dot */}
       <div
         style={{
-          width: 16,
-          height: 16,
+          width: 24,
+          height: 24,
           borderRadius: "50%",
           background: BLUE,
-          boxShadow: `0 0 20px ${BLUE_GLOW}, 0 0 40px ${BLUE_GLOW}`,
+          boxShadow: `0 0 30px ${BLUE_GLOW}, 0 0 60px ${BLUE_GLOW}`,
           transform: `scale(${appear})`,
         }}
       />
       {/* Agent name */}
       <span
         style={{
-          marginTop: 10,
+          marginTop: 16,
           fontFamily: "Inter, sans-serif",
-          fontSize: 15,
-          fontWeight: 600,
+          fontSize: 24,
+          fontWeight: 700,
           color: BLUE,
           opacity: appear,
         }}
@@ -247,22 +234,22 @@ const AgentDot: React.FC<{
       {/* Arrow line */}
       <div
         style={{
-          width: 2,
-          height: 80 * arrowProgress,
+          width: 3,
+          height: 100 * arrowProgress,
           background: `linear-gradient(to bottom, ${BLUE}, transparent)`,
-          marginTop: 8,
+          marginTop: 12,
         }}
       />
 
       {/* File box */}
       <div
         style={{
-          marginTop: 8,
+          marginTop: 12,
           opacity: fileAppear,
-          transform: `scale(${fileAppear}) translateY(${interpolate(fileAppear, [0, 1], [10, 0])}px)`,
+          transform: `scale(${fileAppear}) translateY(${interpolate(fileAppear, [0, 1], [15, 0])}px)`,
         }}
       >
-        <BrandBox label={file} color={EMERALD} width={200} glowing={fileAppear > 0.8} />
+        <BrandBox label={file} color={EMERALD} width={320} fontSize={24} glowing={fileAppear > 0.8} />
       </div>
     </div>
   );
@@ -271,99 +258,81 @@ const AgentDot: React.FC<{
 const Act3: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Top bar (miniaturized components)
-  const barOpacity = interpolate(frame, [0, 15], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  const barOpacity = interpolate(frame, [0, 12], [0, 1], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
   const fadeOut = interpolate(frame, [210, 240], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
-  const pulseOpacity = interpolate(
-    frame % 30,
-    [0, 15, 30],
-    [0.5, 1, 0.5],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
-  );
-
   return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
+    <AbsoluteFill style={{ opacity: fadeOut, padding: "0 80px" }}>
       {/* Top component bar */}
       <div
         style={{
           display: "flex",
           justifyContent: "center",
-          gap: 40,
+          gap: 50,
           paddingTop: 60,
           opacity: barOpacity,
-          transform: `scale(0.7)`,
         }}
       >
-        <BrandBox label="CLI" color={EMERALD} width={140} />
-        <BrandBox label="39 Skills" color={BLUE} width={140} />
-        <BrandBox
-          label="Brand Memory"
-          color={EMERALD}
-          width={180}
-          glowing={frame > 120}
-        />
+        <BrandBox label="CLI" color={EMERALD} width={200} fontSize={22} />
+        <BrandBox label="39 Skills" color={BLUE} width={200} fontSize={22} />
+        <BrandBox label="Brand Memory" color={EMERALD} width={260} fontSize={22} glowing={frame > 100} />
       </div>
 
       {/* Three parallel agents */}
-      <AgentDot label="Brand Researcher" file="voice-profile.md" delay={30} x={360} />
-      <AgentDot label="Audience Researcher" file="audience.md" delay={35} x={760} />
-      <AgentDot label="Competitive Scanner" file="competitors.md" delay={40} x={1160} />
+      <div
+        style={{
+          display: "flex",
+          gap: 60,
+          marginTop: 80,
+          padding: "0 40px",
+        }}
+      >
+        <AgentColumn label="Brand Researcher" file="voice-profile.md" delay={25} />
+        <AgentColumn label="Audience Researcher" file="audience.md" delay={30} />
+        <AgentColumn label="Competitive Scanner" file="competitors.md" delay={35} />
+      </div>
 
-      {/* Parallel label */}
-      <FadeIn delay={100} duration={20} style={{ position: "absolute", bottom: 100, width: "100%", textAlign: "center" }}>
-        <span
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: 24,
-            fontWeight: 600,
-            color: BLUE,
-            letterSpacing: "-0.02em",
-          }}
-        >
+      {/* Label */}
+      <FadeIn delay={90} duration={18} style={{ position: "absolute", bottom: 100, width: "100%", textAlign: "center", left: 0 }}>
+        <Headline size={40} color={BLUE}>
           3 agents research in parallel
-        </span>
+        </Headline>
       </FadeIn>
     </AbsoluteFill>
   );
 };
 
-// ── Act 4: Compounding (18–24s = frames 0–180) ──────────
+// ── Act 4: Compounding (18–24s) ──────────────────────────
 
 const Act4: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const sessions = [
-    { label: "Session 1", count: "3 / 9", threshold: 20, frac: 0.33 },
-    { label: "Session 5", count: "6 / 9", threshold: 60, frac: 0.66 },
-    { label: "Session 10", count: "9 / 9", threshold: 100, frac: 1.0 },
+    { label: "Session 1", count: "3 / 9", threshold: 15, frac: 0.33 },
+    { label: "Session 5", count: "6 / 9", threshold: 50, frac: 0.66 },
+    { label: "Session 10", count: "9 / 9", threshold: 90, frac: 1.0 },
   ];
 
-  // Current progress
   let currentFrac = 0;
   let currentCount = "0 / 9";
   for (const s of sessions) {
     const p = spring({
-      frame: frame - s.threshold,
-      fps,
+      frame: frame - s.threshold, fps,
       config: { damping: 200 },
-      durationInFrames: 30,
+      durationInFrames: 25,
     });
     currentFrac = interpolate(p, [0, 1], [currentFrac, s.frac]);
     if (p > 0.5) currentCount = s.count;
   }
 
   const fadeOut = interpolate(frame, [155, 180], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
 
   return (
@@ -379,14 +348,13 @@ const Act4: React.FC = () => {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          width: 600,
-          marginBottom: 40,
+          width: 800,
+          marginBottom: 50,
         }}
       >
-        {sessions.map((s, i) => {
+        {sessions.map((s) => {
           const appear = spring({
-            frame: frame - s.threshold,
-            fps,
+            frame: frame - s.threshold, fps,
             config: { damping: 15, stiffness: 200 },
           });
           return (
@@ -396,25 +364,25 @@ const Act4: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 10,
-                opacity: interpolate(appear, [0, 1], [0.3, 1]),
+                gap: 14,
+                opacity: interpolate(appear, [0, 1], [0.25, 1]),
               }}
             >
               <div
                 style={{
-                  width: 12,
-                  height: 12,
+                  width: 20,
+                  height: 20,
                   borderRadius: "50%",
                   background: appear > 0.5 ? EMERALD : GRID,
-                  boxShadow: appear > 0.5 ? `0 0 15px ${EMERALD_GLOW}` : "none",
-                  transform: `scale(${interpolate(appear, [0, 1], [0.6, 1])})`,
+                  boxShadow: appear > 0.5 ? `0 0 25px ${EMERALD_GLOW}` : "none",
+                  transform: `scale(${interpolate(appear, [0, 1], [0.5, 1])})`,
                 }}
               />
               <span
                 style={{
                   fontFamily: "Inter, sans-serif",
-                  fontSize: 16,
-                  fontWeight: 500,
+                  fontSize: 26,
+                  fontWeight: 600,
                   color: appear > 0.5 ? TEXT : MUTED,
                 }}
               >
@@ -426,175 +394,144 @@ const Act4: React.FC = () => {
       </div>
 
       {/* Progress bar */}
-      <ProgressBar progress={currentFrac} width={600} />
+      <ProgressBar progress={currentFrac} width={800} height={16} />
 
       {/* Counter */}
       <div
         style={{
-          marginTop: 24,
+          marginTop: 36,
           fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 28,
-          fontWeight: 600,
+          fontSize: 48,
+          fontWeight: 700,
           color: EMERALD,
         }}
       >
         {currentCount}
-        <span style={{ color: MUTED, fontWeight: 400, fontSize: 18, marginLeft: 8 }}>
+        <span style={{ color: MUTED, fontWeight: 500, fontSize: 28, marginLeft: 14 }}>
           brand files
         </span>
       </div>
 
       {/* Tagline */}
-      <FadeIn delay={120} duration={20} style={{ position: "absolute", bottom: 120 }}>
-        <span
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontSize: 28,
-            fontWeight: 600,
-            color: TEXT,
-            letterSpacing: "-0.02em",
-          }}
-        >
+      <FadeIn delay={115} duration={18} style={{ position: "absolute", bottom: 140 }}>
+        <Headline size={44} color={TEXT}>
           Every session makes the next one smarter
-        </span>
+        </Headline>
       </FadeIn>
     </AbsoluteFill>
   );
 };
 
-// ── Act 5: The Result (24–30s = frames 0–180) ───────────
-
-const ConnectionLine: React.FC<{
-  x1: number; y1: number; x2: number; y2: number;
-  delay: number;
-}> = ({ x1, y1, x2, y2, delay }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const progress = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 200 },
-    durationInFrames: 20,
-  });
-
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const length = Math.sqrt(dx * dx + dy * dy);
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: x1,
-        top: y1,
-        width: length * progress,
-        height: 1.5,
-        background: `linear-gradient(90deg, rgba(71,85,105,0.2), rgba(71,85,105,0.5))`,
-        transform: `rotate(${angle}deg)`,
-        transformOrigin: "0 50%",
-      }}
-    />
-  );
-};
+// ── Act 5: The Result (24–30s) ───────────────────────────
 
 const Act5: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const taglineAppear = spring({
-    frame: frame - 100,
-    fps,
+    frame: frame - 95, fps,
     config: { damping: 200 },
     durationInFrames: 25,
   });
 
   return (
-    <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-      {/* Hub diagram */}
-      <div style={{ position: "relative", width: 800, height: 500 }}>
-        {/* Agent box — top center */}
-        <div style={{ position: "absolute", left: 260, top: 0 }}>
-          <FadeIn delay={5} duration={20}>
-            <BrandBox label="AI Agent" color={EMERALD} width={280} glowing />
+    <AbsoluteFill
+      style={{
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {/* Hub layout — vertically stacked, centered */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 0,
+          marginTop: -60,
+        }}
+      >
+        {/* Agent */}
+        <FadeIn delay={3} duration={15}>
+          <BrandBox label="AI Agent" color={EMERALD} width={400} fontSize={36} glowing />
+        </FadeIn>
+
+        {/* Connector line */}
+        <FadeIn delay={10} duration={10} direction="none">
+          <div style={{ width: 3, height: 40, background: `linear-gradient(to bottom, ${EMERALD}, ${BLUE})` }} />
+        </FadeIn>
+
+        {/* /cmo hub */}
+        <FadeIn delay={12} duration={12}>
+          <BrandBox label="/cmo" color={BLUE} width={260} fontSize={32} glowing />
+        </FadeIn>
+
+        {/* Fan out to 3 */}
+        <FadeIn delay={18} duration={10} direction="none">
+          <div style={{ width: 3, height: 30, background: `linear-gradient(to bottom, ${BLUE}, transparent)` }} />
+        </FadeIn>
+
+        <div style={{ display: "flex", gap: 60, marginTop: 0 }}>
+          <FadeIn delay={22} direction="left" duration={15}>
+            <BrandBox label="CLI" color={EMERALD} width={240} fontSize={24} subtitle="infrastructure" />
+          </FadeIn>
+          <FadeIn delay={26} direction="up" duration={15}>
+            <BrandBox label="39 Skills" color={BLUE} width={260} fontSize={24} subtitle="knowledge" />
+          </FadeIn>
+          <FadeIn delay={30} direction="right" duration={15}>
+            <BrandBox label="Brand Memory" color={EMERALD} width={300} fontSize={24} subtitle="compounding" />
           </FadeIn>
         </div>
-
-        {/* /cmo hub — center */}
-        <div style={{ position: "absolute", left: 310, top: 140 }}>
-          <FadeIn delay={15} duration={15}>
-            <BrandBox label="/cmo" color={BLUE} width={180} glowing />
-          </FadeIn>
-        </div>
-
-        {/* CLI — left */}
-        <div style={{ position: "absolute", left: 30, top: 280 }}>
-          <FadeIn delay={25} direction="left" duration={20}>
-            <BrandBox label="CLI" color={EMERALD} width={160} subtitle="infrastructure" />
-          </FadeIn>
-        </div>
-
-        {/* Skills — center bottom */}
-        <div style={{ position: "absolute", left: 310, top: 290 }}>
-          <FadeIn delay={30} direction="up" duration={20}>
-            <BrandBox label="39 Skills" color={BLUE} width={180} subtitle="knowledge" />
-          </FadeIn>
-        </div>
-
-        {/* Memory — right */}
-        <div style={{ position: "absolute", left: 580, top: 280 }}>
-          <FadeIn delay={35} direction="right" duration={20}>
-            <BrandBox label="Brand Memory" color={EMERALD} width={190} subtitle="compounding" />
-          </FadeIn>
-        </div>
-
-        {/* Connection lines */}
-        <ConnectionLine x1={400} y1={65} x2={400} y2={140} delay={20} />
-        <ConnectionLine x1={340} y1={195} x2={150} y2={280} delay={30} />
-        <ConnectionLine x1={400} y1={195} x2={400} y2={290} delay={35} />
-        <ConnectionLine x1={460} y1={195} x2={640} y2={280} delay={40} />
       </div>
 
-      {/* Prompt + output */}
-      <FadeIn delay={55} duration={15} style={{ textAlign: "center", marginTop: -20 }}>
-        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 18, color: MUTED }}>
-          "help me market this app"
-        </div>
-      </FadeIn>
-      <FadeIn delay={75} duration={15} style={{ textAlign: "center", marginTop: 12 }}>
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 18,
-            color: EMERALD,
-            maxWidth: 700,
-          }}
-        >
-          "Write 3 SEO articles, atomize into social posts."
-        </div>
-      </FadeIn>
+      {/* Prompt + rich output */}
+      <div style={{ marginTop: 50, textAlign: "center" }}>
+        <FadeIn delay={45} duration={12}>
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 28,
+              color: MUTED,
+            }}
+          >
+            "help me market this app"
+          </div>
+        </FadeIn>
+        <FadeIn delay={60} duration={12}>
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 30,
+              color: EMERALD,
+              marginTop: 16,
+            }}
+          >
+            "Write 3 SEO articles, atomize into social posts."
+          </div>
+        </FadeIn>
+      </div>
 
       {/* Final tagline */}
       <div
         style={{
           position: "absolute",
-          bottom: 80,
+          bottom: 100,
           width: "100%",
           textAlign: "center",
           opacity: taglineAppear,
-          transform: `translateY(${interpolate(taglineAppear, [0, 1], [20, 0])}px)`,
+          transform: `translateY(${interpolate(taglineAppear, [0, 1], [30, 0])}px)`,
         }}
       >
         <span
           style={{
             fontFamily: "Inter, sans-serif",
-            fontSize: 36,
-            fontWeight: 700,
+            fontSize: 52,
+            fontWeight: 800,
             letterSpacing: "-0.03em",
           }}
         >
           <span style={{ color: EMERALD }}>mktg</span>
-          <span style={{ color: TEXT }}> — a full CMO brain for your agent</span>
+          <span style={{ color: TEXT }}>{" "}— a full CMO brain for your agent</span>
         </span>
       </div>
     </AbsoluteFill>
