@@ -63,6 +63,11 @@ Follow this escalation pattern. Always start at the highest applicable level:
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
+2b. Check `integrations` in the status output. For any integration where `configured: false`:
+   - Note it, but do NOT block.
+   - If the user's request routes to a skill needing an unconfigured integration, mention it proactively:
+     "I can write the social posts, but to publish them via Typefully, you'll need a 2-minute API key setup. Want me to walk you through it?"
+   - If the request doesn't need it, proceed normally.
 3. Assess: does `brand/` exist? Which files? Skills installed?
 4. Determine mode:
    - **FIRST RUN** — Brand files are templates. Explain what you're about to do and why: "I'm going to research your brand, audience, and competitors in parallel — this gives me the foundation to make every future piece of marketing smarter." Then run foundation skills.
@@ -110,6 +115,8 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | TikTok slideshow end-to-end | `tiktok-slideshow` | Want complete TikTok content pipeline (script → design → video) | Creative |
 | App Store screenshots | `app-store-screenshots` | Need App Store screenshot pages (Next.js + html-to-image export) | Creative |
 | HTML presentations / slides | `frontend-slides` | Need animated HTML slides, pitch deck, or PPT conversion | Creative |
+| Schedule social posts | `typefully` | Have content, need to publish to social | Distribution |
+| Send transactional email | `send-email` | Need welcome/notification/receipt emails via Resend | Distribution |
 | Strengthen an existing plan | `deepen-plan` | Have a draft plan, want to fill gaps with research | Strategy |
 | Audit brand file quality | `document-review` | Check brand/ files for completeness, consistency, staleness | Foundation |
 | Create a new marketing skill | `create-skill` | Want to extend the playbook with a new capability | Foundation |
@@ -238,6 +245,7 @@ These old names map to new skills:
 - After `brainstorm` completes, read `marketing/brainstorms/*.md` for the `next-skill:` field. Route to that skill automatically unless the user overrides.
 - Plan 30% creation / 70% distribution as a heuristic for content planning.
 - Every skill output gets YAML front-matter for structured handoffs between skills.
+- Before routing to a distribution skill, check `integrations` in status output. If the needed integration isn't configured, guide setup first — don't let the skill fail mid-execution.
 
 ## Conversational Guardrails
 

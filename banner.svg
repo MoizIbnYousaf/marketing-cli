@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="320" cy="160" r="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="960" cy="160" r="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Grid pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5" stroke-opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#grid)"/>
+  <rect width="1280" height="320" fill="url(#glow1)"/>
+  <rect width="1280" height="320" fill="url(#glow2)"/>
+
+  <!-- Top border accent -->
+  <rect x="0" y="0" width="1280" height="1.5" fill="#10b981" opacity="0.5"/>
+
+  <!-- Terminal dots (top-left) -->
+  <circle cx="48" cy="32" r="5" fill="#ef4444" opacity="0.7"/>
+  <circle cx="66" cy="32" r="5" fill="#eab308" opacity="0.7"/>
+  <circle cx="84" cy="32" r="5" fill="#22c55e" opacity="0.7"/>
+
+  <!-- Logo: mktg -->
+  <text x="640" y="128" text-anchor="middle" font-family="'JetBrains Mono', 'SF Mono', 'Fira Code', monospace" font-size="72" font-weight="700" letter-spacing="0.2em" fill="#f8fafc">mktg</text>
+
+  <!-- Tagline -->
+  <text x="640" y="178" text-anchor="middle" font-family="'Inter', 'SF Pro Display', system-ui, sans-serif" font-size="20" font-weight="400" fill="#94a3b8">One install for your agent's full CMO brain.</text>
+
+  <!-- Stats bar -->
+  <g transform="translate(640, 228)" text-anchor="middle" font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="13">
+    <!-- 39 Skills -->
+    <text x="-340" fill="#10b981" font-weight="600">39</text>
+    <text x="-300" fill="#64748b">skills</text>
+    <!-- Separator -->
+    <text x="-248" fill="#334155">·</text>
+    <!-- 5 Agents -->
+    <text x="-212" fill="#10b981" font-weight="600">5</text>
+    <text x="-180" fill="#64748b">agents</text>
+    <!-- Separator -->
+    <text x="-132" fill="#334155">·</text>
+    <!-- Brand Memory -->
+    <text x="-52" fill="#64748b">brand memory</text>
+    <!-- Separator -->
+    <text x="28" fill="#334155">·</text>
+    <!-- Parallel Research -->
+    <text x="128" fill="#64748b">parallel research</text>
+    <!-- Separator -->
+    <text x="228" fill="#334155">·</text>
+    <!-- 655 Tests -->
+    <text x="280" fill="#10b981" font-weight="600">655</text>
+    <text x="320" fill="#64748b">tests</text>
+    <!-- Separator -->
+    <text x="358" fill="#334155">·</text>
+    <!-- CLI -->
+    <text x="394" fill="#64748b">real CLI</text>
+  </g>
+
+  <!-- Install command -->
+  <g transform="translate(640, 276)">
+    <rect x="-195" y="-18" width="390" height="36" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="-8" y="6" text-anchor="middle" font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="14">
+      <tspan fill="#a78bfa">$</tspan>
+      <tspan fill="#e2e8f0"> bun install -g mktg </tspan>
+      <tspan fill="#475569">&amp;&amp;</tspan>
+      <tspan fill="#e2e8f0"> mktg init</tspan>
+    </text>
+  </g>
+
+  <!-- Bottom border accent -->
+  <rect x="0" y="318.5" width="1280" height="1.5" fill="#10b981" opacity="0.3"/>
+</svg>

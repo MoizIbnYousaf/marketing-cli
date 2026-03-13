@@ -33,5 +33,9 @@
   "video-content": "1.0.0",
   "tiktok-slideshow": "1.0.0",
   "frontend-slides": "1.0.0",
-  "app-store-screenshots": "1.0.0"
+  "app-store-screenshots": "1.0.0",
+  "typefully": "1.0.0",
+  "send-email": "1.0.0",
+  "resend-inbound": "1.0.0",
+  "agent-email-inbox": "1.0.0"
 }

@@ -154,6 +154,35 @@ describe("Doctor with partial state", () => {
   });
 });
 
+describe("Doctor integration checks", () => {
+  test("integration checks are warn, never fail", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const integrationChecks = result.data.checks.filter((c) =>
+      c.name.startsWith("integration-"),
+    );
+    for (const check of integrationChecks) {
+      expect(check.status).not.toBe("fail");
+    }
+  });
+
+  test("integration check name starts with integration-", async () => {
+    const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const integrationChecks = result.data.checks.filter((c) =>
+      c.name.startsWith("integration-"),
+    );
+    expect(integrationChecks.length).toBeGreaterThan(0);
+    for (const check of integrationChecks) {
+      expect(check.name).toMatch(/^integration-/);
+    }
+  });
+});
+
 describe("Doctor graph check", () => {
   test("includes skill-graph check", async () => {
     const result = await doctorHandler([], flags);

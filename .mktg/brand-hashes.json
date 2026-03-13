@@ -1,4 +1,14 @@
 {
-  "timestamp": "2026-03-13T06:34:08.800Z",
-  "hashes": {}
+  "timestamp": "2026-03-13T10:32:10.877Z",
+  "hashes": {
+    "voice-profile.md": "e99c32ec1cebe3210bd6b6133d1f9378e81b7ee7bb219d9d7e931ed6f3694cac",
+    "creative-kit.md": "9bb3232f031852a100e23d910b405dfdbe47c0e1f002d6ff61f5a156bd662f3b",
+    "assets.md": "3b5040b35d252f8a0448f44435a28171958b20ad993e50ee5a8bc3eccc092c80",
+    "audience.md": "6a789fddf5df4e11996d02dde1d717cac2f68d07dd72c162721365974e75d913",
+    "competitors.md": "81e3b0123114a0fa6ff98fc5ff13d275255345192a77504ed6a2e9b4a6a01730",
+    "stack.md": "bc0a57f2d7a732e32bd9036062657897e5252a60c84f5e397a6dbd9136200dba",
+    "keyword-plan.md": "362059c59e79d850398958f4197cb79f7481ae5f4811e889b377e57e1884a433",
+    "learnings.md": "64d9e8f06f30e1dc84af605682161f11d67c465c1f00d3ab1ae8a4572b77a9bb",
+    "positioning.md": "33f04d3c78fc9913e356a0138021bb10568d245cadac2598c3048cc2ea7d3628"
+  }
 }

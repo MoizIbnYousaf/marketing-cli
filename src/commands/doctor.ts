@@ -6,6 +6,7 @@ import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { buildGraph } from "../core/skill-lifecycle";
+import { getIntegrationStatus } from "../core/integrations";
 import { isTTY, writeStderr, green, red, yellow, dim, bold } from "../core/output";
 
 export const schema: CommandSchema = {
@@ -203,17 +204,35 @@ const checkCLIs = async (): Promise<Check[]> => {
   return checks;
 };
 
+// Check third-party integration env vars
+const checkIntegrations = async (): Promise<Check[]> => {
+  try {
+    const manifest = await loadManifest();
+    const statuses = getIntegrationStatus(manifest);
+    return statuses.map((s) => ({
+      name: `integration-${s.envVar}`,
+      status: s.configured ? "pass" as const : "warn" as const,
+      detail: s.configured
+        ? `${s.envVar} set (${s.skills.join(", ")})`
+        : `${s.envVar} not set — needed by ${s.skills.join(", ")}`,
+    }));
+  } catch {
+    return [];
+  }
+};
+
 export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
   // Run all checks in parallel
-  const [brandChecks, skillChecks, agentChecks, graphChecks, cliChecks] = await Promise.all([
+  const [brandChecks, skillChecks, agentChecks, graphChecks, cliChecks, integrationChecks] = await Promise.all([
     checkBrand(flags.cwd),
     checkSkills(),
     checkAgents(),
     checkGraph(),
     checkCLIs(),
+    checkIntegrations(),
   ]);
 
-  const allChecks = [...brandChecks, ...skillChecks, ...agentChecks, ...graphChecks, ...cliChecks];
+  const allChecks = [...brandChecks, ...skillChecks, ...agentChecks, ...graphChecks, ...cliChecks, ...integrationChecks];
   const hasFail = allChecks.some((c) => c.status === "fail");
   const passed = !hasFail;
 
@@ -236,6 +255,9 @@ export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
     printSection("Agents", agentChecks);
     printSection("Graph", graphChecks);
     printSection("Tools", cliChecks);
+    if (integrationChecks.length > 0) {
+      printSection("Integrations", integrationChecks);
+    }
 
     if (passed) {
       writeStderr(`  ${green(bold("All checks pass"))}`);

@@ -5,6 +5,7 @@ import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../
 import { getBrandStatus, isTemplateContent, computeBrandHashes, saveBrandHashes } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
+import { getIntegrationStatus } from "../core/integrations";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
 import { join } from "node:path";
 
@@ -19,6 +20,7 @@ export const schema: CommandSchema = {
     "skills": "{installed, total} — skill counts",
     "agents": "{installed, total} — agent counts",
     "content": "{totalFiles} — content file count",
+    "integrations": "Record<string, IntegrationEntry> — env var readiness for third-party skills",
     "health": "'ready' | 'incomplete' | 'needs-setup'",
   },
   examples: [
@@ -35,11 +37,18 @@ type BrandEntry = {
   readonly isTemplate?: boolean;
 };
 
+type IntegrationEntry = {
+  readonly configured: boolean;
+  readonly envVar: string;
+  readonly skills: readonly string[];
+};
+
 type StatusResult = {
   readonly project: string;
   readonly brand: Record<string, BrandEntry>;
   readonly skills: { readonly installed: number; readonly total: number };
   readonly agents: { readonly installed: number; readonly total: number };
+  readonly integrations: Record<string, IntegrationEntry>;
   readonly content: { readonly totalFiles: number };
   readonly health: "ready" | "incomplete" | "needs-setup";
 };
@@ -83,6 +92,12 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   const cwd = flags.cwd;
   const manifest = await loadManifest();
   const installStatus = await getInstallStatus(manifest);
+
+  // Build integration status map (deduped by env var)
+  const integrationStatuses = getIntegrationStatus(manifest);
+  const integrations: Record<string, IntegrationEntry> = Object.fromEntries(
+    integrationStatuses.map((s) => [s.envVar, { configured: s.configured, envVar: s.envVar, skills: s.skills }]),
+  );
 
   const installedCount = Object.values(installStatus).filter(
     (s) => s.installed,
@@ -147,6 +162,7 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
       installed: agentInstalled,
       total: agentTotal,
     },
+    integrations,
     content: { totalFiles: contentCount },
     health,
   };
@@ -196,6 +212,17 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
       bold("  Agents") +
         dim(` ${result.agents.installed}/${result.agents.total} installed`),
     );
+  }
+
+  const integrationEntries = Object.values(result.integrations);
+  if (integrationEntries.length > 0) {
+    lines.push(bold("  Integrations"));
+    for (const entry of integrationEntries) {
+      const icon = entry.configured ? green("●") : yellow("●");
+      const status = entry.configured ? "configured" : "not configured";
+      lines.push(`    ${icon} ${entry.envVar} ${dim(`(${status} — ${entry.skills.join(", ")})`)}`);
+    }
+    lines.push("");
   }
 
   if (contentCount > 0) {

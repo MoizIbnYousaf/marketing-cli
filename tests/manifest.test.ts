@@ -15,7 +15,7 @@ const VALID_CATEGORIES: SkillCategory[] = [
 ];
 
 const VALID_LAYERS: SkillLayer[] = ["foundation", "strategy", "execution", "distribution"];
-const VALID_SOURCES = ["v1", "v2", "new"];
+const VALID_SOURCES = ["v1", "v2", "new", "third-party"];
 const VALID_TIERS = ["must-have", "nice-to-have"];
 
 describe("Manifest structure", () => {
@@ -32,8 +32,8 @@ describe("Manifest structure", () => {
     expect(typeof manifest.redirects).toBe("object");
   });
 
-  test("exactly 35 skills", () => {
-    expect(Object.keys(manifest.skills)).toHaveLength(35);
+  test("exactly 39 skills", () => {
+    expect(Object.keys(manifest.skills)).toHaveLength(39);
   });
 });
 
@@ -289,6 +289,28 @@ describe("Trigger quality", () => {
     const layers = new Set(Object.values(manifest.skills).map(m => m.layer));
     for (const layer of VALID_LAYERS) {
       expect(layers.has(layer)).toBe(true);
+    }
+  });
+});
+
+describe("Integration env_vars", () => {
+  test("third-party skills have env_vars declared", () => {
+    for (const [name, meta] of Object.entries(manifest.skills)) {
+      if (meta.source === "third-party") {
+        expect(meta.env_vars).toBeDefined();
+        expect(Array.isArray(meta.env_vars)).toBe(true);
+        expect(meta.env_vars!.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("env_vars contains only strings", () => {
+    for (const [name, meta] of Object.entries(manifest.skills)) {
+      if (meta.env_vars) {
+        for (const v of meta.env_vars) {
+          expect(typeof v).toBe("string");
+        }
+      }
     }
   });
 });

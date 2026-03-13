@@ -420,6 +420,58 @@
       "triggers": ["app store screenshots", "App Store", "screenshot generator", "iOS screenshots", "marketing screenshots", "phone mockup", "app store assets", "ASO screenshots"],
       "review_interval_days": 90,
       "version": "1.0.0"
+    },
+    "typefully": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": ["voice-profile.md", "audience.md", "stack.md"],
+      "writes": [],
+      "depends_on": ["brand-voice"],
+      "triggers": ["TODO(human) — schedule post", "TODO(human) — publish to social", "TODO(human) — typefully"],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "env_vars": ["TYPEFULLY_API_KEY"]
+    },
+    "send-email": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": ["voice-profile.md"],
+      "writes": [],
+      "depends_on": ["brand-voice"],
+      "triggers": ["TODO(human) — send email", "TODO(human) — transactional email", "TODO(human) — resend"],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": ["RESEND_API_KEY"]
+    },
+    "resend-inbound": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["TODO(human) — inbound email", "TODO(human) — receive email"],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "env_vars": ["RESEND_API_KEY"]
+    },
+    "agent-email-inbox": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": ["send-email", "resend-inbound"],
+      "triggers": ["TODO(human) — agent inbox", "TODO(human) — email bot"],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "env_vars": ["RESEND_API_KEY"]
     }
   },
   "redirects": {
@@ -454,6 +506,11 @@
     "pitch-deck": "frontend-slides",
     "html-slides": "frontend-slides",
     "ppt-conversion": "frontend-slides",
-    "conference-slides": "frontend-slides"
+    "conference-slides": "frontend-slides",
+    "resend": "send-email",
+    "social-post": "typefully",
+    "tweet": "typefully",
+    "moltbot": "agent-email-inbox",
+    "inbound-email": "resend-inbound"
   }
 }

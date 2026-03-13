@@ -67,7 +67,7 @@ describe("mktg status", () => {
 
     expect(result.data.skills).toHaveProperty("installed");
     expect(result.data.skills).toHaveProperty("total");
-    expect(result.data.skills.total).toBe(35);
+    expect(result.data.skills.total).toBe(39);
   });
 
   test("exit code is 0", async () => {
@@ -309,6 +309,50 @@ describe("Template detection", () => {
         expect(entry.lines).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe("Integrations in status output", () => {
+  test("includes integrations in status output", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data).toHaveProperty("integrations");
+    expect(typeof result.data.integrations).toBe("object");
+  });
+
+  test("integrations contain TYPEFULLY_API_KEY and RESEND_API_KEY", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.integrations).toHaveProperty("TYPEFULLY_API_KEY");
+    expect(result.data.integrations).toHaveProperty("RESEND_API_KEY");
+  });
+
+  test("each integration has configured boolean and skills array", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.integrations)) {
+      expect(typeof entry.configured).toBe("boolean");
+      expect(Array.isArray(entry.skills)).toBe(true);
+      expect(typeof entry.envVar).toBe("string");
+    }
+  });
+
+  test("RESEND_API_KEY lists all 3 resend skills", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const resend = result.data.integrations["RESEND_API_KEY"];
+    expect(resend.skills).toContain("send-email");
+    expect(resend.skills).toContain("resend-inbound");
+    expect(resend.skills).toContain("agent-email-inbox");
+    expect(resend.skills).toHaveLength(3);
   });
 });
 

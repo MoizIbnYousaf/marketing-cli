@@ -1,19 +1,56 @@
 {
   "name": "mktg",
   "version": "0.1.0",
-  "description": "Agent-native marketing playbook CLI",
+  "description": "Agent-native marketing playbook CLI — one install gives AI agents a full CMO brain with 39 skills, brand memory, and parallel research.",
   "type": "module",
   "bin": {
     "mktg": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "skills",
+    "skills-manifest.json",
+    "agents",
+    "agents-manifest.json",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "bun build src/cli.ts --outdir dist --target node",
     "dev": "bun run src/cli.ts",
     "test": "bun test",
-    "doctor": "bun run src/cli.ts doctor"
+    "typecheck": "bun x tsc --noEmit",
+    "doctor": "bun run src/cli.ts doctor",
+    "prepublishOnly": "bun run build"
   },
-  "keywords": ["marketing", "cli", "agent", "ai", "playbook"],
+  "keywords": [
+    "marketing",
+    "cli",
+    "agent",
+    "ai",
+    "playbook",
+    "claude-code",
+    "claude-code-skills",
+    "agent-skills",
+    "marketing-automation",
+    "brand-voice",
+    "seo",
+    "cmo",
+    "skills-sh"
+  ],
+  "author": "Moiz Ibn Yousaf",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoizIbnYousaf/mktg.git"
+  },
+  "homepage": "https://github.com/MoizIbnYousaf/mktg#readme",
+  "bugs": {
+    "url": "https://github.com/MoizIbnYousaf/mktg/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   }

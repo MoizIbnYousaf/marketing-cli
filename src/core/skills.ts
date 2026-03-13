@@ -2,7 +2,7 @@
 // Reads skills-manifest.json, copies bundled skills to ~/.claude/skills/
 
 import { join, dirname } from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, chmod, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import type { SkillsManifest, SkillManifestEntry } from "../types";
 import { getPackageRoot } from "./paths";
@@ -72,6 +72,27 @@ export const getInstallStatus = async (
 const getBundledSkillPath = (skillName: string): string =>
   join(getPackageRoot(), "skills", skillName);
 
+// Copy all files from a bundled skill directory to the install target
+// Preserves directory structure and executable permissions
+const copySkillDir = async (bundledDir: string, installDir: string): Promise<void> => {
+  await mkdir(installDir, { recursive: true });
+  const glob = new Bun.Glob("**/*");
+
+  for await (const relPath of glob.scan(bundledDir)) {
+    const src = join(bundledDir, relPath);
+    const dest = join(installDir, relPath);
+    await mkdir(dirname(dest), { recursive: true });
+    const content = await Bun.file(src).arrayBuffer();
+    await Bun.write(dest, content);
+
+    // Preserve executable permissions (critical for scripts/)
+    const srcStat = await stat(src);
+    if (srcStat.mode & 0o111) {
+      await chmod(dest, 0o755);
+    }
+  }
+};
+
 // Install all skills from the package to ~/.claude/skills/
 export const installSkills = async (
   manifest: SkillsManifest,
@@ -107,36 +128,11 @@ export const installSkills = async (
     }
 
     const installDir = join(SKILLS_INSTALL_DIR, name);
-    const installFile = join(installDir, "SKILL.md");
 
     writes.push(
       (async () => {
         try {
-          await mkdir(installDir, { recursive: true });
-          const content = await bundledFile.text();
-          await Bun.write(installFile, content);
-
-          // Copy references/ if they exist
-          const refsDir = join(bundledDir, "references");
-          const refsFile = Bun.file(refsDir);
-          try {
-            // Use glob to find reference files
-            const glob = new Bun.Glob("**/*");
-            const refInstallDir = join(installDir, "references");
-            await mkdir(refInstallDir, { recursive: true });
-
-            for await (const path of glob.scan(refsDir)) {
-              const src = join(refsDir, path);
-              const dest = join(refInstallDir, path);
-              const destDir = dirname(dest);
-              await mkdir(destDir, { recursive: true });
-              const srcContent = await Bun.file(src).text();
-              await Bun.write(dest, srcContent);
-            }
-          } catch {
-            // No references dir — that's fine
-          }
-
+          await copySkillDir(bundledDir, installDir);
           installed.push(name);
         } catch (e) {
           failed.push(name);
@@ -160,6 +156,34 @@ export const installSkills = async (
   return { installed, skipped, failed };
 };
 
+// Check if any file in bundled skill directory differs from installed version
+const hasSkillChanges = async (bundledDir: string, installedDir: string): Promise<boolean> => {
+  const glob = new Bun.Glob("**/*");
+
+  try {
+    for await (const relPath of glob.scan(bundledDir)) {
+      const bundledContent = await Bun.file(join(bundledDir, relPath)).arrayBuffer();
+      const installedFile = Bun.file(join(installedDir, relPath));
+
+      if (!(await installedFile.exists())) return true;
+      const installedContent = await installedFile.arrayBuffer();
+
+      // Compare byte-by-byte via views
+      if (bundledContent.byteLength !== installedContent.byteLength) return true;
+      const a = new Uint8Array(bundledContent);
+      const b = new Uint8Array(installedContent);
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return true;
+      }
+    }
+  } catch {
+    // Bundled dir doesn't exist or can't be scanned — treat as unchanged
+    return false;
+  }
+
+  return false;
+};
+
 // Update skills — re-copy bundled skills over installed ones
 // Returns which skills were updated (content changed)
 export const updateSkills = async (
@@ -172,73 +196,26 @@ export const updateSkills = async (
   const notBundled: string[] = [];
 
   for (const name of getSkillNames(manifest)) {
-    const bundledPath = join(getBundledSkillPath(name), "SKILL.md");
-    const installedPath = join(SKILLS_INSTALL_DIR, name, "SKILL.md");
+    const bundledDir = getBundledSkillPath(name);
+    const bundledSkillFile = join(bundledDir, "SKILL.md");
 
-    const bundledFile = Bun.file(bundledPath);
-    const installedFile = Bun.file(installedPath);
-
-    const bundledExists = await bundledFile.exists();
+    const bundledExists = await Bun.file(bundledSkillFile).exists();
     if (!bundledExists) {
       notBundled.push(name);
       continue;
     }
 
-    const installedExists = await installedFile.exists();
-    const bundledContent = await bundledFile.text();
+    const installDir = join(SKILLS_INSTALL_DIR, name);
+    const changed = await hasSkillChanges(bundledDir, installDir);
 
-    // Check if SKILL.md content matches
-    let skillMdChanged = true;
-    if (installedExists) {
-      const installedContent = await installedFile.text();
-      if (bundledContent === installedContent) {
-        skillMdChanged = false;
-      }
-    }
-
-    // Check if references/ directory has changes
-    let refsChanged = false;
-    const bundledRefsDir = join(getBundledSkillPath(name), "references");
-    try {
-      const glob = new Bun.Glob("**/*");
-      for await (const refPath of glob.scan(bundledRefsDir)) {
-        const bundledRef = await Bun.file(join(bundledRefsDir, refPath)).text();
-        const installedRef = Bun.file(join(SKILLS_INSTALL_DIR, name, "references", refPath));
-        const installedRefExists = await installedRef.exists();
-        if (!installedRefExists || await installedRef.text() !== bundledRef) {
-          refsChanged = true;
-          break;
-        }
-      }
-    } catch {
-      // No references dir in bundled — that's fine
-    }
-
-    if (!skillMdChanged && !refsChanged) {
+    if (!changed) {
       unchanged.push(name);
       continue;
     }
 
     updated.push(name);
     if (!dryRun) {
-      const installDir = join(SKILLS_INSTALL_DIR, name);
-      await mkdir(installDir, { recursive: true });
-      await Bun.write(installedPath, bundledContent);
-
-      // Copy references/ if they exist
-      try {
-        const glob = new Bun.Glob("**/*");
-        const refInstallDir = join(installDir, "references");
-        await mkdir(refInstallDir, { recursive: true });
-        for await (const path of glob.scan(bundledRefsDir)) {
-          const src = join(bundledRefsDir, path);
-          const dest = join(refInstallDir, path);
-          await mkdir(dirname(dest), { recursive: true });
-          await Bun.write(dest, await Bun.file(src).text());
-        }
-      } catch {
-        // No references dir — that's fine
-      }
+      await copySkillDir(bundledDir, installDir);
     }
   }
 

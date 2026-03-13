@@ -8,3 +8,6 @@ bun.lock
 .claude/
 brand/
 marketing/
+demo.webm
+demo-setup.sh
+/tmp/mktg-demo-path

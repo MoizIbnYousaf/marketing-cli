@@ -108,7 +108,7 @@ export type BrandBundle = {
 };
 
 // Skill metadata types
-export type SkillSource = "v2" | "v1" | "new";
+export type SkillSource = "v2" | "v1" | "new" | "third-party";
 
 export type SkillCategory =
   | "foundation"
@@ -152,6 +152,7 @@ export type SkillManifestEntry = {
   readonly triggers: readonly string[];
   readonly review_interval_days: number;
   readonly version?: string; // semver string for per-skill versioning
+  readonly env_vars?: readonly string[];
 };
 
 export type SkillsManifest = {
