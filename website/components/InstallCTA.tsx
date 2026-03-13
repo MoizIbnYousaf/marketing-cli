@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
 
-const INSTALL_COMMAND = "npx mktg init";
+const INSTALL_COMMAND = "bun install -g mktg && mktg init";
 const CTA_URL = "https://github.com/moizibnyousaf/mktg";
 
 const HOW_IT_WORKS_STEPS = [
@@ -32,7 +32,7 @@ async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(value);
-      return;
+      return true;
     } catch {
       // Fall back to a textarea-based copy path for browsers where clipboard
       // permissions are unavailable (for example during local automation).
@@ -46,10 +46,15 @@ async function copyText(value: string) {
   textArea.style.left = "-9999px";
 
   document.body.appendChild(textArea);
-  textArea.select();
-  textArea.setSelectionRange(0, textArea.value.length);
-  document.execCommand("copy");
-  document.body.removeChild(textArea);
+
+  try {
+    textArea.select();
+    textArea.setSelectionRange(0, textArea.value.length);
+
+    return typeof document.execCommand === "function" && document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textArea);
+  }
 }
 
 export function InstallCTA() {
@@ -71,8 +76,8 @@ export function InstallCTA() {
     }
 
     try {
-      await copyText(INSTALL_COMMAND);
-      setCopyLabel("Copied!");
+      const didCopy = await copyText(INSTALL_COMMAND);
+      setCopyLabel(didCopy ? "Copied!" : "Copy failed");
     } catch {
       setCopyLabel("Copy failed");
     }

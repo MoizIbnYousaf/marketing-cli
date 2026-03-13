@@ -3,6 +3,7 @@ import "@/test/setup-dom";
 import { beforeEach, describe, expect, test } from "bun:test";
 import { render } from "@testing-library/react";
 import { act } from "react";
+import { renderToString } from "react-dom/server";
 
 import { ScrollReveal } from "./ScrollReveal";
 
@@ -68,6 +69,33 @@ beforeEach(() => {
   MockIntersectionObserver.instances = [];
   prefersReducedMotion = false;
 
+  Object.defineProperty(window, "innerHeight", {
+    configurable: true,
+    value: 900,
+    writable: true,
+  });
+
+  Object.defineProperty(window, "innerWidth", {
+    configurable: true,
+    value: 1440,
+    writable: true,
+  });
+
+  Object.defineProperty(HTMLElement.prototype, "getBoundingClientRect", {
+    configurable: true,
+    value: () => ({
+      bottom: 300,
+      height: 200,
+      left: 0,
+      right: 100,
+      top: 100,
+      width: 100,
+      x: 0,
+      y: 100,
+      toJSON: () => ({}),
+    }),
+  });
+
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
     value: () => ({
@@ -90,7 +118,36 @@ beforeEach(() => {
 });
 
 describe("ScrollReveal", () => {
-  test("starts hidden, then reveals once after intersecting the viewport threshold", () => {
+  test("renders visible markup on the server for static export and no-JS users", () => {
+    const html = renderToString(
+      <ScrollReveal className="mx-auto max-w-6xl">
+        <section>Animated content</section>
+      </ScrollReveal>,
+    );
+
+    expect(html).toContain('data-reveal-state="visible"');
+    expect(html).toContain("translate-y-0");
+    expect(html).toContain("opacity-100");
+    expect(html).not.toContain("translate-y-6");
+    expect(html).not.toContain("opacity-0");
+  });
+
+  test("arms offscreen content on the client, then reveals once after intersecting", () => {
+    Object.defineProperty(HTMLElement.prototype, "getBoundingClientRect", {
+      configurable: true,
+      value: () => ({
+        bottom: 1300,
+        height: 200,
+        left: 0,
+        right: 100,
+        top: 1100,
+        width: 100,
+        x: 0,
+        y: 1100,
+        toJSON: () => ({}),
+      }),
+    });
+
     const view = render(
       <ScrollReveal className="mx-auto max-w-6xl">
         <section>Animated content</section>

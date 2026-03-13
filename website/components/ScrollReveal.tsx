@@ -13,6 +13,24 @@ type ScrollRevealProps = PropsWithChildren<{
 const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
 
+const isNodeInViewport = (node: HTMLDivElement, threshold: number) => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const rect = node.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const visibleHeight = Math.max(
+    0,
+    Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0),
+  );
+  const visibleRatio = visibleHeight / Math.max(rect.height, 1);
+  const isHorizontallyVisible = rect.right >= 0 && rect.left <= viewportWidth;
+
+  return isHorizontallyVisible && visibleRatio >= threshold;
+};
+
 export function ScrollReveal({
   children,
   className,
@@ -21,10 +39,23 @@ export function ScrollReveal({
 }: ScrollRevealProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const elementRef = useRef<HTMLDivElement | null>(null);
+  const [isClientArmed, setIsClientArmed] = useState(false);
   const [hasEnteredViewport, setHasEnteredViewport] = useState(false);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
+    if (hasEnteredViewport) {
+      setIsClientArmed(false);
+      return undefined;
+    }
+
+    const motionPreference =
+      prefersReducedMotion ||
+      (typeof window !== "undefined" && "matchMedia" in window
+        ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        : false);
+
+    if (motionPreference) {
+      setIsClientArmed(false);
       setHasEnteredViewport(true);
       return undefined;
     }
@@ -36,15 +67,25 @@ export function ScrollReveal({
     const node = elementRef.current;
 
     if (!node || !("IntersectionObserver" in window)) {
+      setIsClientArmed(false);
       setHasEnteredViewport(true);
       return undefined;
     }
+
+    if (isNodeInViewport(node, threshold)) {
+      setIsClientArmed(false);
+      setHasEnteredViewport(true);
+      return undefined;
+    }
+
+    setIsClientArmed(true);
 
     const observer = new window.IntersectionObserver(
       (entries) => {
         const entry = entries[0];
 
         if (entry?.isIntersecting && entry.intersectionRatio >= threshold) {
+          setIsClientArmed(false);
           setHasEnteredViewport(true);
           observer.disconnect();
         }
@@ -57,9 +98,9 @@ export function ScrollReveal({
     return () => {
       observer.disconnect();
     };
-  }, [prefersReducedMotion, rootMargin, threshold]);
+  }, [hasEnteredViewport, prefersReducedMotion, rootMargin, threshold]);
 
-  const isVisible = prefersReducedMotion || hasEnteredViewport;
+  const isVisible = prefersReducedMotion || !isClientArmed || hasEnteredViewport;
 
   return (
     <div

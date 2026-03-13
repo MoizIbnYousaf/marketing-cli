@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 import { ScrollReveal } from "@/components/ScrollReveal";
 import {
@@ -18,11 +23,49 @@ const tierClassNames = {
 export function SkillsCatalog() {
   const [activeCategory, setActiveCategory] = useState<SkillsCatalogCategory>("all");
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const filteredSkills = useMemo(
     () => getSkillsForCategory(activeCategory),
     [activeCategory],
   );
+
+  const activateCategory = (category: SkillsCatalogCategory) => {
+    setActiveCategory(category);
+    setExpandedSkill(null);
+  };
+
+  const handleTabKeyDown = (
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    const lastIndex = SKILL_CATEGORIES.length - 1;
+
+    let nextIndex = index;
+
+    if (event.key === "ArrowRight") {
+      nextIndex = index === lastIndex ? 0 : index + 1;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = index === 0 ? lastIndex : index - 1;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = lastIndex;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+
+    const nextCategory = SKILL_CATEGORIES[nextIndex]?.id;
+
+    if (!nextCategory) {
+      return;
+    }
+
+    activateCategory(nextCategory);
+    tabRefs.current[nextIndex]?.focus();
+  };
 
   return (
     <section
@@ -72,21 +115,23 @@ export function SkillsCatalog() {
                 aria-label="Skill categories"
                 className="flex min-w-max gap-3"
               >
-                {SKILL_CATEGORIES.map((category) => {
+                {SKILL_CATEGORIES.map((category, index) => {
                   const isActive = activeCategory === category.id;
 
                   return (
                     <button
                       key={category.id}
+                      ref={(node) => {
+                        tabRefs.current[index] = node;
+                      }}
                       id={`skills-tab-${category.id}`}
                       type="button"
                       role="tab"
+                      tabIndex={isActive ? 0 : -1}
                       aria-controls="skills-panel"
                       aria-selected={isActive}
-                      onClick={() => {
-                        setActiveCategory(category.id);
-                        setExpandedSkill(null);
-                      }}
+                      onClick={() => activateCategory(category.id)}
+                      onKeyDown={(event) => handleTabKeyDown(event, index)}
                       className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                         isActive
                           ? "border-emerald-400/50 bg-emerald-400/12 text-emerald-200 shadow-[0_0_0_1px_rgba(52,211,153,0.08)]"

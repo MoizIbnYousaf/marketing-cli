@@ -42,6 +42,8 @@ describe("SkillsCatalog", () => {
       "Knowledge",
     ]);
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[0].getAttribute("tabindex")).toBe("0");
+    expect(tabs[1].getAttribute("tabindex")).toBe("-1");
     expect(countVisibleCards(view.container)).toBe(39);
     expect(scoped.getAllByText("cmo")[0]).toBeDefined();
     expect(scoped.getAllByText("marketing-psychology")[0]).toBeDefined();
@@ -66,6 +68,38 @@ describe("SkillsCatalog", () => {
     fireEvent.click(scoped.getByRole("tab", { name: "Knowledge" }));
     expect(scoped.getByText("marketing-psychology")).toBeDefined();
     expect(scoped.queryByText("keyword-research")).toBeNull();
+  });
+
+  test("supports arrow-key roving focus across category tabs", () => {
+    const view = render(<SkillsCatalog />);
+    const scoped = within(view.container);
+    const allTab = scoped.getByRole("tab", { name: "All" });
+
+    allTab.focus();
+    fireEvent.keyDown(allTab, { key: "ArrowRight" });
+
+    const foundationTab = scoped.getByRole("tab", { name: "Foundation" });
+
+    expect(foundationTab.getAttribute("aria-selected")).toBe("true");
+    expect(foundationTab.getAttribute("tabindex")).toBe("0");
+    expect(document.activeElement).toBe(foundationTab);
+    expect(countVisibleCards(view.container)).toBe(EXPECTED_COUNTS.Foundation);
+
+    fireEvent.keyDown(foundationTab, { key: "End" });
+
+    const knowledgeTab = scoped.getByRole("tab", { name: "Knowledge" });
+
+    expect(knowledgeTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(knowledgeTab);
+    expect(countVisibleCards(view.container)).toBe(EXPECTED_COUNTS.Knowledge);
+
+    fireEvent.keyDown(knowledgeTab, { key: "ArrowRight" });
+
+    const resetAllTab = scoped.getByRole("tab", { name: "All" });
+
+    expect(resetAllTab.getAttribute("aria-selected")).toBe("true");
+    expect(document.activeElement).toBe(resetAllTab);
+    expect(countVisibleCards(view.container)).toBe(EXPECTED_COUNTS.All);
   });
 
   test("shows tier badges with distinct styles and toggles expanded details", () => {

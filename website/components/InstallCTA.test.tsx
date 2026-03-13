@@ -49,4 +49,63 @@ describe("InstallCTA", () => {
       expect(scoped.getByText("Copied!")).toBeDefined();
     });
   });
+
+  test("uses the execCommand fallback and only shows success when it returns true", async () => {
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: mock(async () => {
+          throw new Error("clipboard blocked");
+        }),
+      },
+    });
+
+    const execCommand = mock(() => true);
+
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand,
+    });
+
+    const host = document.createElement("div");
+    const view = render(<InstallCTA />, { container: host });
+    const scoped = within(view.container);
+
+    fireEvent.click(scoped.getByRole("button", { name: /copy install command/i }));
+
+    await waitFor(() => {
+      expect(execCommand).toHaveBeenCalledWith("copy");
+      expect(scoped.getByText("Copied!")).toBeDefined();
+    });
+  });
+
+  test("shows copy failure when the fallback cannot confirm success", async () => {
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: mock(async () => {
+          throw new Error("clipboard blocked");
+        }),
+      },
+    });
+
+    const execCommand = mock(() => false);
+
+    Object.defineProperty(document, "execCommand", {
+      configurable: true,
+      value: execCommand,
+    });
+
+    const host = document.createElement("div");
+    const view = render(<InstallCTA />, { container: host });
+    const scoped = within(view.container);
+
+    fireEvent.click(scoped.getByRole("button", { name: /copy install command/i }));
+
+    await waitFor(() => {
+      expect(execCommand).toHaveBeenCalledWith("copy");
+      expect(scoped.getByText("Copy failed")).toBeDefined();
+      expect(scoped.queryByText("Copied!")).toBeNull();
+    });
+  });
 });
