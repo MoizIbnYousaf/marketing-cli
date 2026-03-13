@@ -3,14 +3,10 @@ import { Features } from "@/components/Features";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
 import { SkillsCatalog } from "@/components/SkillsCatalog";
+import { Testimonials } from "@/components/Testimonials";
 import { TerminalDemo } from "@/components/TerminalDemo";
 
 const placeholderSections = [
-  {
-    id: "testimonials",
-    title: "Testimonials",
-    description: "Proof, social credibility, and launch stories will live here next.",
-  },
   {
     id: "install",
     title: "Install",
@@ -27,6 +23,7 @@ export default function HomePage() {
         <TerminalDemo />
         <Features />
         <SkillsCatalog />
+        <Testimonials />
 
         {placeholderSections.map((section) => (
           <section
