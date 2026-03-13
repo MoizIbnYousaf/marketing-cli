@@ -1,5 +1,6 @@
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
+import { TerminalDemo } from "@/components/TerminalDemo";
 
 const placeholderSections = [
   {
@@ -30,6 +31,7 @@ export default function HomePage() {
       <Nav />
       <main>
         <Hero />
+        <TerminalDemo />
 
         {placeholderSections.map((section) => (
           <section

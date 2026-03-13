@@ -10,6 +10,10 @@ describe("HomePage", () => {
 
     expect(markup).toContain("mktg");
     expect(markup).toContain("full CMO brain");
+    expect(markup).toContain("Watch mktg go from one install");
+    expect(markup).toContain("mktg init");
+    expect(markup).toContain("mktg status");
+    expect(markup).toContain("mktg doctor");
     expect(markup).toContain("Get Started");
     expect(markup).toContain("View on GitHub");
     expect(markup).toContain("Features");

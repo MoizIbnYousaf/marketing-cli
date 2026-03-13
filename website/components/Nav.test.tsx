@@ -78,18 +78,25 @@ const setInnerWidth = (value: number) => {
 };
 
 const renderNav = () =>
-  render(
-    <>
-      <Nav />
-      <main>
-        {NAV_LINKS.map((link) => (
-          <section key={link.sectionId} id={link.sectionId}>
-            {link.label}
-          </section>
-        ))}
-      </main>
-    </>,
-  );
+  {
+    const view = render(
+      <>
+        <Nav />
+        <main>
+          {NAV_LINKS.map((link) => (
+            <section key={link.sectionId} id={link.sectionId}>
+              {link.label}
+            </section>
+          ))}
+        </main>
+      </>,
+    );
+
+    return {
+      ...view,
+      scope: within(view.container),
+    };
+  };
 
 beforeEach(() => {
   MockIntersectionObserver.instances = [];
@@ -115,31 +122,31 @@ describe("Nav", () => {
   test("renders the logo, section links, GitHub link, CTA, and responsive nav controls", () => {
     const view = renderNav();
 
-    expect(view.getByRole("navigation", { name: "Primary" })).toBeDefined();
-    expect(view.getByRole("button", { name: "Scroll to top" })).toBeDefined();
+    expect(view.scope.getByRole("navigation", { name: "Primary" })).toBeDefined();
+    expect(view.scope.getByRole("button", { name: "Scroll to top" })).toBeDefined();
 
     for (const link of NAV_LINKS) {
-      const anchor = view.getByRole("link", { name: link.label });
+      const anchor = view.scope.getByRole("link", { name: link.label });
 
       expect(anchor.getAttribute("href")).toBe(link.href);
     }
 
-    const githubLink = view.getByRole("link", { name: "GitHub" });
+    const githubLink = view.scope.getByRole("link", { name: "GitHub" });
 
     expect(githubLink.getAttribute("href")).toBe(GITHUB_REPO_URL);
     expect(githubLink.getAttribute("target")).toBe("_blank");
     expect(githubLink.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(view.getByRole("button", { name: "Get Started" })).toBeDefined();
-    expect(view.getByTestId("desktop-nav-links").className).toContain(
+    expect(view.scope.getByRole("button", { name: "Get Started" })).toBeDefined();
+    expect(view.scope.getByTestId("desktop-nav-links").className).toContain(
       "min-[769px]:flex",
     );
-    expect(view.getByTestId("nav-toggle").className).toContain("min-[769px]:hidden");
+    expect(view.scope.getByTestId("nav-toggle").className).toContain("min-[769px]:hidden");
   });
 
   test("starts transparent, becomes solid on scroll, and scrolls to top on logo click", () => {
     const view = renderNav();
 
-    const nav = view.getByTestId("site-nav");
+    const nav = view.scope.getByTestId("site-nav");
 
     expect(nav.className).toContain("bg-transparent");
 
@@ -151,7 +158,7 @@ describe("Nav", () => {
     expect(nav.className).toContain("bg-slate-950/80");
     expect(nav.className).toContain("backdrop-blur-xl");
 
-    fireEvent.click(view.getByRole("button", { name: "Scroll to top" }));
+    fireEvent.click(view.scope.getByRole("button", { name: "Scroll to top" }));
 
     const scrollCalls = scrollToMock.mock.calls as unknown as Array<
       [ScrollToOptions]
@@ -164,7 +171,7 @@ describe("Nav", () => {
   test("scrolls the CTA to install and toggles the mobile menu with body scroll lock", () => {
     const view = renderNav();
 
-    fireEvent.click(view.getByRole("button", { name: "Get Started" }));
+    fireEvent.click(view.scope.getByRole("button", { name: "Get Started" }));
 
     const scrollCalls = scrollToMock.mock.calls as unknown as Array<[ScrollToOptions]>;
 
@@ -174,18 +181,18 @@ describe("Nav", () => {
       behavior: "smooth",
     });
 
-    const toggle = view.getByRole("button", { name: /open navigation menu/i });
+    const toggle = view.scope.getByRole("button", { name: /open navigation menu/i });
 
     fireEvent.click(toggle);
 
-    const mobileMenu = view.getByRole("dialog", { name: "Mobile navigation menu" });
+    const mobileMenu = view.scope.getByRole("dialog", { name: "Mobile navigation menu" });
 
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(document.body.style.overflow).toBe("hidden");
 
     fireEvent.click(within(mobileMenu).getByRole("link", { name: "Features" }));
 
-    expect(view.queryByRole("dialog", { name: "Mobile navigation menu" })).toBeNull();
+    expect(view.scope.queryByRole("dialog", { name: "Mobile navigation menu" })).toBeNull();
     expect(document.body.style.overflow).toBe("");
   });
 
@@ -216,7 +223,7 @@ describe("Nav", () => {
       setScrollY(240);
     });
 
-    fireEvent.click(view.getByRole("link", { name: "Install" }));
+    fireEvent.click(view.scope.getByRole("link", { name: "Install" }));
 
     const scrollCalls = scrollToMock.mock.calls as unknown as Array<[ScrollToOptions]>;
 
@@ -231,8 +238,8 @@ describe("Nav", () => {
 
     expect(observedIds).toEqual(["features", "install", "skills", "testimonials"]);
 
-    const featuresLink = view.getByRole("link", { name: "Features" });
-    const skillsLink = view.getByRole("link", { name: "Skills" });
+    const featuresLink = view.scope.getByRole("link", { name: "Features" });
+    const skillsLink = view.scope.getByRole("link", { name: "Skills" });
 
     expect(featuresLink.getAttribute("aria-current")).toBeNull();
     expect(skillsLink.getAttribute("aria-current")).toBeNull();
