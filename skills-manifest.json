@@ -276,6 +276,39 @@
       "triggers": ["brainstorm", "help me think through", "what should we market", "explore approaches", "I don't know where to start", "what campaign", "how should we position", "what should I do next", "marketing ideas"],
       "review_interval_days": 30
     },
+    "create-skill": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["create a skill", "new skill", "add a marketing skill", "skill template", "extend the playbook"],
+      "review_interval_days": 90
+    },
+    "deepen-plan": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "audience.md", "positioning.md", "competitors.md", "keyword-plan.md"],
+      "writes": [],
+      "depends_on": ["audience-research", "competitive-intel", "keyword-research"],
+      "triggers": ["deepen this plan", "strengthen strategy", "research gaps in plan", "enhance this plan", "make this plan stronger"],
+      "review_interval_days": 60
+    },
+    "document-review": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "audience.md", "positioning.md", "competitors.md", "keyword-plan.md", "creative-kit.md", "stack.md", "assets.md", "learnings.md"],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["review brand files", "audit marketing docs", "check brand consistency", "brand health check", "are my brand files complete"],
+      "review_interval_days": 30
+    },
     "marketing-demo": {
       "source": "new",
       "category": "creative",

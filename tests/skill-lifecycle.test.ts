@@ -166,8 +166,8 @@ describe("mktg skill validate", () => {
     expect(rules).toContain("line-count");
   });
 
-  test("all 32 bundled skills pass validation", async () => {
-    // Test a representative sample (testing all 32 would be slow in subprocess mode)
+  test("all 35 bundled skills pass validation", async () => {
+    // Test a representative sample (testing all 35 would be slow in subprocess mode)
     const skills = ["cmo", "brand-voice", "seo-content", "keyword-research", "tiktok-slideshow"];
     for (const skill of skills) {
       const { stdout, exitCode } = await run(["skill", "validate", `skills/${skill}`, "--json"]);
@@ -319,11 +319,11 @@ describe("mktg skill validate", () => {
 // ==================== skill graph ====================
 
 describe("mktg skill graph", () => {
-  test("returns 32 nodes for all skills", async () => {
+  test("returns 35 nodes for all skills", async () => {
     const { stdout, exitCode } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
-    expect(parsed.nodes.length).toBe(32);
+    expect(parsed.nodes.length).toBe(35);
   });
 
   test("each node has name, category, layer, tier, dependsOn", async () => {
@@ -376,10 +376,10 @@ describe("mktg skill graph", () => {
     expect(parsed.hasCycles).toBe(false);
   });
 
-  test("topological order includes all 32 skills", async () => {
+  test("topological order includes all 35 skills", async () => {
     const { stdout } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.order.length).toBe(32);
+    expect(parsed.order.length).toBe(35);
   });
 
   test("topological order: deps come before dependents", async () => {
@@ -405,7 +405,7 @@ describe("mktg skill graph", () => {
     expect(parsed.layers.distribution).toContain("content-atomizer");
   });
 
-  test("total skills across all layers equals 32", async () => {
+  test("total skills across all layers equals 35", async () => {
     const { stdout } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
     const total =
@@ -413,7 +413,7 @@ describe("mktg skill graph", () => {
       parsed.layers.strategy.length +
       parsed.layers.execution.length +
       parsed.layers.distribution.length;
-    expect(total).toBe(32);
+    expect(total).toBe(35);
   });
 
   test("edges match manifest depends_on", async () => {

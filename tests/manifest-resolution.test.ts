@@ -335,12 +335,12 @@ describe("resolveManifest", () => {
     expect(result.skills[existingSkillName]!.review_interval_days).not.toBe(999);
   });
 
-  test("real package manifest has 32 skills", async () => {
+  test("real package manifest has 35 skills", async () => {
     const manifest = await loadManifest();
-    expect(Object.keys(manifest.skills)).toHaveLength(32);
+    expect(Object.keys(manifest.skills)).toHaveLength(35);
   });
 
-  test("project with 1 new skill results in 33 total skills", async () => {
+  test("project with 1 new skill results in 36 total skills", async () => {
     const projectManifest = {
       version: 1,
       skills: {
@@ -361,7 +361,7 @@ describe("resolveManifest", () => {
     await writeFile(join(tmpDir, "skills-manifest.json"), JSON.stringify(projectManifest));
 
     const result = await resolveManifest(tmpDir);
-    expect(Object.keys(result.skills)).toHaveLength(33);
+    expect(Object.keys(result.skills)).toHaveLength(36);
   });
 });
 

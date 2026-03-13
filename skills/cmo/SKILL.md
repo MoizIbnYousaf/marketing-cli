@@ -110,6 +110,9 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | TikTok slideshow end-to-end | `tiktok-slideshow` | Want complete TikTok content pipeline (script → design → video) | Creative |
 | App Store screenshots | `app-store-screenshots` | Need App Store screenshot pages (Next.js + html-to-image export) | Creative |
 | HTML presentations / slides | `frontend-slides` | Need animated HTML slides, pitch deck, or PPT conversion | Creative |
+| Strengthen an existing plan | `deepen-plan` | Have a draft plan, want to fill gaps with research | Strategy |
+| Audit brand file quality | `document-review` | Check brand/ files for completeness, consistency, staleness | Foundation |
+| Create a new marketing skill | `create-skill` | Want to extend the playbook with a new capability | Foundation |
 
 For marketing ideas and inspiration, see [references/ideas-library.md](references/ideas-library.md).
 For analytics and tracking setup, see [references/analytics-guide.md](references/analytics-guide.md).
@@ -142,6 +145,9 @@ When a request is ambiguous, use this matrix:
 | "slides" / "presentation" | `frontend-slides` | `slideshow-script` | frontend-slides = HTML presentation decks. slideshow-script = narrative scripts for social video. |
 | "pitch deck" | `frontend-slides` | `direct-response-copy` | frontend-slides builds the visual deck. DRC writes the copy. |
 | "convert my PPT" | `frontend-slides` | N/A | PPT/PPTX to animated HTML conversion. |
+| "make this plan better" | `deepen-plan` | `brainstorm` | Deepen refines existing plans. Brainstorm explores new directions. |
+| "check my brand files" | `document-review` | `seo-audit` | Document-review audits brand/ files. SEO-audit checks site health. |
+| "add a new skill" | `create-skill` | N/A | Meta-skill for extending the marketing playbook. |
 
 ## First 30 Minutes (New Project)
 

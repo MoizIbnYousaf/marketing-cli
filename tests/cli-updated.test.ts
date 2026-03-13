@@ -127,11 +127,11 @@ describe("existing commands still work (smoke tests)", () => {
     expect(parsed.health).toBeDefined();
   });
 
-  test("mktg list --json returns total 32", async () => {
+  test("mktg list --json returns total 35", async () => {
     const { stdout, exitCode } = await run(["list", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
-    expect(parsed.total).toBe(32);
+    expect(parsed.total).toBe(35);
   });
 
   test("mktg doctor --json returns passed boolean", async () => {

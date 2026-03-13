@@ -25,9 +25,9 @@ describe("loadManifest", () => {
     expect(typeof manifest.redirects).toBe("object");
   });
 
-  test("manifest has exactly 32 skills", async () => {
+  test("manifest has exactly 35 skills", async () => {
     const manifest = await loadManifest();
-    expect(Object.keys(manifest.skills)).toHaveLength(32);
+    expect(Object.keys(manifest.skills)).toHaveLength(35);
   });
 
   test("manifest has redirects", async () => {
@@ -37,10 +37,10 @@ describe("loadManifest", () => {
 });
 
 describe("getSkillNames", () => {
-  test("returns all 32 skill names", async () => {
+  test("returns all 35 skill names", async () => {
     const manifest = await loadManifest();
     const names = getSkillNames(manifest);
-    expect(names).toHaveLength(32);
+    expect(names).toHaveLength(35);
     expect(names).toContain("cmo");
     expect(names).toContain("brand-voice");
     expect(names).toContain("marketing-psychology");
@@ -95,7 +95,7 @@ describe("groupByCategory", () => {
     expect(foundationNames).toContain("brand-voice");
   });
 
-  test("total skills across all groups equals 32", async () => {
+  test("total skills across all groups equals 35", async () => {
     const manifest = await loadManifest();
     const groups = groupByCategory(manifest);
 
@@ -103,7 +103,7 @@ describe("groupByCategory", () => {
     for (const skills of Object.values(groups)) {
       total += skills.length;
     }
-    expect(total).toBe(32);
+    expect(total).toBe(35);
   });
 
   test("no skill appears in multiple groups", async () => {
@@ -121,10 +121,10 @@ describe("groupByCategory", () => {
 });
 
 describe("getInstallStatus", () => {
-  test("returns status for all 32 skills", async () => {
+  test("returns status for all 35 skills", async () => {
     const manifest = await loadManifest();
     const status = await getInstallStatus(manifest);
-    expect(Object.keys(status)).toHaveLength(32);
+    expect(Object.keys(status)).toHaveLength(35);
 
     for (const [name, info] of Object.entries(status)) {
       expect(typeof info.installed).toBe("boolean");
@@ -169,7 +169,7 @@ describe("updateSkills", () => {
 
     // All should be either updated or unchanged
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(32);
+    expect(total).toBe(35);
   });
 
   test("dry-run reports without writing", async () => {
@@ -177,7 +177,7 @@ describe("updateSkills", () => {
     const result = await updateSkills(manifest, true);
 
     const total = result.updated.length + result.unchanged.length + result.notBundled.length;
-    expect(total).toBe(32);
+    expect(total).toBe(35);
   });
 });
 
@@ -313,9 +313,9 @@ describe("Category completeness", () => {
     expect(creativeNames).toContain("frontend-slides");
   });
 
-  test("foundation category has 6 skills", async () => {
+  test("foundation category has 9 skills", async () => {
     const manifest = await loadManifest();
     const groups = groupByCategory(manifest);
-    expect(groups.foundation).toHaveLength(6);
+    expect(groups.foundation).toHaveLength(9);
   });
 });
