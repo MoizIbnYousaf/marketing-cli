@@ -3,6 +3,8 @@
 import type { MouseEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { scrollToSectionById } from "@/lib/scroll";
+
 const SCROLL_LOCK_STYLES = {
   overflow: "hidden",
 };
@@ -17,8 +19,6 @@ export const NAV_LINKS = [
 ] as const;
 
 const DESKTOP_BREAKPOINT = 769;
-const NAV_SCROLL_OFFSET = 96;
-
 const cn = (...classes: Array<string | false | null | undefined>) =>
   classes.filter(Boolean).join(" ");
 
@@ -160,25 +160,10 @@ export function Nav() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const smoothScrollToSection = (sectionId: SectionId) => {
-    const section = document.getElementById(sectionId);
-
-    if (!section) {
-      return;
-    }
-
-    const top = Math.max(
-      0,
-      section.getBoundingClientRect().top + window.scrollY - NAV_SCROLL_OFFSET,
-    );
-
-    window.scrollTo({ top, behavior: "smooth" });
-  };
-
   const scrollToInstall = () => {
     setActiveSection("install");
     setIsMobileMenuOpen(false);
-    smoothScrollToSection("install");
+    scrollToSectionById("install");
   };
 
   const closeMobileMenu = () => {
@@ -192,7 +177,7 @@ export function Nav() {
 
     setActiveSection(sectionId);
     closeMobileMenu();
-    smoothScrollToSection(sectionId);
+    scrollToSectionById(sectionId);
   };
 
   return (
