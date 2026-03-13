@@ -1,5 +1,7 @@
 import type { SVGProps } from "react";
 
+import { MARKETING_SKILL_COUNT } from "@/lib/site-stats";
+
 type FeatureIconProps = SVGProps<SVGSVGElement> & {
   "data-feature-icon"?: string;
 };
@@ -109,7 +111,7 @@ export const FEATURE_ITEMS: FeatureItem[] = [
     Icon: SelfBootstrappingIcon,
   },
   {
-    title: "35 Marketing Skills",
+    title: `${MARKETING_SKILL_COUNT} Marketing Skills`,
     description:
       "A full CMO knowledge base spanning strategy, SEO, copy, creative, conversion, and growth workflows.",
     iconId: "marketing-skills",

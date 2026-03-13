@@ -20,6 +20,7 @@ describe("HomePage", () => {
     expect(markup).toContain("View on GitHub");
     expect(markup).toContain("Features");
     expect(markup).toContain("Skills");
+    expect(markup).toContain("Browse the full playbook");
     expect(markup).toContain("Testimonials");
     expect(markup).toContain("Install");
     expect(markup).toContain("Built for agents, by agents");

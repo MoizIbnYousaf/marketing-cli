@@ -4,11 +4,16 @@ import { JSDOM } from "jsdom";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean | undefined;
+  var __MKTG_TEST_DOM__: JSDOM | undefined;
 }
 
-const dom = new JSDOM("<!doctype html><html><body></body></html>", {
+const dom = globalThis.__MKTG_TEST_DOM__ ?? new JSDOM("<!doctype html><html><body></body></html>", {
   url: "http://localhost",
 });
+
+if (!globalThis.__MKTG_TEST_DOM__) {
+  globalThis.__MKTG_TEST_DOM__ = dom;
+}
 
 const { window } = dom;
 

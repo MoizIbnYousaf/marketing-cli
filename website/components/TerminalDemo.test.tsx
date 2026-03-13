@@ -1,7 +1,7 @@
 import "@/test/setup-dom";
 
 import { beforeEach, describe, expect, test } from "bun:test";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { act } from "react";
 
 import { TerminalDemo } from "./TerminalDemo";
@@ -83,6 +83,9 @@ const renderDemo = () =>
   render(<TerminalDemo animationConfig={FAST_ANIMATION} />);
 
 beforeEach(() => {
+  cleanup();
+  document.body.innerHTML = "";
+
   MockIntersectionObserver.instances = [];
   prefersReducedMotion = false;
 

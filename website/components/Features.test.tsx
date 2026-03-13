@@ -13,7 +13,7 @@ const EXPECTED_FEATURES = [
     "One command with mktg init scaffolds the brand memory, installs skills, and verifies the environment.",
   ],
   [
-    "35 Marketing Skills",
+    "39 Marketing Skills",
     "A full CMO knowledge base spanning strategy, SEO, copy, creative, conversion, and growth workflows.",
   ],
   [

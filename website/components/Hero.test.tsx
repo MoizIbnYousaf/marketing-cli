@@ -11,6 +11,7 @@ describe("Hero", () => {
     expect(markup).toContain("full CMO brain");
     expect(markup).toContain("AI agents the marketing system");
     expect(markup).toContain("brand memory");
+    expect(markup).toContain("39 skills across strategy, copy, SEO, creative, and conversion");
     expect(markup).toContain('href="#install"');
     expect(markup).toContain(
       "https://github.com/moizibnyousaf/mktg",

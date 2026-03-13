@@ -2,6 +2,7 @@
 
 import type { MouseEvent } from "react";
 
+import { MARKETING_SKILL_COUNT } from "@/lib/site-stats";
 import { scrollToSectionById } from "@/lib/scroll";
 
 const heroCapabilities = [
@@ -20,7 +21,7 @@ const heroCapabilities = [
 ] as const;
 
 const heroSignals = [
-  "35 skills across strategy, copy, SEO, creative, and conversion",
+  `${MARKETING_SKILL_COUNT} skills across strategy, copy, SEO, creative, and conversion`,
   "CLI infrastructure for install, health checks, and autonomous updates",
   "Built for agents first, with human-friendly polish where it matters",
 ] as const;

@@ -2,14 +2,10 @@ import { Footer } from "@/components/Footer";
 import { Features } from "@/components/Features";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
+import { SkillsCatalog } from "@/components/SkillsCatalog";
 import { TerminalDemo } from "@/components/TerminalDemo";
 
 const placeholderSections = [
-  {
-    id: "skills",
-    title: "Skills",
-    description: "A growing catalog of marketing skills your agent can use immediately.",
-  },
   {
     id: "testimonials",
     title: "Testimonials",
@@ -30,6 +26,7 @@ export default function HomePage() {
         <Hero />
         <TerminalDemo />
         <Features />
+        <SkillsCatalog />
 
         {placeholderSections.map((section) => (
           <section

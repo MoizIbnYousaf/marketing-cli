@@ -1,3 +1,5 @@
+import { MARKETING_SKILL_COUNT } from "@/lib/site-stats";
+
 export type TerminalTone = "default" | "success" | "warning" | "error" | "muted" | "dim";
 
 export type TerminalSegment = {
@@ -65,7 +67,7 @@ export const TERMINAL_DEMOS = [
       success("init-2", "Created brand/voice-profile.md"),
       success("init-3", "Created brand/audience.md"),
       success("init-4", "Created brand/competitors.md"),
-      success("init-5", "Installed 35 marketing skills into agent config"),
+      success("init-5", `Installed ${MARKETING_SKILL_COUNT} marketing skills into agent config`),
       success("init-6", "Installed 5 research and review agents"),
       warning("init-7", "Exa MCP missing — research skills will prompt on first run"),
       failure("init-8", "GitHub CLI auth missing — release shortcuts skipped"),
@@ -81,7 +83,7 @@ export const TERMINAL_DEMOS = [
     lines: [
       header("status-header", "Marketing state snapshot"),
       success("status-1", "Brand directory present with 9/9 foundation files"),
-      success("status-2", "35/35 skills installed and available to your agent"),
+      success("status-2", `${MARKETING_SKILL_COUNT}/${MARKETING_SKILL_COUNT} skills installed and available to your agent`),
       success("status-3", "Primary positioning angle synced across active playbooks"),
       warning("status-4", "keyword-plan.md is 12 days old — refresh before the next launch"),
       warning("status-5", "Audience research last updated before the latest feature release"),
