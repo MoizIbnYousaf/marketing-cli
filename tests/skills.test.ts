@@ -236,6 +236,67 @@ describe("Skill install copies references", () => {
   });
 });
 
+describe("updateSkills diffs references/", () => {
+  // These tests use a real skill with references (slideshow-script)
+  const skillName = "slideshow-script";
+
+  test("detects changed reference file", async () => {
+    const manifest = await loadManifest();
+
+    // First ensure skill is fully installed
+    await installSkills(manifest);
+
+    const refPath = join(getSkillsInstallDir(), skillName, "references", "frameworks.md");
+    const refFile = Bun.file(refPath);
+    const originalContent = await refFile.text();
+
+    // Tamper with installed reference
+    await Bun.write(refPath, originalContent + "\n<!-- tampered -->");
+
+    const result = await updateSkills(manifest);
+    expect(result.updated).toContain(skillName);
+
+    // Restore: run update again to fix it
+    const result2 = await updateSkills(manifest);
+    expect(result2.unchanged).toContain(skillName);
+  });
+
+  test("reports unchanged when SKILL.md and all references match", async () => {
+    const manifest = await loadManifest();
+
+    // Install fresh then update — should be unchanged
+    await installSkills(manifest);
+    const result = await updateSkills(manifest);
+    expect(result.unchanged).toContain(skillName);
+  });
+
+  test("copies new reference files that did not exist before", async () => {
+    const manifest = await loadManifest();
+    await installSkills(manifest);
+
+    // Delete an installed reference file
+    const refPath = join(getSkillsInstallDir(), skillName, "references", "frameworks.md");
+    const { rm } = await import("node:fs/promises");
+    await rm(refPath);
+
+    const result = await updateSkills(manifest);
+    expect(result.updated).toContain(skillName);
+
+    // Verify the file was restored
+    const restored = await Bun.file(refPath).exists();
+    expect(restored).toBe(true);
+  });
+
+  test("works when bundled skill has no references/ dir", async () => {
+    const manifest = await loadManifest();
+    await installSkills(manifest);
+
+    // marketing-psychology has no references/ dir
+    const result = await updateSkills(manifest);
+    expect(result.unchanged).toContain("marketing-psychology");
+  });
+});
+
 describe("Category completeness", () => {
   test("creative category has all 8 creative skills", async () => {
     const manifest = await loadManifest();

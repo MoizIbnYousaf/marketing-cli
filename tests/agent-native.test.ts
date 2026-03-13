@@ -166,13 +166,13 @@ describe("health transitions", () => {
     expect(result.data.health).toBe("needs-setup");
   });
 
-  test("after init: health is ready (voice-profile exists)", async () => {
+  test("after init: health is incomplete (all files are templates)", async () => {
     await initHandler(["--yes"], flags);
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.health).toBe("ready");
+    expect(result.data.health).toBe("incomplete");
   });
 
   test("after deleting voice-profile.md: health is incomplete", async () => {
@@ -293,8 +293,8 @@ describe("multi-project switching", () => {
     expect(resultB.ok).toBe(true);
     if (!resultA.ok || !resultB.ok) return;
 
-    expect(resultA.data.health).toBe("ready");
-    expect(resultB.data.health).toBe("ready");
+    expect(resultA.data.health).toBe("incomplete");
+    expect(resultB.data.health).toBe("incomplete");
   });
 });
 

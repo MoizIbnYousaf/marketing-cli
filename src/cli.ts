@@ -3,10 +3,11 @@
 // Entry point — parses global flags and routes to command handlers.
 // Only this file calls process.exit(). Commands return CommandResult.
 
-import type { GlobalFlags, CommandResult } from "./types";
+import type { GlobalFlags, CommandResult, CommandSchema } from "./types";
 import { formatOutput, writeStdout, writeStderr, isTTY } from "./core/output";
+import pkg from "../package.json";
 
-const VERSION = "0.1.0";
+const VERSION = pkg.version;
 
 const HELP = `mktg v${VERSION} — Agent-native marketing playbook CLI
 
@@ -80,6 +81,37 @@ const COMMANDS: Record<string, () => Promise<{ handler: (args: readonly string[]
   content: () => import("./commands/content"),
 };
 
+// Format a command schema as readable help text
+const formatSchemaAsHelp = (schema: CommandSchema): string => {
+  const lines: string[] = [`mktg ${schema.name} — ${schema.description}`];
+
+  if (schema.subcommands && schema.subcommands.length > 0) {
+    lines.push("", "Subcommands:");
+    for (const sub of schema.subcommands) {
+      lines.push(`  ${sub.name.padEnd(14)} ${sub.description}`);
+    }
+  }
+
+  if (schema.flags.length > 0) {
+    lines.push("", "Flags:");
+    for (const flag of schema.flags) {
+      const req = flag.required ? " (required)" : "";
+      const name = flag.name.startsWith("--") ? flag.name : `--${flag.name}`;
+      lines.push(`  ${name.padEnd(16)} ${flag.description}${req}`);
+    }
+  }
+
+  if (schema.examples.length > 0) {
+    lines.push("", "Examples:");
+    for (const ex of schema.examples) {
+      lines.push(`  ${ex.args}`);
+      lines.push(`    ${ex.description}`);
+    }
+  }
+
+  return lines.join("\n");
+};
+
 const run = async () => {
   const { command, args, flags } = parseGlobalFlags(process.argv.slice(2));
 
@@ -93,12 +125,21 @@ const run = async () => {
     process.exit(0);
   }
 
-  // --help / no command
-  if (!command || args.includes("--help") || args.includes("-h") || command === "--help" || command === "-h") {
+  // --help / no command → show global help (but NOT if a command is specified)
+  const wantsHelp = args.includes("--help") || args.includes("-h");
+  if (!command || command === "--help" || command === "-h") {
     if (flags.json) {
+      const schemas = await Promise.all(
+        Object.keys(COMMANDS).map(async (name) => {
+          try {
+            const mod = await COMMANDS[name]!();
+            return { name, description: (mod as { schema?: CommandSchema }).schema?.description ?? "" };
+          } catch { return { name, description: "" }; }
+        }),
+      );
       const structured = {
         version: VERSION,
-        commands: Object.keys(COMMANDS).map((name) => ({ name })),
+        commands: schemas,
         globalFlags: ["--json", "--dry-run", "--fields", "--cwd"],
       };
       writeStdout(JSON.stringify(structured, null, 2));
@@ -134,6 +175,20 @@ const run = async () => {
 
   try {
     const mod = await loader();
+
+    // Per-command --help: delegate to command schema
+    if (wantsHelp) {
+      const schema = (mod as { schema?: CommandSchema }).schema;
+      if (schema) {
+        if (flags.json) {
+          writeStdout(JSON.stringify(schema, null, 2));
+        } else {
+          writeStdout(formatSchemaAsHelp(schema));
+        }
+        process.exit(0);
+      }
+    }
+
     const result = await mod.handler(args, flags);
 
     // Handle display for TTY commands that build their own output

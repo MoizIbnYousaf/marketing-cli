@@ -312,6 +312,16 @@ export type SkillEvaluation = {
   };
 };
 
+// Skill execution history
+export type SkillRunRecord = {
+  readonly skill: string;
+  readonly timestamp: string; // ISO 8601
+  readonly result: "success" | "partial" | "failed";
+  readonly brandFilesChanged: readonly string[];
+  readonly durationMs?: number;
+  readonly note?: string;
+};
+
 // Freshness levels for brand files
 export type FreshnessLevel = "current" | "stale" | "missing";
 

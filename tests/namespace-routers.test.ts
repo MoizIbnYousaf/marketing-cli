@@ -83,6 +83,14 @@ describe("mktg skill namespace", () => {
     expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 
+  test("mktg skill unregister --json without name returns INVALID_ARGS", async () => {
+    const { stdout, exitCode } = await run(["skill", "unregister", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("Missing skill name");
+  });
+
   test("mktg skill blah --json returns INVALID_ARGS with suggestions", async () => {
     const { stdout, exitCode } = await run(["skill", "blah", "--json"]);
     const parsed = JSON.parse(stdout);
@@ -141,11 +149,13 @@ describe("mktg brand namespace", () => {
     expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
   });
 
-  test("mktg brand freshness --json returns NOT_IMPLEMENTED", async () => {
+  test("mktg brand freshness --json returns freshness data", async () => {
     const { stdout, exitCode } = await run(["brand", "freshness", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(exitCode).toBe(6);
-    expect(parsed.error.code).toBe("NOT_IMPLEMENTED");
+    expect(exitCode).toBe(0);
+    expect(parsed.files).toBeDefined();
+    expect(parsed.summary).toBeDefined();
+    expect(typeof parsed.summary.total).toBe("number");
   });
 
   test("mktg brand blah --json returns INVALID_ARGS", async () => {

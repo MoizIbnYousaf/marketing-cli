@@ -175,12 +175,36 @@ export const updateSkills = async (
     const installedExists = await installedFile.exists();
     const bundledContent = await bundledFile.text();
 
+    // Check if SKILL.md content matches
+    let skillMdChanged = true;
     if (installedExists) {
       const installedContent = await installedFile.text();
       if (bundledContent === installedContent) {
-        unchanged.push(name);
-        continue;
+        skillMdChanged = false;
       }
+    }
+
+    // Check if references/ directory has changes
+    let refsChanged = false;
+    const bundledRefsDir = join(getBundledSkillPath(name), "references");
+    try {
+      const glob = new Bun.Glob("**/*");
+      for await (const refPath of glob.scan(bundledRefsDir)) {
+        const bundledRef = await Bun.file(join(bundledRefsDir, refPath)).text();
+        const installedRef = Bun.file(join(SKILLS_INSTALL_DIR, name, "references", refPath));
+        const installedRefExists = await installedRef.exists();
+        if (!installedRefExists || await installedRef.text() !== bundledRef) {
+          refsChanged = true;
+          break;
+        }
+      }
+    } catch {
+      // No references dir in bundled — that's fine
+    }
+
+    if (!skillMdChanged && !refsChanged) {
+      unchanged.push(name);
+      continue;
     }
 
     updated.push(name);
@@ -188,6 +212,21 @@ export const updateSkills = async (
       const installDir = join(SKILLS_INSTALL_DIR, name);
       await mkdir(installDir, { recursive: true });
       await Bun.write(installedPath, bundledContent);
+
+      // Copy references/ if they exist
+      try {
+        const glob = new Bun.Glob("**/*");
+        const refInstallDir = join(installDir, "references");
+        await mkdir(refInstallDir, { recursive: true });
+        for await (const path of glob.scan(bundledRefsDir)) {
+          const src = join(bundledRefsDir, path);
+          const dest = join(refInstallDir, path);
+          await mkdir(dirname(dest), { recursive: true });
+          await Bun.write(dest, await Bun.file(src).text());
+        }
+      } catch {
+        // No references dir — that's fine
+      }
     }
   }
 

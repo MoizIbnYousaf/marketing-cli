@@ -2,15 +2,17 @@
 import { type CommandHandler, type CommandSchema, type CommandResult, ok } from "../types";
 import { isKeyOf } from "../core/routing";
 import { invalidArgs, notFound } from "../core/errors";
-import { resolveManifest } from "../core/skills";
+import { resolveManifest, loadManifest } from "../core/skills";
 import {
   getSkillInfo,
   validateSkill as validateSkillContent,
   buildGraph,
   checkPrerequisites,
   registerSkill,
+  unregisterSkill,
   evaluateSkill as evaluateSkillContent,
 } from "../core/skill-lifecycle";
+import { logRun, getRunHistory, getRunSummary } from "../core/run-log";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -21,6 +23,9 @@ const SUBCOMMANDS = {
   check: "Check if skill prerequisites are satisfied",
   register: "Register a new skill in the project manifest",
   evaluate: "Analyze a skill for overlap, novelty, and graph fit",
+  unregister: "Remove a skill from the project manifest",
+  history: "Show skill execution history",
+  log: "Record a skill execution (for agent use)",
 } as const;
 
 export const schema: CommandSchema = {
@@ -130,6 +135,51 @@ export const schema: CommandSchema = {
         { args: "mktg skill evaluate ./new-skill --json", description: "Full overlap and novelty analysis" },
       ],
     },
+    {
+      name: "unregister",
+      description: "Remove a skill from the project manifest",
+      flags: [],
+      positional: { name: "name", description: "Skill name to remove", required: true },
+      output: {
+        name: "string — removed skill name",
+        action: "string — 'removed'",
+        manifestPath: "string — path to project manifest",
+      },
+      examples: [
+        { args: "mktg skill unregister my-skill --json", description: "Remove a project-registered skill" },
+      ],
+    },
+    {
+      name: "history",
+      description: "Show skill execution history",
+      flags: [],
+      positional: { name: "name", description: "Skill name (optional — omit for all)", required: false },
+      output: {
+        history: "array — run records, most recent first",
+        summary: "object — per-skill last run info (when no name filter)",
+        total: "number — total records returned",
+      },
+      examples: [
+        { args: "mktg skill history --json", description: "All recent skill runs" },
+        { args: "mktg skill history brand-voice --json", description: "History for a specific skill" },
+      ],
+    },
+    {
+      name: "log",
+      description: "Record a skill execution (for agent use)",
+      flags: [],
+      positional: { name: "name", description: "Skill name that was executed", required: true },
+      output: {
+        skill: "string — skill name",
+        timestamp: "string — ISO 8601 timestamp",
+        result: "string — success, partial, or failed",
+        brandFilesChanged: "string[] — brand files modified",
+      },
+      examples: [
+        { args: "mktg skill log brand-voice --json", description: "Record a successful run" },
+        { args: "mktg skill log seo-content failed --json", description: "Record a failed run" },
+      ],
+    },
   ],
   output: {},
   examples: [
@@ -139,8 +189,11 @@ export const schema: CommandSchema = {
     { args: "mktg skill validate ./skill --json", description: "Validate a SKILL.md" },
     { args: "mktg skill register ./skill --json", description: "Register a new skill" },
     { args: "mktg skill evaluate ./skill --json", description: "Analyze overlap and novelty" },
+    { args: "mktg skill unregister my-skill --json", description: "Remove a project-registered skill" },
+    { args: "mktg skill history --json", description: "Show execution history" },
+    { args: "mktg skill log brand-voice --json", description: "Record a skill run" },
   ],
-  vocabulary: ["skill", "validate skill", "skill dependencies", "skill graph", "skill info", "register skill", "check skill", "evaluate skill", "skill overlap", "skill novelty"],
+  vocabulary: ["skill", "validate skill", "skill dependencies", "skill graph", "skill info", "register skill", "check skill", "evaluate skill", "skill overlap", "skill novelty", "unregister skill", "skill history", "skill log"],
 };
 
 // --- Subcommand handlers ---
@@ -253,6 +306,48 @@ const handleEvaluate = async (args: readonly string[], flags: { cwd: string }): 
   return ok(result);
 };
 
+const handleUnregister = async (args: readonly string[], flags: { cwd: string; dryRun: boolean }): Promise<CommandResult> => {
+  const name = args[0];
+  if (!name) return invalidArgs("Missing skill name", ["Usage: mktg skill unregister <name>"]);
+
+  if (flags.dryRun) {
+    return ok({ name, action: "would-remove", manifestPath: join(flags.cwd, "skills-manifest.json") });
+  }
+
+  const packageManifest = await loadManifest();
+  const result = await unregisterSkill(name, flags.cwd, packageManifest);
+
+  if ("error" in result) {
+    return invalidArgs(result.error, ["mktg list --json to see registered skills"]);
+  }
+
+  return ok(result);
+};
+
+const handleHistory = async (args: readonly string[], flags: { cwd: string }): Promise<CommandResult> => {
+  const name = args[0]; // optional
+  const history = await getRunHistory(flags.cwd, name);
+  const summary = name ? undefined : await getRunSummary(flags.cwd);
+  return ok({ history, ...(summary && { summary }), total: history.length });
+};
+
+const handleLog = async (args: readonly string[], flags: { cwd: string; dryRun: boolean }): Promise<CommandResult> => {
+  const name = args[0];
+  if (!name) return invalidArgs("Missing skill name", ["Usage: mktg skill log <name> [success|partial|failed]"]);
+
+  const resultArg = args.find(a => a === "success" || a === "partial" || a === "failed") ?? "success";
+
+  const record = {
+    skill: name,
+    timestamp: new Date().toISOString(),
+    result: resultArg as "success" | "partial" | "failed",
+    brandFilesChanged: [] as string[],
+  };
+
+  if (!flags.dryRun) await logRun(flags.cwd, record);
+  return ok(record);
+};
+
 // --- Main handler ---
 
 export const handler: CommandHandler = async (args, flags) => {
@@ -278,6 +373,9 @@ export const handler: CommandHandler = async (args, flags) => {
     case "check": return handleCheck(subArgs, flags);
     case "register": return handleRegister(subArgs, flags);
     case "evaluate": return handleEvaluate(subArgs, flags);
+    case "unregister": return handleUnregister(subArgs, flags);
+    case "history": return handleHistory(subArgs, flags);
+    case "log": return handleLog(subArgs, flags);
     default: return invalidArgs(`Unknown subcommand: skill ${subcommand}`, []);
   }
 };

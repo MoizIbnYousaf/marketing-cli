@@ -638,6 +638,35 @@ describe("mktg skill register", () => {
     expect(exists).toBe(false);
   });
 
+  test("infers layer from category instead of hardcoding execution", async () => {
+    const skillDir = join(tmpDir, "foundation-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: foundation-skill\ndescription: test\ncategory: foundation\n---\n`);
+    await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+    const manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["foundation-skill"].layer).toBe("foundation");
+  });
+
+  test("infers depends_on from reads (brand-voice writes voice-profile.md)", async () => {
+    const skillDir = join(tmpDir, "reader-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: reader-skill\ndescription: test\nreads:\n  - voice-profile.md\n---\n`);
+    await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+    const manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["reader-skill"].depends_on).toContain("brand-voice");
+  });
+
+  test("exists case returns non-empty manifestPath", async () => {
+    const skillDir = join(tmpDir, "seo-content-dup");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: seo-content\ndescription: duplicate\n---\n`);
+    const { stdout } = await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.action).toBe("exists");
+    expect(parsed.manifestPath).toBeTruthy();
+    expect(parsed.manifestPath).toContain("skills-manifest.json");
+  });
+
   test("multiple registers append to same manifest", async () => {
     // Register first skill
     const skill1 = join(tmpDir, "skill-one");
@@ -657,9 +686,109 @@ describe("mktg skill register", () => {
   });
 });
 
+// ==================== skill unregister ====================
+
+describe("mktg skill unregister", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "mktg-unregister-"));
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  test("removes a project-registered skill", async () => {
+    // Register first
+    const skillDir = join(tmpDir, "temp-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: temp-skill\ndescription: temporary\n---\n`);
+    await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+
+    // Unregister
+    const { stdout, exitCode } = await run(["skill", "unregister", "temp-skill", "--json", "--cwd", tmpDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.name).toBe("temp-skill");
+    expect(parsed.action).toBe("removed");
+    expect(parsed.manifestPath).toContain("skills-manifest.json");
+
+    // Verify removed from manifest
+    const manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["temp-skill"]).toBeUndefined();
+  });
+
+  test("cannot unregister package skills", async () => {
+    const { stdout, exitCode } = await run(["skill", "unregister", "seo-content", "--json", "--cwd", tmpDir]);
+    // Need a project manifest to exist first
+    await writeFile(join(tmpDir, "skills-manifest.json"), JSON.stringify({ version: 1, skills: {}, redirects: {} }));
+    const result = await run(["skill", "unregister", "seo-content", "--json", "--cwd", tmpDir]);
+    expect(result.exitCode).toBe(2);
+    const parsed = JSON.parse(result.stdout);
+    expect(parsed.error.message).toContain("Cannot unregister package skill");
+  });
+
+  test("returns error when no project manifest exists", async () => {
+    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--json", "--cwd", tmpDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(2);
+    expect(parsed.error.message).toContain("No project manifest found");
+  });
+
+  test("returns error for skill not in project manifest", async () => {
+    await writeFile(join(tmpDir, "skills-manifest.json"), JSON.stringify({ version: 1, skills: {}, redirects: {} }));
+    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--json", "--cwd", tmpDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(2);
+    expect(parsed.error.message).toContain("not found in project manifest");
+  });
+
+  test("missing name returns INVALID_ARGS", async () => {
+    const { stdout, exitCode } = await run(["skill", "unregister", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+  });
+
+  test("--dry-run returns would-remove without modifying files", async () => {
+    // Register first
+    const skillDir = join(tmpDir, "dry-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: dry-skill\ndescription: dry\n---\n`);
+    await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+
+    // Dry-run unregister
+    const { stdout, exitCode } = await run(["skill", "unregister", "dry-skill", "--json", "--dry-run", "--cwd", tmpDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.action).toBe("would-remove");
+
+    // Skill should still exist
+    const manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["dry-skill"]).toBeDefined();
+  });
+
+  test("roundtrip: register → unregister → verify removed", async () => {
+    const skillDir = join(tmpDir, "roundtrip-skill");
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), `---\nname: roundtrip-skill\ndescription: roundtrip\n---\n`);
+
+    // Register
+    await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
+    let manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["roundtrip-skill"]).toBeDefined();
+
+    // Unregister
+    await run(["skill", "unregister", "roundtrip-skill", "--json", "--cwd", tmpDir]);
+    manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
+    expect(manifest.skills["roundtrip-skill"]).toBeUndefined();
+  });
+});
+
 // ==================== Unit tests: parseFrontmatter ====================
 
-import { parseFrontmatter, buildGraph, validateSkill, evaluateSkill } from "../src/core/skill-lifecycle";
+import { parseFrontmatter, buildGraph, validateSkill, evaluateSkill, triggerSimilarity } from "../src/core/skill-lifecycle";
 import { readManifest } from "../src/core/skills";
 
 describe("parseFrontmatter", () => {
@@ -704,6 +833,34 @@ describe("parseFrontmatter", () => {
     expect(fm).not.toBeNull();
     expect(fm!.category).toBe("seo");
     expect(fm!.tier).toBe("must-have");
+  });
+
+  test("strips double-quoted YAML values", () => {
+    const fm = parseFrontmatter('---\nname: "quoted-name"\ndescription: "A quoted description"\n---\n');
+    expect(fm).not.toBeNull();
+    expect(fm!.name).toBe("quoted-name");
+    expect(fm!.description).toBe("A quoted description");
+  });
+
+  test("strips single-quoted YAML values", () => {
+    const fm = parseFrontmatter("---\nname: 'single-quoted'\ndescription: 'A single-quoted desc'\n---\n");
+    expect(fm).not.toBeNull();
+    expect(fm!.name).toBe("single-quoted");
+    expect(fm!.description).toBe("A single-quoted desc");
+  });
+
+  test("handles mixed quoted and unquoted values", () => {
+    const fm = parseFrontmatter('---\nname: unquoted\ndescription: "quoted desc"\ncategory: \'single-quoted-cat\'\n---\n');
+    expect(fm).not.toBeNull();
+    expect(fm!.name).toBe("unquoted");
+    expect(fm!.description).toBe("quoted desc");
+    expect(fm!.category).toBe("single-quoted-cat");
+  });
+
+  test("strips quotes from array items", () => {
+    const fm = parseFrontmatter('---\nname: test\ndescription: hello\nreads:\n  - "voice-profile.md"\n  - \'audience.md\'\n  - competitors.md\n---\n');
+    expect(fm).not.toBeNull();
+    expect(fm!.reads).toEqual(["voice-profile.md", "audience.md", "competitors.md"]);
   });
 });
 
@@ -1011,5 +1168,76 @@ describe("evaluateSkill (unit)", () => {
       // Several skills read assets.md
       expect(result.graphPosition.wouldBeDepOf.length).toBeGreaterThan(0);
     }
+  });
+
+  test("maps category 'seo' to layer 'execution' not 'seo'", () => {
+    const result = evaluateSkill("---\nname: test-seo\ndescription: test\ncategory: seo\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("execution");
+      expect(result.graphPosition.layer).not.toBe("seo");
+    }
+  });
+
+  test("maps category 'foundation' to layer 'foundation'", () => {
+    const result = evaluateSkill("---\nname: test-found\ndescription: test\ncategory: foundation\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("foundation");
+    }
+  });
+
+  test("maps category 'strategy' to layer 'strategy'", () => {
+    const result = evaluateSkill("---\nname: test-strat\ndescription: test\ncategory: strategy\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("strategy");
+    }
+  });
+
+  test("maps category 'distribution' to layer 'distribution'", () => {
+    const result = evaluateSkill("---\nname: test-dist\ndescription: test\ncategory: distribution\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("distribution");
+    }
+  });
+
+  test("maps category 'creative' to layer 'execution'", () => {
+    const result = evaluateSkill("---\nname: test-creative\ndescription: test\ncategory: creative\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("execution");
+    }
+  });
+
+  test("defaults to layer 'execution' when no category", () => {
+    const result = evaluateSkill("---\nname: test-nocat\ndescription: test\n---\n", manifest);
+    if (!("error" in result)) {
+      expect(result.graphPosition.layer).toBe("execution");
+    }
+  });
+});
+
+// ==================== triggerSimilarity (unit) ====================
+
+describe("triggerSimilarity (unit)", () => {
+  test("exact match returns true", () => {
+    expect(triggerSimilarity("SEO content", "SEO content")).toBe(true);
+  });
+
+  test("case-insensitive exact match returns true", () => {
+    expect(triggerSimilarity("SEO Content", "seo content")).toBe(true);
+  });
+
+  test("longer substring match works for triggers > 4 chars", () => {
+    expect(triggerSimilarity("SEO content", "SEO content strategy")).toBe(true);
+  });
+
+  test("short trigger (<=4 chars) requires exact match", () => {
+    expect(triggerSimilarity("SEO", "SEO content")).toBe(false);
+  });
+
+  test("short trigger exact match works", () => {
+    expect(triggerSimilarity("SEO", "SEO")).toBe(true);
+  });
+
+  test("no match returns false", () => {
+    expect(triggerSimilarity("email marketing", "video production")).toBe(false);
   });
 });

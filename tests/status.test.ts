@@ -77,25 +77,44 @@ describe("mktg status", () => {
 });
 
 describe("Health transitions", () => {
-  test("needs-setup → ready after init", async () => {
+  test("needs-setup → incomplete after init (all templates)", async () => {
     // Before init
     const before = await statusHandler([], flags);
     expect(before.ok).toBe(true);
     if (!before.ok) return;
     expect(before.data.health).toBe("needs-setup");
 
-    // After init
+    // After init — all files are still templates, so health is incomplete
     await initHandler(["--yes"], flags);
     const after = await statusHandler([], flags);
     expect(after.ok).toBe(true);
     if (!after.ok) return;
-    expect(after.data.health).toBe("ready");
+    expect(after.data.health).toBe("incomplete");
+  });
+
+  test("incomplete → ready when 3+ brand files are populated", async () => {
+    await initHandler(["--yes"], flags);
+
+    // Populate 3 brand files with non-template content
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Our real voice\nWe are bold and direct.");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "# Real positioning\nWe own the market.");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "# Real audience\nDevelopers aged 25-40.");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.health).toBe("ready");
   });
 
   test("ready → incomplete when voice-profile deleted", async () => {
     await initHandler(["--yes"], flags);
 
-    // Delete voice-profile.md
+    // Populate enough files to be "ready"
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Real voice");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "# Real positioning");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "# Real audience");
+
+    // Delete voice-profile.md — drops below 3 populated
     const { rm: rmFile } = await import("node:fs/promises");
     await rmFile(join(tempDir, "brand", "voice-profile.md"));
 
@@ -220,6 +239,76 @@ describe("Multi-project switching via --cwd", () => {
     const { rm: rmDir } = await import("node:fs/promises");
     await rmDir(dirA, { recursive: true, force: true });
     await rmDir(dirB, { recursive: true, force: true });
+  });
+});
+
+describe("Template detection", () => {
+  test("brand files after init are marked isTemplate: true", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      if (entry.exists) {
+        expect(entry.isTemplate).toBe(true);
+      }
+    }
+  });
+
+  test("populated brand files are marked isTemplate: false", async () => {
+    await initHandler(["--yes"], flags);
+
+    // Overwrite voice-profile with real content
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Our Brand Voice\nWe speak with authority and warmth.");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const voiceEntry = result.data.brand["voice-profile.md"];
+    expect(voiceEntry.isTemplate).toBe(false);
+
+    // Other files should still be templates
+    const positioningEntry = result.data.brand["positioning.md"];
+    expect(positioningEntry.isTemplate).toBe(true);
+  });
+
+  test("health is incomplete when all brand files are templates", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.health).toBe("incomplete");
+  });
+
+  test("health is ready when 3+ files are non-template", async () => {
+    await initHandler(["--yes"], flags);
+
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "Real content 1");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "Real content 2");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "Real content 3");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.health).toBe("ready");
+  });
+
+  test("each brand entry includes lines count", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      if (entry.exists) {
+        expect(typeof entry.lines).toBe("number");
+        expect(entry.lines).toBeGreaterThan(0);
+      }
+    }
   });
 });
 

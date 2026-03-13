@@ -72,7 +72,11 @@ export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
     // Array item: "  - value"
     if (/^\s+-\s+/.test(line) && currentKey) {
       inArray = true;
-      arrayValues.push(line.replace(/^\s+-\s+/, "").trim());
+      const arrVal = line.replace(/^\s+-\s+/, "").trim();
+      const arrUnquoted = (arrVal.startsWith('"') && arrVal.endsWith('"')) || (arrVal.startsWith("'") && arrVal.endsWith("'"))
+        ? arrVal.slice(1, -1)
+        : arrVal;
+      arrayValues.push(arrUnquoted);
       continue;
     }
 
@@ -82,7 +86,11 @@ export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
       flushKey();
       currentKey = kvMatch[1]!;
       const val = kvMatch[2]!.trim();
-      currentValue = val === ">" ? "" : val;
+      // Strip YAML quotes (single or double)
+      const unquoted = (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))
+        ? val.slice(1, -1)
+        : val;
+      currentValue = unquoted === ">" ? "" : unquoted;
       inArray = false;
       continue;
     }
@@ -459,6 +467,20 @@ export const getSkillInfo = async (
   };
 };
 
+// --- Category → Layer mapping ---
+
+const CATEGORY_TO_LAYER: Record<string, SkillLayer> = {
+  foundation: "foundation",
+  strategy: "strategy",
+  "copy-content": "execution",
+  distribution: "distribution",
+  creative: "execution",
+  seo: "execution",
+  conversion: "execution",
+  growth: "execution",
+  knowledge: "foundation",
+};
+
 // --- Register skill ---
 
 export const registerSkill = async (
@@ -503,18 +525,33 @@ export const registerSkill = async (
 
   // Check if already exists in package manifest (can't override)
   if (fm.name in manifest.skills) {
-    return { name: fm.name, action: "exists", manifestPath: "" };
+    const packageManifestPath = join(getPackageRoot(), "skills-manifest.json");
+    return { name: fm.name, action: "exists", manifestPath: packageManifestPath };
+  }
+
+  // Infer layer from category
+  const inferredLayer = CATEGORY_TO_LAYER[fm.category ?? ""] ?? "execution";
+
+  // Infer depends_on from reads — skills that write files this skill reads
+  const normalizedReads = (fm.reads ?? []).map(f => f.replace(/^brand\//, ""));
+  const inferredDeps: string[] = [];
+  for (const readFile of normalizedReads) {
+    for (const [name, entry] of Object.entries(manifest.skills)) {
+      if (entry.writes.includes(readFile) && !inferredDeps.includes(name)) {
+        inferredDeps.push(name);
+      }
+    }
   }
 
   // Build manifest entry from frontmatter
   const entry: SkillManifestEntry = {
     source: "new" as const,
     category: (fm.category as SkillCategory) ?? "knowledge",
-    layer: "execution" as const,
+    layer: inferredLayer,
     tier: (fm.tier as "must-have" | "nice-to-have") ?? "nice-to-have",
-    reads: fm.reads?.map(f => f.replace(/^brand\//, "")) ?? [],
+    reads: normalizedReads,
     writes: fm.writes?.map(f => f.replace(/^brand\//, "")) ?? [],
-    depends_on: [],
+    depends_on: inferredDeps,
     triggers: fm.triggers ?? [],
     review_interval_days: 60,
   };
@@ -544,11 +581,53 @@ export const registerSkill = async (
   };
 };
 
+// --- Unregister skill ---
+
+export type UnregisterResult = {
+  readonly name: string;
+  readonly action: "removed";
+  readonly manifestPath: string;
+};
+
+export const unregisterSkill = async (
+  skillName: string,
+  cwd: string,
+  packageManifest: SkillsManifest,
+): Promise<UnregisterResult | { error: string }> => {
+  const projectManifestPath = join(cwd, "skills-manifest.json");
+
+  // Read project manifest
+  let projectManifest: { version: number; skills: Record<string, unknown>; redirects: Record<string, string> };
+  try {
+    const raw = await readFile(projectManifestPath, "utf-8");
+    projectManifest = JSON.parse(raw);
+  } catch {
+    return { error: "No project manifest found (only project-registered skills can be unregistered)" };
+  }
+
+  // Cannot unregister package skills
+  if (skillName in packageManifest.skills) {
+    return { error: `Cannot unregister package skill '${skillName}' — only project-registered skills can be removed` };
+  }
+
+  if (!projectManifest.skills || !(skillName in projectManifest.skills)) {
+    return { error: `Skill '${skillName}' not found in project manifest` };
+  }
+
+  delete projectManifest.skills[skillName];
+  await writeFile(projectManifestPath, JSON.stringify(projectManifest, null, 2) + "\n");
+
+  return { name: skillName, action: "removed", manifestPath: projectManifestPath };
+};
+
 // --- Evaluate skill (overlap + novelty analysis) ---
 
-const triggerSimilarity = (a: string, b: string): boolean => {
-  const al = a.toLowerCase();
-  const bl = b.toLowerCase();
+export const triggerSimilarity = (a: string, b: string): boolean => {
+  const al = a.toLowerCase().trim();
+  const bl = b.toLowerCase().trim();
+  if (al === bl) return true;
+  // Short triggers (<=4 chars) are too generic for substring matching — require exact match
+  if (al.length <= 4 || bl.length <= 4) return false;
   return al.includes(bl) || bl.includes(al);
 };
 
@@ -645,7 +724,7 @@ export const evaluateSkill = (
       coversNewCategory: fm.category ? categoryMatches.length === 0 : false,
     },
     graphPosition: {
-      layer: fm.category ?? "unknown",
+      layer: CATEGORY_TO_LAYER[fm.category ?? ""] ?? "execution",
       wouldDependOn,
       wouldBeDepOf,
     },

@@ -221,6 +221,103 @@ describe("brandExists", () => {
   });
 });
 
+// ---------- brand freshness command (E2E via subprocess) ----------
+
+const run = async (args: string[], cwd?: string): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+  const proc = Bun.spawn(["bun", "run", "src/cli.ts", ...args], {
+    cwd: cwd ?? import.meta.dir.replace("/tests", ""),
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, NO_COLOR: "1" },
+  });
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]);
+  return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode: await proc.exited };
+};
+
+describe("brand freshness command", () => {
+  test("no brand dir → all missing", async () => {
+    const { stdout, exitCode } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.summary.total).toBe(9);
+    expect(parsed.summary.missing).toBe(9);
+    expect(parsed.summary.current).toBe(0);
+    for (const f of parsed.files) {
+      expect(f.freshness).toBe("missing");
+      expect(f.exists).toBe(false);
+    }
+  });
+
+  test("template files → all template", async () => {
+    await scaffoldBrand(tempDir);
+    const { stdout, exitCode } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.summary.template).toBeGreaterThan(0);
+    // Profile files should be "template", append-only may differ
+    const voiceFile = parsed.files.find((f: { file: string }) => f.file === "voice-profile.md");
+    expect(voiceFile.freshness).toBe("template");
+  });
+
+  test("populated recent files → current", async () => {
+    await scaffoldBrand(tempDir);
+    // Write non-template content to voice-profile.md
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Real Voice\n\nDirect and confident.");
+    const { stdout, exitCode } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    const voiceFile = parsed.files.find((f: { file: string }) => f.file === "voice-profile.md");
+    expect(voiceFile.freshness).toBe("current");
+  });
+
+  test("old files → stale based on review interval", async () => {
+    await scaffoldBrand(tempDir);
+    const voicePath = join(tempDir, "brand", "voice-profile.md");
+    // Write non-template content
+    await Bun.write(voicePath, "# Real Voice\n\nDirect and confident.");
+    // Make it old (180 days — well exceeds the 90-day review interval for voice-profile.md)
+    const oldDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
+    await utimes(voicePath, oldDate, oldDate);
+    const { stdout, exitCode } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    const voiceFile = parsed.files.find((f: { file: string }) => f.file === "voice-profile.md");
+    expect(voiceFile.freshness).toBe("stale");
+    expect(voiceFile.reviewIntervalDays).toBe(90);
+  });
+
+  test("writers field maps skills to brand files", async () => {
+    const { stdout } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    const voiceFile = parsed.files.find((f: { file: string }) => f.file === "voice-profile.md");
+    expect(Array.isArray(voiceFile.writers)).toBe(true);
+    expect(voiceFile.writers.length).toBeGreaterThan(0);
+  });
+
+  test("remediation suggests correct skill", async () => {
+    const { stdout } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    const fileWithRemediation = parsed.files.find((f: { remediation: string | null }) => f.remediation !== null);
+    expect(fileWithRemediation).toBeDefined();
+    expect(fileWithRemediation.remediation).toMatch(/^Run \//);
+  });
+
+  test("summary counts match file details", async () => {
+    await scaffoldBrand(tempDir);
+    const { stdout } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
+    const parsed = JSON.parse(stdout);
+    const { files, summary } = parsed;
+    expect(summary.total).toBe(files.length);
+    expect(summary.current).toBe(files.filter((f: { freshness: string }) => f.freshness === "current").length);
+    expect(summary.stale).toBe(files.filter((f: { freshness: string }) => f.freshness === "stale").length);
+    expect(summary.template).toBe(files.filter((f: { freshness: string }) => f.freshness === "template").length);
+    expect(summary.missing).toBe(files.filter((f: { freshness: string }) => f.freshness === "missing").length);
+  });
+});
+
 describe("CONTEXT_MATRIX", () => {
   test("has all 4 layers", () => {
     expect(CONTEXT_MATRIX).toHaveProperty("foundation");

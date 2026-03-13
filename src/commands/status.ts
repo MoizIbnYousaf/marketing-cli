@@ -1,8 +1,8 @@
 // mktg status — Project marketing state snapshot
 // The most important command for agents. /cmo reads this first on every activation.
 
-import { ok, type CommandHandler, type CommandSchema } from "../types";
-import { getBrandStatus } from "../core/brand";
+import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
+import { getBrandStatus, isTemplateContent } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
@@ -15,6 +15,7 @@ export const schema: CommandSchema = {
   output: {
     "project": "string — project name",
     "brand": "Record<string, BrandEntry> — brand file statuses",
+    "brand.*.isTemplate": "boolean — true if file is still scaffold template from mktg init",
     "skills": "{installed, total} — skill counts",
     "agents": "{installed, total} — agent counts",
     "content": "{totalFiles} — content file count",
@@ -31,6 +32,7 @@ type BrandEntry = {
   readonly exists: boolean;
   readonly lines?: number;
   readonly ageDays?: number | null;
+  readonly isTemplate?: boolean;
 };
 
 type StatusResult = {
@@ -60,17 +62,6 @@ const countContentFiles = async (cwd: string): Promise<number> => {
   }
 
   return count;
-};
-
-// Count lines in a file
-const countLines = async (filePath: string): Promise<number> => {
-  try {
-    const file = Bun.file(filePath);
-    const text = await file.text();
-    return text.split("\n").length;
-  } catch {
-    return 0;
-  }
 };
 
 // Determine project name from package.json or directory name
@@ -116,27 +107,32 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     getProjectName(cwd),
   ]);
 
-  // Build brand status map with line counts
-  const brand: Record<string, BrandEntry> = {};
-  for (const status of brandStatuses) {
-    if (!status.exists) {
-      brand[status.file] = { exists: false };
-    } else {
-      const lines = await countLines(join(cwd, "brand", status.file));
-      brand[status.file] = {
-        exists: true,
-        lines,
-        ageDays: status.ageDays,
-      };
-    }
-  }
+  // Build brand status map with line counts + template detection (parallel)
+  const brandEntries = await Promise.all(
+    brandStatuses.map(async (status) => {
+      if (!status.exists) return [status.file, { exists: false }] as const;
+      const filePath = join(cwd, "brand", status.file);
+      try {
+        const content = await Bun.file(filePath).text();
+        return [status.file, {
+          exists: true,
+          lines: content.split("\n").length,
+          ageDays: status.ageDays,
+          isTemplate: isTemplateContent(status.file as BrandFile, content),
+        }] as const;
+      } catch {
+        return [status.file, { exists: true, lines: 0, ageDays: status.ageDays, isTemplate: false }] as const;
+      }
+    })
+  );
+  const brand: Record<string, BrandEntry> = Object.fromEntries(brandEntries);
 
-  // Determine health
-  const hasVoiceProfile = brand["voice-profile.md"]?.exists ?? false;
+  // Determine health — template-only files don't count as populated
   const hasBrandDir = brandStatuses.some((s) => s.exists);
+  const populatedCount = Object.values(brand).filter(b => b.exists && !b.isTemplate).length;
   const health: StatusResult["health"] = !hasBrandDir
     ? "needs-setup"
-    : hasVoiceProfile
+    : populatedCount >= 3
       ? "ready"
       : "incomplete";
 
@@ -179,7 +175,8 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     const age = status.ageDays !== null ? dim(` (${status.ageDays}d ago)`) : "";
     const freshness =
       status.freshness === "stale" ? yellow(" [stale]") : "";
-    lines.push(`    ${icon} ${status.file}${age}${freshness}`);
+    const template = brand[status.file]?.isTemplate ? yellow(" [template]") : "";
+    lines.push(`    ${icon} ${status.file}${age}${freshness}${template}`);
   }
   lines.push("");
 

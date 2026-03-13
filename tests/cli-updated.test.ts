@@ -29,7 +29,7 @@ describe("CLI help includes all 9 commands", () => {
     }
   });
 
-  test("--help --json commands array has entries for all commands", async () => {
+  test("--help --json commands array has entries for all commands with descriptions", async () => {
     const { stdout, exitCode } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
@@ -43,12 +43,53 @@ describe("CLI help includes all 9 commands", () => {
     expect(names).toContain("skill");
     expect(names).toContain("brand");
     expect(names).toContain("content");
+    // Every command should have a non-empty description
+    for (const cmd of parsed.commands) {
+      expect(typeof cmd.description).toBe("string");
+      expect(cmd.description.length).toBeGreaterThan(0);
+    }
   });
 
   test("--help --json has 9 commands", async () => {
     const { stdout } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(parsed.commands).toHaveLength(9);
+  });
+});
+
+// ---------- Per-command --help ----------
+
+describe("per-command --help routing", () => {
+  test("mktg skill --help --json returns skill schema (not global help)", async () => {
+    const { stdout, exitCode } = await run(["skill", "--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.name).toBe("skill");
+    expect(typeof parsed.description).toBe("string");
+    expect(parsed.subcommands).toBeDefined();
+  });
+
+  test("mktg init --help shows init-specific help text", async () => {
+    const { stdout, exitCode } = await run(["init", "--help"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("mktg init");
+    expect(stdout).not.toContain("mktg doctor");
+  });
+
+  test("mktg brand --help --json returns brand schema", async () => {
+    const { stdout, exitCode } = await run(["brand", "--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.name).toBe("brand");
+    expect(parsed.subcommands).toBeDefined();
+  });
+
+  test("mktg --version and mktg schema report the same version", async () => {
+    const { stdout: versionOut } = await run(["--version", "--json"]);
+    const { stdout: schemaOut } = await run(["schema", "--json"]);
+    const version = JSON.parse(versionOut).version;
+    const schemaVersion = JSON.parse(schemaOut).version;
+    expect(version).toBe(schemaVersion);
   });
 });
 

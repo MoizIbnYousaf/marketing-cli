@@ -2,8 +2,9 @@
 // Agents use this to self-discover CLI capabilities at runtime.
 
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
+import pkg from "../../package.json";
 
-const VERSION = "0.1.0";
+const VERSION = pkg.version;
 
 const loadSchemas = async (): Promise<Record<string, CommandSchema>> => {
   const modules = await Promise.all([
