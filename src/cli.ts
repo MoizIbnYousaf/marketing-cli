@@ -16,6 +16,10 @@ Commands:
   status     Project marketing state snapshot
   list       Show available skills
   update     Force-update skills
+  schema     Introspect CLI commands and output shapes
+  skill      Skill lifecycle management (info, validate, graph, check, register)
+  brand      Brand memory management (export, import, reset, freshness)
+  content    Content registry and statistics (list, stats)
 
 Flags:
   --json           Machine-readable JSON output
@@ -70,6 +74,10 @@ const COMMANDS: Record<string, () => Promise<{ handler: (args: readonly string[]
   status: () => import("./commands/status"),
   list: () => import("./commands/list"),
   update: () => import("./commands/update"),
+  schema: () => import("./commands/schema"),
+  skill: () => import("./commands/skill"),
+  brand: () => import("./commands/brand"),
+  content: () => import("./commands/content"),
 };
 
 const run = async () => {
@@ -110,17 +118,6 @@ const run = async () => {
     process.exit(0);
   }
 
-  // schema command — introspect available commands
-  if (command === "schema") {
-    const schema = {
-      version: VERSION,
-      commands: Object.keys(COMMANDS),
-      globalFlags: ["--json", "--dry-run", "--fields", "--cwd"],
-    };
-    writeStdout(JSON.stringify(schema, null, 2));
-    process.exit(0);
-  }
-
   // Route to command
   const loader = COMMANDS[command];
   if (!loader) {
@@ -139,13 +136,10 @@ const run = async () => {
     const mod = await loader();
     const result = await mod.handler(args, flags);
 
-    // Handle _display for TTY commands that build their own output
-    if (result.ok && isTTY() && !flags.json) {
-      const data = result.data as Record<string, unknown>;
-      if (typeof data?._display === "string") {
-        writeStdout(data._display);
-        process.exit(result.exitCode);
-      }
+    // Handle display for TTY commands that build their own output
+    if (result.ok && result.display && isTTY() && !flags.json) {
+      writeStdout(result.display);
+      process.exit(result.exitCode);
     }
 
     writeStdout(formatOutput(result, flags));

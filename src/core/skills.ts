@@ -2,24 +2,13 @@
 // Reads skills-manifest.json, copies bundled skills to ~/.claude/skills/
 
 import { join, dirname } from "node:path";
+import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import type { SkillsManifest, SkillManifestEntry } from "../types";
+import { getPackageRoot } from "./paths";
 
 // Where skills get installed for the agent
 const SKILLS_INSTALL_DIR = join(homedir(), ".claude", "skills");
-
-// Resolve the package root (where skills-manifest.json lives)
-const getPackageRoot = (): string => {
-  // import.meta.dir is the directory of the current file
-  // In dev: src/core/ → go up 2 levels to project root
-  // In dist: dist/ → go up 1 level to project root
-  const dir = import.meta.dir;
-  if (dir.endsWith("/core") || dir.endsWith("/core/")) {
-    return join(dir, "..", "..");
-  }
-  // Built file lives in dist/ — go up one level
-  return join(dir, "..");
-};
 
 // Load the manifest from package root
 export const loadManifest = async (): Promise<SkillsManifest> => {
@@ -94,7 +83,7 @@ export const installSkills = async (
 
   // Ensure install dir exists
   if (!dryRun) {
-    await Bun.$`mkdir -p ${SKILLS_INSTALL_DIR}`.quiet();
+    await mkdir(SKILLS_INSTALL_DIR, { recursive: true });
   }
 
   const writes: Promise<void>[] = [];
@@ -122,7 +111,7 @@ export const installSkills = async (
     writes.push(
       (async () => {
         try {
-          await Bun.$`mkdir -p ${installDir}`.quiet();
+          await mkdir(installDir, { recursive: true });
           const content = await bundledFile.text();
           await Bun.write(installFile, content);
 
@@ -133,13 +122,13 @@ export const installSkills = async (
             // Use glob to find reference files
             const glob = new Bun.Glob("**/*");
             const refInstallDir = join(installDir, "references");
-            await Bun.$`mkdir -p ${refInstallDir}`.quiet();
+            await mkdir(refInstallDir, { recursive: true });
 
             for await (const path of glob.scan(refsDir)) {
               const src = join(refsDir, path);
               const dest = join(refInstallDir, path);
               const destDir = dirname(dest);
-              await Bun.$`mkdir -p ${destDir}`.quiet();
+              await mkdir(destDir, { recursive: true });
               const srcContent = await Bun.file(src).text();
               await Bun.write(dest, srcContent);
             }
@@ -197,7 +186,7 @@ export const updateSkills = async (
     updated.push(name);
     if (!dryRun) {
       const installDir = join(SKILLS_INSTALL_DIR, name);
-      await Bun.$`mkdir -p ${installDir}`.quiet();
+      await mkdir(installDir, { recursive: true });
       await Bun.write(installedPath, bundledContent);
     }
   }
@@ -245,4 +234,54 @@ export const getInstalledSkills = async (): Promise<InstalledSkill[]> => {
   }
 
   return results;
+};
+
+// --- Manifest resolution for project-level skill extensions ---
+
+// Runtime validator for raw manifest data
+export const parseManifest = (raw: unknown): SkillsManifest | null => {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+  if (typeof obj.version !== "number") return null;
+  if (!obj.skills || typeof obj.skills !== "object") return null;
+  return {
+    version: obj.version as number,
+    skills: obj.skills as Record<string, SkillManifestEntry>,
+    redirects: ((obj.redirects ?? {}) as Record<string, string>),
+  };
+};
+
+// Merge a project manifest into the base package manifest
+// SECURITY: project skills cannot override package skills
+export const mergeManifests = (
+  base: SkillsManifest,
+  project: SkillsManifest,
+): SkillsManifest => {
+  const merged = { ...base.skills };
+  for (const [name, entry] of Object.entries(project.skills)) {
+    if (name in base.skills) continue; // SECURITY: project cannot override package skills
+    merged[name] = entry;
+  }
+  return {
+    version: base.version,
+    skills: merged,
+    redirects: base.redirects, // project redirects IGNORED
+  };
+};
+
+// Resolve the effective manifest: package manifest + optional project manifest
+export const resolveManifest = async (cwd: string): Promise<SkillsManifest> => {
+  const packageManifest = await loadManifest();
+  const projectManifestPath = join(cwd, "skills-manifest.json");
+  const projectFile = Bun.file(projectManifestPath);
+  if (!(await projectFile.exists())) return packageManifest;
+
+  try {
+    const raw = await projectFile.json();
+    const projectManifest = parseManifest(raw);
+    if (!projectManifest) return packageManifest;
+    return mergeManifests(packageManifest, projectManifest);
+  } catch {
+    return packageManifest;
+  }
 };

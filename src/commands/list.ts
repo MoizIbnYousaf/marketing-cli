@@ -1,10 +1,28 @@
 // mktg list — Show available skills with status
 // Reads from skills-manifest.json, groups by category, shows installed/missing.
 
-import { ok, type CommandHandler, type SkillCategory, type AgentCategory } from "../types";
+import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory } from "../types";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, isTTY } from "../core/output";
+
+export const schema: CommandSchema = {
+  name: "list",
+  description: "Show available skills and agents with install status",
+  flags: [],
+  output: {
+    "skills": "SkillEntry[] — all skills with status",
+    "agents": "AgentEntry[] — all agents with status",
+    "total": "number — total skill count",
+    "installed": "number — installed skill count",
+    "missing": "number — missing skill count",
+  },
+  examples: [
+    { args: "mktg list --json", description: "List all skills and agents" },
+    { args: "mktg list --fields total,installed", description: "Show counts only" },
+  ],
+  vocabulary: ["list", "show skills", "installed skills"],
+};
 
 type SkillEntry = {
   readonly name: string;
@@ -138,5 +156,5 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
     lines.push("");
   }
 
-  return ok({ ...result, _display: lines.join("\n") } as unknown as ListResult);
+  return ok(result, lines.join("\n"));
 };

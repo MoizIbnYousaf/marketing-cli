@@ -2,6 +2,7 @@
 // Scaffolding, freshness assessment, context matrix.
 
 import { join } from "node:path";
+import { mkdir } from "node:fs/promises";
 import {
   BRAND_FILES,
   BRAND_PROFILE_FILES,
@@ -34,9 +35,8 @@ export const scaffoldBrand = async (
   const skipped: BrandFile[] = [];
 
   if (!dryRun) {
-    const dir = Bun.file(brandDir);
     // Ensure brand/ exists
-    await Bun.$`mkdir -p ${brandDir}`.quiet();
+    await mkdir(brandDir, { recursive: true });
   }
 
   const writes: Promise<void>[] = [];

@@ -28,14 +28,15 @@ export type MktgError = {
 
 // Discriminated union for command results
 export type CommandResult<T = unknown> =
-  | { readonly ok: true; readonly data: T; readonly exitCode: 0 }
+  | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string }
   | { readonly ok: false; readonly error: MktgError; readonly exitCode: ExitCode };
 
 // Result constructors
-export const ok = <T>(data: T): CommandResult<T> => ({
+export const ok = <T>(data: T, display?: string): CommandResult<T> => ({
   ok: true,
   data,
   exitCode: 0,
+  ...(display !== undefined && { display }),
 });
 
 export const err = (
@@ -163,6 +164,32 @@ export type AgentManifestEntry = {
 export type AgentsManifest = {
   readonly version: number;
   readonly agents: Record<string, AgentManifestEntry>;
+};
+
+// --- Schema introspection types ---
+
+// Command flag with discriminated union — default always matches type
+type CommandFlagBase = {
+  readonly name: string;
+  readonly required: boolean;
+  readonly description: string;
+};
+
+export type CommandFlag =
+  | CommandFlagBase & { readonly type: "string"; readonly default?: string }
+  | CommandFlagBase & { readonly type: "boolean"; readonly default?: boolean }
+  | CommandFlagBase & { readonly type: "string[]"; readonly default?: readonly string[] };
+
+// Per-command schema for agent self-discovery
+export type CommandSchema = {
+  readonly name: string;
+  readonly description: string;
+  readonly flags: readonly CommandFlag[];
+  readonly positional?: { readonly name: string; readonly description: string; readonly required: boolean };
+  readonly subcommands?: readonly CommandSchema[];
+  readonly output: Readonly<Record<string, string>>;
+  readonly examples: readonly { readonly args: string; readonly description: string }[];
+  readonly vocabulary?: readonly string[];
 };
 
 // Freshness levels for brand files

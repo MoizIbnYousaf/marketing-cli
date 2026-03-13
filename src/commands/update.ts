@@ -1,10 +1,26 @@
 // mktg update — Re-copy bundled skills to installed location
 // Reports what changed via content comparison.
 
-import { ok, type CommandHandler } from "../types";
+import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { loadManifest, updateSkills } from "../core/skills";
 import { loadAgentManifest, updateAgents } from "../core/agents";
 import { bold, dim, green, yellow, isTTY } from "../core/output";
+
+export const schema: CommandSchema = {
+  name: "update",
+  description: "Re-copy bundled skills and agents to installed location",
+  flags: [],
+  output: {
+    "skills.updated": "string[] — skills that were updated",
+    "skills.unchanged": "string[] — skills already current",
+    "agents.updated": "string[] — agents that were updated",
+  },
+  examples: [
+    { args: "mktg update --json", description: "Update all skills and agents" },
+    { args: "mktg update --dry-run", description: "Preview updates without writing" },
+  ],
+  vocabulary: ["update", "sync skills", "refresh"],
+};
 
 type UpdateResult = {
   readonly skills: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
@@ -78,5 +94,5 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
   lines.push(dim(`  ${result.totalSkills} skills, ${result.totalAgents} agents in manifests`));
   lines.push("");
 
-  return ok({ ...result, _display: lines.join("\n") } as unknown as UpdateResult);
+  return ok(result, lines.join("\n"));
 };

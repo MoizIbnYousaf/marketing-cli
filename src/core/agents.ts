@@ -2,23 +2,16 @@
 // Reads agents-manifest.json, copies bundled agents to ~/.claude/agents/
 
 import { join, dirname } from "node:path";
+import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import type { AgentsManifest } from "../types";
+import { getPackageRoot } from "./paths";
 
 // Where agents get installed — auto-discovered by Claude Code
 const AGENTS_INSTALL_DIR = join(homedir(), ".claude", "agents");
 
 // Namespace prefix to avoid collisions with other agents
 const AGENT_PREFIX = "mktg-";
-
-// Resolve the package root (where agents-manifest.json lives)
-const getPackageRoot = (): string => {
-  const dir = import.meta.dir;
-  if (dir.endsWith("/core") || dir.endsWith("/core/")) {
-    return join(dir, "..", "..");
-  }
-  return join(dir, "..");
-};
 
 // Load the manifest from package root
 export const loadAgentManifest = async (): Promise<AgentsManifest> => {
@@ -72,7 +65,7 @@ export const installAgents = async (
 
   // Ensure install dir exists
   if (!dryRun) {
-    await Bun.$`mkdir -p ${AGENTS_INSTALL_DIR}`.quiet();
+    await mkdir(AGENTS_INSTALL_DIR, { recursive: true });
   }
 
   const writes: Promise<void>[] = [];

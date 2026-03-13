@@ -1,12 +1,31 @@
 // mktg status — Project marketing state snapshot
 // The most important command for agents. /cmo reads this first on every activation.
 
-import { ok, type CommandHandler } from "../types";
+import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
 import { join } from "node:path";
+
+export const schema: CommandSchema = {
+  name: "status",
+  description: "Project marketing state snapshot — the most important command for agents",
+  flags: [],
+  output: {
+    "project": "string — project name",
+    "brand": "Record<string, BrandEntry> — brand file statuses",
+    "skills": "{installed, total} — skill counts",
+    "agents": "{installed, total} — agent counts",
+    "content": "{totalFiles} — content file count",
+    "health": "'ready' | 'incomplete' | 'needs-setup'",
+  },
+  examples: [
+    { args: "mktg status --json", description: "Full project state snapshot" },
+    { args: "mktg status --fields health,project", description: "Quick health check" },
+  ],
+  vocabulary: ["status", "state", "overview", "snapshot"],
+};
 
 type BrandEntry = {
   readonly exists: boolean;
@@ -186,5 +205,5 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     lines.push("");
   }
 
-  return ok({ ...result, _display: lines.join("\n") } as unknown as StatusResult);
+  return ok(result, lines.join("\n"));
 };
