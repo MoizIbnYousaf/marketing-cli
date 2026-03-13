@@ -1,0 +1,348 @@
+{
+  "groupId": "hero-core",
+  "testedAt": "2026-03-13T10:56:26.656568+00:00",
+  "isolation": {
+    "surfaceUrl": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u2",
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16",
+    "evidenceDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16/evidence/site-core/hero-core"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-HERO-001",
+      "title": "Hero section renders with headline, tagline, and CTAs",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Open http://localhost:3200 in browser session 0f916ecfbd72__u2 at 1440px width",
+          "expected": "Hero section is visible on load",
+          "observed": "Hero section rendered above the fold with the dark terminal-style background"
+        },
+        {
+          "action": "Inspect hero DOM content",
+          "expected": "One headline, one supporting tagline, and both hero CTAs are present with non-empty text",
+          "observed": "Found `#hero-heading` text `One install for your agent's full CMO brain.`, supporting paragraph beginning `Give AI agents...`, primary CTA `Get Started`, and secondary CTA `View on GitHub`"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-001-hero-desktop-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET / -> 200 (curl); no API requests involved in this assertion",
+        "selectors": {
+          "hero": "main > section.relative.isolate.overflow-hidden:nth-of-type(1)",
+          "headline": "#hero-heading",
+          "tagline": "main > section.relative.isolate.overflow-hidden:nth-of-type(1) p.max-w-2xl.text-lg.leading-8",
+          "primaryCta": "a[href='#install']",
+          "secondaryCta": "a[href='https://github.com/moizibnyousaf/mktg']"
+        },
+        "measurements": {
+          "viewport": {
+            "width": 1440,
+            "height": 1400,
+            "scrollWidth": 1440
+          },
+          "headlineText": "One install for your agent's full CMO brain.",
+          "taglineText": "Give AI agents the marketing system they need to research, position, launch, and compound growth with brand memory, parallel research, and reusable campaign skills built into one workflow.",
+          "primaryCtaText": "Get Started",
+          "secondaryCtaText": "View on GitHub"
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-002",
+      "title": "Primary CTA scrolls to install section",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Hover the hero `Get Started` CTA",
+          "expected": "CTA shows a visible hover state and remains pointer-interactive",
+          "observed": "CTA background changed from `oklch(0.765 0.177 163.223)` to `oklch(0.845 0.143 164.978)` with `cursor:pointer`"
+        },
+        {
+          "action": "Click the hero `Get Started` CTA",
+          "expected": "Page scrolls to the install section with target top within 100px of viewport top",
+          "observed": "Scroll completed to `#install` with `getBoundingClientRect().top = 95.5px`"
+        },
+        {
+          "action": "Measure CTA target size",
+          "expected": "Touch target is at least 44x44px",
+          "observed": "CTA measured 138.05px \u00d7 50px"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-002-primary-cta-hover.png",
+          "site-core/hero-core/VAL-HERO-002-install-scroll.png"
+        ],
+        "consoleErrors": "none",
+        "network": "In-page anchor scroll only; no API requests. Initial page GET / -> 200",
+        "selectors": {
+          "primaryCta": "a[href='#install']",
+          "installSection": "#install"
+        },
+        "measurements": {
+          "cursor": "pointer",
+          "ctaWidth": 138.05,
+          "ctaHeight": 50.0,
+          "defaultBackgroundColor": "oklch(0.765 0.177 163.223)",
+          "hoverBackgroundColor": "oklch(0.845 0.143 164.978)",
+          "installTopAfterClick": 95.5,
+          "scrollYAfterClick": 6111.0
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-003",
+      "title": "Secondary CTA links to GitHub repository",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect the `View on GitHub` CTA attributes",
+          "expected": "CTA is an anchor to a valid github.com URL with `target=_blank` and `rel=noopener noreferrer`",
+          "observed": "Anchor href was `https://github.com/moizibnyousaf/mktg`, target was `_blank`, and rel was `noopener noreferrer`"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-001-hero-desktop-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No navigation triggered during attribute inspection",
+        "selectors": {
+          "secondaryCta": "a[href='https://github.com/moizibnyousaf/mktg']"
+        },
+        "measurements": {
+          "tagName": "a",
+          "href": "https://github.com/moizibnyousaf/mktg",
+          "target": "_blank",
+          "rel": "noopener noreferrer"
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-004",
+      "title": "Hero displays gradient/glow visual effects",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Capture a clean desktop screenshot of the hero",
+          "expected": "Decorative glow/gradient effects are visible behind hero content",
+          "observed": "Screenshot shows emerald/blue glow accents and radial gradients behind the hero copy and card"
+        },
+        {
+          "action": "Inspect decorative elements and contrast values",
+          "expected": "Hero includes gradient/glow layers and text contrast remains WCAG AA compliant",
+          "observed": "Detected multiple radial-gradient/blur layers in the hero; measured contrast against body background at 19.28:1 for the headline and 13.57:1 for the tagline"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-004-hero-desktop-clean.png"
+        ],
+        "consoleErrors": "none",
+        "network": "Static render only; no API requests involved",
+        "selectors": {
+          "gradientLayers": [
+            "main > section.relative.isolate.overflow-hidden:nth-of-type(1) > div.absolute.inset-x-0.top-[-10rem]:nth-of-type(1)",
+            "main > section.relative.isolate.overflow-hidden:nth-of-type(1) > div.absolute.right-[-6rem].top-32:nth-of-type(2)",
+            "main > section.relative.isolate.overflow-hidden:nth-of-type(1) > div.absolute.bottom-12.left-[-5rem]:nth-of-type(3)"
+          ]
+        },
+        "measurements": {
+          "headlineContrastRatio": 19.28,
+          "taglineContrastRatio": 13.57,
+          "bodyBackground": "rgb(2, 6, 23)",
+          "headlineColor": "oklch(0.984 0.003 247.858)",
+          "taglineColor": "oklch(0.869 0.022 252.894)",
+          "gradientDetails": [
+            {
+              "backgroundImage": "radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.26), rgba(0, 0, 0, 0) 46%), radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.18), rgba(0, 0, 0, 0) 34%)",
+              "filter": "blur(40px)"
+            },
+            {
+              "backgroundImage": "none",
+              "filter": "blur(64px)"
+            },
+            {
+              "backgroundImage": "none",
+              "filter": "blur(64px)"
+            }
+          ]
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-005",
+      "title": "Hero is responsive across breakpoints",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect hero at desktop 1440px",
+          "expected": "No horizontal overflow and hero content remains visible/readable",
+          "observed": "Desktop viewport had `scrollWidth = 1440`, matching the viewport width"
+        },
+        {
+          "action": "Inspect hero at tablet 768px",
+          "expected": "No horizontal overflow and CTA row remains visible",
+          "observed": "Tablet viewport had `scrollWidth = 768`; headline and CTA bounds stayed within left/right edges (headline 40\u2192728, CTAs 40\u2192363.69)"
+        },
+        {
+          "action": "Inspect hero at mobile 375px",
+          "expected": "No horizontal overflow and all hero elements remain visible/readable",
+          "observed": "Mobile viewport had `scrollWidth = 375`; headline and both stacked CTAs fit within 24\u2192351 with no horizontal clipping"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-004-hero-desktop-clean.png",
+          "site-core/hero-core/VAL-HERO-005-hero-tablet.png",
+          "site-core/hero-core/VAL-HERO-005-hero-mobile.png"
+        ],
+        "consoleErrors": "none",
+        "network": "Static responsive layout checks only",
+        "selectors": {
+          "hero": "main > section.relative.isolate.overflow-hidden:nth-of-type(1)",
+          "headline": "#hero-heading",
+          "primaryCta": "a[href='#install']",
+          "secondaryCta": "a[href='https://github.com/moizibnyousaf/mktg']"
+        },
+        "measurements": {
+          "desktop": {
+            "viewportWidth": 1440,
+            "scrollWidth": 1440
+          },
+          "tablet": {
+            "viewportWidth": 768,
+            "scrollWidth": 768,
+            "headlineRect": {
+              "left": 40.0,
+              "right": 728.0,
+              "top": 239.0,
+              "bottom": 419.0
+            },
+            "primaryCtaRect": {
+              "left": 40.0,
+              "right": 178.05,
+              "top": 571.0,
+              "bottom": 621.0
+            },
+            "secondaryCtaRect": {
+              "left": 194.05,
+              "right": 363.69,
+              "top": 571.0,
+              "bottom": 621.0
+            }
+          },
+          "mobile": {
+            "viewportWidth": 375,
+            "scrollWidth": 375,
+            "headlineRect": {
+              "left": 24.0,
+              "right": 351.0,
+              "top": 239.0,
+              "bottom": 479.0
+            },
+            "primaryCtaRect": {
+              "left": 24.0,
+              "right": 351.0,
+              "top": 727.0,
+              "bottom": 777.0
+            },
+            "secondaryCtaRect": {
+              "left": 24.0,
+              "right": 351.0,
+              "top": 793.0,
+              "bottom": 843.0
+            }
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-006",
+      "title": "Hero headline uses semantic h1 (only one on page)",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Query all `h1` elements on the page",
+          "expected": "Exactly one h1 exists and it belongs to the hero",
+          "observed": "`document.querySelectorAll('h1').length` returned 1, and the single heading was `#hero-heading` inside the hero section"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-001-hero-desktop-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "DOM-only inspection; no API requests involved",
+        "selectors": {
+          "headline": "#hero-heading",
+          "hero": "main > section.relative.isolate.overflow-hidden:nth-of-type(1)"
+        },
+        "measurements": {
+          "h1Count": 1,
+          "headlineText": "One install for your agent's full CMO brain."
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-HERO-007",
+      "title": "Hero headline and tagline contain expected content",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect hero headline text",
+          "expected": "Headline references the mktg value proposition with agent + CMO/marketing language",
+          "observed": "Headline was `One install for your agent's full CMO brain.` containing `agent` and `CMO`"
+        },
+        {
+          "action": "Inspect supporting tagline text",
+          "expected": "Tagline describes giving AI agents marketing capabilities and is not placeholder copy",
+          "observed": "Tagline explicitly described giving AI agents a marketing system to research, position, launch, and compound growth; no placeholder text was present"
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/hero-core/VAL-HERO-004-hero-desktop-clean.png"
+        ],
+        "consoleErrors": "none",
+        "network": "DOM-only inspection; no API requests involved",
+        "selectors": {
+          "headline": "#hero-heading",
+          "tagline": "main > section.relative.isolate.overflow-hidden:nth-of-type(1) p.max-w-2xl.text-lg.leading-8"
+        },
+        "measurements": {
+          "headlineText": "One install for your agent's full CMO brain.",
+          "headlineKeywords": [
+            "agent",
+            "CMO"
+          ],
+          "taglineText": "Give AI agents the marketing system they need to research, position, launch, and compound growth with brand memory, parallel research, and reusable campaign skills built into one workflow.",
+          "taglineKeywords": [
+            "AI agents",
+            "marketing system",
+            "research",
+            "launch",
+            "growth"
+          ]
+        }
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 7 hero assertions: 7 passed, 0 failed, 0 blocked. The hero rendered correctly, both CTAs behaved as specified, decorative gradients preserved strong contrast, and the hero remained responsive at desktop, tablet, and mobile widths."
+}

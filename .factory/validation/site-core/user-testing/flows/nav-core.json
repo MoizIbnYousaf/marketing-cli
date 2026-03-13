@@ -1,0 +1,571 @@
+{
+  "groupId": "nav-core",
+  "testedAt": "2026-03-13T10:59:36.549656+00:00",
+  "isolation": {
+    "surface": "browser",
+    "url": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u1",
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl",
+    "python3"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-NAV-001",
+      "title": "Nav renders on initial page load with all expected elements",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Load http://localhost:3200 at 1440x1400 and capture the initial nav screenshot",
+          "expected": "A visible nav appears in the viewport with the logo, four section links, GitHub link, and Get Started CTA",
+          "observed": "The sticky nav rendered at the top of the viewport with visible controls for mktg, Features, Skills, Testimonials, Install, GitHub, and Get Started."
+        },
+        {
+          "action": "Inspect nav children and bounding boxes via DOM evaluation",
+          "expected": "All expected nav items exist, are visible, and are not clipped",
+          "observed": "`nav` measured 1440x79px, child controls were visible, and each required item reported `clipped: false` with non-zero bounds."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-001-initial-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET / -> 200 via curl; browser tracked only local Next.js document/font/css/js requests with no failed requests observed.",
+        "selectors": [
+          "nav",
+          "nav button[aria-label='Scroll to top']",
+          "nav a[href='#features']",
+          "nav a[href='#skills']",
+          "nav a[href='#testimonials']",
+          "nav a[href='#install']",
+          "nav a[href='https://github.com/moizibnyousaf/mktg']",
+          "nav button"
+        ],
+        "measurements": {
+          "navRect": {
+            "x": 0,
+            "y": 0,
+            "width": 1440,
+            "height": 79
+          },
+          "requiredItems": {
+            "logo": {
+              "text": "mktg",
+              "rect": {
+                "x": 176,
+                "y": 17,
+                "width": 76.48,
+                "height": 44
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "features": {
+              "href": "#features",
+              "rect": {
+                "x": 469.22,
+                "y": 21,
+                "width": 90.16,
+                "height": 36
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "skills": {
+              "href": "#skills",
+              "rect": {
+                "x": 567.38,
+                "y": 21,
+                "width": 67,
+                "height": 36
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "testimonials": {
+              "href": "#testimonials",
+              "rect": {
+                "x": 642.38,
+                "y": 21,
+                "width": 115.95,
+                "height": 36
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "install": {
+              "href": "#install",
+              "rect": {
+                "x": 766.33,
+                "y": 21,
+                "width": 71.61,
+                "height": 36
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "github": {
+              "href": "https://github.com/moizibnyousaf/mktg",
+              "rect": {
+                "x": 1054.67,
+                "y": 21,
+                "width": 78.28,
+                "height": 36
+              },
+              "visible": true,
+              "clipped": false
+            },
+            "cta": {
+              "text": "Get Started",
+              "rect": {
+                "x": 1144.95,
+                "y": 18,
+                "width": 119.05,
+                "height": 42
+              },
+              "visible": true,
+              "clipped": false
+            }
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-002",
+      "title": "Nav transitions from transparent to solid on scroll",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect nav computed styles at scrollY=0",
+          "expected": "The nav blends into the hero with a transparent or near-transparent background",
+          "observed": "At the top of the page the nav background was `rgba(0, 0, 0, 0)` with `backdrop-filter: none`."
+        },
+        {
+          "action": "Scroll past the hero to scrollY=1700 and inspect nav styles again",
+          "expected": "The nav gains a solid/semi-transparent dark background with blur",
+          "observed": "Past the hero, the nav background became `oklab(0.129 -0.0038832 -0.0418201 / 0.8)` with `backdrop-filter: blur(24px)` and a dark shadow."
+        },
+        {
+          "action": "Scroll back to the top and re-check the nav styles",
+          "expected": "The nav returns to its transparent/near-transparent state",
+          "observed": "After returning to the top, the nav returned to a near-transparent state with alpha `0.0443409` and minimal blur (`1.33023px`)."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-001-initial-annotated.png",
+          "site-core/nav-core/VAL-NAV-002-scrolled-solid.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional network activity was required beyond the initial local document/assets requests.",
+        "selectors": [
+          "nav",
+          "section"
+        ],
+        "measurements": {
+          "topState": {
+            "scrollY": 0,
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "backdropFilter": "none"
+          },
+          "scrolledState": {
+            "scrollY": 1700,
+            "heroBottom": -125,
+            "backgroundColor": "oklab(0.129 -0.0038832 -0.0418201 / 0.8)",
+            "backdropFilter": "blur(24px)",
+            "borderColor": "oklab(0.279 -0.00709772 -0.040381 / 0.8)"
+          },
+          "restoredTopState": {
+            "scrollY": 0,
+            "backgroundColor": "oklab(0.129 -0.0038832 -0.0418201 / 0.0443409)",
+            "backdropFilter": "blur(1.33023px)"
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-003",
+      "title": "Anchor links scroll to correct page sections",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Read the page scroll behavior and click each desktop nav anchor in sequence",
+          "expected": "Smooth scrolling is enabled and each click lands the target section within 100px of the viewport top",
+          "observed": "`document.documentElement` reported `scroll-behavior: smooth`; each click scrolled to the matching section with the target top edge at 95.5px."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-003-features-target.png",
+          "site-core/nav-core/VAL-NAV-003-skills-target.png",
+          "site-core/nav-core/VAL-NAV-003-testimonials-target.png",
+          "site-core/nav-core/VAL-NAV-003-install-target.png"
+        ],
+        "consoleErrors": "none",
+        "network": "In-page anchor navigation only; no failed network requests observed.",
+        "selectors": [
+          "nav a[href='#features']",
+          "nav a[href='#skills']",
+          "nav a[href='#testimonials']",
+          "nav a[href='#install']",
+          "#features",
+          "#skills",
+          "#testimonials",
+          "#install"
+        ],
+        "measurements": {
+          "scrollBehavior": "smooth",
+          "targets": {
+            "features": {
+              "scrollY": 2398,
+              "targetTop": 95.5
+            },
+            "skills": {
+              "scrollY": 3359,
+              "targetTop": 95.5
+            },
+            "testimonials": {
+              "scrollY": 4759,
+              "targetTop": 95.5
+            },
+            "install": {
+              "scrollY": 6159,
+              "targetTop": 95.5
+            }
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-004",
+      "title": "Logo click scrolls to top of page",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Scroll to the install section and click the nav wordmark button",
+          "expected": "The page scrolls back to the very top with scrollY <= 5",
+          "observed": "Clicking the wordmark button with `aria-label='Scroll to top'` returned the page to `scrollY: 0`."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-004-before-logo-click.png",
+          "site-core/nav-core/VAL-NAV-004-after-logo-click.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network requests beyond existing local asset loads.",
+        "selectors": [
+          "nav button[aria-label='Scroll to top']"
+        ],
+        "measurements": {
+          "before": {
+            "scrollContext": "install section"
+          },
+          "after": {
+            "scrollY": 0,
+            "topWithinThreshold": true
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-005",
+      "title": "Nav CTA button navigates to install section",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Measure the nav CTA rest styles and hover the button",
+          "expected": "The nav CTA shows a visible hover-state change",
+          "observed": "The button background shifted from `oklch(0.765 0.177 163.223)` at rest to `oklch(0.845 0.143 164.978)` on hover."
+        },
+        {
+          "action": "Click the nav Get Started button",
+          "expected": "The page scrolls to the install section",
+          "observed": "The click scrolled to `#install` with the section top at 95.5px from the viewport top."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-005-cta-hover.png",
+          "site-core/nav-core/VAL-NAV-005-cta-install-target.png"
+        ],
+        "consoleErrors": "none",
+        "network": "In-page button scroll only; no failed network requests observed.",
+        "selectors": [
+          "nav button"
+        ],
+        "measurements": {
+          "rest": {
+            "backgroundColor": "oklch(0.765 0.177 163.223)",
+            "borderColor": "oklab(0.765 -0.169466 0.0510906 / 0.4)",
+            "rect": {
+              "x": 1144.95,
+              "y": 18,
+              "width": 119.05,
+              "height": 42
+            }
+          },
+          "hover": {
+            "backgroundColor": "oklch(0.845 0.143 164.978)",
+            "borderColor": "oklab(0.765 -0.169466 0.0510906 / 0.4)"
+          },
+          "target": {
+            "scrollY": 6159,
+            "targetTop": 95.5
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-006",
+      "title": "Nav collapses to hamburger menu on mobile",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Set viewport to 375x812 and inspect the closed mobile nav",
+          "expected": "Inline nav links are hidden and a hamburger control is visible",
+          "observed": "At 375px all five desktop links remained in the DOM but were not visible; the hamburger button was visible at 44x44px with `aria-label='Open navigation menu'`."
+        },
+        {
+          "action": "Open the mobile menu and inspect body scroll lock",
+          "expected": "The menu shows all section links plus CTA, and page scrolling behind it is locked",
+          "observed": "Opening the menu exposed Features, Skills, Testimonials, Install, GitHub, and Get Started; `body` switched to `overflow: hidden`, and a wheel-scroll attempt left `scrollY` at 0."
+        },
+        {
+          "action": "Close the menu via toggle, then reopen and close via a nav link",
+          "expected": "The menu closes both ways and the link close also scrolls to the requested section",
+          "observed": "Tapping the hamburger again closed the menu and restored `body` overflow to `visible`; tapping Install closed the menu and scrolled the install section into view (`top: -157`, `bottom: 655`, visible in viewport)."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-006-mobile-closed-annotated.png",
+          "site-core/nav-core/VAL-NAV-006-mobile-open-annotated.png",
+          "site-core/nav-core/VAL-NAV-006-mobile-install-link-close-target.png"
+        ],
+        "consoleErrors": "none",
+        "network": "Mobile-menu interactions were entirely client-side; no failed network requests observed.",
+        "selectors": [
+          "nav button[aria-label='Open navigation menu']",
+          "nav button[aria-label='Close navigation menu']",
+          "nav a[href='#install']",
+          "body"
+        ],
+        "measurements": {
+          "closedState": {
+            "viewport": {
+              "width": 375,
+              "height": 812
+            },
+            "desktopLinksVisible": false,
+            "hamburgerRect": {
+              "x": 307,
+              "y": 16,
+              "width": 44,
+              "height": 44
+            }
+          },
+          "openState": {
+            "bodyOverflow": "hidden",
+            "visibleMenuItems": [
+              "Features",
+              "Skills",
+              "Testimonials",
+              "Install",
+              "GitHub",
+              "Get Started"
+            ],
+            "wheelScrollWhileOpen": {
+              "scrollY": 0
+            }
+          },
+          "toggleClose": {
+            "bodyOverflow": "visible",
+            "toggleAria": "Open navigation menu"
+          },
+          "linkClose": {
+            "target": "#install",
+            "targetTop": -157,
+            "targetBottom": 655,
+            "visibleInViewport": true,
+            "bodyOverflow": "visible",
+            "toggleAria": "Open navigation menu"
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-007",
+      "title": "Nav has correct z-index layering",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect nav layering at the top of the page",
+          "expected": "The nav renders above hero visuals",
+          "observed": "At scrollY=0 the nav had `z-index: 60`, and `elementFromPoint` at three sample points across the bar returned nav descendants (`Testimonials`, `mktg`, `Get Started`)."
+        },
+        {
+          "action": "Scroll until the terminal demo is behind/under the nav and re-check layering",
+          "expected": "The nav still renders above the terminal demo and surrounding content",
+          "observed": "At scrollY=1800, with the demo section spanning `top: -225` to `bottom: 693.5`, the same point checks still resolved to nav descendants and the nav kept `z-index: 60`."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-007-top-layering.png",
+          "site-core/nav-core/VAL-NAV-007-terminal-layering.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network activity relevant to layering validation.",
+        "selectors": [
+          "nav"
+        ],
+        "measurements": {
+          "top": {
+            "scrollY": 0,
+            "zIndex": 60,
+            "samplePoints": [
+              {
+                "x": 720,
+                "y": 40,
+                "insideNav": true,
+                "topText": "Testimonials"
+              },
+              {
+                "x": 220,
+                "y": 40,
+                "insideNav": true,
+                "topText": "mktg"
+              },
+              {
+                "x": 1180,
+                "y": 40,
+                "insideNav": true,
+                "topText": "Get Started"
+              }
+            ]
+          },
+          "terminalOverlap": {
+            "scrollY": 1800,
+            "zIndex": 60,
+            "terminalTop": -225,
+            "terminalBottom": 693.5,
+            "samplePoints": [
+              {
+                "x": 720,
+                "y": 40,
+                "insideNav": true,
+                "topText": "Testimonials"
+              },
+              {
+                "x": 220,
+                "y": 40,
+                "insideNav": true,
+                "topText": "mktg"
+              },
+              {
+                "x": 1180,
+                "y": 40,
+                "insideNav": true,
+                "topText": "Get Started"
+              }
+            ]
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-NAV-008",
+      "title": "Active section highlighted in nav during scroll",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect nav links at the top of the page",
+          "expected": "No section link is active while the hero is in view",
+          "observed": "At `scrollY: 0`, all four section links had `aria-current: null` and no active-state classes."
+        },
+        {
+          "action": "Scroll to each section and inspect active-state markup",
+          "expected": "Only the current section link is highlighted at a time",
+          "observed": "At each section top, exactly one matching link carried `aria-current='page'` plus the active classes `bg-slate-900/80 text-emerald-300 ring-1 ring-emerald-400/40`."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/nav-core/VAL-NAV-001-initial-annotated.png",
+          "site-core/nav-core/VAL-NAV-008-features-active.png",
+          "site-core/nav-core/VAL-NAV-008-skills-active.png",
+          "site-core/nav-core/VAL-NAV-008-testimonials-active.png",
+          "site-core/nav-core/VAL-NAV-008-install-active.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network activity relevant to active-state validation.",
+        "selectors": [
+          "nav a[href='#features']",
+          "nav a[href='#skills']",
+          "nav a[href='#testimonials']",
+          "nav a[href='#install']"
+        ],
+        "measurements": {
+          "heroTop": {
+            "scrollY": 0,
+            "activeLinks": []
+          },
+          "features": {
+            "scrollY": 2399,
+            "targetTop": 94.5,
+            "activeLinks": [
+              "Features"
+            ]
+          },
+          "skills": {
+            "scrollY": 3360,
+            "targetTop": 94.5,
+            "activeLinks": [
+              "Skills"
+            ]
+          },
+          "testimonials": {
+            "scrollY": 4760,
+            "targetTop": 94.5,
+            "activeLinks": [
+              "Testimonials"
+            ]
+          },
+          "install": {
+            "scrollY": 6160,
+            "targetTop": 94.5,
+            "activeLinks": [
+              "Install"
+            ]
+          },
+          "activeClass": "bg-slate-900/80 text-emerald-300 ring-1 ring-emerald-400/40"
+        }
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [
+    {
+      "description": "`agent-browser scroll down` can bypass CSS scroll locking because it scrolls programmatically; this made it unsuitable for validating the mobile menu's body-scroll lock.",
+      "resolved": true,
+      "resolution": "Used `agent-browser mouse wheel 500` instead, which kept `scrollY` at 0 while the menu was open and better matched real user input.",
+      "affectedAssertions": [
+        "VAL-NAV-006"
+      ]
+    }
+  ],
+  "blockers": [],
+  "summary": "Tested 8 navigation assertions on the real localhost:3200 site with browser session 0f916ecfbd72__u1. All 8 assertions passed."
+}

@@ -1,0 +1,315 @@
+{
+  "groupId": "features-core",
+  "testedAt": "2026-03-13T10:56:21Z",
+  "isolation": {
+    "surfaceUrl": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u5",
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-FEAT-001",
+      "title": "All 6 feature cards render",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Open http://localhost:3200 and scroll to #features at 1280px width",
+          "expected": "Features section is visible with six cards",
+          "observed": "Section rendered with a heading plus a 6-card grid"
+        },
+        {
+          "action": "Query #features .grid article",
+          "expected": "Exactly 6 card elements are returned",
+          "observed": "6 article cards returned"
+        },
+        {
+          "action": "Inspect each card for icon, title, and description text",
+          "expected": "No empty or placeholder content",
+          "observed": "All 6 cards had a visible SVG icon, non-empty h3, and non-empty paragraph text"
+        }
+      ],
+      "selectors": [
+        "#features",
+        "#features .grid",
+        "#features .grid article",
+        "#features .grid article h3",
+        "#features .grid article p",
+        "#features .grid article svg"
+      ],
+      "measurements": {
+        "cardCount": 6,
+        "gridTemplateColumnsAt1280": "370.656px 370.672px 370.656px",
+        "cards": [
+          {
+            "title": "Agent-Native",
+            "descriptionLength": 99,
+            "iconPresent": true
+          },
+          {
+            "title": "Self-Bootstrapping",
+            "descriptionLength": 101,
+            "iconPresent": true
+          },
+          {
+            "title": "35 Marketing Skills",
+            "descriptionLength": 99,
+            "iconPresent": true
+          },
+          {
+            "title": "Brand Memory",
+            "descriptionLength": 98,
+            "iconPresent": true
+          },
+          {
+            "title": "Parallel Research",
+            "descriptionLength": 88,
+            "iconPresent": true
+          },
+          {
+            "title": "Composable",
+            "descriptionLength": 100,
+            "iconPresent": true
+          }
+        ]
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/features-core/VAL-FEAT-001-features-grid-1280.png"
+        ],
+        "consoleErrors": "none",
+        "network": "curl -I http://localhost:3200 -> HTTP/1.1 200 OK; browser load requested / plus Next.js CSS, JS, and font assets with no API traffic"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FEAT-002",
+      "title": "Feature card hover glow effect",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Capture the first feature card at rest",
+          "expected": "Card shows default border and no glow",
+          "observed": "Rest state had borderColor oklch(0.279 0.041 260.031), boxShadow none, translate none"
+        },
+        {
+          "action": "Hover the first #features article card and recapture",
+          "expected": "Glow/border accent appears with smooth transition",
+          "observed": "Hovered state changed borderColor to emerald-tinted oklab(... / 0.45), added emerald glow box-shadow, and translated the card by 0px -4px"
+        },
+        {
+          "action": "Check transition timing",
+          "expected": "Hover change animates smoothly",
+          "observed": "Computed transitionDuration remained 0.3s"
+        }
+      ],
+      "selectors": [
+        "#features article:first-of-type"
+      ],
+      "measurements": {
+        "rest": {
+          "hovered": false,
+          "borderColor": "oklch(0.279 0.041 260.031)",
+          "boxShadow": "none",
+          "translate": "none",
+          "transitionDuration": "0.3s"
+        },
+        "hover": {
+          "hovered": true,
+          "borderColor": "oklab(0.765 -0.169466 0.0510906 / 0.45)",
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(52, 211, 153, 0.12) 0px 0px 0px 1px, rgba(52, 211, 153, 0.45) 0px 24px 80px -42px",
+          "translate": "0px -4px",
+          "transitionDuration": "0.3s"
+        }
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/features-core/VAL-FEAT-002-hover-rest-1280.png",
+          "site-core/features-core/VAL-FEAT-002-hover-active-1280.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional network requests were triggered by hover; initial page load remained local and static"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FEAT-003",
+      "title": "Feature card icons are visible and distinct",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Query each feature card SVG",
+          "expected": "Each card exposes a visible icon",
+          "observed": "All 6 cards contained one SVG icon"
+        },
+        {
+          "action": "Measure rendered SVG dimensions",
+          "expected": "Icons render with non-zero size",
+          "observed": "Every icon measured 24x24 px"
+        },
+        {
+          "action": "Compare icon path signatures across cards",
+          "expected": "No duplicated icons",
+          "observed": "6 unique SVG path signatures were present"
+        }
+      ],
+      "selectors": [
+        "#features .grid article svg"
+      ],
+      "measurements": {
+        "iconCount": 6,
+        "uniqueIconSignatures": 6,
+        "iconMetrics": [
+          {
+            "title": "Agent-Native",
+            "width": 24,
+            "height": 24,
+            "pathCount": 5
+          },
+          {
+            "title": "Self-Bootstrapping",
+            "width": 24,
+            "height": 24,
+            "pathCount": 7
+          },
+          {
+            "title": "35 Marketing Skills",
+            "width": 24,
+            "height": 24,
+            "pathCount": 2
+          },
+          {
+            "title": "Brand Memory",
+            "width": 24,
+            "height": 24,
+            "pathCount": 5
+          },
+          {
+            "title": "Parallel Research",
+            "width": 24,
+            "height": 24,
+            "pathCount": 3
+          },
+          {
+            "title": "Composable",
+            "width": 24,
+            "height": 24,
+            "pathCount": 8
+          }
+        ]
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/features-core/VAL-FEAT-001-features-grid-1280.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network activity was required beyond the initial local page load"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FEAT-004",
+      "title": "Feature card text readability",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Measure computed color and background for all feature titles",
+          "expected": "Title contrast meets >= 3:1 large-text threshold",
+          "observed": "All titles were rgba(248, 250, 252, 1) on rgba(15, 23, 43, 1) with 17.04:1 contrast"
+        },
+        {
+          "action": "Measure computed color and background for all feature descriptions",
+          "expected": "Body contrast meets >= 4.5:1 threshold",
+          "observed": "All descriptions were rgba(202, 213, 226, 1) on rgba(15, 23, 43, 1) with 12.0:1 contrast"
+        },
+        {
+          "action": "Check text boxes for overflow or clipping",
+          "expected": "No text overflow",
+          "observed": "All 12 title/description nodes had overflowX=false and overflowY=false"
+        }
+      ],
+      "selectors": [
+        "#features .grid article h3",
+        "#features .grid article p"
+      ],
+      "measurements": {
+        "minTitleContrast": 17.04,
+        "minDescriptionContrast": 12,
+        "titleFontSize": "20px",
+        "descriptionFontSize": "16px",
+        "backgroundColor": "rgba(15, 23, 43, 1)",
+        "overflowChecks": {
+          "titleOverflowFailures": 0,
+          "descriptionOverflowFailures": 0
+        }
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/features-core/VAL-FEAT-001-features-grid-1280.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional network activity; readability validation was fully style-based on the rendered local DOM"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FEAT-005",
+      "title": "Features grid responsive layout",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Resize viewport to 1280x1400 and inspect #features .grid",
+          "expected": "3 columns with no horizontal scrollbar",
+          "observed": "gridTemplateColumns rendered as three tracks and the first row contained 3 cards; no horizontal scrollbar"
+        },
+        {
+          "action": "Resize viewport to 768x1400 and inspect #features .grid",
+          "expected": "2 columns with no horizontal scrollbar",
+          "observed": "gridTemplateColumns rendered as two tracks and the first row contained 2 cards; no horizontal scrollbar"
+        },
+        {
+          "action": "Resize viewport to 375x1800 and inspect #features .grid",
+          "expected": "1 column with no horizontal scrollbar",
+          "observed": "gridTemplateColumns rendered as one track and the first row contained 1 card; no horizontal scrollbar"
+        }
+      ],
+      "selectors": [
+        "#features .grid",
+        "#features .grid article"
+      ],
+      "measurements": {
+        "1280x1400": {
+          "gridTemplateColumns": "370.656px 370.672px 370.656px",
+          "columnsInFirstRow": 3,
+          "hasHorizontalScrollbar": false
+        },
+        "768x1400": {
+          "gridTemplateColumns": "334px 334px",
+          "columnsInFirstRow": 2,
+          "hasHorizontalScrollbar": false
+        },
+        "375x1800": {
+          "gridTemplateColumns": "327px",
+          "columnsInFirstRow": 1,
+          "hasHorizontalScrollbar": false
+        }
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/features-core/VAL-FEAT-005-layout-1280.png",
+          "site-core/features-core/VAL-FEAT-005-layout-768.png",
+          "site-core/features-core/VAL-FEAT-005-layout-375.png"
+        ],
+        "consoleErrors": "none",
+        "network": "Viewport changes triggered no additional network requests; the responsive layout was verified on the already-loaded local page"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 5 assigned features-grid assertions on the real localhost:3200 surface; all 5 passed."
+}

@@ -1,0 +1,227 @@
+{
+  "groupId": "demo-accessibility",
+  "testedAt": "2026-03-13T10:56:44Z",
+  "isolation": {
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16",
+    "surfaceUrl": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u4",
+    "evidenceDir": "site-core/demo-accessibility"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-DEMO-008",
+      "title": "Animation starts on viewport entry",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Open http://localhost:3200 at 1280x600 with the terminal demo below the fold",
+          "expected": "Demo remains idle before entering the viewport",
+          "observed": "At scrollY=0 the terminal region was off-screen (top=1464px, height=449px) and the tabpanel text was only '$' (length=1)."
+        },
+        {
+          "action": "Scroll until 43.7% of the terminal region is visible using selector div[aria-label='Animated terminal demo showing mktg CLI output']",
+          "expected": "Animation should still not start below the 50% IntersectionObserver threshold",
+          "observed": "At scrollY=1060 the visible ratio was 0.437 and the tabpanel text stayed '$' (length=1)."
+        },
+        {
+          "action": "Scroll until 57.1% of the terminal region is visible and wait 900ms",
+          "expected": "Typewriter animation should begin once the region is at least 50% visible",
+          "observed": "At scrollY=1120 the visible ratio was 0.571 and the tabpanel text expanded to 89 chars ('$mktg initBootstrapping\u2026'), confirming animation start on entry."
+        },
+        {
+          "action": "After the demo rendered, scroll away to the top and back to the same position",
+          "expected": "Re-intersection should not restart the animation",
+          "observed": "After re-entry at visible ratio 0.516, the tabpanel remained at 508 chars instead of resetting to '$', so the animation did not restart."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-accessibility/VAL-DEMO-008-before-threshold.png",
+          "site-core/demo-accessibility/VAL-DEMO-008-threshold-entry.png",
+          "site-core/demo-accessibility/VAL-DEMO-008-no-restart-after-reentry.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET / -> 200 OK via curl; no relevant XHR/fetch requests observed for this static flow"
+      },
+      "selectors": {
+        "terminalRegion": "div[aria-label='Animated terminal demo showing mktg CLI output']",
+        "tabpanel": "[role='tabpanel']",
+        "tablist": "[role='tablist']"
+      },
+      "measurements": {
+        "initial": {
+          "scrollY": 0,
+          "regionTop": 1464,
+          "regionHeight": 449,
+          "tabpanelTextLength": 1
+        },
+        "beforeThreshold": {
+          "scrollY": 1060,
+          "visibleRatio": 0.437,
+          "tabpanelTextLength": 1
+        },
+        "afterThreshold": {
+          "scrollY": 1120,
+          "visibleRatio": 0.571,
+          "tabpanelTextLength": 89
+        },
+        "afterReentry": {
+          "scrollY": 1120,
+          "visibleRatio": 0.516,
+          "tabpanelTextLength": 508,
+          "restartedFromPromptOnly": false
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-009",
+      "title": "Terminal responsive on mobile",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Set viewport to 375x812 and load the page, then scroll to the terminal demo",
+          "expected": "Terminal should fit the mobile layout without page-level horizontal overflow",
+          "observed": "document.documentElement.scrollWidth was 375px, matching window.innerWidth=375px, so no horizontal overflow occurred."
+        },
+        {
+          "action": "Measure the terminal container and tablist bounds",
+          "expected": "Terminal should take the full content width on mobile",
+          "observed": "The terminal region measured 343px wide from left=16px to right=359px, filling the mobile content column with the expected 16px side gutters."
+        },
+        {
+          "action": "Inspect terminal font sizing and tab hit areas",
+          "expected": "Terminal font should be at least 12px and all three tabs should remain visible/tappable",
+          "observed": "The tabpanel font-size was 12px; the three tabs remained visible with widths of 100px each and heights of 58px each (ids terminal-demo-tab-init/status/doctor)."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-accessibility/VAL-DEMO-009-mobile-375.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET / -> 200 OK via curl; no relevant XHR/fetch requests observed for this static flow"
+      },
+      "selectors": {
+        "terminalRegion": "div[aria-label='Animated terminal demo showing mktg CLI output']",
+        "tablist": "[role='tablist']",
+        "tabs": "[role='tab']",
+        "tabpanel": "[role='tabpanel']"
+      },
+      "measurements": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "pageScrollWidth": 375,
+        "hasHorizontalOverflow": false,
+        "terminalRegion": {
+          "left": 16,
+          "right": 359,
+          "width": 343
+        },
+        "tabpanelFontSize": "12px",
+        "tabs": [
+          {
+            "id": "terminal-demo-tab-init",
+            "width": 100,
+            "height": 58
+          },
+          {
+            "id": "terminal-demo-tab-status",
+            "width": 100,
+            "height": 58
+          },
+          {
+            "id": "terminal-demo-tab-doctor",
+            "width": 100,
+            "height": 58
+          }
+        ]
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-010",
+      "title": "Accessibility \u2014 reduced motion, ARIA, and keyboard",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Emulate prefers-reduced-motion: reduce, load the page at 1280x800, and scroll the demo to 63.6% visibility",
+          "expected": "Typewriter animation should be skipped and full content should render immediately",
+          "observed": "window.matchMedia('(prefers-reduced-motion: reduce)').matches was true; after 150ms at visible ratio 0.636, the tabpanel already contained 508 chars of full output and getComputedStyle(tabpanel).animationName was 'none'."
+        },
+        {
+          "action": "Inspect the terminal region accessibility tree",
+          "expected": "Three tabs should expose role=tab + aria-selected, the content area should expose role=tabpanel + aria-labelledby, and the terminal region should have a descriptive aria-label",
+          "observed": "Found 3 role='tab' elements with aria-selected states and roving tabindex (0/-1); the panel exposed id='terminal-demo-panel' with aria-labelledby='terminal-demo-tab-init'; the container aria-label was 'Animated terminal demo showing mktg CLI output'."
+        },
+        {
+          "action": "Focus the active tab and press ArrowRight",
+          "expected": "Keyboard arrow navigation should switch the active tab",
+          "observed": "ArrowRight moved focus/selection from terminal-demo-tab-init to terminal-demo-tab-status; status became aria-selected='true' and tabindex='0'."
+        },
+        {
+          "action": "Focus terminal-demo-tab-doctor and press Space, then focus terminal-demo-tab-init and press Enter",
+          "expected": "Focused tabs should be activatable with Space and Enter",
+          "observed": "Space selected terminal-demo-tab-doctor and updated aria-labelledby to terminal-demo-tab-doctor; Enter re-selected terminal-demo-tab-init and updated aria-labelledby back to terminal-demo-tab-init. No animated descendants were present in reduced-motion mode."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-accessibility/VAL-DEMO-010-reduced-motion.png",
+          "site-core/demo-accessibility/VAL-DEMO-010-keyboard-activation.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET / -> 200 OK via curl; no relevant XHR/fetch requests observed for this static flow"
+      },
+      "selectors": {
+        "terminalRegion": "div[aria-label='Animated terminal demo showing mktg CLI output']",
+        "tabs": "[role='tab']",
+        "tabpanel": "[role='tabpanel']"
+      },
+      "measurements": {
+        "reducedMotionMatched": true,
+        "visibleRatioAtCheck": 0.636,
+        "tabpanel": {
+          "id": "terminal-demo-panel",
+          "ariaLabelledby": "terminal-demo-tab-init",
+          "textLength": 508,
+          "animationName": "none"
+        },
+        "tabs": [
+          {
+            "id": "terminal-demo-tab-init",
+            "ariaSelected": "true",
+            "tabIndex": "0"
+          },
+          {
+            "id": "terminal-demo-tab-status",
+            "ariaSelected": "false",
+            "tabIndex": "-1"
+          },
+          {
+            "id": "terminal-demo-tab-doctor",
+            "ariaSelected": "false",
+            "tabIndex": "-1"
+          }
+        ],
+        "keyboardResults": {
+          "arrowRightSelected": "terminal-demo-tab-status",
+          "spaceSelected": "terminal-demo-tab-doctor",
+          "enterSelected": "terminal-demo-tab-init"
+        },
+        "animatedNodesInRegion": 0,
+        "regionAriaLabel": "Animated terminal demo showing mktg CLI output"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 3 assigned terminal-demo assertions through browser session 0f916ecfbd72__u4: VAL-DEMO-008 passed, VAL-DEMO-009 passed, and VAL-DEMO-010 passed."
+}

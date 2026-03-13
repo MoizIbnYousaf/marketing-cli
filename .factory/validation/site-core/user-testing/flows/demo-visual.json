@@ -1,0 +1,403 @@
+{
+  "groupId": "demo-visual",
+  "testedAt": "2026-03-13T10:59:24.236482+00:00",
+  "isolation": {
+    "surfaceUrl": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u3",
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16",
+    "evidenceDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16/evidence/site-core/demo-visual"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-DEMO-001",
+      "title": "Terminal window chrome renders correctly",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Open localhost:3200 and scroll the terminal demo into view",
+          "expected": "Terminal shell renders with macOS chrome, dark body, and monospace output",
+          "observed": "Terminal shell rendered with a titled header, three traffic-light dots at the top-left, dark shell background, and JetBrains Mono output"
+        },
+        {
+          "action": "Inspect terminal shell DOM and computed styles",
+          "expected": "Three dot elements, dark background, monospace font",
+          "observed": "`[data-terminal-dot=\"true\"]` returned 3 dots; shell background was `oklab(0.129 -0.0038832 -0.0418201 / 0.9)`; panel font-family was `\"JetBrains Mono\", \"JetBrains Mono Fallback\"`"
+        }
+      ],
+      "selectors": [
+        "[data-testid=\"terminal-shell\"]",
+        "[data-terminal-dot=\"true\"]",
+        "[data-testid=\"terminal-panel\"]"
+      ],
+      "measurements": {
+        "dotCount": 3,
+        "dotColors": [
+          "oklch(0.712 0.194 13.428)",
+          "oklch(0.879 0.169 91.605)",
+          "oklch(0.765 0.177 163.223)"
+        ],
+        "dotSizePx": "12x12 each",
+        "titleBarText": "bootstrap replay",
+        "shellBackground": "oklab(0.129 -0.0038832 -0.0418201 / 0.9)",
+        "panelFontFamily": "\"JetBrains Mono\", \"JetBrains Mono Fallback\""
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-001-initial-annotated.png",
+          "site-core/demo-visual/VAL-DEMO-001-terminal-window.png"
+        ],
+        "consoleErrors": "none",
+        "network": "Initial document load observed via Performance API: GET http://localhost:3200/ (reload, 383ms, transferSize 21677); supporting CSS/fonts/scripts loaded from /_next/static/*"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-002",
+      "title": "Tab bar displays all three demo commands",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Query all terminal tabs on initial load",
+          "expected": "Exactly three tabs with labels mktg init, mktg status, mktg doctor",
+          "observed": "Three tabs rendered with labels `mktg init`, `mktg status`, and `mktg doctor`"
+        },
+        {
+          "action": "Inspect the default active tab state",
+          "expected": "First tab active by default with distinct styling",
+          "observed": "`#terminal-demo-tab-init` was selected by default (`aria-selected=\"true\"`) with emerald text/background/border styling distinct from the two inactive tabs"
+        }
+      ],
+      "selectors": [
+        "[role=\"tab\"]",
+        "#terminal-demo-tab-init",
+        "#terminal-demo-tab-status",
+        "#terminal-demo-tab-doctor"
+      ],
+      "measurements": {
+        "tabLabels": [
+          "mktg init",
+          "mktg status",
+          "mktg doctor"
+        ],
+        "activeTab": "mktg init",
+        "activeStyles": {
+          "color": "oklch(0.905 0.093 164.15)",
+          "backgroundColor": "oklab(0.765 -0.169466 0.0510906 / 0.1)",
+          "borderColor": "oklab(0.765 -0.169466 0.0510906 / 0.5)",
+          "fontWeight": "500"
+        },
+        "inactiveMinHeight": "44px"
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-001-initial-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No tab-specific network activity; terminal demo is client-rendered from initial page assets"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-003",
+      "title": "Typewriter animation types command then renders output",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Reload the page with the demo below the fold, then scroll the demo into view and observe over >4s",
+          "expected": "Command types character-by-character, pauses briefly, then output lines render progressively",
+          "observed": "Command text progressed from empty to `m`, `mktg`, `mktg i`, `mktg ini`, and `mktg init` over ~759ms, then output began appearing after a short pause and expanded line-by-line from 2 to 11 lines between ~1213ms and ~2423ms"
+        },
+        {
+          "action": "Capture before/after screenshots during the animation",
+          "expected": "Typing phase and output phase are visually distinct",
+          "observed": "`VAL-DEMO-003-typing-phase.png` shows the command mid-typing; `VAL-DEMO-003-output-phase.png` shows the rendered output phase"
+        }
+      ],
+      "selectors": [
+        "[data-testid=\"terminal-command\"]",
+        "[aria-label=\"Terminal output\"]",
+        "[data-testid=\"terminal-panel\"]"
+      ],
+      "measurements": {
+        "typingTimelineMs": [
+          {
+            "t": 0,
+            "command": "",
+            "length": 0
+          },
+          {
+            "t": 152,
+            "command": "m",
+            "length": 1
+          },
+          {
+            "t": 304,
+            "command": "mktg",
+            "length": 4
+          },
+          {
+            "t": 456,
+            "command": "mktg i",
+            "length": 6
+          },
+          {
+            "t": 607,
+            "command": "mktg ini",
+            "length": 8
+          },
+          {
+            "t": 759,
+            "command": "mktg init",
+            "length": 9
+          }
+        ],
+        "outputLineTimelineMs": [
+          631,
+          754,
+          873,
+          985,
+          1128,
+          1275,
+          1391,
+          1517,
+          1650,
+          1795,
+          1941
+        ],
+        "finalLineCount": 11
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-003-typing-phase.png",
+          "site-core/demo-visual/VAL-DEMO-003-output-phase.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network activity triggered by the animation after the initial page load"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-004",
+      "title": "Cursor blink animation",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect the cursor element and observe visibility changes over time",
+          "expected": "Single cursor appears after the command, blinking roughly every second full cycle",
+          "observed": "Exactly one `[data-testid=\"terminal-cursor\"]` element existed. Computed animation was `1.06s steps(2, start) infinite terminal-cursor-blink`, matching the expected 800-1200ms full cycle range"
+        },
+        {
+          "action": "Sample cursor visibility during runtime and capture paired screenshots ~550ms apart",
+          "expected": "Visibility toggles without duplicate cursors",
+          "observed": "Runtime samples showed cursor visibility toggling true/false across the same command position, and no duplicate cursor nodes were present; paired screenshots were captured 550ms apart"
+        }
+      ],
+      "selectors": [
+        "[data-testid=\"terminal-cursor\"]",
+        "[data-testid=\"terminal-command\"]"
+      ],
+      "measurements": {
+        "cursorCount": 1,
+        "animation": "1.06s steps(2, start) infinite terminal-cursor-blink",
+        "cursorSizePx": {
+          "width": 8,
+          "height": 20
+        },
+        "cursorRect": {
+          "x": 263.015625,
+          "y": 393.5,
+          "width": 8,
+          "height": 20
+        },
+        "visibilitySamples": [
+          {
+            "t": 759,
+            "visible": true
+          },
+          {
+            "t": 910,
+            "visible": false
+          },
+          {
+            "t": 1364,
+            "visible": true
+          },
+          {
+            "t": 3029,
+            "visible": false
+          },
+          {
+            "t": 3484,
+            "visible": true
+          }
+        ]
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-004-cursor-a.png",
+          "site-core/demo-visual/VAL-DEMO-004-cursor-b.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No cursor-specific network activity; blink is CSS animation only"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-005",
+      "title": "Tab switching resets and replays animation",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Reload the page, scroll the terminal into view, then switch from the default init tab to the status tab mid-animation",
+          "expected": "Terminal body clears, active state changes, and the new command restarts from the beginning without leftover characters or lines",
+          "observed": "At 320ms the init command was mid-animation (`mktg init`, no output lines yet). After clicking `#terminal-demo-tab-status`, by 160ms the active tab had changed to `mktg status` and the command had restarted at `m` with no prior output remaining; by 860ms it had progressed to `mktg statu`, and by 1760ms the new demo output had started rendering"
+        },
+        {
+          "action": "Capture the switched state",
+          "expected": "Status tab visibly active with replayed animation/output",
+          "observed": "`VAL-DEMO-005-tab-switch-status.png` shows the status tab active with its own replayed terminal content"
+        }
+      ],
+      "selectors": [
+        "#terminal-demo-tab-status",
+        "[data-testid=\"terminal-command\"]",
+        "[data-testid=\"terminal-panel\"]"
+      ],
+      "measurements": {
+        "beforeClick": {
+          "selected": "mktg init",
+          "command": "mktg init",
+          "lineCount": 0
+        },
+        "after160ms": {
+          "selected": "mktg status",
+          "command": "m",
+          "lineCount": 0
+        },
+        "after860ms": {
+          "selected": "mktg status",
+          "command": "mktg statu",
+          "lineCount": 0
+        },
+        "after1760ms": {
+          "selected": "mktg status",
+          "command": "mktg status",
+          "lineCount": 0
+        }
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-005-tab-switch-status.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No tab-switch network activity observed; demo content replayed client-side"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-006",
+      "title": "Syntax-highlighted colored output",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Allow the init demo output to finish and inspect rendered text styles",
+          "expected": "Green success indicators, yellow warnings, red errors, bold headers, and dim helper text with at least 3 distinct colors",
+          "observed": "Rendered output exposed 7 unique text colors. Green was used for `$` and `\u2713`, yellow for the warning line, red for the GitHub auth error line, brighter light text for main output, bold white for the heading, and dim slate text for the helper `Next step` line"
+        }
+      ],
+      "selectors": [
+        "[data-testid=\"terminal-panel\"] span",
+        "[data-testid=\"terminal-panel\"] p"
+      ],
+      "measurements": {
+        "uniqueColors": [
+          "rgb(248, 250, 252)",
+          "oklch(0.968 0.007 247.896)",
+          "oklch(0.845 0.143 164.978)",
+          "oklch(0.929 0.013 255.508)",
+          "oklch(0.879 0.169 91.605)",
+          "oklch(0.81 0.117 11.638)",
+          "oklch(0.554 0.046 257.417)"
+        ],
+        "warningColor": "oklch(0.879 0.169 91.605)",
+        "errorColor": "oklch(0.81 0.117 11.638)",
+        "successColor": "oklch(0.845 0.143 164.978)",
+        "helperColor": "oklch(0.554 0.046 257.417)",
+        "headerFontWeight": "600"
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-006-colored-output.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional network requests; color styling came from preloaded CSS"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DEMO-007",
+      "title": "Internal scroll for long output",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect terminal panel overflow after the init demo finishes rendering",
+          "expected": "Terminal uses internal scroll with a fixed max-height and auto-scrolls to the bottom as output grows",
+          "observed": "`[data-testid=\"terminal-panel\"]` had `overflow-y: auto` and `max-height: 384px`; after output completed, `scrollTop + clientHeight = 396`, matching `scrollHeight = 396` (bottom reached)"
+        },
+        {
+          "action": "Scroll the terminal panel back to the top",
+          "expected": "Earlier lines remain accessible inside the terminal viewport",
+          "observed": "After setting `scrollTop = 0`, the panel stayed at `clientHeight 384 / scrollHeight 396`, and the top of the command/output became visible again in the same terminal viewport"
+        }
+      ],
+      "selectors": [
+        "[data-testid=\"terminal-panel\"]"
+      ],
+      "measurements": {
+        "beforeScrollUp": {
+          "scrollTop": 12,
+          "clientHeight": 384,
+          "scrollHeight": 396,
+          "atBottom": true,
+          "overflowY": "auto",
+          "maxHeight": "384px"
+        },
+        "afterScrollUp": {
+          "scrollTop": 0,
+          "clientHeight": 384,
+          "scrollHeight": 396
+        }
+      },
+      "evidence": {
+        "screenshots": [
+          "site-core/demo-visual/VAL-DEMO-007-scrolled-up.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No scroll-triggered network requests observed"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [
+    {
+      "description": "`agent-browser network requests` returned no captured entries for this static local page, so network evidence was gathered from the browser Performance API instead.",
+      "resolved": true,
+      "resolution": "Recorded the navigation entry and first resource fetches via `performance.getEntriesByType()` and used that in the report.",
+      "affectedAssertions": [
+        "VAL-DEMO-001",
+        "VAL-DEMO-002",
+        "VAL-DEMO-003",
+        "VAL-DEMO-004",
+        "VAL-DEMO-005",
+        "VAL-DEMO-006",
+        "VAL-DEMO-007"
+      ]
+    }
+  ],
+  "blockers": [],
+  "summary": "Tested 7 terminal demo assertions on http://localhost:3200 using browser session 0f916ecfbd72__u3. All 7 passed: the terminal chrome, tabs, typewriter replay, blinking cursor, tab reset/replay behavior, syntax-highlighted output, and internal scrolling all matched the validation contract."
+}

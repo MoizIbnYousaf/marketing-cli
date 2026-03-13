@@ -1,0 +1,215 @@
+{
+  "groupId": "footer-core",
+  "testedAt": "2026-03-13T11:05:42.696478+00:00",
+  "isolation": {
+    "surface": "browser",
+    "url": "http://localhost:3200",
+    "browserSession": "0f916ecfbd72__u6",
+    "missionDir": "/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16"
+  },
+  "toolsUsed": [
+    "agent-browser",
+    "curl",
+    "python3"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-FOOTER-001",
+      "title": "Required links present and functional",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Scroll to the footer, capture an annotated screenshot, and inspect all footer anchors via DOM evaluation",
+          "expected": "The footer exposes GitHub and npm links with valid external URLs plus `target=\"_blank\"` and `rel=\"noopener noreferrer\"`",
+          "observed": "The footer rendered two visible 44px-tall links labeled `GitHub repo` and `npm package`; their hrefs were `https://github.com/moizibnyousaf/mktg` and `https://www.npmjs.com/package/mktg`, and both anchors had `target=\"_blank\"` and `rel=\"noopener noreferrer\"`."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/footer-core/VAL-FOOTER-001-links-annotated.png"
+        ],
+        "consoleErrors": "none",
+        "network": "After reload the browser tracked only local Next.js document/assets requests with no failures: GET /, two font files, app/layout.css, webpack.js, main-app.js, app-pages-internals.js, and app/page.js.",
+        "selectors": [
+          "footer",
+          "footer nav",
+          "footer a[href='https://github.com/moizibnyousaf/mktg']",
+          "footer a[href='https://www.npmjs.com/package/mktg']"
+        ],
+        "measurements": {
+          "footerLinks": {
+            "githubRepo": {
+              "text": "GitHub repo",
+              "href": "https://github.com/moizibnyousaf/mktg",
+              "target": "_blank",
+              "rel": "noopener noreferrer",
+              "visible": true,
+              "rect": {
+                "width": 114.484375,
+                "height": 44,
+                "top": 821.5,
+                "left": 728.78125
+              }
+            },
+            "npmPackage": {
+              "text": "npm package",
+              "href": "https://www.npmjs.com/package/mktg",
+              "target": "_blank",
+              "rel": "noopener noreferrer",
+              "visible": true,
+              "rect": {
+                "width": 124.734375,
+                "height": 44,
+                "top": 821.5,
+                "left": 859.265625
+              }
+            }
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FOOTER-002",
+      "title": "Copyright and tagline displayed",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Inspect footer text nodes and verify visibility in the bottom-of-page screenshot",
+          "expected": "The footer shows the 2026 copyright line and the exact tagline `Built for agents, by agents`, both visible and unclipped",
+          "observed": "Two visible `<p>` elements rendered inside the footer: `\u00a9 2026 mktg` at 172.83x20px and `Built for agents, by agents` at 172.83x20px; both were fully visible in the footer screenshot."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/footer-core/VAL-FOOTER-002-footer-bottom.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional network activity was required beyond the local document/assets requests captured after reload.",
+        "selectors": [
+          "footer",
+          "footer p.text-sm.font-medium.tracking-tight.text-slate-100",
+          "footer p.text-sm.text-slate-400"
+        ],
+        "measurements": {
+          "footerText": "\u00a9 2026 mktg Built for agents, by agents GitHub repo npm package",
+          "containsYear2026": true,
+          "containsTagline": true,
+          "copyrightRect": {
+            "width": 172.828125,
+            "height": 20,
+            "top": 819.5,
+            "left": 40
+          },
+          "taglineRect": {
+            "width": 172.828125,
+            "height": 20,
+            "top": 847.5,
+            "left": 40
+          }
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FOOTER-003",
+      "title": "Footer is last visible element",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Measure the top-level rendered body elements and compare the footer bottom edge to the document scroll height",
+          "expected": "The page uses a `<footer>` element as the last rendered content block, and no visible page content appears below it",
+          "observed": "`document.querySelector('footer')` returned a `<footer>` element spanning 5870.5px to 5983.5px on the page; the document scroll height was 5984px, so the footer bottom aligned within 0.5px rounding tolerance and no visible top-level content rendered after the footer."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/footer-core/VAL-FOOTER-003-full-page.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No additional requests were needed beyond the local page reload and asset fetches.",
+        "selectors": [
+          "footer",
+          "body > nav",
+          "body > main",
+          "body > footer"
+        ],
+        "measurements": {
+          "footerTag": "footer",
+          "footerTop": 5870.5,
+          "footerBottom": 5983.5,
+          "documentScrollHeight": 5984,
+          "footerBottomGapPx": 0.5,
+          "visibleTopLevelBodyChildren": [
+            {
+              "tag": "nav",
+              "top": 5084,
+              "bottom": 5163,
+              "position": "sticky"
+            },
+            {
+              "tag": "main",
+              "top": 79,
+              "bottom": 5870.5,
+              "position": "static"
+            },
+            {
+              "tag": "footer",
+              "top": 5870.5,
+              "bottom": 5983.5,
+              "position": "static"
+            }
+          ]
+        }
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-FOOTER-004",
+      "title": "Footer is visually minimal",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Measure the footer at desktop width 1024px and inspect its internal structure",
+          "expected": "The footer remains compact (<= 200px tall) with a minimal layout and no large imagery or complex visual blocks",
+          "observed": "At 1024px wide the footer measured 1024x113px, contained two short text lines plus a two-link nav, and had zero `<img>` elements; the visible descendant count was limited to seven nodes, consistent with a minimal footer design."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "site-core/footer-core/VAL-FOOTER-002-footer-bottom.png",
+          "site-core/footer-core/VAL-FOOTER-003-full-page.png"
+        ],
+        "consoleErrors": "none",
+        "network": "No network activity beyond the local page/document asset requests was relevant to this visual inspection.",
+        "selectors": [
+          "footer",
+          "footer > div",
+          "footer nav",
+          "footer img"
+        ],
+        "measurements": {
+          "viewport": {
+            "width": 1024,
+            "height": 900
+          },
+          "footerRect": {
+            "width": 1024,
+            "height": 113,
+            "top": 786.5,
+            "bottom": 899.5
+          },
+          "footerOffsetHeight": 113,
+          "maxAllowedHeight": 200,
+          "imageCount": 0,
+          "footerDescendantCount": 7,
+          "footerLayoutSummary": "One text block on the left and one two-link nav on the right."
+        }
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 4 footer assertions against the live localhost:3200 page in browser session 0f916ecfbd72__u6; all 4 passed."
+}

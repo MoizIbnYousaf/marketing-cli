@@ -1,0 +1,62 @@
+{
+  "milestone": "site-core",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 34,
+    "passed": 34,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-DEMO-001",
+    "VAL-DEMO-002",
+    "VAL-DEMO-003",
+    "VAL-DEMO-004",
+    "VAL-DEMO-005",
+    "VAL-DEMO-006",
+    "VAL-DEMO-007",
+    "VAL-DEMO-008",
+    "VAL-DEMO-009",
+    "VAL-DEMO-010",
+    "VAL-FEAT-001",
+    "VAL-FEAT-002",
+    "VAL-FEAT-003",
+    "VAL-FEAT-004",
+    "VAL-FEAT-005",
+    "VAL-FOOTER-001",
+    "VAL-FOOTER-002",
+    "VAL-FOOTER-003",
+    "VAL-FOOTER-004",
+    "VAL-HERO-001",
+    "VAL-HERO-002",
+    "VAL-HERO-003",
+    "VAL-HERO-004",
+    "VAL-HERO-005",
+    "VAL-HERO-006",
+    "VAL-HERO-007",
+    "VAL-NAV-001",
+    "VAL-NAV-002",
+    "VAL-NAV-003",
+    "VAL-NAV-004",
+    "VAL-NAV-005",
+    "VAL-NAV-006",
+    "VAL-NAV-007",
+    "VAL-NAV-008"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Added a browser flow-validator guidance section for site-core, including dedicated session boundaries, placeholder-section scope rules, evidence expectations, and cleanup requirements.",
+      "source": "setup"
+    },
+    {
+      "target": "user-testing.md",
+      "description": "Documented two browser-testing frictions discovered during flow validation: use mouse-wheel input (not programmatic scroll helpers) for CSS scroll-lock checks, and use the Performance API when local static-page request capture is empty.",
+      "source": "flow-report"
+    }
+  ],
+  "previousRound": null
+}
