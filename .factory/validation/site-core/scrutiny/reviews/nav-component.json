@@ -1,0 +1,33 @@
+{
+  "featureId": "nav-component",
+  "reviewedAt": "2026-03-13T10:45:19Z",
+  "commitId": "4f6bce5d08d0e3f299bcb8928959ef1e3e36a922",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The nav commit covers the requested behavior: `website/components/Nav.tsx` adds the sticky wordmark/nav actions, transparent-to-solid scroll styling, smooth anchor scrolling with sticky-nav offset, IntersectionObserver-based active-section highlighting, and a <=768px hamburger menu with body scroll locking, while `website/app/page.tsx` integrates the nav with the required anchor targets and `website/app/globals.css` adds global smooth-scroll padding. The reviewed handoff and transcript skeleton show the worker also manually verified top-of-page transparency, install scrolling, logo-to-top behavior, active-link highlighting, z-index layering, and mobile menu open/close behavior. I found no blocking correctness gaps, but there is one non-blocking maintainability issue in the component structure.",
+    "issues": [
+      {
+        "file": "website/components/Nav.tsx",
+        "line": 223,
+        "severity": "non_blocking",
+        "description": "Desktop and mobile rendering duplicate the same `NAV_LINKS` / GitHub / CTA markup across lines 223-320, which pushed the component to 327 lines in this commit and past the mission's documented `<300`-line convention (`/Users/moizibnyousaf/.factory/missions/f6087f66-ecf8-4dd2-b2bd-cf52fdf61f16/AGENTS.md:27`). Extracting shared menu/action subcomponents would reduce drift risk when links, styles, or behavior change."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The `frontend-worker` skill's manual verification procedure assumes `next dev` is the only valid preview path. In this feature, the worker hit a pre-existing Next.js devtools/runtime overlay and had to fall back to verifying the built static export instead; that deviation appears justified and should be documented in the skill.",
+      "evidence": "`.factory/skills/frontend-worker/SKILL.md:53-60` requires verification against `PORT=3200 bun run dev` at `http://localhost:3200`, while the reviewed handoff at `handoffs/2026-03-13T09-45-11-268Z__nav-component__cb8a2041-9dd9-4ae9-83fa-a05760e84d36.json:95-109` records the dev-runtime overlay failure and explicitly suggests allowing a temporary built-static preview fallback when production build passes."
+    },
+    {
+      "area": "services",
+      "observation": "The mission's services manifest only documents the Next dev server, but this feature's successful manual verification depended on serving `website/out` locally after the dev server proved unreliable. If that fallback is an accepted workflow, it should be captured in shared state instead of remaining an ad hoc command in one worker transcript.",
+      "evidence": "`.factory/services.yaml:10-13` only defines the `web` service as `PORT=3200 bun run dev` plus its healthcheck, while the same reviewed handoff (`...nav-component__cb8a2041-9dd9-4ae9-83fa-a05760e84d36.json:95-109`) says verification was completed against the successful static build served locally on port 3200."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Pass with one non-blocking maintainability issue. The nav feature meets the requested sticky, smooth-scroll, active-section, and mobile-menu behavior based on the reviewed diff, handoff, and transcript evidence. Shared-state gaps remain around documenting the built-static preview fallback in both the `frontend-worker` skill and the mission services guidance."
+}

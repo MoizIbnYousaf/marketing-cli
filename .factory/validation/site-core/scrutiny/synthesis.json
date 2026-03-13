@@ -1,0 +1,88 @@
+{
+  "milestone": "site-core",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "cd website && bun run test",
+      "exitCode": 0
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "cd website && bun x tsc --noEmit",
+      "exitCode": 0
+    },
+    "lint": {
+      "passed": true,
+      "command": "cd website && bun run lint",
+      "exitCode": 0
+    }
+  },
+  "reviewsSummary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "nonBlockingIssues": [
+    {
+      "featureId": "nav-component",
+      "severity": "non_blocking",
+      "description": "Nav review found duplicated desktop/mobile menu markup in `website/components/Nav.tsx`, pushing the component past the mission's 300-line convention and increasing future drift risk."
+    },
+    {
+      "featureId": "site-core-shared",
+      "severity": "non_blocking",
+      "description": "Website marketing copy has drifted from canonical root product metadata: hero content and prerecorded terminal demo output still say `35 skills` while root docs/package metadata currently say `39 skills`."
+    }
+  ],
+  "appliedUpdates": [
+    {
+      "target": "library",
+      "description": "Documented in `.factory/library/environment.md` that the repo-root `.gitignore` ignores nested `bun.lock` files, leaving `website/bun.lock` untracked unless ignore rules change.",
+      "sourceFeature": "nextjs-project-scaffold"
+    },
+    {
+      "target": "library",
+      "description": "Documented in `.factory/library/environment.md` that canonical root product copy currently says `39 skills` while some website copy/demo content still says `35`, so future website edits should cross-check root docs until a single source of truth exists.",
+      "sourceFeature": "hero-section|terminal-demo-component|features-grid"
+    }
+  ],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "frontend-worker skill",
+      "suggestion": "Replace the stale `Vitest + React Testing Library` wording with Bun test runner guidance so the skill matches mission conventions and actual website tests.",
+      "evidence": "The same mismatch was flagged by reviews for `footer-component`, `hero-section`, `features-grid`, and `terminal-demo-component`; `.factory/skills/frontend-worker/SKILL.md` still advertises Vitest while mission AGENTS.md and the website tests use `bun:test`.",
+      "isSystemic": true
+    },
+    {
+      "target": "frontend-worker skill",
+      "suggestion": "Add explicit guidance for scaffold-first features and dirty/pre-seeded worktrees, including when workers may defer TDD/baseline validation until after initial setup.",
+      "evidence": "Reviews for `nextjs-project-scaffold` and `features-grid` both recorded justified deviations because the website project or feature files already existed before the worker began, but the skill currently only describes a clean-tree TDD flow.",
+      "isSystemic": true
+    },
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Add a shared rule for marketing-facing website work to cross-check hardcoded product stats against canonical root metadata/docs before landing copy or prerecorded demos.",
+      "evidence": "Reviews for `hero-section`, `terminal-demo-component`, and `features-grid` all surfaced drift around the marketed skill count (`35` in website copy vs `39` in root docs/package metadata).",
+      "isSystemic": true
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "Document a built-static preview fallback in `.factory/services.yaml` for all frontend features.",
+      "reason": "ambiguous: this came from a single nav review transcript, was not reproduced during scrutiny validation, and could encode an environment-specific workaround as the default service contract."
+    },
+    {
+      "observation": "Repeated Vitest-vs-Bun shared-state observations across multiple feature reviews.",
+      "reason": "duplicate: consolidated into one systemic frontend-worker skill recommendation."
+    },
+    {
+      "observation": "Repeated 35-vs-39 marketed-skill-count drift observations across multiple feature reviews.",
+      "reason": "duplicate: consolidated into one library update plus one systemic AGENTS guidance recommendation."
+    }
+  ],
+  "previousRound": null
+}

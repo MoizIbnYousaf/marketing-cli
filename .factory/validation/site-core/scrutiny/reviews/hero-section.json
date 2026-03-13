@@ -1,0 +1,28 @@
+{
+  "featureId": "hero-section",
+  "reviewedAt": "2026-03-13T10:44:09Z",
+  "commitId": "96dd921f88cb9dbeba5e2822984d76c43fd2caad",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The hero implementation covers the requested behavior: `website/components/Hero.tsx` adds the only page `h1`, value-prop marketing copy, dual CTAs, gradient/glow treatments, and a responsive grid that stacks on smaller viewports, while `website/lib/scroll.ts` centralizes the sticky-nav-aware scroll behavior reused by both hero and nav. I found one non-blocking content-accuracy issue in the hero signal list.",
+    "issues": [
+      {
+        "file": "website/components/Hero.tsx",
+        "line": 23,
+        "severity": "non_blocking",
+        "description": "The hero signal copy says `35 skills`, but the repo's canonical product copy says `39 skills` (`package.json:4`, `README.md:66`, `README.md:101`, `README.md:119`). This makes the hero factually outdated even though the rest of the feature behavior is correct."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The `frontend-worker` skill still advertises `Vitest + React Testing Library`, but this mission and the website project use Bun's test runner. The hero worker followed repo reality (`bun:test`), so the skill header is stale and could mislead future workers.",
+      "evidence": ".factory/skills/frontend-worker/SKILL.md:19 says `Component testing with Vitest + React Testing Library`, while the same skill procedure at lines 32-34 says to use `bun:test`, and mission AGENTS.md:52-55 specifies Bun tests via `cd website && bun run test`."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Pass with one non-blocking issue. The hero feature meets the requested layout, CTA, responsiveness, and single-h1 behavior, but one hero stat is outdated (`35 skills` vs the repo's canonical `39 skills`). One shared-state gap was also noted: the `frontend-worker` skill header still mentions Vitest even though the website uses Bun tests."
+}

@@ -20,3 +20,7 @@
 ## External Dependencies
 - None. Fully static site, no database, no API, no external services.
 - Deployment target: Vercel (static export)
+
+## Known Gotchas
+- Root `.gitignore` ignores `bun.lock` globally, so nested Bun project lockfiles like `website/bun.lock` remain untracked unless the ignore rules change.
+- Canonical product copy in root metadata/docs currently says `39 skills`; some website copy and prerecorded demo content still reference `35`, so future website edits should cross-check root docs until there is a single shared source of truth.

@@ -1,0 +1,33 @@
+{
+  "featureId": "terminal-demo-component",
+  "reviewedAt": "2026-03-13T10:45:53Z",
+  "commitId": "1c8e45bd4452e453c6401352b9d273e5389aceba",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The terminal demo implementation covers the requested behavior: `website/components/TerminalDemo.tsx` delivers the macOS-style chrome, accessible 3-tab interface, keyboard navigation, fixed-height scrollable panel, responsive sizing, and cursor treatment; `website/lib/use-terminal-playback.ts` handles the 50%-visibility gate, randomized typewriter timing, line-by-line output replay, timer cleanup on tab switches, reduced-motion fallback, and auto-scroll behavior. I found one non-blocking content-accuracy issue in the prerecorded terminal data.",
+    "issues": [
+      {
+        "file": "website/lib/terminal-data.ts",
+        "line": 68,
+        "severity": "non_blocking",
+        "description": "The prerecorded `init` and `status` demos still hardcode `35` installed skills (`Installed 35 marketing skills...` at line 68 and `35/35 skills installed...` at line 84), so the centerpiece terminal output is now stale relative to the repo's canonical product copy (`README.md:7`, `README.md:34`) that says `39` skills. The animation behavior is correct, but the content no longer matches the current product state."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The `frontend-worker` skill still advertises Vitest even though this mission and the website project use Bun's test runner. The worker followed repo reality, but the stale skill header can still mislead future website workers.",
+      "evidence": "/Users/moizibnyousaf/projects/mktg/.factory/skills/frontend-worker/SKILL.md:19 says `Component testing with Vitest + React Testing Library`, while the same skill's procedure at lines 32-34 tells workers to use `bun:test`, and mission AGENTS.md:52-55 says website tests use Bun's built-in test runner."
+    },
+    {
+      "area": "knowledge",
+      "observation": "The repo still lacks a single shared source of truth for the marketed skill count. Core product docs now say `39` skills, but the website's prerecorded terminal copy still says `35`, which is how this feature drifted out of date.",
+      "evidence": "/Users/moizibnyousaf/projects/mktg/README.md:7 and :34 say `39 Skills` / `39/39 installed`, while /Users/moizibnyousaf/projects/mktg/website/lib/terminal-data.ts:68 and :84 still say `35` and `35/35`."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Pass with one non-blocking issue. The feature meets the requested animation, accessibility, responsive, and interaction requirements, but the prerecorded terminal copy is now stale because it still claims there are 35 installed skills instead of the repo's current 39-skill product copy. I also noted shared-state gaps around the outdated frontend-worker testing guidance and the missing single source of truth for website skill-count copy."
+}

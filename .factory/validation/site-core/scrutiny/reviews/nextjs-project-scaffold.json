@@ -1,0 +1,26 @@
+{
+  "featureId": "nextjs-project-scaffold",
+  "reviewedAt": "2026-03-13T10:43:59Z",
+  "commitId": "5ecd30f55d57e8fa9477ad442fdb413dbf818b75",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The scaffold commit covers the requested foundation work: it creates a standalone `website/` Next.js 15 App Router app with Bun scripts, strict TypeScript config, Tailwind CSS v4 wiring, static export in `next.config.ts`, dark-theme globals, `next/font` setup for Inter and JetBrains Mono, a root layout applying the dark background and fonts, and a minimal home page rendering `mktg`. The reviewed handoff and transcript skeleton also show the worker verified `bun install`, `bun run build`, `bun x tsc --noEmit`, and a port-3200 dev-server healthcheck for the scaffolded app.",
+    "issues": []
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The `frontend-worker` skill's required baseline-test and TDD steps do not fit scaffold-first features where `website/` does not exist yet. The worker had to deviate for this first feature, and that deviation was justified by the mission reality.",
+      "evidence": ".factory/skills/frontend-worker/SKILL.md:30-34 requires writing tests first, while the reviewed handoff at `handoffs/2026-03-13T09-30-32-995Z__nextjs-project-scaffold__8a405a9e-a4bc-4ed4-8aa6-b477307503f4.json:85-99` records `followedProcedure: false` because baseline validation and TDD could not run before the scaffold existed and explicitly suggests allowing scaffold-first setup before those steps."
+    },
+    {
+      "area": "conventions",
+      "observation": "The repo-level ignore rules currently hide lockfiles for nested Bun projects, so the website scaffold's generated `website/bun.lock` is left untracked. That creates a reproducibility gap for future installs of the separate website package.",
+      "evidence": ".gitignore:7 ignores `bun.lock` globally, `git status --short --ignored -- website/bun.lock` reports `!! website/bun.lock`, and the reviewed commit introduced a new standalone `website/package.json` without a tracked website lockfile."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Pass. The feature commit delivers the requested Next.js scaffold and the reviewed evidence shows the expected install/build/typecheck/dev verification completed successfully. No blocking code issues were found; shared-state gaps remain around scaffold-first worker guidance and nested Bun lockfile tracking."
+}
