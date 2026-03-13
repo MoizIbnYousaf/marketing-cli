@@ -192,6 +192,126 @@ export type CommandSchema = {
   readonly vocabulary?: readonly string[];
 };
 
+// --- Skill lifecycle types ---
+
+// Validation check result
+export type ValidationCheck = {
+  readonly rule: string;
+  readonly pass: boolean;
+  readonly detail?: string;
+};
+
+export type ValidationResult = {
+  readonly valid: boolean;
+  readonly checks: readonly ValidationCheck[];
+  readonly errors: readonly string[];
+  readonly warnings: readonly string[];
+};
+
+// Skill dependency graph
+export type SkillGraphNode = {
+  readonly name: string;
+  readonly category: SkillCategory;
+  readonly layer: SkillLayer;
+  readonly tier: "must-have" | "nice-to-have";
+  readonly dependsOn: readonly string[];
+};
+
+export type SkillGraphEdge = {
+  readonly from: string;
+  readonly to: string;
+};
+
+export type SkillGraph = {
+  readonly nodes: readonly SkillGraphNode[];
+  readonly edges: readonly SkillGraphEdge[];
+  readonly roots: readonly string[];
+  readonly leaves: readonly string[];
+  readonly layers: Readonly<Record<SkillLayer, readonly string[]>>;
+  readonly order: readonly string[];
+  readonly hasCycles: boolean;
+};
+
+// Prerequisite check result
+export type PrerequisiteStatus = {
+  readonly satisfied: boolean;
+  readonly missing: {
+    readonly skills: readonly string[];
+    readonly brandFiles: readonly BrandFile[];
+  };
+  readonly remediation: readonly string[];
+};
+
+// Skill info result (returned by `mktg skill info`)
+export type SkillInfo = {
+  readonly name: string;
+  readonly description: string;
+  readonly category: SkillCategory;
+  readonly layer: SkillLayer;
+  readonly tier: "must-have" | "nice-to-have";
+  readonly source: SkillSource;
+  readonly reads: readonly string[];
+  readonly writes: readonly string[];
+  readonly dependsOn: readonly string[];
+  readonly dependedOnBy: readonly string[];
+  readonly triggers: readonly string[];
+  readonly installed: boolean;
+  readonly reviewIntervalDays: number;
+};
+
+// Register result
+export type RegisterResult = {
+  readonly name: string;
+  readonly action: "created" | "exists";
+  readonly manifestPath: string;
+};
+
+// Parsed SKILL.md frontmatter
+export type SkillFrontmatter = {
+  readonly name: string;
+  readonly description: string;
+  readonly category: string | undefined;
+  readonly tier: string | undefined;
+  readonly reads: readonly string[] | undefined;
+  readonly writes: readonly string[] | undefined;
+  readonly triggers: readonly string[] | undefined;
+};
+
+// Skill evaluation (overlap + novelty analysis)
+export type SkillOverlapEntry = {
+  readonly skill: string;
+  readonly sharedTriggers: readonly string[];
+  readonly overlapPercent: number;
+};
+
+export type SkillBrandOverlap = {
+  readonly skill: string;
+  readonly sharedReads: readonly string[];
+  readonly sharedWrites: readonly string[];
+};
+
+export type SkillEvaluation = {
+  readonly name: string;
+  readonly description: string;
+  readonly validation: ValidationResult;
+  readonly overlap: {
+    readonly bySkill: readonly SkillOverlapEntry[];
+    readonly brandFiles: readonly SkillBrandOverlap[];
+    readonly categoryMatches: readonly string[];
+    readonly highestOverlap: number;
+  };
+  readonly novelty: {
+    readonly uniqueTriggers: readonly string[];
+    readonly uniqueReads: readonly string[];
+    readonly coversNewCategory: boolean;
+  };
+  readonly graphPosition: {
+    readonly layer: string;
+    readonly wouldDependOn: readonly string[];
+    readonly wouldBeDepOf: readonly string[];
+  };
+};
+
 // Freshness levels for brand files
 export type FreshnessLevel = "current" | "stale" | "missing";
 
