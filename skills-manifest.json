@@ -385,6 +385,19 @@
       "review_interval_days": 60,
       "version": "1.0.0"
     },
+    "social-campaign": {
+      "source": "new",
+      "category": "distribution",
+      "layer": "orchestrator",
+      "tier": "must-have",
+      "reads": ["voice-profile.md", "positioning.md", "audience.md", "creative-kit.md"],
+      "writes": ["assets.md"],
+      "depends_on": ["brand-voice"],
+      "triggers": ["social campaign", "schedule posts", "pre-launch content", "content calendar", "social content pipeline", "build up content", "schedule tweets", "plan social posts"],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "env_vars": ["TYPEFULLY_API_KEY"]
+    },
     "tiktok-slideshow": {
       "source": "new",
       "category": "creative",
@@ -509,6 +522,9 @@
     "conference-slides": "frontend-slides",
     "resend": "send-email",
     "social-post": "typefully",
+    "content-campaign": "social-campaign",
+    "schedule-campaign": "social-campaign",
+    "pre-launch": "social-campaign",
     "tweet": "typefully",
     "moltbot": "agent-email-inbox",
     "inbound-email": "resend-inbound"
