@@ -27,6 +27,7 @@ For brand memory protocol, see [rules/brand-memory.md](rules/brand-memory.md).
 For output formatting, see [rules/output-format.md](rules/output-format.md).
 For multi-project context, see [rules/context-switch.md](rules/context-switch.md).
 For safety and rate limits, see [rules/safety.md](rules/safety.md).
+For content quality gate (AI slop audit), see [rules/quality-gate.md](rules/quality-gate.md).
 
 ## How You Talk to the Builder
 
@@ -87,6 +88,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Find positioning angles | `positioning-angles` | Have voice + audience, need market angle | Foundation |
 | Find SEO keywords | `keyword-research` | Planning content strategy | Strategy |
 | Plan product launch | `launch-strategy` | New product or feature launch | Strategy |
+| Run social campaign | `social-campaign` | Pre-launch content, content calendar, scheduled posts with visuals | Distribution |
 | Set pricing | `pricing-strategy` | Need pricing model or changes | Strategy |
 | Write landing page / sales copy | `direct-response-copy` | Have positioning, need conversion copy | Content |
 | Write cold emails | `direct-response-copy --mode cold-email` | Need outbound email templates | Content |
@@ -141,6 +143,7 @@ When a request is ambiguous, use this matrix:
 | "ads" | `creative` | N/A | Creative handles ad variants. |
 | "competitors" | `competitive-intel` | `competitor-alternatives` | Intel = research. Alternatives = SEO pages. |
 | "launch" | `launch-strategy` | `content-atomizer` | Strategy first. Distribution after content. |
+| "schedule posts" / "content campaign" | `social-campaign` | `content-atomizer` | Campaign = full pipeline (write + visuals + schedule). Atomizer = repurpose existing content. |
 | "TikTok video" | `tiktok-slideshow` | `video-content` | Orchestrator handles full pipeline. video-content needs slides already. |
 | "video from slides" | `video-content` | `tiktok-slideshow` | Already has slides, just needs assembly. |
 | "slideshow script" | `slideshow-script` | `content-atomizer` | Scripts for visual slideshows, not text posts. |

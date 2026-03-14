@@ -128,18 +128,7 @@ Two-part quality audit. This is the most important phase for authenticity.
 
 #### 3a: AI Slop Audit
 
-Read every post line by line. Check for and fix:
-
-| Pattern | Why It's a Tell | Fix |
-|---------|----------------|-----|
-| Em dashes | LLMs use 3x more than humans | Semicolon, comma, or recast |
-| "No X. No Y. No Z." triple anaphora | Appears in 40%+ of LLM lists | Use max once per batch; comma-join or vary structure |
-| "It's not X, it's Y" | Classic LLM contrast frame | Recast entirely |
-| "Here's why" / "Here's the thing" | LLM transition filler | Delete or rewrite lead-in |
-| "X. Now Y." dramatic two-sentence | LLM loves short dramatic reveals | Combine or recast |
-| "They work until they don't" | Cliche reversal pattern | Replace with specific statement |
-| Colon-then-list on every post | Structural monotony across batch | Vary: some inline, some narrative |
-| Same sentence structure repeated | Pattern repetition across batch | Rewrite to vary openings |
+Apply /cmo's quality gate. Read the full pattern reference at [/cmo/references/ai-slop-patterns.md](../cmo/references/ai-slop-patterns.md) and audit every post for structural patterns, transition filler, vocabulary tells, and batch-level monotony.
 
 **This cannot be done with regex.** Read each post manually, in sequence, looking at the batch as a whole (not just individual posts).
 

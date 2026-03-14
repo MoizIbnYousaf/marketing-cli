@@ -1,6 +1,6 @@
 # AI Slop Pattern Reference
 
-Patterns that appear disproportionately in LLM-generated text vs human writing. Check for all of these during Phase 3 review. This list is not exhaustive; develop pattern recognition over time.
+Patterns that appear disproportionately in LLM-generated text vs human writing. /cmo applies this as a quality gate after ANY content skill produces output — social posts, landing pages, emails, SEO articles, ad copy, lead magnets. This list is not exhaustive; develop pattern recognition over time.
 
 ## Structural Patterns
 
