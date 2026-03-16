@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  The world's greatest CMO for any project. Orchestrates 32 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', or any marketing request. When in doubt about which marketing skill to use, start here.
+  The world's greatest CMO for any project. Orchestrates 33 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', or any marketing request. When in doubt about which marketing skill to use, start here.
 allowed-tools:
   - Bash(mktg *)
 ---
@@ -60,7 +60,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 32 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 33 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
@@ -88,6 +88,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Find positioning angles | `positioning-angles` | Have voice + audience, need market angle | Foundation |
 | Find SEO keywords | `keyword-research` | Planning content strategy | Strategy |
 | Plan product launch | `launch-strategy` | New product or feature launch | Strategy |
+| Launch across 56 platforms | `startup-launcher` | Multi-platform directory submissions, Product Hunt/HN/AppSumo campaigns | Growth |
 | Run social campaign | `social-campaign` | Pre-launch content, content calendar, scheduled posts with visuals | Distribution |
 | Set pricing | `pricing-strategy` | Need pricing model or changes | Strategy |
 | Write landing page / sales copy | `direct-response-copy` | Have positioning, need conversion copy | Content |
@@ -143,6 +144,8 @@ When a request is ambiguous, use this matrix:
 | "ads" | `creative` | N/A | Creative handles ad variants. |
 | "competitors" | `competitive-intel` | `competitor-alternatives` | Intel = research. Alternatives = SEO pages. |
 | "launch" | `launch-strategy` | `content-atomizer` | Strategy first. Distribution after content. |
+| "submit to directories" / "launch everywhere" | `startup-launcher` | `launch-strategy` | Launcher executes across 56 platforms. Strategy plans the approach. |
+| "Product Hunt launch" / "AppSumo campaign" | `startup-launcher` | `launch-strategy` | Launcher has platform-specific operational playbooks. Strategy is high-level. |
 | "schedule posts" / "content campaign" | `social-campaign` | `content-atomizer` | Campaign = full pipeline (write + visuals + schedule). Atomizer = repurpose existing content. |
 | "TikTok video" | `tiktok-slideshow` | `video-content` | Orchestrator handles full pipeline. video-content needs slides already. |
 | "video from slides" | `video-content` | `tiktok-slideshow` | Already has slides, just needs assembly. |
@@ -235,7 +238,7 @@ These old names map to new skills:
 | `mktg init` | Scaffold `brand/` + install skills + detect project |
 | `mktg status --json` | Brand state, content counts, health |
 | `mktg doctor` | Health check: skills installed, brand valid, tools connected |
-| `mktg list --json` | Show all 32 skills with metadata |
+| `mktg list --json` | Show all 33 skills with metadata |
 | `mktg update` | Re-install skills from latest package |
 
 ## Guardrails

@@ -485,6 +485,18 @@
       "review_interval_days": 90,
       "version": "1.0.0",
       "env_vars": ["RESEND_API_KEY"]
+    },
+    "startup-launcher": {
+      "source": "third-party",
+      "category": "growth",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": ["voice-profile.md", "positioning.md", "audience.md", "competitors.md"],
+      "writes": ["launch/product-brief.md", "launch/launch-tracker.md"],
+      "depends_on": ["brand-voice", "positioning-angles"],
+      "triggers": ["startup launcher", "submit to directories", "launch on Product Hunt", "submit to BetaList", "multi-platform launch", "launch campaign", "directory submissions", "AppSumo campaign", "Hacker News launch", "where should I launch", "launch across platforms", "submit everywhere"],
+      "review_interval_days": 30,
+      "version": "1.0.0"
     }
   },
   "redirects": {
@@ -527,6 +539,14 @@
     "pre-launch": "social-campaign",
     "tweet": "typefully",
     "moltbot": "agent-email-inbox",
-    "inbound-email": "resend-inbound"
+    "inbound-email": "resend-inbound",
+    "launch-playbook": "startup-launcher",
+    "startup-launch": "startup-launcher",
+    "directory-submissions": "startup-launcher",
+    "platform-launch": "startup-launcher",
+    "product-hunt-launch": "startup-launcher",
+    "appsumo-launch": "startup-launcher",
+    "hacker-news-launch": "startup-launcher",
+    "launch-directories": "startup-launcher"
   }
 }
