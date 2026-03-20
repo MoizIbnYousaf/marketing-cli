@@ -5,7 +5,7 @@
 import { join } from "node:path";
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { rejectControlChars, validatePathInput, parseJsonInput } from "../core/errors";
-import { isTTY, writeStderr, writeStdout, bold, dim, green, yellow, red } from "../core/output";
+import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 
 export const schema: CommandSchema = {
   name: "publish",
@@ -187,10 +187,12 @@ const publishFile = async (
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
-    const filename = item.metadata?.filename ?? `item-${i}.txt`;
+    const rawFilename = item.metadata?.filename ?? `item-${i}.txt`;
+    // Sanitize filename — strip path separators and traversal to prevent writes outside outDir
+    const filename = rawFilename.replace(/[/\\]/g, "_").replace(/\.\./g, "_");
     if (!confirm) {
       results.push({ item: i, status: "skipped", detail: `Would write: ${filename}` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "file", item: i, status: "skipped" }));
+      if (ndjson) writeStderr(JSON.stringify({ adapter: "file", item: i, status: "skipped" }));
       continue;
     }
     try {
