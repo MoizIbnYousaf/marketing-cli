@@ -2,7 +2,7 @@
 // Scaffolding, freshness assessment, context matrix.
 
 import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, appendFile } from "node:fs/promises";
 import {
   BRAND_FILES,
   BRAND_PROFILE_FILES,
@@ -12,6 +12,7 @@ import {
   type BrandFileStatus,
   type FreshnessLevel,
 } from "../types";
+import { rejectControlChars } from "./errors";
 
 // Brand file templates — scaffolds with agent instructions for guided completion
 const BRAND_TEMPLATES = {
@@ -546,6 +547,79 @@ export const diffBrand = async (cwd: string): Promise<BrandDiffResult> => {
     changes,
     hasChanges: changes.some(c => c.status !== "unchanged"),
   };
+};
+
+// --- Learning entry append ---
+
+export type LearningEntry = {
+  readonly date: string;
+  readonly action: string;
+  readonly result: string;
+  readonly learning: string;
+  readonly nextStep: string;
+};
+
+const LEARNINGS_HEADER = `# Marketing Learnings
+
+<!-- Append-only. Agent records what worked and what didn't. -->
+
+<!-- AGENT INSTRUCTIONS:
+After each marketing action, log what you learned.
+Format: | date | action | result | learning | next-step |
+Be specific about metrics when available (CTR, views, signups).
+-->
+
+| Date | Action | Result | Learning | Next Step |
+|------|--------|--------|----------|-----------|
+`;
+
+const validateLearningEntry = (
+  entry: LearningEntry,
+): { ok: true } | { ok: false; message: string } => {
+  const fields: [string, string][] = [
+    ["date", entry.date],
+    ["action", entry.action],
+    ["result", entry.result],
+    ["learning", entry.learning],
+    ["nextStep", entry.nextStep],
+  ];
+  for (const [name, value] of fields) {
+    if (!value || value.trim().length === 0) {
+      return { ok: false, message: `${name} cannot be empty` };
+    }
+    const check = rejectControlChars(value, name);
+    if (!check.ok) return check;
+    if (value.includes("|")) {
+      return { ok: false, message: `${name} contains pipe character (|) which would break table format` };
+    }
+  }
+  return { ok: true };
+};
+
+export const appendLearning = async (
+  cwd: string,
+  entry: LearningEntry,
+  dryRun: boolean = false,
+): Promise<{ ok: true; row: string } | { ok: false; message: string }> => {
+  const validation = validateLearningEntry(entry);
+  if (!validation.ok) return validation;
+
+  const row = `| ${entry.date} | ${entry.action} | ${entry.result} | ${entry.learning} | ${entry.nextStep} |`;
+  if (dryRun) return { ok: true, row };
+
+  const brandDir = join(cwd, "brand");
+  const filePath = join(brandDir, "learnings.md");
+
+  await mkdir(brandDir, { recursive: true });
+
+  const file = Bun.file(filePath);
+  if (await file.exists()) {
+    await appendFile(filePath, row + "\n");
+  } else {
+    await Bun.write(filePath, LEARNINGS_HEADER + row + "\n");
+  }
+
+  return { ok: true, row };
 };
 
 // Context matrix — which brand files each skill layer needs

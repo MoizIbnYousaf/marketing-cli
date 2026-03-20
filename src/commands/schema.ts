@@ -33,6 +33,7 @@ const loadSchemas = async (): Promise<Record<string, CommandSchema>> => {
     import("./skill").then(m => m.schema).catch(() => null),
     import("./brand").then(m => m.schema).catch(() => null),
     import("./run").then(m => m.schema).catch(() => null),
+    import("./context").then(m => m.schema).catch(() => null),
   ]);
   const schemas: Record<string, CommandSchema> = { schema };
   for (const s of modules) {

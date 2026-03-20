@@ -47,12 +47,12 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
     expect(commands).toBeDefined();
   });
 
-  it("schema lists all 9 top-level commands", async () => {
+  it("schema lists all 10 top-level commands", async () => {
     const { stdout } = await run("schema");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
-    const expectedCommands = ["init", "doctor", "list", "status", "update", "schema", "skill", "brand", "run"];
+    const expectedCommands = ["init", "doctor", "list", "status", "update", "schema", "skill", "brand", "run", "context"];
 
     expect(Array.isArray(commands)).toBe(true);
     const commandNames = commands.map((c: any) => c.name);

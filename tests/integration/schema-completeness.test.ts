@@ -9,7 +9,7 @@ import type { GlobalFlags, CommandSchema } from "../../src/types";
 const flags: GlobalFlags = { json: true, dryRun: false, fields: [], cwd: "." };
 
 // Expected top-level commands from CLAUDE.md
-const EXPECTED_COMMANDS = ["init", "doctor", "list", "status", "update", "schema", "skill", "brand", "run"];
+const EXPECTED_COMMANDS = ["init", "doctor", "list", "status", "update", "schema", "skill", "brand", "run", "context"];
 
 // Expected exit codes from schema.ts
 const EXPECTED_EXIT_CODES: Record<number, string> = {
@@ -54,7 +54,7 @@ describe("Schema: full introspection", () => {
 });
 
 describe("Schema: command coverage", () => {
-  test("lists all 9 expected commands", async () => {
+  test("lists all 10 expected commands", async () => {
     const result = await schemaHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;

@@ -19,7 +19,7 @@ const run = async (args: string[]): Promise<{ stdout: string; stderr: string; ex
 
 // ---------- Help text ----------
 
-describe("CLI help includes all 9 commands", () => {
+describe("CLI help includes all 10 commands", () => {
   test("--help output contains all 9 command names", async () => {
     const { stdout, exitCode } = await run(["--help"]);
     expect(exitCode).toBe(0);
@@ -49,10 +49,10 @@ describe("CLI help includes all 9 commands", () => {
     }
   });
 
-  test("--help --json has 9 commands", async () => {
+  test("--help --json has 10 commands", async () => {
     const { stdout } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toHaveLength(9);
+    expect(parsed.commands).toHaveLength(10);
   });
 });
 

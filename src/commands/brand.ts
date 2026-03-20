@@ -2,7 +2,7 @@
 import { ok, BRAND_FILES, type CommandHandler, type CommandSchema, type BrandBundle, type GlobalFlags, type CommandResult } from "../types";
 import { isKeyOf } from "../core/routing";
 import { invalidArgs, notFound, parseJsonInput } from "../core/errors";
-import { getBrandStatus, exportBrand, importBrand, diffBrand } from "../core/brand";
+import { getBrandStatus, exportBrand, importBrand, diffBrand, appendLearning, type LearningEntry } from "../core/brand";
 import { resolveManifest } from "../core/skills";
 import { join } from "node:path";
 
@@ -15,6 +15,7 @@ const SUBCOMMANDS = {
   "update": "Write brand files from raw JSON payload via --input",
   "freshness": "Check brand file freshness against skill review intervals",
   "diff": "Show brand file changes since last status baseline",
+  "append-learning": "Append a structured learning entry to brand/learnings.md",
 } as const;
 
 export const schema: CommandSchema = {
@@ -38,8 +39,9 @@ export const schema: CommandSchema = {
     { args: "mktg brand export --json", description: "Export brand memory" },
     { args: "mktg brand import --file bundle.json --json", description: "Import brand memory" },
     { args: "mktg brand freshness --json", description: "Check file freshness" },
+    { args: "mktg brand append-learning --input '{...}' --json", description: "Append a learning entry" },
   ],
-  vocabulary: ["brand export", "brand import", "brand freshness", "brand diff", "brand memory"],
+  vocabulary: ["brand export", "brand import", "brand freshness", "brand diff", "brand memory", "brand append-learning", "learning"],
 };
 
 const handleExport = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
@@ -217,6 +219,45 @@ const handleUpdate = async (_args: readonly string[], flags: GlobalFlags): Promi
   });
 };
 
+const handleAppendLearning = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
+  const raw = flags.jsonInput;
+  if (!raw) {
+    return invalidArgs("Missing --input flag with JSON learning entry", [
+      'Usage: mktg brand append-learning --input \'{"action":"...","result":"...","learning":"...","nextStep":"..."}\' --json',
+      "Date is auto-filled to today if missing",
+    ]);
+  }
+
+  const parsed = parseJsonInput<LearningEntry>(raw);
+  if (!parsed.ok) {
+    return invalidArgs(`Invalid JSON payload: ${parsed.message}`, [
+      'Payload: {"action":"...","result":"...","learning":"...","nextStep":"..."}',
+    ]);
+  }
+
+  const entry: LearningEntry = {
+    date: parsed.data.date || new Date().toISOString().split("T")[0]!,
+    action: parsed.data.action,
+    result: parsed.data.result,
+    learning: parsed.data.learning,
+    nextStep: parsed.data.nextStep,
+  };
+
+  const result = await appendLearning(flags.cwd, entry, flags.dryRun);
+  if (!result.ok) {
+    return invalidArgs(`Learning validation failed: ${result.message}`, [
+      "All fields (action, result, learning, nextStep) are required",
+      "Fields cannot contain pipe characters (|)",
+    ]);
+  }
+
+  return ok({
+    appended: result.row,
+    file: "brand/learnings.md",
+    dryRun: flags.dryRun,
+  });
+};
+
 export const handler: CommandHandler = async (args, flags) => {
   const nonFlagArgs = args.filter(a => !a.startsWith("--"));
   const subcommand = nonFlagArgs[0];
@@ -239,6 +280,7 @@ export const handler: CommandHandler = async (args, flags) => {
     case "update": return handleUpdate(subArgs, flags);
     case "freshness": return handleFreshness(subArgs, flags);
     case "diff": return handleDiff(subArgs, flags);
+    case "append-learning": return handleAppendLearning(subArgs, flags);
     default: return invalidArgs(`Unknown subcommand: brand ${subcommand}`);
   }
 };

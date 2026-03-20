@@ -4,22 +4,26 @@
 import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
 import { ok } from "../types";
-import { invalidArgs, notFound, DOCS } from "../core/errors";
+import { invalidArgs, notFound, DOCS, parseJsonInput } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory } from "../core/run-log";
+import { appendLearning, type LearningEntry } from "../core/brand";
 
 export const schema: CommandSchema = {
   name: "run",
   description: "Load a skill for agent consumption — checks prerequisites, surfaces prior run context, and logs execution",
   positional: { name: "skill", description: "Skill name to run", required: true },
-  flags: [],
+  flags: [
+    { name: "--learning", type: "string", required: false, description: "JSON learning entry to append to brand/learnings.md after run" },
+  ],
   output: {
     skill: "string — resolved skill name",
     content: "string — full SKILL.md content",
     prerequisites: "PrerequisiteStatus — prerequisite check results",
     loggedAt: "string — ISO timestamp of logged run",
     priorRuns: "object — lastRun timestamp, runCount, and lastResult for this skill",
+    learningAppended: "string | null — the table row appended to learnings.md, or null if --learning not provided",
   },
   examples: [
     { args: "mktg run seo-content --json", description: "Load SEO content skill for agent" },
@@ -40,6 +44,7 @@ type RunResult = {
   readonly prerequisites: PrerequisiteStatus;
   readonly loggedAt: string | null;
   readonly priorRuns: PriorRunContext;
+  readonly learningAppended: string | null;
 };
 
 export const handler: CommandHandler<RunResult> = async (args, flags) => {
@@ -83,13 +88,47 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     runCount: priorHistory.length,
   };
 
+  // Parse --learning flag from args
+  let learningJson: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--learning" && args[i + 1]) { learningJson = args[i + 1]; break; }
+    if (args[i]?.startsWith("--learning=")) { learningJson = args[i]!.slice(11); break; }
+  }
+
+  // Append learning if provided
+  let learningAppended: string | null = null;
+  if (learningJson) {
+    const parsed = parseJsonInput<LearningEntry>(learningJson);
+    if (!parsed.ok) {
+      return invalidArgs(`Invalid --learning JSON: ${parsed.message}`, [
+        'Format: --learning \'{"action":"...","result":"...","learning":"...","nextStep":"..."}\'',
+        "Date is auto-filled if missing",
+      ]);
+    }
+    const entry: LearningEntry = {
+      date: parsed.data.date || now.split("T")[0]!,
+      action: parsed.data.action,
+      result: parsed.data.result,
+      learning: parsed.data.learning,
+      nextStep: parsed.data.nextStep,
+    };
+    const learningResult = await appendLearning(flags.cwd, entry, flags.dryRun);
+    if (!learningResult.ok) {
+      return invalidArgs(`Learning validation failed: ${learningResult.message}`, [
+        "All fields (action, result, learning, nextStep) are required",
+        "Fields cannot contain pipe characters (|)",
+      ]);
+    }
+    learningAppended = learningResult.row;
+  }
+
   // Log execution (unless dry-run)
   if (!flags.dryRun) {
     await logRun(flags.cwd, {
       skill: resolved.name,
       timestamp: now,
       result: "success",
-      brandFilesChanged: [],
+      brandFilesChanged: learningAppended ? ["learnings.md"] : [],
     });
   }
 
@@ -99,5 +138,6 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     prerequisites,
     loggedAt: flags.dryRun ? null : now,
     priorRuns,
+    learningAppended,
   });
 };

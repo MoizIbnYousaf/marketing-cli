@@ -93,6 +93,7 @@ const COMMANDS: Record<string, () => Promise<{ handler: (args: readonly string[]
   skill: () => import("./commands/skill"),
   brand: () => import("./commands/brand"),
   run: () => import("./commands/run"),
+  context: () => import("./commands/context"),
 };
 
 // Format a command schema as readable help text
