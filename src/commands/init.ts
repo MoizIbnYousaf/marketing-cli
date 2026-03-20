@@ -242,6 +242,12 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   if (initFlags.fromUrl) {
     const urlCheck = rejectControlChars(initFlags.fromUrl, "URL");
     if (!urlCheck.ok) return invalidArgs(urlCheck.message);
+    if (flags.dryRun) {
+      if (isTTY() && !flags.json) {
+        writeStderr(`  ${dim("dry-run: would fetch")} ${initFlags.fromUrl}`);
+      }
+      scrapeResult = { populated: ["voice-profile.md", "positioning.md", "audience.md", "competitors.md"], scraped: { title: "(dry-run)", description: "(dry-run)", headings: [], url: initFlags.fromUrl } };
+    } else {
     if (isTTY() && !flags.json) {
       writeStderr(`  Fetching ${initFlags.fromUrl}...`);
     }
@@ -258,6 +264,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
         writeStderr(`  ${yellow("●")} Could not fetch URL — falling back to templates`);
       }
     }
+    } // close else for !dryRun
   }
 
   // Get user input

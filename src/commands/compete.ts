@@ -175,6 +175,15 @@ const handleScan = async (cwd: string, dryRun: boolean): Promise<ScanResult[]> =
   const results: ScanResult[] = [];
   for (const entry of watchlist.entries) {
     const previous = await loadSnapshot(cwd, entry.url);
+    // In dry-run, skip network fetch — report based on existing snapshots only
+    if (dryRun) {
+      results.push({
+        url: entry.url, status: previous ? "unchanged" : "new",
+        title: entry.lastTitle ?? "", changes: [dryRun ? "dry-run: would fetch and compare" : ""],
+        suggestedSkill: null,
+      });
+      continue;
+    }
     const current = await fetchPage(entry.url);
     if (!current) {
       results.push({ url: entry.url, status: "error", title: entry.lastTitle ?? "", changes: ["Failed to fetch"], suggestedSkill: null });

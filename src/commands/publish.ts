@@ -86,7 +86,7 @@ const publishTypefully = async (
     const item = items[i]!;
     if (!confirm) {
       results.push({ item: i, status: "skipped", detail: `Would publish: ${item.content.slice(0, 80)}...` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "typefully", item: i, status: "skipped" }));
+      if (ndjson) writeStderr(JSON.stringify({ adapter: "typefully", item: i, status: "skipped" }));
       continue;
     }
     try {
@@ -104,7 +104,7 @@ const publishTypefully = async (
     } catch (e) {
       results.push({ item: i, status: "failed", detail: e instanceof Error ? e.message : "Unknown error" });
     }
-    if (ndjson) writeStdout(JSON.stringify({ adapter: "typefully", item: i, status: results[results.length - 1]!.status }));
+    if (ndjson) writeStderr(JSON.stringify({ adapter: "typefully", item: i, status: results[results.length - 1]!.status }));
   }
 
   return {
@@ -138,7 +138,7 @@ const publishResend = async (
     const item = items[i]!;
     if (!confirm) {
       results.push({ item: i, status: "skipped", detail: `Would send: ${item.content.slice(0, 80)}...` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: "skipped" }));
+      if (ndjson) writeStderr(JSON.stringify({ adapter: "resend", item: i, status: "skipped" }));
       continue;
     }
     try {
@@ -162,7 +162,7 @@ const publishResend = async (
     } catch (e) {
       results.push({ item: i, status: "failed", detail: e instanceof Error ? e.message : "Unknown error" });
     }
-    if (ndjson) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: results[results.length - 1]!.status }));
+    if (ndjson) writeStderr(JSON.stringify({ adapter: "resend", item: i, status: results[results.length - 1]!.status }));
   }
 
   return {
@@ -201,7 +201,7 @@ const publishFile = async (
     } catch (e) {
       results.push({ item: i, status: "failed", detail: e instanceof Error ? e.message : "Unknown error" });
     }
-    if (ndjson) writeStdout(JSON.stringify({ adapter: "file", item: i, status: results[results.length - 1]!.status }));
+    if (ndjson) writeStderr(JSON.stringify({ adapter: "file", item: i, status: results[results.length - 1]!.status }));
   }
 
   return {
