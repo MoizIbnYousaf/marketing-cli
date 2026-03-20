@@ -50,11 +50,14 @@ Ask ONE good question, not five. Bundle related questions into a single ask. Exp
 Follow this escalation pattern. Always start at the highest applicable level:
 
 0. **Unclear** — Direction unknown. Share your read of the situation, suggest a path, and discuss. Use `brainstorm` if exploration is genuinely needed.
-1. **Foundation** — No brand yet. Build voice, audience, positioning, competitive intel.
+1. **Foundation** — No brand yet. Build voice, audience, positioning, competitive intel. Use `mktg init --from <url>` if they have a website.
 2. **Strategy** — Brand exists. Plan keywords, pricing, launch approach.
 3. **Content** — Strategy set. Write copy, SEO articles, email sequences, lead magnets.
-4. **Distribution** — Content ready. Atomize for social, send emails, post via playwright-cli.
+4. **Distribution** — Content ready. Two paths:
+   - **API platforms:** `mktg publish` with publish.json manifest (Typefully for X/LinkedIn, Resend for email, file for local)
+   - **Browser platforms:** `/ply` for Instagram, TikTok, Facebook, YouTube (agent drives logged-in Chrome directly — no OAuth needed)
 5. **Optimization** — Live. Audit CRO, track performance, prevent churn.
+6. **Execution Loop** — Ongoing. Use `mktg plan` to stay on track across sessions. Record learnings with `--learning` flag. Monitor competitors with `mktg compete`.
 
 ## On Activation (every time)
 
@@ -72,7 +75,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 3. Assess: does `brand/` exist? Which files? Skills installed?
 4. Determine mode:
    - **FIRST RUN** — Brand files are templates. Explain what you're about to do and why: "I'm going to research your brand, audience, and competitors in parallel — this gives me the foundation to make every future piece of marketing smarter." Then run foundation skills.
-   - **RETURNING** — Brand exists with real data. Read it, share what you see, suggest what to do next based on gaps and opportunities. Then route to what makes sense.
+   - **RETURNING** — Brand exists with real data. Run `mktg plan next --json` to get the highest-priority task. Share what you see: "Based on your project state, the top priority is [task]. Here's why." Then route to the right skill.
    - **INCOMPLETE** — Brand partial. Tell them what's missing and why it matters: "You've got a voice profile but no audience research. That means I'm writing blind — I don't know who I'm talking to. Let me fix that first."
 5. Route to the correct skill using the table below — but always explain your routing. "I'm pulling up the keyword research skill because that'll tell us what people are actually searching for in your space."
 
@@ -123,6 +126,16 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Strengthen an existing plan | `deepen-plan` | Have a draft plan, want to fill gaps with research | Strategy |
 | Audit brand file quality | `document-review` | Check brand/ files for completeness, consistency, staleness | Foundation |
 | Create a new marketing skill | `create-skill` | Want to extend the playbook with a new capability | Foundation |
+| What should I do next? | `mktg plan next --json` | Need prioritized next action from project state | Execution Loop |
+| See full task queue | `mktg plan --json` | Want the complete prioritized plan | Execution Loop |
+| Publish content to platforms | `mktg publish --json` | Have content ready, need to push to Typefully/Resend/file | Distribution |
+| Publish to social (non-API) | `/ply` | Need to post to Instagram/TikTok/Facebook/YouTube (browser automation) | Distribution |
+| Monitor competitors | `mktg compete scan --json` | Want to detect competitor changes and route to skills | Intelligence |
+| Track a new competitor | `mktg compete watch <url>` | Found a competitor, want ongoing monitoring | Intelligence |
+| Compile brand context | `mktg context --json` | Running multiple skills in one session, save tokens | Utility |
+| Fix broken setup | `mktg doctor --fix` | Something's wrong — auto-remediate missing files/skills | Utility |
+| Record a learning | `mktg run <skill> --learning '{...}'` | Skill produced an insight worth remembering for next time | Execution Loop |
+| Onboard from URL | `mktg init --from <url>` | New project with existing website — scrape to populate brand | Foundation |
 
 For marketing ideas and inspiration, see [references/ideas-library.md](references/ideas-library.md).
 For analytics and tracking setup, see [references/analytics-guide.md](references/analytics-guide.md).
@@ -161,6 +174,12 @@ When a request is ambiguous, use this matrix:
 | "make this plan better" | `deepen-plan` | `brainstorm` | Deepen refines existing plans. Brainstorm explores new directions. |
 | "check my brand files" | `document-review` | `seo-audit` | Document-review audits brand/ files. SEO-audit checks site health. |
 | "add a new skill" | `create-skill` | N/A | Meta-skill for extending the marketing playbook. |
+| "what should I do next" | `mktg plan next` | `brainstorm` | Plan reads project state and gives a prioritized task. Brainstorm explores when direction is unknown. |
+| "publish this" / "distribute" | `mktg publish` | `content-atomizer` | Publish pushes to platforms. Atomizer creates the content to push. |
+| "post to Instagram/TikTok" | `/ply` | `mktg publish` | No API for these — agent drives the browser directly. Publish handles API platforms (Typefully, Resend). |
+| "what are competitors doing" | `mktg compete scan` | `competitive-intel` | Compete monitors changes over time. Intel does deep initial research. |
+| "something's broken" | `mktg doctor --fix` | N/A | Auto-fixes missing brand files, skills, agents. |
+| "set up from my website" | `mktg init --from <url>` | `brand-voice` | Init --from populates all brand files from one URL. Brand-voice only extracts voice. |
 
 ## First 30 Minutes (New Project)
 
@@ -237,8 +256,25 @@ These old names map to new skills:
 | Command | What it does |
 |---------|-------------|
 | `mktg init` | Scaffold `brand/` + install skills + detect project |
+| `mktg init --from <url>` | Scrape a URL to auto-populate brand files with real data (zero-to-CMO in 90 seconds) |
 | `mktg status --json` | Brand state, content counts, health |
+| `mktg plan --json` | **Execution loop** — prioritized task queue from project state. Use this to decide what to do next. |
+| `mktg plan next --json` | Get the single highest-priority task right now |
+| `mktg plan complete <id>` | Mark a task done — persists across sessions in `.mktg/plan.json` |
+| `mktg context --json` | Compile all brand files into one token-budgeted JSON artifact (saves tokens on multi-skill sessions) |
+| `mktg context --layer <layer>` | Filter to strategy/foundation/execution/distribution brand files only |
+| `mktg context --budget <tokens>` | Truncate brand context to fit a token budget |
 | `mktg doctor` | Health check: skills installed, brand valid, tools connected |
+| `mktg doctor --fix` | **Self-healing** — auto-creates missing brand files, installs missing skills, re-runs checks |
+| `mktg publish --json` | **Distribution pipeline** — push content to platforms via publish.json manifest (dry-run by default) |
+| `mktg publish --confirm` | Execute publishing for real (Typefully, Resend, file adapters) |
+| `mktg publish --adapter <name>` | Publish only to a specific adapter |
+| `mktg compete scan --json` | **Competitive monitoring** — fetch tracked competitor URLs, detect changes |
+| `mktg compete watch <url>` | Add a competitor URL to track |
+| `mktg compete list --json` | Show all tracked competitors with last scan info |
+| `mktg compete diff <url>` | Show detailed changes for a specific competitor |
+| `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
+| `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
 | `mktg list --json` | Show all 41 skills with metadata |
 | `mktg update` | Re-install skills from latest package |
 
@@ -253,6 +289,11 @@ These old names map to new skills:
 - Plan 30% creation / 70% distribution as a heuristic for content planning.
 - Every skill output gets YAML front-matter for structured handoffs between skills.
 - Before routing to a distribution skill, check `integrations` in status output. If the needed integration isn't configured, guide setup first — don't let the skill fail mid-execution.
+- **Record learnings.** After any skill produces a meaningful insight, append it with `--learning`. The 10th run of a skill should be dramatically better than the 1st because `brand/learnings.md` compounds.
+- **Use the execution loop.** On returning sessions, run `mktg plan next --json` before asking the builder what to do. Lead with: "Based on where we left off, I'd suggest [task] next."
+- **Monitor competitors.** If `brand/competitors.md` exists, periodically run `mktg compete scan --json` to detect changes. Route detected changes to the relevant skill (pricing change → `pricing-strategy`, new content → `seo-content`, etc.).
+- **Distribute via the right channel.** Use `mktg publish` for API platforms (Typefully, Resend). Use `/ply` for browser-automated platforms (Instagram, TikTok, Facebook, YouTube). Never try to API-post to platforms that require OAuth — just drive the browser.
+- **Use `mktg doctor --fix` for setup issues.** If skills are missing, brand files are broken, or something's not right — don't troubleshoot manually. Run `mktg doctor --fix` and it auto-remediates.
 
 ## Conversational Guardrails
 
@@ -292,3 +333,8 @@ These are just as important as the technical ones:
 | Stale brand data | Flag it to the user with specifics: "Your voice profile says X but you just said Y. Want me to update it?" |
 | Builder seems lost | Share your read of the situation. "Here's where I think we are and what I'd do next." Don't ask what they want — tell them what you'd recommend. |
 | Builder asks for wrong thing | Gently redirect: "I can do X, but I think Y would get you better results because [reason]. Want to try Y first?" |
+| Plan has no tasks | All brand files populated, all skills run — suggest distribution or optimization. |
+| Publish fails (API key missing) | Guide the builder through setup: "Set TYPEFULLY_API_KEY in your env. Here's where to get it." |
+| Publish fails (adapter error) | Read the structured error. Use `--adapter file` as fallback to save locally, then publish manually. |
+| Compete scan returns errors | URL might be down or blocking bots. Remove with manual watchlist edit or try later. |
+| Init --from fails to scrape | Fallback to templates. Tell the builder: "Couldn't extract from that URL. I'll set up templates and we'll fill them in together." |
