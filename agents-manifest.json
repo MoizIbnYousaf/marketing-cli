@@ -5,7 +5,7 @@
       "category": "research",
       "file": "research/brand-researcher.md",
       "writes": ["voice-profile.md"],
-      "reads": [],
+      "reads": ["positioning.md", "audience.md"],
       "references_skill": "brand-voice",
       "tier": "must-have"
     },
@@ -13,7 +13,7 @@
       "category": "research",
       "file": "research/audience-researcher.md",
       "writes": ["audience.md"],
-      "reads": ["voice-profile.md"],
+      "reads": ["voice-profile.md", "positioning.md", "competitors.md"],
       "references_skill": "audience-research",
       "tier": "must-have"
     },
@@ -29,7 +29,7 @@
       "category": "review",
       "file": "review/content-reviewer.md",
       "writes": [],
-      "reads": ["voice-profile.md", "positioning.md"],
+      "reads": ["voice-profile.md", "positioning.md", "audience.md"],
       "references_skill": null,
       "tier": "nice-to-have"
     },
@@ -37,7 +37,7 @@
       "category": "review",
       "file": "review/seo-analyst.md",
       "writes": [],
-      "reads": ["keyword-plan.md"],
+      "reads": ["keyword-plan.md", "audience.md", "competitors.md"],
       "references_skill": "seo-audit",
       "tier": "nice-to-have"
     }

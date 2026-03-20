@@ -1,6 +1,6 @@
 ---
 name: brand-voice
-description: "Define or extract a consistent brand voice that other skills can use. Three modes: Extract (analyze existing content), Build (interview-based), Auto-Scrape (from URL). Use when copy sounds generic, when starting any new project, when voice feels inconsistent across channels, when onboarding a new brand, or when any skill needs voice-profile.md but it doesn't exist yet. This is always the first skill to run for a new project."
+description: "Define or extract a consistent brand voice that other skills can use. Three modes: Extract (analyze existing content), Build (interview-based), Auto-Scrape (from URL). Use when copy sounds generic, when starting any new project, when voice feels inconsistent across channels, when onboarding a new brand, or when any skill needs voice-profile.md but it doesn't exist yet. This is always the first skill to run for a new project. Make sure to use this skill whenever the user mentions tone of voice, brand personality, 'my copy all sounds the same', 'how should I sound', 'analyze my website voice', 'define my tone', or anything about making content sound more human or distinctive. Even if the user just says 'my marketing sounds generic' — that's a voice problem."
 category: foundation
 tier: must-have
 reads:
@@ -29,16 +29,20 @@ This skill defines that voice. Either by extracting it from existing content,
 building it strategically from scratch, or auto-scraping a URL to analyze a
 brand's public presence.
 
-Read brand/ context per the brand memory protocol.
-
-Follow the output formatting rules.
+For output formatting, see /cmo [rules/output-format.md](../cmo/rules/output-format.md).
 
 ---
 
-## Brand Memory
+## On Activation
 
-Brand memory: Follow brand memory protocol in /cmo skill.
-
+1. Read `brand/` context:
+   - **positioning.md** — If available, use market angles to inform voice differentiation. A brand positioned as "the anti-course course" needs a different voice than one positioned as "enterprise-grade."
+   - **audience.md** — If available, tailor vocabulary and tone to the target reader. Technical builders get different language than busy executives.
+   - If neither exists, proceed with defaults. Ask the user about their market and audience during the question sequence.
+2. Check if `./brand/voice-profile.md` already exists:
+   - **Exists** → Update mode: show current profile summary, ask what to change.
+   - **Does not exist** → Proceed to Mode Selection below.
+3. Assess the user's request to determine which mode to use (Extract, Build, or Auto-Scrape).
 
 ## Three Modes
 
@@ -176,8 +180,32 @@ Write ./brand/voice-profile.md with: last updated, voice summary, personality sp
 
 ## Feedback
 
-Feedback: Append learnings to brand/learnings.md.
+After the voice profile is saved and used in at least one downstream skill, collect feedback:
+- "How did the voice feel in that [email/post/page]? (a) Nailed it, (b) Close but edited, (c) Off, (d) Haven't used yet"
+- For (a) or (b): append what worked to `brand/learnings.md` with date and skill name.
+- For (c): ask what felt wrong, adjust the voice profile, and log the change to `brand/learnings.md`.
 
+
+## Voice Test Loop (Required)
+
+After generating a voice profile from ANY mode, validate before saving. Full details in [references/voice-modes.md](references/voice-modes.md).
+
+1. Generate 3 sample paragraphs in the brand's voice: email opening, social post, landing page hero.
+2. Present with options: (1) Nails it → save, (2) Close but needs adjustment → ask what's off, revise, re-test, (3) Not quite right → ask for examples, rebuild relevant sections, re-test.
+3. After 3 rounds without confirmation, offer: save current version, one more round, or restart with a different mode.
+
+Never skip this step. Never save a profile without user confirmation.
+
+## Anti-Patterns
+
+| Anti-pattern | Instead | Why |
+|-------------|---------|-----|
+| Generating a generic "professional yet approachable" voice | Extract specific patterns from real content or deep questioning | Generic profiles are useless — every downstream skill produces the same bland output. The whole point is differentiation. |
+| Skipping the Voice Test Loop | Always validate with 3 samples before saving | A profile that looks right on paper can sound wrong in practice. The test loop catches mismatches before they propagate to 41 other skills. |
+| Copy-pasting platform adaptation template defaults | Each brand has different platform behaviors — think about each one | A casual brand might be MORE formal on LinkedIn. A formal brand might loosen up on Twitter. Defaults are wrong by definition. |
+| Writing the profile without reading existing brand context | Check positioning.md and audience.md first | Voice should align with positioning and audience. Writing voice in isolation means rewriting it later when those files exist. |
+| Overwriting an existing profile without showing diff | Read existing file, show what will change, get confirmation | The user may have manually tweaked the profile. Blindly overwriting loses their refinements. |
+| Producing a profile with no example phrases | On-brand and off-brand examples are required | Examples are the fastest way for downstream skills to calibrate. Without them, other skills have to interpret abstract axes, which leads to drift. |
 
 ## Invocation
 

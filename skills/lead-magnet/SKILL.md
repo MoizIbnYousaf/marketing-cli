@@ -1,7 +1,7 @@
 ---
 name: lead-magnet
 description: |
-  Create high-converting free resources that capture emails and build trust. Produces complete lead magnets (ebooks, checklists, templates, toolkits, quizzes) with landing page copy, thank-you page, and follow-up email sequence. Use when someone needs a list-building asset, wants to grow their email list, needs an opt-in incentive, or says 'lead magnet', 'ebook', 'checklist', 'template', 'free resource', 'opt-in', 'grow my list', or 'email capture'. Every lead magnet passes a 4-gate quality test before shipping.
+  Create high-converting free resources that capture emails and build trust. Produces complete lead magnets (ebooks, checklists, templates, toolkits, quizzes) with landing page copy, thank-you page, and follow-up email sequence. Use when someone needs a list-building asset, wants to grow their email list, needs an opt-in incentive, a content upgrade, a gated download, or top-of-funnel content. Triggers on 'lead magnet', 'ebook', 'checklist', 'template', 'free resource', 'opt-in', 'grow my list', 'email capture', 'content upgrade', 'list building', 'gated content', or 'free download'. Even if someone just says 'I need something to capture emails' or 'how do I get more subscribers', this is the skill. Every lead magnet passes a 4-gate quality test before shipping.
 category: content
 tier: core
 reads:
@@ -267,6 +267,98 @@ marketing/lead-magnets/{name}/
 └── follow-up-emails.md # 3-email delivery + nurture sequence
 ```
 
+Every output file includes this frontmatter:
+
+```yaml
+---
+lead_magnet: "{name}"
+type: content | landing-page | thank-you | follow-up-emails
+format: checklist | template | guide | toolkit | swipe-file | mini-course
+audience: "{target segment}"
+pain_point: "{specific problem}"
+bridge_product: "{what this leads to buying}"
+date: 2026-03-20
+status: draft
+---
+```
+
+---
+
+## Quality Checklist
+
+Before shipping, verify the complete lead magnet passes all checks:
+
+**Content:**
+- [ ] Solves ONE specific problem (not a topic overview)
+- [ ] Delivers a result in under 15 minutes of consumption
+- [ ] Opens with the outcome, not the process
+- [ ] Every sentence teaches, templates, or examples — no filler
+- [ ] Includes real examples with actual data filled in
+- [ ] Ends with a natural bridge to the paid product
+- [ ] Voice matches brand (if voice-profile.md exists)
+
+**Landing Page:**
+- [ ] Headline states the outcome, not the format
+- [ ] 3+ specific bullet points (deliverables, not promises)
+- [ ] "Who This Is For" and "Not For" sections present
+- [ ] Single CTA — no navigation, no escape routes
+- [ ] No spam language in form area
+- [ ] Social proof if available
+
+**Follow-Up Emails:**
+- [ ] Email 1 delivers immediately with a quick-start tip
+- [ ] Each email has ONE purpose and ONE CTA
+- [ ] Bridge to paid product feels natural, not forced
+- [ ] Under 300 words per email
+
+---
+
+## Anti-Patterns
+
+**Common lead magnet mistakes (and why they fail):**
+- **Too broad:** "Everything You Need to Know About Marketing" attracts everyone, converts no one. Broad topics attract browsers, not buyers. Specificity signals "this was made for ME."
+- **Too long:** 50-page ebooks don't get read. The lead magnet's job is to deliver a quick win and build trust — not to be comprehensive. If they don't finish it, the follow-up sequence lands on someone who feels guilty, not grateful.
+- **No bridge:** Lead magnet topic is unrelated to what you sell. If your lead magnet teaches cooking but you sell marketing software, you've captured the wrong audience. The magnet must make buying the logical next step.
+- **Generic title:** "Marketing Guide" vs "The 7-Step SEO Audit Checklist for SaaS Founders" — specificity wins because it passes the "is this for me?" test in 2 seconds. Generic titles get ignored in crowded inboxes.
+- **Filler content:** Padding to reach a page count destroys trust. Readers feel cheated when they traded their email for fluff. Every page must earn its place.
+- **No quick win:** If they can't get value in the first 5 minutes, they'll never finish it — and an unfinished lead magnet creates negative association with your brand, not positive.
+- **Freebie-seeker magnet:** Discount codes and "free stuff" lists attract people who want free stuff, not people who would pay for your product. Design the magnet to attract your ideal buyer, not maximise downloads.
+
+**AI tells to avoid in lead magnet content:**
+- "In today's fast-paced world..." / "It's important to note..."
+- Every section same length, same structure
+- Hedging: "may help," "could potentially," "it's worth considering"
+- Overuse of: comprehensive, robust, leverage, streamline, crucial, delve
+- No personality, no opinions, no specific examples from experience
+
+---
+
+## Worked Example
+
+**Lead Magnet: "The Pre-Launch Checklist: 23 Things to Verify Before You Ship"**
+
+**Audience:** Indie hackers and solo founders about to launch a SaaS product
+**Pain point:** Fear of missing something critical at launch
+**Format:** Checklist (2 pages)
+**Bridge:** Checklist reveals how much marketing work is needed → mktg skills pack handles it
+
+**Landing Page Headline:** Ship your product without the 3 AM panic attacks.
+**Subheadline:** 23 things to verify before launch day — the checklist I wish I had before my first product flopped.
+
+**What You'll Get:**
+- The exact 23-item checklist covering technical, marketing, and legal readiness
+- Priority labels (must-have vs nice-to-have) so you focus on what matters
+- One-line explanations for WHY each item matters — not just what to do
+
+**CTA:** Get the Free Checklist →
+**Subtext:** No spam. Just the checklist and one follow-up tip.
+
+**Thank-You Page:** "Your checklist is in your inbox. While you wait — the #1 thing founders skip on this list is marketing prep. Want to fix that in 15 minutes?" → Link to product/trial
+
+**Follow-Up Email 1 (Immediate):**
+Subject: Your pre-launch checklist is inside
+Body: Download link + "Start with items 1-5. They take 10 minutes and catch 80% of launch-day problems." + "I'll send you the biggest mistake I see founders make on this list in 2 days."
+
 ---
 
 ## Lead Magnet Ideas by Business Type
@@ -278,6 +370,16 @@ marketing/lead-magnets/{name}/
 | Course/Info | Mini-course, chapter 1, cheat sheet |
 | E-commerce | Buying guide, discount code, style quiz |
 | B2B | Industry report, benchmark data, decision matrix |
+
+---
+
+## References
+
+- [format-examples.md](references/format-examples.md): Best-in-class examples by format type (quizzes, PDFs, checklists, calculators, challenges, video series, audits, swipe files) with conversion rates and implementation notes
+- [psychology.md](references/psychology.md): 7 psychological triggers (reciprocity, specificity bias, loss aversion, social proof, authority, scarcity, curiosity gap) + commitment ladder + quick win effect + trust equation
+- [saas-magnets.md](references/saas-magnets.md): SaaS-specific lead magnet strategies (free tools, ROI calculators, freemium, templates)
+- [services-magnets.md](references/services-magnets.md): Service business strategies (audits, whitepapers, case studies, consultations)
+- [info-product-magnets.md](references/info-product-magnets.md): Info product strategies (Brunson, Porterfield, Flynn, Levesque, Forleo, Robbins)
 
 ---
 

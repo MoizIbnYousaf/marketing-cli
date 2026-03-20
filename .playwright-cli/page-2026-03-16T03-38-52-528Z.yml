@@ -1,0 +1,277 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - navigation [ref=e3]:
+    - generic [ref=e4]:
+      - link "souls.zip logo souls.zip Beta" [ref=e5] [cursor=pointer]:
+        - /url: /shop
+        - img "souls.zip logo" [ref=e6]
+        - text: souls.zip
+        - generic [ref=e10]: Beta
+      - generic [ref=e11]:
+        - link "Shop" [ref=e12] [cursor=pointer]:
+          - /url: /shop
+          - img [ref=e13]
+          - text: Shop
+        - generic [ref=e17]:
+          - img [ref=e18]
+          - text: Setup
+          - img [ref=e21]
+        - generic [ref=e24]:
+          - img [ref=e25]
+          - text: Notes
+          - img [ref=e28]
+      - generic [ref=e31]:
+        - button "Open more links" [ref=e32] [cursor=pointer]:
+          - text: More
+          - img [ref=e33]
+        - link "/skill.md" [ref=e35] [cursor=pointer]:
+          - /url: /skill.md
+        - button "souls.zip logo 10x Your OpenClaw" [ref=e36] [cursor=pointer]:
+          - img "souls.zip logo" [ref=e37]
+          - text: 10x Your OpenClaw
+  - main [ref=e41]:
+    - main [ref=e42]:
+      - navigation [ref=e43]:
+        - generic [ref=e44]: ">"
+        - link "Shop" [ref=e45] [cursor=pointer]:
+          - /url: /shop
+        - img [ref=e46]
+        - generic [ref=e48]: business
+        - img [ref=e49]
+        - generic [ref=e51]: Startup Launcher Skill
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e55]:
+            - img "Startup Launcher Skill" [ref=e58]
+            - generic [ref=e59]:
+              - generic [ref=e61]:
+                - generic [ref=e62]:
+                  - img [ref=e63]
+                  - text: Skill
+                - generic [ref=e65]: business
+              - heading "Startup Launcher Skill" [level=1] [ref=e66]
+              - paragraph [ref=e67]: Launch across 56 platforms with platform-specific guides, timing, copy generation, and campaign management
+              - generic [ref=e68]:
+                - img "toli" [ref=e69]
+                - link "toli" [ref=e70] [cursor=pointer]:
+                  - /url: /creators/toli
+                - generic [ref=e71]: ·
+                - generic [ref=e72]:
+                  - img [ref=e73]
+                  - text: 1,097 downloads
+                - generic [ref=e76]: ·
+                - generic [ref=e77]:
+                  - img [ref=e78]
+                  - text: v3.3.0
+                - generic [ref=e82]: ·
+                - generic [ref=e83]:
+                  - img [ref=e84]
+                  - text: Updated 7d ago
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - button "Details" [ref=e88] [cursor=pointer]:
+                - img [ref=e89]
+                - text: Details
+              - button "Versions 6" [ref=e92] [cursor=pointer]:
+                - img [ref=e93]
+                - text: Versions
+                - generic [ref=e97]: "6"
+            - generic [ref=e99]:
+              - generic [ref=e100]:
+                - paragraph [ref=e101]: A launch campaign manager that operates as your co-pilot across 56 platforms. Not a list of links - a 3-layer system that does the work for you.
+                - paragraph [ref=e102]:
+                  - strong [ref=e103]: "How it works:"
+                - list [ref=e104]:
+                  - listitem [ref=e105]:
+                    - strong [ref=e106]: Product Brief
+                    - text: "(one-time): A 5-question interview captures everything about your product. All platform copy gets generated from this single brief."
+                  - listitem [ref=e107]:
+                    - strong [ref=e108]: Platform Intelligence
+                    - text: "(on-demand): 56 deep research files with exact submission requirements, optimization tips, rejection gotchas, and timing strategies. Loaded when you need them, invisible when you don't."
+                  - listitem [ref=e109]:
+                    - strong [ref=e110]: Launch Tracker
+                    - text: "(persistent): Tracks submissions, statuses, copy used, and next actions across all platforms. Persists across sessions so you pick up where you left off."
+                - paragraph [ref=e111]:
+                  - strong [ref=e112]: The agent does the work.
+                  - text: "Generates all copy (taglines at 60/100/full char lengths, short/medium/long descriptions, maker stories, Show HN format), adapts content per platform, provides exact URLs and fields to fill. Only hands off when a human action is physically required: clicking submit, uploading images, making payments."
+                - paragraph [ref=e113]:
+                  - strong [ref=e114]: "Launch Directories (29):"
+                  - text: AlternativeTo, Aura++, BetaList, DesiFounder, DevHunt, Fazier, Firsto, Hacker News, Indie Hackers, indie.deals, Lab Startups, Launchboard, LaunchFast, LaunchIgniter, LaunchIt, Launching Next, Launch Your App, MicroLaunch, Peerlist, PeerPush, Product Hunt, Rank In Public, Selected, SideProjectors, Startup Stash, Tiny Startups, TinyLaunch, TrustMRR, TryLaunch
+                - paragraph [ref=e115]:
+                  - strong [ref=e116]: "Deal/LTD Marketplaces (13):"
+                  - text: AppSumo, Deal Mirror, Dealify, KEN Moo, LTD Hunt, Prime Club, Product Canyon, RocketHub, SaaS Mantra, SaaS Pirate, SaaS Warrior, SaaSZilla, StackSocial
+                - paragraph [ref=e117]:
+                  - strong [ref=e118]: "Software Directories (14):"
+                  - text: AlternativeTo, Capterra, Crunchbase, Devpost, G2, HackerNoon, LibHunt, OpenAlternative, SaaS Genius, SaaSHub, Softonic, SourceForge, There's an AI for that, Toolfolio
+                - paragraph [ref=e119]: Includes launch day operational playbooks for Product Hunt, Hacker News, and AppSumo. Asset specification matrix consolidates image/video requirements across all platforms so you prepare once. Pre-built launch sequences ($0 Backlink Blitz, Funded Sprint, Developer Tool Blitz, Validation First) give you a starting strategy based on budget and product type.
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - paragraph [ref=e123]: // security
+                  - generic [ref=e124]:
+                    - generic "Screened. Automated scan" [ref=e125]:
+                      - img [ref=e126]
+                      - generic [ref=e129]: Screened
+                    - generic [ref=e130]: Automated scan
+                  - generic [ref=e131]:
+                    - paragraph [ref=e132]: Last scanned Mar 14, 2026
+                    - paragraph [ref=e133]: Screening language is intentionally conservative. Review the bundle contents and capability needs before installing.
+                - button "Sign in to report this item" [ref=e135] [cursor=pointer]
+              - generic [ref=e136]:
+                - paragraph [ref=e137]: // details
+                - list [ref=e138]:
+                  - listitem [ref=e139]:
+                    - img [ref=e140]
+                    - generic [ref=e142]: "3-layer system: Product Brief, Platform Intelligence (56 reference files), Launch Tracker"
+                  - listitem [ref=e143]:
+                    - img [ref=e144]
+                    - generic [ref=e146]: "56 platforms across 3 categories: Launch Directories (29), Deal/LTD Marketplaces (13), Software Directories (14)"
+                  - listitem [ref=e147]:
+                    - img [ref=e148]
+                    - generic [ref=e150]: "Auto-generates all copy: taglines, descriptions, maker stories, Show HN format from one product brief"
+                  - listitem [ref=e151]:
+                    - img [ref=e152]
+                    - generic [ref=e154]: On-demand platform intelligence with exact submission fields, URLs, optimization tips, and rejection gotchas
+                  - listitem [ref=e155]:
+                    - img [ref=e156]
+                    - generic [ref=e158]: Launch day operational playbooks for Product Hunt, Hacker News, and AppSumo
+                  - listitem [ref=e159]:
+                    - img [ref=e160]
+                    - generic [ref=e162]: Persistent launch tracker across sessions with status, dates, copy used, and next actions
+                  - listitem [ref=e163]:
+                    - img [ref=e164]
+                    - generic [ref=e166]: "4 pre-built launch sequences: $0 Backlink Blitz, Funded Sprint, Developer Tool Blitz, Validation First"
+                  - listitem [ref=e167]:
+                    - img [ref=e168]
+                    - generic [ref=e170]: "Asset preparation matrix: consolidated image/video specs across all 56 platforms"
+                  - listitem [ref=e171]:
+                    - img [ref=e172]
+                    - generic [ref=e174]: "Deal/LTD marketplace strategy: revenue share models, pricing psychology, campaign structure"
+                  - listitem [ref=e175]:
+                    - img [ref=e176]
+                    - generic [ref=e178]: "Platform timing coordination: daily resets, weekly windows, review queue lead times"
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - paragraph [ref=e182]: Free
+            - button "Add to Library" [ref=e183] [cursor=pointer]:
+              - img [ref=e184]
+              - text: Add to Library
+            - button "Send to Agent" [ref=e185] [cursor=pointer]:
+              - img [ref=e186]
+              - text: Send to Agent
+          - generic [ref=e189]:
+            - paragraph [ref=e190]: // package contents
+            - generic [ref=e191]:
+              - button "SKILL.md" [active] [ref=e193]:
+                - img [ref=e194]
+                - generic [ref=e197]: SKILL.md
+              - button "references" [ref=e199] [cursor=pointer]:
+                - img [ref=e200]
+                - img [ref=e202]
+                - generic [ref=e204]: references
+          - generic [ref=e205]:
+            - paragraph [ref=e206]: // creator
+            - generic [ref=e207]:
+              - img "toli" [ref=e208]
+              - generic [ref=e209]:
+                - paragraph [ref=e210]: toli
+                - paragraph [ref=e211]: Soul Proprietor
+            - link "View profile" [ref=e212] [cursor=pointer]:
+              - /url: /creators/toli
+              - img [ref=e213]
+              - text: View profile
+          - button "Leave feedback" [ref=e218] [cursor=pointer]:
+            - img [ref=e219]
+            - text: Leave feedback
+      - generic [ref=e221]:
+        - generic [ref=e222]:
+          - paragraph [ref=e223]: // related
+          - heading "Explore the neighborhood" [level=2] [ref=e224]
+          - paragraph [ref=e225]: Nearby items, alternatives, and more from the same creator.
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - heading "More by toli" [level=3] [ref=e228]
+            - generic [ref=e230]:
+              - link "View Don't Make Mistakes" [ref=e231] [cursor=pointer]:
+                - /url: /items/dont-make-mistakes
+                - generic [ref=e232]:
+                  - img "Don't Make Mistakes" [ref=e233]
+                  - generic [ref=e235]:
+                    - generic [ref=e236]:
+                      - paragraph [ref=e237]: Don't Make Mistakes
+                      - generic [ref=e239]:
+                        - img [ref=e240]
+                        - text: Skill
+                    - generic [ref=e242]: Free
+              - link "View Dan Koe" [ref=e243] [cursor=pointer]:
+                - /url: /items/dan-koe-mentor
+                - generic [ref=e244]:
+                  - img "Dan Koe" [ref=e245]
+                  - generic [ref=e247]:
+                    - generic [ref=e248]:
+                      - paragraph [ref=e249]: Dan Koe
+                      - generic [ref=e251]:
+                        - img [ref=e252]
+                        - text: Agent
+                    - generic [ref=e254]: Free
+              - link "View Watchdog" [ref=e255] [cursor=pointer]:
+                - /url: /items/watchdog
+                - generic [ref=e256]:
+                  - img "Watchdog" [ref=e257]
+                  - generic [ref=e259]:
+                    - generic [ref=e260]:
+                      - paragraph [ref=e261]: Watchdog
+                      - generic [ref=e263]:
+                        - img [ref=e264]
+                        - text: Agent
+                    - generic [ref=e266]: Free
+          - generic [ref=e267]:
+            - heading "You might also like" [level=3] [ref=e268]
+            - link "View Onboarding Optimizer" [ref=e271] [cursor=pointer]:
+              - /url: /items/onboarding-optimizer
+              - generic [ref=e272]:
+                - img "Onboarding Optimizer" [ref=e273]
+                - generic [ref=e275]:
+                  - generic [ref=e276]:
+                    - paragraph [ref=e277]: Onboarding Optimizer
+                    - generic [ref=e279]:
+                      - img [ref=e280]
+                      - text: Skill
+                  - generic [ref=e282]: Free
+  - contentinfo [ref=e283]:
+    - generic [ref=e284]:
+      - generic [ref=e285]:
+        - link "souls.zip logo > souls.zip" [ref=e286] [cursor=pointer]:
+          - /url: /
+          - img "souls.zip logo" [ref=e287]
+          - generic [ref=e291]: ">"
+          - text: souls.zip
+        - generic [ref=e292]:
+          - link "Shop" [ref=e293] [cursor=pointer]:
+            - /url: /shop
+          - link "About" [ref=e294] [cursor=pointer]:
+            - /url: /about
+          - link "Setup" [ref=e295] [cursor=pointer]:
+            - /url: /setup
+          - link "Start Selling" [ref=e296] [cursor=pointer]:
+            - /url: /sell
+          - link "Twitter" [ref=e297] [cursor=pointer]:
+            - /url: https://x.com/soulsdotzip
+            - text: Twitter
+            - img [ref=e298]
+      - generic [ref=e302]:
+        - generic [ref=e303]:
+          - link "Terms" [ref=e304] [cursor=pointer]:
+            - /url: /legal/terms
+          - link "Privacy" [ref=e305] [cursor=pointer]:
+            - /url: /legal/privacy
+          - link "Refunds" [ref=e306] [cursor=pointer]:
+            - /url: /legal/refunds
+        - paragraph [ref=e307]: © 2026 souls.zip
+  - button "Feedback" [ref=e308] [cursor=pointer]:
+    - img [ref=e309]
+    - text: Feedback
+  - alert [ref=e311]
+  - generic:
+    - generic:
+      - region "Notifications alt+T"

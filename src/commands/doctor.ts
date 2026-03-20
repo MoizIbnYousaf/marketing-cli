@@ -1,8 +1,9 @@
 // mktg doctor — Health checks for brand files, skills, and CLI dependencies
 // All checks run in parallel. Returns structured pass/fail/warn.
 
-import { ok, type CommandHandler, type CommandSchema } from "../types";
-import { getBrandStatus } from "../core/brand";
+import { join } from "node:path";
+import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
+import { getBrandStatus, isTemplateContent } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { buildGraph } from "../core/skill-lifecycle";
@@ -15,7 +16,7 @@ export const schema: CommandSchema = {
   flags: [],
   output: {
     "passed": "boolean — true if no checks failed",
-    "checks": "Array<{name, status, detail}> — individual check results",
+    "checks": "Array<{name, status, detail, fix?}> — individual check results with optional remediation command",
   },
   examples: [
     { args: "mktg doctor --json", description: "Run all health checks" },
@@ -29,6 +30,7 @@ type Check = {
   readonly name: string;
   readonly status: CheckStatus;
   readonly detail: string;
+  readonly fix?: string;
 };
 
 type DoctorResult = {
@@ -43,7 +45,7 @@ const indicator = (status: CheckStatus): string => {
   return yellow("●");
 };
 
-// Check brand files
+// Check brand files — existence, template content, and freshness
 const checkBrand = async (cwd: string): Promise<Check[]> => {
   const checks: Check[] = [];
   const statuses = await getBrandStatus(cwd);
@@ -66,13 +68,38 @@ const checkBrand = async (cwd: string): Promise<Check[]> => {
       name: "brand-profiles",
       status: "fail",
       detail: `Missing: ${missingProfile.map((s) => s.file).join(", ")}`,
+      fix: "mktg init",
     });
   } else {
     checks.push({
       name: "brand-profiles",
       status: "warn",
       detail: `${staleProfile.length} stale: ${staleProfile.map((s) => s.file).join(", ")}`,
+      fix: "mktg brand refresh",
     });
+  }
+
+  // Template content detection — files exist but haven't been populated
+  const existingProfiles = profileFiles.filter((s) => s.exists);
+  const templateFiles: string[] = [];
+  for (const s of existingProfiles) {
+    try {
+      const content = await Bun.file(join(cwd, "brand", s.file)).text();
+      if (isTemplateContent(s.file as BrandFile, content)) {
+        templateFiles.push(s.file);
+      }
+    } catch { /* file read error — skip */ }
+  }
+
+  if (templateFiles.length > 0) {
+    checks.push({
+      name: "brand-content",
+      status: "warn",
+      detail: `${templateFiles.length} files still have template content: ${templateFiles.join(", ")}`,
+      fix: "Run /cmo to populate brand files with real content",
+    });
+  } else if (existingProfiles.length > 0) {
+    checks.push({ name: "brand-content", status: "pass", detail: `${existingProfiles.length} profile files have real content` });
   }
 
   // Append-only files: must exist (can be empty)
@@ -84,6 +111,7 @@ const checkBrand = async (cwd: string): Promise<Check[]> => {
       name: "brand-append",
       status: "fail",
       detail: `Missing: ${missingAppend.map((s) => s.file).join(", ")}`,
+      fix: "mktg init",
     });
   }
 
@@ -111,6 +139,7 @@ const checkSkills = async (): Promise<Check[]> => {
         name: "skills",
         status: missing > total / 2 ? "fail" : "warn",
         detail: `${installed}/${total} installed. Missing: ${missingNames.slice(0, 5).join(", ")}${missingNames.length > 5 ? ` +${missingNames.length - 5} more` : ""}`,
+        fix: "mktg update",
       });
     }
   } catch (e) {
@@ -118,6 +147,7 @@ const checkSkills = async (): Promise<Check[]> => {
       name: "skills",
       status: "fail",
       detail: e instanceof Error ? e.message : "Failed to load manifest",
+      fix: "mktg init",
     });
   }
 
@@ -145,6 +175,7 @@ const checkAgents = async (): Promise<Check[]> => {
         name: "agents",
         status: missing > total / 2 ? "fail" : "warn",
         detail: `${installed}/${total} installed. Missing: ${missingNames.join(", ")}`,
+        fix: "mktg update",
       });
     }
   } catch {
@@ -186,6 +217,7 @@ const checkCLIs = async (): Promise<Check[]> => {
     { name: "gws", required: false },
     { name: "playwright-cli", required: false },
     { name: "ffmpeg", required: false },
+    { name: "remotion", required: false },
   ] as const;
 
   const checks: Check[] = [];
@@ -245,7 +277,7 @@ export const handler: CommandHandler<DoctorResult> = async (_args, flags) => {
     const printSection = (title: string, checks: Check[]) => {
       writeStderr(`  ${dim(title)}`);
       for (const check of checks) {
-        writeStderr(`  ${indicator(check.status)} ${check.detail}`);
+        writeStderr(`  ${indicator(check.status)} ${check.detail}${check.fix && check.status !== "pass" ? dim(` → ${check.fix}`) : ""}`);
       }
       writeStderr("");
     };

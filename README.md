@@ -4,14 +4,14 @@
 
 <p align="center">
   <a href="https://github.com/MoizIbnYousaf/mktg/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-10b981" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/skills-39-10b981" alt="39 Skills">
+  <img src="https://img.shields.io/badge/skills-41-10b981" alt="41 Skills">
   <img src="https://img.shields.io/badge/agents-5-10b981" alt="5 Agents">
   <img src="https://img.shields.io/badge/tests-extensive-10b981" alt="Extensive test suite">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript Strict">
 </p>
 
 <p align="center">
-  <b>One install gives AI agents a complete CMO brain — brand memory, parallel research, and 39 composable marketing skills.</b>
+  <b>One install gives AI agents a complete CMO brain — brand memory, parallel research, and 41 composable marketing skills.</b>
 </p>
 
 ---
@@ -46,7 +46,7 @@ It writes generic copy. It doesn't know your voice. It forgets your audience by 
 bun install -g mktg && mktg init
 ```
 
-That's it. `init` detects your project, scaffolds `brand/`, installs 39 skills to `~/.claude/skills/`, installs 5 marketing agents to `~/.claude/agents/`, and runs `doctor` to verify everything works.
+That's it. `init` detects your project, scaffolds `brand/`, installs 41 skills to `~/.claude/skills/`, installs 5 marketing agents to `~/.claude/agents/`, and runs `doctor` to verify everything works.
 
 Then use `/cmo` in Claude Code:
 
@@ -133,7 +133,7 @@ Foundation research launches 3 agents **in parallel** — brand voice extraction
 
 ---
 
-## Skills (39)
+## Skills (41)
 
 Organized by marketing layer — foundation builds up to distribution.
 
@@ -142,7 +142,7 @@ Organized by marketing layer — foundation builds up to distribution.
 
 | Skill | What it does |
 |-------|-------------|
-| **cmo** | Orchestrates all 39 skills. Routing table, disambiguation, guardrails. |
+| **cmo** | Orchestrates all 41 skills. Routing table, disambiguation, guardrails. |
 | **brand-voice** | Define or extract brand voice from existing content |
 | **audience-research** | Build buyer personas with parallel web research |
 | **competitive-intel** | Analyze competitors with real-time web intelligence |
@@ -233,7 +233,7 @@ Foundation research launches all 3 research agents **in parallel** — brand, au
 | `mktg init` | Scaffold `brand/` + install skills + install agents |
 | `mktg status` | Project marketing state snapshot |
 | `mktg doctor` | Health checks: brand files, skills, agents, CLI tools, integrations |
-| `mktg list` | Show all 39 skills with install status and metadata |
+| `mktg list` | Show all 41 skills with install status and metadata |
 | `mktg update` | Re-install skills from latest package version |
 | `mktg schema` | Introspect all commands, flags, and output shapes |
 | `mktg skill` | Inspect, validate, register, and analyze skills |
@@ -271,7 +271,7 @@ src/
 ├── commands/           # 9 top-level commands (init, doctor, list, status, update, schema, skill, brand, run)
 └── core/               # Shared modules (output, errors, brand, skills, agents, integrations)
 
-skills/                 # 39 SKILL.md files → installed to ~/.claude/skills/
+skills/                 # 41 SKILL.md files → installed to ~/.claude/skills/
 ├── cmo/                # Orchestrator with rules/, references/
 ├── brand-voice/
 ├── direct-response-copy/
@@ -313,7 +313,7 @@ bun run build         # Build
 ### Project Structure
 
 - `src/` — CLI source (TypeScript, ~4,400 lines)
-- `skills/` — 39 SKILL.md files (~42,000 lines of marketing expertise)
+- `skills/` — 41 SKILL.md files (~44,000 lines of marketing expertise)
 - `agents/` — 5 agent definitions
 - `tests/` — Bun test suite for CLI and runtime behavior
 - `website/` — Next.js marketing site
@@ -340,4 +340,4 @@ Contributions welcome. The easiest ways to help:
 
 ## Acknowledgments
 
-- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills) — the breadth skill collection that inspired many of mktg's 39 skills
+- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills) — the breadth skill collection that inspired many of mktg's 41 skills

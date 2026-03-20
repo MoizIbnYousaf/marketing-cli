@@ -1,6 +1,6 @@
 ---
 name: app-store-screenshots
-description: "Generate Apple App Store screenshot pages as a Next.js app with html-to-image export at required resolutions. Screenshots are advertisements, not documentation — every screenshot sells one idea. Use when building App Store screenshots, generating exportable marketing screenshots for iOS apps, or creating programmatic screenshot generators. Triggers on 'app store screenshots', 'App Store', 'screenshot generator', 'iOS screenshots', 'marketing screenshots', 'phone mockup', 'ASO screenshots', or 'app store assets'. Includes iPhone and iPad mockup components."
+description: "Generate Apple App Store screenshot pages as a Next.js app with html-to-image export at required resolutions. Screenshots are advertisements, not documentation — every screenshot sells one idea. Use when building App Store screenshots, generating exportable marketing screenshots for iOS apps, or creating programmatic screenshot generators. Triggers on 'app store screenshots', 'App Store', 'screenshot generator', 'iOS screenshots', 'marketing screenshots', 'phone mockup', 'ASO screenshots', 'app store assets', 'app listing', 'app store page', or 'app preview images'. Also use when someone is about to submit an app and needs store assets, or when they say 'make my app store page look good'. Includes iPhone and iPad mockup components with pre-measured dimensions."
 ---
 
 # App Store Screenshots Generator
@@ -9,13 +9,26 @@ description: "Generate Apple App Store screenshot pages as a Next.js app with ht
 
 Build a Next.js page that renders iOS App Store screenshots as **advertisements** (not UI showcases) and exports them via `html-to-image` at Apple's required resolutions. Screenshots are the single most important conversion asset on the App Store.
 
+## Reads
+
+- `brand/creative-kit.md` — Brand colors, fonts, logo paths
+- `brand/voice-profile.md` — Copy tone and personality
+- `brand/positioning.md` — Positioning angles for headline direction
+
+## On Activation
+
+1. Read `brand/creative-kit.md` for colors, fonts, and logo.
+2. Read `brand/voice-profile.md` for copy tone — this shapes headline style (playful vs. professional vs. minimal).
+3. Read `brand/positioning.md` for positioning angles — the primary angle informs the hero slide headline direction.
+4. If brand/ files don't exist, the skill works at zero context. Step 1 gathers everything needed.
+
 ## Core Principle
 
 **Screenshots are advertisements, not documentation.** Every screenshot sells one idea. If you're showing UI, you're doing it wrong — you're selling a *feeling*, an *outcome*, or killing a *pain point*.
 
-## Step 1: Ask the User These Questions
+## Step 1: Ask the User
 
-Before writing ANY code, ask the user all of these. Do not proceed until you have answers:
+If brand/ files provided answers (colors, fonts, voice tone), confirm them with the user and skip those questions. Only ask what's genuinely unknown. Do not proceed until you have all answers:
 
 ### Required
 
@@ -415,3 +428,30 @@ el.style.zIndex = "";
 | Headlines use "and" | Split into two slides or pick one idea |
 | No visual contrast across slides | Mix light and dark backgrounds |
 | Export is blank | Use double-call trick; move element on-screen before capture |
+| User has no app screenshots yet | Tell them to take simulator screenshots first. Provide sizes: iPhone 15 Pro Max (1320x2868), iPad Pro 13" (2064x2752). Don't proceed without real screenshots. |
+
+## Step 7: Completion Summary
+
+Present the final deliverable to the user:
+
+```markdown
+## App Store Screenshots Complete
+
+### Files Created
+| File | Size | Device | Purpose |
+|------|------|--------|---------|
+| 01-hero-1320x2868.png | [size] | iPhone 6.9" | Hero slide |
+| 01-hero-1284x2778.png | [size] | iPhone 6.5" | Hero slide |
+| ... | ... | ... | ... |
+
+### How to Upload
+1. Open App Store Connect → Your App → App Store tab
+2. Scroll to "Screenshots" section
+3. Upload each size set to its corresponding device slot
+4. iPhone 6.9" screenshots auto-apply to 6.7" and 6.3"
+5. iPhone 6.1" is only needed for older device support
+
+### Regenerating
+Run the Next.js app (`bun dev`) and use the export buttons to regenerate at any size.
+The generator is a permanent asset — update screenshots anytime by swapping PNGs in `public/screenshots/`.
+```

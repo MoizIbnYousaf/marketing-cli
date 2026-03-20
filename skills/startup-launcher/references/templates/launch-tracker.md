@@ -1,6 +1,6 @@
 # Launch Tracker
 
-Track submissions across all 39 platforms. Status updated by agent as campaign progresses.
+Track submissions across all 56 platforms. Status updated by agent as campaign progresses.
 
 ## Product: [Product Name]
 ## Campaign Started: [Date]
@@ -8,8 +8,8 @@ Track submissions across all 39 platforms. Status updated by agent as campaign p
 ---
 
 ## Summary Stats
-- **Platforms submitted:** 0/39
-- **Platforms live:** 0/39  
+- **Platforms submitted:** 0/56
+- **Platforms live:** 0/56
 - **Total spend:** $0
 - **Total backlinks acquired:** 0
 - **Total signups/users from launches:** 0
@@ -19,7 +19,7 @@ Track submissions across all 39 platforms. Status updated by agent as campaign p
 
 ## Submissions by Category
 
-### LAUNCH DIRECTORIES (15 platforms)
+### LAUNCH DIRECTORIES (29 platforms)
 
 | Platform | Status | Category | Submitted | Live Date | Cost | Link | Notes |
 |----------|--------|----------|-----------|-----------|------|------|-------|
@@ -38,6 +38,19 @@ Track submissions across all 39 platforms. Status updated by agent as campaign p
 | PeerPush | Not Started | Directory | | | $0/paid | | |
 | DevHunt | Not Started | Directory | | | Free | | |
 | TrustMRR | Not Started | Directory | | | Free | | |
+| Startup Stash | Not Started | Directory | | | Free | | |
+| Launching Next | Not Started | Directory | | | Free | | |
+| Firsto | Not Started | Directory | | | Free | | |
+| LaunchIt | Not Started | Directory | | | Free | | |
+| Launch Your App | Not Started | Directory | | | Free | | |
+| DesiFounder | Not Started | Directory | | | Free | | |
+| Rank In Public | Not Started | Directory | | | Free | | |
+| Launchboard | Not Started | Directory | | | Free | | |
+| Aura++ | Not Started | Directory | | | Free | | |
+| TryLaunch | Not Started | Directory | | | Free | | |
+| Selected | Not Started | Directory | | | Free | | |
+| LaunchFast | Not Started | Directory | | | Free | | |
+| Lab Startups | Not Started | Directory | | | Free | | |
 
 ### DEAL/LTD MARKETPLACES (13 platforms)
 
@@ -57,7 +70,7 @@ Track submissions across all 39 platforms. Status updated by agent as campaign p
 | Deal Mirror | Not Started | Deal | | | Variable | | |
 | Dealify | Not Started | Deal | | | Variable | | |
 
-### SOFTWARE DIRECTORIES (11 platforms)
+### SOFTWARE DIRECTORIES (14 platforms)
 
 | Platform | Status | Category | Submitted | Live Date | Cost | Link | Notes |
 |----------|--------|----------|-----------|-----------|------|------|-------|
@@ -72,6 +85,9 @@ Track submissions across all 39 platforms. Status updated by agent as campaign p
 | AlternativeTo | Not Started | Directory | | | Free | | |
 | SourceForge | Not Started | Directory | | | Free | | |
 | Softonic | Not Started | Directory | | | Free | | |
+| Crunchbase | Not Started | Directory | | | Free | | |
+| HackerNoon | Not Started | Directory | | | Free | | |
+| Devpost | Not Started | Directory | | | Free | | |
 
 **Status Values:** Not Started | Drafting | Submitted | Pending Review | Approved | Live | Featured | Skipped | Rejected
 

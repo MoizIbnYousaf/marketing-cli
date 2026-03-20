@@ -4,12 +4,14 @@
 import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory } from "../types";
 import { loadManifest, getInstallStatus, readSkillVersions } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
-import { bold, dim, green, red, isTTY } from "../core/output";
+import { bold, dim, green, red, isTTY, writeStdout } from "../core/output";
 
 export const schema: CommandSchema = {
   name: "list",
   description: "Show available skills and agents with install status",
-  flags: [],
+  flags: [
+    { name: "--ndjson", type: "boolean", required: false, default: false, description: "Output one JSON object per line (NDJSON streaming) — each skill is a separate line for incremental processing" },
+  ],
   output: {
     "skills": "SkillEntry[] — all skills with status",
     "agents": "AgentEntry[] — all agents with status",
@@ -75,7 +77,8 @@ const CATEGORY_ORDER: readonly SkillCategory[] = [
   "knowledge",
 ];
 
-export const handler: CommandHandler<ListResult> = async (_args, flags) => {
+export const handler: CommandHandler<ListResult> = async (args, flags) => {
+  const wantsNdjson = args.includes("--ndjson");
   const manifest = await loadManifest();
   const [installStatus, installedVersions] = await Promise.all([
     getInstallStatus(manifest),
@@ -118,6 +121,16 @@ export const handler: CommandHandler<ListResult> = async (_args, flags) => {
     installed: skills.filter((s) => s.installed).length,
     missing: skills.filter((s) => !s.installed).length,
   };
+
+  // NDJSON mode: one JSON object per line for streaming consumption
+  // Writes directly to stdout to bypass the envelope formatting — each line is a standalone JSON object
+  if (wantsNdjson) {
+    for (const skill of skills) {
+      writeStdout(JSON.stringify(skill));
+    }
+    // Return result with empty display so cli.ts doesn't double-output
+    return ok(result, "");
+  }
 
   // JSON mode returns raw data
   if (flags.json || !isTTY()) {

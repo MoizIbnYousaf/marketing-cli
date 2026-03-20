@@ -5,8 +5,12 @@ description: >
   scheduled, on-brand social posts with visuals across X and LinkedIn via Typefully.
   Chains: CMO strategy, content writing with voice calibration, AI slop audit,
   selective Paper MCP visual design, and Typefully scheduling. Each phase has a
-  human gate. Triggers on "social campaign", "schedule posts", "pre-launch content",
-  "content calendar", "social content pipeline", "build up content".
+  human gate. Use this skill whenever someone wants to plan and execute a batch of
+  social posts — not just one-off tweets. Triggers include: "social campaign",
+  "schedule posts", "pre-launch content", "content calendar", "social content pipeline",
+  "build up content", "I need social media content for my launch", "help me build
+  social presence", "plan a week of posts", "batch social content", "social media
+  strategy", or any request involving multiple scheduled posts with optional visuals.
 allowed-tools:
   - Bash(mktg status *)
   - Bash(*/typefully.js *)
@@ -53,9 +57,13 @@ Phase 5: SCHEDULE   — Upload media + schedule all posts via Typefully
 5. Check queue schedule: `typefully.js queue:schedule:get` (what days/times are slots)
 6. Read recent published posts: `typefully.js drafts:list --status published --sort -created_at`
 
+**If brand files are missing:** The skill still works. Ask the user for: (1) brand voice in 2-3 adjectives, (2) target platforms, (3) content themes. Proceed with these as lightweight context. Brand files enhance, never gate.
+
+**If Typefully queue is empty (no available slots):** Offer the user two options: (1) create drafts without scheduling (user schedules manually in Typefully UI), or (2) use specific datetime scheduling with `--schedule "ISO_datetime"`.
+
 **Present context summary:**
 ```
-Brand: loaded (voice, positioning)
+Brand: loaded (voice, positioning) | OR: missing — using lightweight context
 Typefully: connected, default social set {id} (@{username})
 Queue: {N} empty slots over next {days} days ({schedule})
 Last post: "{preview}" ({date})
@@ -128,9 +136,31 @@ Two-part quality audit. This is the most important phase for authenticity.
 
 #### 3a: AI Slop Audit
 
-Apply /cmo's quality gate. Read the full pattern reference at [/cmo/references/ai-slop-patterns.md](../cmo/references/ai-slop-patterns.md) and audit every post for structural patterns, transition filler, vocabulary tells, and batch-level monotony.
+Audit every post for these AI tells. **Read each post manually, in sequence, looking at the batch as a whole** (not just individual posts). This cannot be done with regex.
 
-**This cannot be done with regex.** Read each post manually, in sequence, looking at the batch as a whole (not just individual posts).
+**Structural patterns to catch:**
+- Sentences that all follow the same rhythm (subject-verb-explanation, repeat)
+- Every post opening with a question or every post opening with a bold claim — variety is key
+- Numbered lists where every item has the same sentence structure
+- "Sandwich" pattern: statement, elaboration, restatement in every post
+
+**Transition filler to remove:**
+- "Here's the thing:", "Let me be clear:", "The reality is:", "At the end of the day"
+- "In today's [landscape/world/environment]", "When it comes to"
+- "It's worth noting that", "Interestingly enough", "Not gonna lie"
+
+**Vocabulary tells to flag:**
+- "Leverage", "unlock", "game-changer", "deep dive", "robust", "streamline"
+- "Landscape", "navigate", "elevate", "empower", "cutting-edge"
+- Overuse of "incredibly", "absolutely", "fundamentally"
+
+**Batch-level monotony checks:**
+- Do 3+ posts start the same way? Fix it.
+- Do all posts use the same CTA? Vary them.
+- Is the emotional range flat? Mix insight, humor, urgency, curiosity.
+- Could you shuffle the posts and not notice? Each needs a distinct angle.
+
+If /cmo is installed, also reference `~/.claude/skills/cmo/references/ai-slop-patterns.md` for the full pattern library.
 
 #### 3b: Voice Calibration Check
 
@@ -146,49 +176,11 @@ Compare each post against the published posts from Phase 2's calibration:
 
 ### Phase 4: DESIGN
 
-Selective visual creation. NOT every post gets an image.
+Selective visual creation. NOT every post gets an image — text-only posts feel more authentic for personal observations and hot takes.
 
-**Decision framework:**
+For the full decision framework (which posts get images), image types, Paper MCP steps, and design system specs, see `references/paper-mcp-workflow.md`.
 
-| Post Type | Image? | Why |
-|-----------|--------|-----|
-| Personal observation / hot take | No | Text-only feels more authentic, like a real person thinking |
-| Problem statement / vent | No | Raw text hits harder |
-| Comparison or contrast | Yes | Visual makes the gap/difference tangible |
-| Process or workflow | Yes | Flow diagram is shareable/saveable |
-| Data or metrics | Yes | Numbers as visual anchors |
-| Terminal/code reference | Yes | Terminal mockup shows developer credibility |
-| Product announcement | Yes | Hero card with feature list |
-| Builder update | No | Personal voice, no corporate graphic |
-
-**For each post that gets an image, decide WHAT the image shows.** The image must add something the text cannot say alone. Never just repeat the tweet text as a graphic.
-
-**Image types available in Paper MCP:**
-
-| Type | When | Example |
-|------|------|---------|
-| Split comparison | Contrasting two things | "Runs" vs "Works well" with criteria |
-| Terminal mockup | Code/CLI reference | macOS terminal with real commands |
-| Timeline/gap visual | Before/after or evolution | Runtimes (polished) vs Tooling (bare) |
-| Flow diagram | Process or steps | Numbered step cards with arrows |
-| Comparison table | Feature matrix | Two columns with checkmarks vs dashes |
-| Hero announcement | Launch or milestone | Product name, feature list, CTA |
-
-**Paper MCP Workflow:**
-
-1. `mcp__paper__get_basic_info()` to check workspace
-2. `mcp__paper__get_font_family_info()` to verify brand fonts
-3. Create artboards (1200x675 for X+LinkedIn compatibility)
-4. Build designs incrementally (header, content, footer per artboard)
-5. Screenshot and review each design
-6. `mcp__paper__finish_working_on_nodes()` when done
-
-**Design system for social cards:**
-- Background: use project's dark marketing color
-- Accent: use project's primary brand color
-- Fonts: project's brand fonts (display, body, mono)
-- Layout: header (logo + domain), content (the visual), footer (accent line + product tag)
-- All inline styles, display: flex, no grid/margins/tables
+**Quick decision rule:** Comparisons, processes, data, and announcements get images. Personal takes, vents, and builder updates stay text-only.
 
 **Present image plan for approval:**
 
@@ -254,6 +246,29 @@ marketing/campaigns/{campaign-name}/
     post-06-flow.png
     ...
   campaign-log.md          # What was scheduled, draft IDs, media IDs
+```
+
+### Post File Format
+
+Each `post-XX.md` file uses this structure:
+
+```yaml
+---
+post_number: 1
+platform: x,linkedin
+type: single | thread | carousel
+scheduled_date: "2026-03-25T09:00:00Z"
+draft_id: ""          # Populated after Typefully draft creation
+media_id: ""          # Populated after media upload
+has_image: false
+status: draft | approved | scheduled | published
+---
+```
+
+```
+[Post text goes here]
+
+[For threads, separate tweets with ---]
 ```
 
 ## Integration Requirements

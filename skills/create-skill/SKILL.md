@@ -1,7 +1,7 @@
 ---
 name: create-skill
 description: |
-  Create new marketing skills for the mktg playbook. Use when the agent needs to add a new capability, someone says 'create a skill', 'new skill', 'add a marketing skill', 'extend the playbook', or 'I need a skill for X'. Reads the skill contract, generates SKILL.md with correct frontmatter and structure, creates the directory, and reminds the agent to register in the manifest.
+  Create new marketing skills for the mktg playbook. Use when the agent needs to add a new capability, someone says 'create a skill', 'new skill', 'add a marketing skill', 'extend the playbook', 'I need a skill for X', 'build a skill', 'make a skill for Y', or 'add capability for Z'. Also use when someone wants to capture a marketing workflow they just did into a reusable skill, or when they say 'turn this into a skill'. Reads the skill contract, generates SKILL.md with correct frontmatter and structure, creates the directory, and reminds the agent to register in the manifest.
 allowed-tools: []
 ---
 
@@ -94,10 +94,22 @@ Only create subdirectories if the skill genuinely needs them. Most skills are a 
      "review_interval_days": 60
    }
    ```
-2. **Validate** with `mktg skill validate <name>` if the CLI is available.
+2. **Validate** with `mktg skill validate <name>` if the CLI is available. If CLI is unavailable, manually verify:
+   - Frontmatter has `name`, `description`, `allowed-tools` fields
+   - `name` matches the directory name exactly
+   - Description includes trigger phrases for routing
+   - All referenced brand files use valid names from the standard set
+   - No trigger phrases conflict with existing skills (check manifest)
 3. **Test** by invoking `/<name>` and verifying the On Activation flow works.
 
 Do NOT modify `skills-manifest.json` directly in this skill — that's a separate step to avoid merge conflicts.
+
+### Handling Modification Requests
+
+If the user wants to modify an existing skill (not create a new one):
+- "Update skill X" or "add a mode to Y" → Read the existing SKILL.md, understand its structure, make targeted edits. Do not use the creation workflow.
+- "Merge skill X into skill Y" → Read both, propose the merge, confirm, then edit the target skill.
+- Route here only for genuinely new capabilities.
 
 ---
 
@@ -130,7 +142,7 @@ Every skill starts with On Activation — the first thing that runs when invoked
 3. Assess the request
 4. Gate check (skip if wrong skill)
 
-This is non-negotiable. It ensures progressive enhancement — skills work at zero context but get better with brand memory.
+This pattern matters because it's what makes progressive enhancement work — skills produce useful output at zero context but get noticeably better with brand memory. Skipping it means the skill either errors on missing files or ignores context that would make output 3x better.
 
 ### Progressive Enhancement
 
@@ -147,17 +159,26 @@ Skills must NEVER gate on brand files. They enhance output but are never require
 
 ---
 
+## Writing Good Skill Content
+
+The template gives structure. Here's how to fill it with substance:
+
+- **Phase instructions:** Use imperative verbs ("Read X," "Generate Y," "Ask the user Z"). Specify inputs and outputs for each phase. Include conditional logic where decisions vary ("If the user has a URL, scrape it. If not, ask 3 questions.").
+- **Worked examples:** Pick a realistic scenario the target user would actually encounter. Walk through key decision points, not just the happy path. Show what the output looks like, not just what it contains.
+- **Calibrating prescriptiveness:** Be specific where consistency matters (output format, file paths, frontmatter). Leave room for agent judgment where creativity matters (copy tone, strategic recommendations, question sequencing).
+- **Anti-patterns:** Think about the 3 most common ways this skill could go wrong. Usually: doing too much, doing too little, or doing the wrong thing entirely.
+
 ## Anti-Patterns
 
-| Anti-pattern | Instead |
-|-------------|---------|
-| Creating a skill that overlaps with an existing one | Check manifest first, extend existing skill |
-| Skipping the description field or writing it vaguely | Description IS routing — be specific, include triggers |
-| Making brand files required | Progressive enhancement — enhance, never gate |
-| Adding 10+ phases | 3-5 phases. If more, split into multiple skills |
-| Hardcoding file paths outside `brand/` and `campaigns/` | Use the standard directories |
-| Skills that call other skills | Skills read/write files. `/cmo` orchestrates |
-| Forgetting the worked example | Every skill needs one concrete example |
+| Anti-pattern | Instead | Why |
+|-------------|---------|-----|
+| Creating a skill that overlaps with an existing one | Check manifest first, extend existing skill | Duplicate skills confuse routing — /cmo won't know which to pick, and the builder gets inconsistent results depending on which triggers. |
+| Skipping the description field or writing it vaguely | Description IS routing — be specific, include triggers | Claude decides whether to use a skill based almost entirely on the description. A vague description means the skill never gets invoked, no matter how good the content is. |
+| Making brand files required | Progressive enhancement — enhance, never gate | Brand files build up over time. A skill that errors on missing files is useless for new projects, which is exactly when builders need the most help. |
+| Adding 10+ phases | 3-5 phases. If more, split into multiple skills | Long skills are hard for agents to follow consistently. Each additional phase increases the chance of drift or skipped steps. |
+| Hardcoding file paths outside `brand/` and `campaigns/` | Use the standard directories | Non-standard paths break cross-skill references. If one skill writes to `output/` and another looks in `brand/`, the context chain is broken. |
+| Skills that call other skills | Skills read/write files. `/cmo` orchestrates | Skill-to-skill calls create hidden dependencies and ordering problems. Files are the API — they're inspectable, debuggable, and don't create call chains. |
+| Forgetting the worked example | Every skill needs one concrete example | Examples are worth more than abstract instructions. An agent reading a worked example can infer patterns that no amount of rules can convey. |
 
 ## YAGNI Principles
 

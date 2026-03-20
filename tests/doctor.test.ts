@@ -123,16 +123,22 @@ describe("Doctor with partial state", () => {
     expect(appendCheck?.status).toBe("fail");
   });
 
-  test("all brand checks pass after init", async () => {
+  test("brand file existence checks pass after init (content may warn)", async () => {
     await initHandler(["--yes"], flags);
     const result = await doctorHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const brandChecks = result.data.checks.filter(c => c.name.startsWith("brand"));
-    for (const check of brandChecks) {
-      expect(check.status).toBe("pass");
-    }
+    // After init, brand-profiles and brand-append should pass (files exist)
+    // brand-content may warn (template content not yet populated) — that's correct
+    const profileCheck = result.data.checks.find(c => c.name === "brand-profiles");
+    const appendCheck = result.data.checks.find(c => c.name === "brand-append");
+    expect(profileCheck?.status).toBe("pass");
+    expect(appendCheck?.status).toBe("pass");
+
+    const contentCheck = result.data.checks.find(c => c.name === "brand-content");
+    expect(contentCheck).toBeDefined();
+    expect(contentCheck!.status).toBe("warn"); // template content after fresh init
   });
 
   test("includes agent checks", async () => {

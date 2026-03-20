@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_TITLE = "mktg — Agent-Native Marketing Playbook CLI";
 
 export const SITE_DESCRIPTION =
-  "One install gives AI agents a complete CMO brain with brand memory, parallel research, and 39 composable marketing skills.";
+  "One install gives AI agents a complete CMO brain with brand memory, parallel research, and 41 composable marketing skills.";
 
 export const SITE_OG_IMAGE =
   "https://raw.githubusercontent.com/MoizIbnYousaf/mktg/main/banner.svg";

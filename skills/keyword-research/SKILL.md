@@ -1,28 +1,15 @@
 ---
 name: keyword-research
 description: >
-  Strategic keyword research powered by web search and brand context. Use when
-  someone needs a content strategy, when they don't know what to write about,
-  when SEO planning is needed, when content isn't attracting search traffic, or
-  when any skill needs keyword-plan.md. Triggers on 'keywords', 'keyword
-  research', 'SEO topics', 'content topics', 'what should I write about',
-  'content strategy', 'blog ideas', or 'search traffic'. 8-phase process from
-  seed to content brief.
-category: seo
-tier: strategy
-reads:
-  - brand/voice-profile.md
-  - brand/audience.md
-  - brand/positioning.md
-writes:
-  - marketing/seo/keyword-map.md
-  - marketing/seo/content-plan.md
-triggers:
-  - keyword research
-  - content strategy
-  - what should I write about
-  - SEO strategy
-  - topic clusters
+  Strategic keyword research powered by web search and brand context. Use this
+  skill whenever the user mentions keywords, keyword research, SEO topics,
+  content topics, 'what should I write about', content strategy, blog ideas,
+  search traffic, or content planning. Also trigger when the user wants to plan
+  what content to create, when existing content isn't attracting search traffic,
+  when any skill needs keyword-plan.md but it doesn't exist, or when the user
+  asks about SEO in the context of content creation. Even casual mentions like
+  'I need blog post ideas' or 'what topics should I cover' warrant this skill.
+  8-phase process from seed to content brief.
 ---
 
 
@@ -44,19 +31,8 @@ and builds a content plan that actually makes sense.
 
 No expensive tools required. Systematic thinking plus web search.
 
-Read ./brand/ per _system/brand-memory.md
-
-Follow all output formatting rules from _system/output-format.md
-
----
-
-
-## Brand Memory
-
-Brand memory: Follow brand memory protocol in /cmo skill.
-
-Reads: `positioning.md`, `audience.md`, `competitors.md`, `learnings.md`
-Writes: `marketing/seo/keyword-map.md`, `marketing/seo/content-plan.md`
+**Reads:** `positioning.md`, `audience.md`, `competitors.md`, `learnings.md`
+**Writes:** `brand/keyword-plan.md`, `campaigns/content-plan/*.md`
 
 ---
 
@@ -311,17 +287,7 @@ Search: "[keyword]"
 - Quality assessment (comprehensive or thin?)
 - Domain type (major publication, niche site, personal blog?)
 
-**SERP signals that matter:**
-
-| Signal | What it means |
-|--------|--------------|
-| Top results are 2+ years old | Freshness opportunity |
-| Top results are thin (<1000 words) | Depth opportunity |
-| Top results are all big brands (DR 80+) | Hard to win -- consider long-tail |
-| Mixed results (big + small sites) | Winnable with great content |
-| Forums/Reddit in top 5 | Huge content gap -- no good article exists |
-| Featured snippet present | Optimize for snippet format |
-| "People Also Ask" is extensive | Topic has depth worth covering |
+**SERP signals:** Old results (2+ years) = freshness opportunity. Thin results (<1000 words) = depth opportunity. All big brands (DR 80+) = hard to win, try long-tail. Mixed big + small sites = winnable. Forums/Reddit in top 5 = huge content gap. Featured snippet = optimize for snippet format.
 
 ### Step 4: Competitor Content Analysis
 
@@ -334,62 +300,11 @@ Search: "{competitor name} [pillar keyword]"
 Search: "{competitor name} blog"
 ```
 
-**Build a competitor content map:**
-
-For each competitor:
-- What topics do they cover?
-- What content types do they use?
-- What keywords do they appear to target?
-- Where are the gaps -- topics they do NOT cover?
-- What is their content quality like?
-
-**Content gap analysis:**
-
-| Topic | You | Competitor A | Competitor B | Gap? |
-|-------|-----|-------------|-------------|------|
-| [topic 1] | ✗ | ✓ strong | ✓ weak | Catch-up + improve |
-| [topic 2] | ✗ | ✗ | ✗ | Blue ocean opportunity |
-| [topic 3] | ✓ thin | ✓ strong | ✗ | Improve existing |
-
-**Priority content gaps:**
-1. Topics ALL competitors cover but you do not (catch-up)
-2. Topics NO ONE covers well (blue ocean)
-3. Topics where competitors are weak/outdated (improvement)
+**Build a competitor content map** for each competitor: topics covered, content types, keywords targeted, gaps, and quality. Identify three priority gap types: (1) catch-up — topics all competitors cover but you don't, (2) blue ocean — topics nobody covers well, (3) improvement — topics where competitors are weak/outdated.
 
 ### Search Integration Output
 
-After web search, present findings before clustering:
-
-```
-  ──────────────────────────────────────────────
-
-  WEB RESEARCH COMPLETE
-
-  Autocomplete suggestions:   {N} unique terms
-  People Also Ask questions:  {N} captured
-  SERPs analyzed:             {N} keywords
-  Competitor pages reviewed:  {N} pages
-
-  ──────────────────────────────────────────────
-
-  TOP DISCOVERIES
-
-  ├── {discovery 1 -- e.g., "unexpected keyword
-  │   with forum results dominating SERP"}
-  ├── {discovery 2 -- e.g., "competitor X has no
-  │   content on {topic} -- wide open"}
-  └── {discovery 3 -- e.g., "PAA reveals audience
-  │   cares about {angle} more than expected"}
-
-  NEW KEYWORDS ADDED FROM SEARCH
-
-  ├── {keyword from autocomplete}
-  ├── {keyword from PAA}
-  ├── {keyword from competitor gap}
-  └── +{N} more added to expanded list
-
-  ──────────────────────────────────────────────
-```
+After web search, present a summary before clustering: total terms found, top 3 discoveries (unexpected keywords, competitor gaps, PAA insights), and new keywords added from search. Show counts for autocomplete suggestions, PAA questions, SERPs analyzed, and competitor pages reviewed.
 
 ---
 
@@ -446,121 +361,23 @@ Validate: search volume, competition, content-market fit, business alignment.
 Not all keywords are equal. Score each cluster using both strategic assessment
 AND live search evidence from Phase 3.
 
-### Business Value (High / Medium / Low)
+Score each cluster on three dimensions:
 
-**High:** Direct path to revenue
-- Commercial intent keywords
-- Close to purchase decision
-- Your core offering
+- **Business Value** (High/Medium/Low): How directly does this connect to revenue? Commercial intent keywords close to purchase = High. Educational/authority content = Medium. Top-of-funnel brand awareness = Low.
+- **Opportunity** (High/Medium/Low): What does the SERP data show? Forums ranking, outdated content, thin results = High opportunity. DR 80+ sites with comprehensive content = Low.
+- **Speed to Win** (Fast/Medium/Long): Low competition with unique expertise = Fast (3 months). Moderate competition = Medium (6 months). High competition needing authority = Long (9-12 months).
 
-**Medium:** Indirect path
-- Builds trust and authority
-- Captures leads
-- Educational content
-
-**Low:** Brand awareness only
-- Top of funnel
-- Tangentially related
-- Nice to have
-
-### Opportunity (High / Medium / Low)
-
-**High opportunity signals (from web search data):**
-- No good content exists (you would define the category)
-- Existing content is outdated (2+ years old in SERP)
-- Existing content is thin (surface-level, generic)
-- You have unique angle competitors miss
-- Reddit/forums in top results (content gap confirmed)
-- Growing trend (autocomplete suggestions expanding)
-- Competitors have not covered this topic
-
-**Low opportunity signals:**
-- Dominated by major authority sites (DR 80+)
-- Excellent comprehensive content already exists
-- Highly competitive commercial terms
-- Declining interest
-- All competitors have strong content here
-
-### Speed to Win (Fast / Medium / Long)
-
-**Fast (3 months):**
-- Low competition (confirmed by SERP analysis)
-- You have unique expertise/data
-- Content gap is clear (forums ranking)
-
-**Medium (6 months):**
-- Moderate competition
-- Requires comprehensive content
-- Differentiation path exists
-
-**Long (9-12 months):**
-- High competition
-- Requires authority building
-- May need link building
-
-### Priority Matrix
-
-| Business Value | Opportunity | Speed | Priority |
-|---------------|-------------|-------|----------|
-| High | High | Fast | DO FIRST |
-| High | High | Medium | DO SECOND |
-| High | Medium | Fast | DO THIRD |
-| Medium | High | Fast | QUICK WIN |
-| High | Low | Any | LONG PLAY |
-| Low | Any | Any | BACKLOG |
+**Priority:** High Value + High Opportunity + Fast = DO FIRST. High + High + Medium = DO SECOND. Medium + High + Fast = QUICK WIN. High + Low = LONG PLAY. Low value = BACKLOG.
 
 ---
 
 ## Phase 7: Map to Content
 
-For each priority cluster, assign:
+For each priority cluster, assign a content type (Pillar Guide, How-To, Comparison, Listicle, Use Case, or Definition), match to search intent (Informational, Commercial, Transactional), and place in the content calendar (Tier 1-4 over 12 weeks).
 
-### Content Type
+Use PAA questions to build article outlines — each PAA question becomes an H2, aligning content structure with what Google knows people are asking.
 
-| Type | When to Use | Word Count |
-|------|-------------|------------|
-| Pillar Guide | Comprehensive topic coverage | 5,000-8,000 |
-| How-To Tutorial | Step-by-step instructions | 2,000-3,000 |
-| Comparison | X vs Y, Best [category] | 2,500-4,000 |
-| Listicle | Tools, examples, tips | 2,000-3,000 |
-| Use Case | Industry or scenario specific | 1,500-2,500 |
-| Definition | What is [term] | 1,500-2,500 |
-
-### Intent Matching
-
-| Intent | Keyword Signals | Content Approach | CTA Type |
-|--------|-----------------|------------------|----------|
-| Informational | what, how, why, guide | Educate thoroughly | Newsletter, resource |
-| Commercial | best, vs, review, compare | Help them decide | Free trial, demo |
-| Transactional | buy, pricing, get, hire | Make it easy | Purchase, contact |
-
-### Content Calendar Placement
-
-**Tier 1 (Publish in weeks 1-4):** Highest priority, category-defining
-**Tier 2 (Publish in weeks 5-8):** High priority, supporting pillars
-**Tier 3 (Publish in weeks 9-12):** Medium priority, depth content
-**Tier 4 (Backlog):** Lower priority, future opportunities
-
-### PAA-Driven Content Structure
-
-For each content piece, use PAA questions to build the outline:
-
-```
-Article: "What is AI Marketing Automation?"
-
-  Sections derived from PAA:
-  ├── H2: How does AI help marketing?
-  │   └── {from PAA question}
-  ├── H2: Is AI marketing automation worth it?
-  │   └── {from PAA question}
-  ├── H2: What are the best AI marketing tools?
-  │   └── {from PAA question}
-  └── H2: How to get started with AI marketing
-      └── {from PAA question + autocomplete}
-```
-
-Each PAA question becomes an H2. This aligns your content structure with what
-Google knows people are asking.
+> See references/keyword-examples.md for content type tables, intent matching rules, calendar tiers, and PAA-driven outline examples.
 
 ---
 
@@ -574,7 +391,7 @@ Generate briefs for top-priority keywords: target keyword, search intent, conten
 
 ## Output Format
 
-Output format: Follow output format protocol in /cmo skill.
+See `references/keyword-examples.md` for the full terminal output template and keyword plan file format. Use the premium formatting system for terminal output (box-drawing characters, section headers) and standard markdown for files saved to disk.
 
 ---
 
@@ -652,40 +469,29 @@ is handled by /seo-content and other downstream skills.
 
 ## How This Skill Connects to Others
 
-**keyword-research** identifies WHAT to write about and creates the content plan.
-
-Then:
-- **/seo-content** --> Writes individual articles using the content briefs
-- **/positioning-angles** --> Finds the angle for each piece (or informs keyword selection)
-- **/brand-voice** --> Ensures consistent voice across all content
-- **/direct-response-copy** --> Writes landing pages for commercial-intent keywords
-- **/competitive-intel** --> Deep-dives into competitor strategy (feeds back into gap analysis)
-- **/content-atomizer** --> Repurposes pillar content into social, email, etc.
-- **/lead-magnet** --> Creates lead magnets aligned with top-of-funnel keywords
-
-The keyword research creates the content strategy. Other skills execute it.
+**keyword-research** creates the content strategy. Then: /seo-content writes articles from briefs, /positioning-angles finds the angle for each piece, /direct-response-copy handles commercial-intent landing pages, /content-atomizer repurposes pillar content, and /lead-magnet creates assets for top-of-funnel keywords.
 
 ---
 
 ## The Test
 
-A good keyword research output:
-
-1. **Data-backed** -- Claims are supported by SERP evidence, not just intuition
-2. **Actionable** -- Clear "start here" recommendation with a content brief ready
-3. **Prioritized** -- Not just a list, but ranked by opportunity and evidence
-4. **Realistic** -- Acknowledges competition based on actual SERP analysis
-5. **Strategic** -- Connects to business goals and brand positioning
-6. **Specific** -- Content types, angles, and outlines, not just keywords
-7. **Executable** -- Content briefs ready to hand to /seo-content
-
-If the output is "here's 500 keywords, good luck" -- it failed.
+A good keyword research output is data-backed (SERP evidence, not intuition), actionable (clear "start here" with a brief ready), prioritized (ranked by opportunity), realistic (acknowledges competition), strategic (connects to business goals), specific (content types and outlines, not just keywords), and executable (briefs ready for /seo-content). If the output is "here's 500 keywords, good luck" — it failed.
 
 ---
 
 
+## Progressive Enhancement Levels
+
+| Level | Context Available | Output Quality |
+|-------|------------------|---------------|
+| L0 | Product name only, no web search | Basic seed keywords, strategic clusters, estimated priorities |
+| L1 | + brand files (positioning, audience) | Brand-aligned keywords, audience-informed clusters |
+| L2 | + competitors.md | Competitor gap analysis, differentiated content strategy |
+| L3 | + web search available | Live SERP data, validated priorities, PAA-driven outlines |
+| L4 | + existing keyword-plan.md (refresh) | Evolved plan with trend tracking, updated priorities |
+
+---
+
 ## Feedback
 
-Feedback: Append learnings to brand/learnings.md.
-
-> See references/keyword-examples.md for error states and implementation notes.
+After delivering the keyword plan, append learnings to `brand/learnings.md` when the user provides feedback on what worked or what they changed.

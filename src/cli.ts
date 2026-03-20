@@ -30,14 +30,23 @@ Flags:
   --help, -h       Show this help
   --version, -v    Show version
 
+Environment:
+  OUTPUT_FORMAT=json   Force JSON output (same as --json)
+  NO_COLOR=1           Disable ANSI color codes
+
+Note: JSON output is automatic when stdout is piped (non-TTY).
+
 Run 'mktg <command> --help' for command-specific usage.`;
 
 // Parse global flags from argv
 const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: string[]; flags: GlobalFlags } => {
-  let json = false;
+  // OUTPUT_FORMAT=json env var or non-TTY pipe auto-enables JSON
+  let json = process.env.OUTPUT_FORMAT === "json" ||
+    (typeof process.stdout.isTTY !== "boolean" || !process.stdout.isTTY);
   let dryRun = false;
   let fields: string[] = [];
   let cwd = process.cwd();
+  let jsonInput: string | undefined;
   let command: string | undefined;
   const args: string[] = [];
 
@@ -58,6 +67,11 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
       i++;
     } else if (arg.startsWith("--cwd=")) {
       cwd = arg.slice(6);
+    } else if (arg === "--input" && argv[i + 1]) {
+      jsonInput = argv[i + 1]!;
+      i++;
+    } else if (arg.startsWith("--input=")) {
+      jsonInput = arg.slice(8);
     } else if (!command && !arg.startsWith("-")) {
       command = arg;
     } else {
@@ -65,7 +79,7 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
     }
   }
 
-  return { command, args, flags: { json, dryRun, fields, cwd } };
+  return { command, args, flags: { json, dryRun, fields, cwd, jsonInput } };
 };
 
 // Command registry — lazy imports to keep startup fast
@@ -149,27 +163,29 @@ const run = async () => {
     process.exit(0);
   }
 
-  // --version
-  if (command === "--version" || command === "-v") {
-    if (flags.json) {
-      writeStdout(JSON.stringify({ version: VERSION }));
-    } else {
-      writeStdout(`mktg v${VERSION}`);
-    }
-    process.exit(0);
-  }
-
   // Route to command
   const loader = COMMANDS[command];
   if (!loader) {
-    const result = {
+    // Handle --version as a positional (e.g., user types `mktg -v` and parser sees -v as command)
+    if (command === "--version" || command === "-v") {
+      if (flags.json) {
+        writeStdout(JSON.stringify({ version: VERSION }));
+      } else {
+        writeStdout(`mktg v${VERSION}`);
+      }
+      process.exit(0);
+    }
+
+    const unknownResult = {
+      ok: false as const,
       error: {
         code: "UNKNOWN_COMMAND",
         message: `Unknown command: '${command}'`,
         suggestions: [`mktg --help`, `Available: ${Object.keys(COMMANDS).join(", ")}`],
       },
+      exitCode: 2 as const,
     };
-    writeStdout(JSON.stringify(result, null, 2));
+    writeStdout(formatOutput(unknownResult, flags));
     process.exit(2);
   }
 

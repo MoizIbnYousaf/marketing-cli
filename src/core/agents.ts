@@ -109,10 +109,16 @@ export const installAgents = async (
 export const updateAgents = async (
   manifest: AgentsManifest,
   dryRun: boolean = false,
-): Promise<{ updated: string[]; unchanged: string[]; notBundled: string[] }> => {
+): Promise<{ updated: string[]; unchanged: string[]; notBundled: string[]; failed: string[] }> => {
   const updated: string[] = [];
   const unchanged: string[] = [];
   const notBundled: string[] = [];
+  const failed: string[] = [];
+
+  // Ensure install dir exists (may not if agents were never installed)
+  if (!dryRun) {
+    await mkdir(AGENTS_INSTALL_DIR, { recursive: true });
+  }
 
   for (const name of getAgentNames(manifest)) {
     const bundledPath = getBundledAgentPath(manifest, name);
@@ -138,13 +144,20 @@ export const updateAgents = async (
       }
     }
 
-    updated.push(name);
-    if (!dryRun) {
+    if (dryRun) {
+      updated.push(name);
+      continue;
+    }
+
+    try {
       await Bun.write(installPath, bundledContent);
+      updated.push(name);
+    } catch {
+      failed.push(name);
     }
   }
 
-  return { updated, unchanged, notBundled };
+  return { updated, unchanged, notBundled, failed };
 };
 
 // Get the agents install directory path

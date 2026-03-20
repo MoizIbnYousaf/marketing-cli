@@ -2,12 +2,14 @@
 name: competitive-intel
 description: >
   Research and analyze competitors to find positioning gaps and strategic
-  opportunities. Use when entering a market, when positioning feels weak, when
-  you need to differentiate, when preparing for a launch, or when any skill
-  needs competitors.md. Triggers on 'competitors', 'competitive analysis',
-  'competitor teardown', 'market landscape', 'who else does this', 'how are we
-  different', or 'competitor research'. Three modes: Quick Scan (5 min), Deep
-  Teardown (15 min), Gap Finder (10 min).
+  opportunities. Use this skill whenever the user mentions competitors,
+  competitive analysis, competitor teardown, market landscape, 'who else does
+  this', 'how are we different', or competitor research. Also trigger when the
+  user is entering a new market, when positioning feels weak or generic, when
+  preparing for a launch, when any downstream skill needs competitors.md but it
+  doesn't exist, or when the user asks about differentiation or market gaps.
+  Even if the user just names a competitor casually ('what does X do?'), this
+  skill likely applies. Three modes: Quick Scan, Deep Teardown, Gap Finder.
 ---
 
 # /competitive-intel -- Know What You're Up Against
@@ -28,15 +30,57 @@ No SaaS tools needed. Systematic web research.
 
 ## On Activation
 
-1. Read `brand/` files if they exist for project context
-2. Use available context to skip questions the user has already answered
+1. Check if `brand/` directory exists in the project root.
+2. If it does, read available files: `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md`, `creative-kit.md`, `stack.md`, `learnings.md`.
+3. Apply any loaded brand context to enhance research quality — use existing audience and positioning data to focus the competitive scan.
+4. If `brand/` does not exist, proceed without it — this skill works standalone.
 
 ---
 
-## Brand Memory
+## Iteration Detection
 
-Brand memory: Follow brand memory protocol in /cmo skill.
+Before starting, check whether `./brand/competitors.md` already exists.
 
+### If competitors.md EXISTS --> Update Mode
+
+Do not start from scratch. Instead:
+
+1. Read the existing competitive intel.
+2. Present a summary of current landscape:
+   ```
+   EXISTING COMPETITIVE INTEL
+   Last updated {date} by /competitive-intel
+
+   Competitors analyzed: {N}
+   ├── {Competitor 1}    Threat: {level}
+   ├── {Competitor 2}    Threat: {level}
+   └── {Competitor 3}    Threat: {level}
+
+   Primary gap: {one-line from frontmatter}
+
+   ──────────────────────────────────────────────
+
+   What would you like to do?
+
+   1. Refresh with new web research
+   2. Add new competitors
+   3. Re-run gap analysis only
+   4. Full rebuild from scratch
+   ```
+
+3. Process the user's choice:
+   - Option 1 --> Re-search existing competitors for updated messaging, pricing, content
+   - Option 2 --> Identify new competitors, run teardown, merge into existing file
+   - Option 3 --> Use existing teardown data, re-run gap analysis with fresh eyes
+   - Option 4 --> Full process from scratch
+
+4. Before overwriting, show what changed and ask for confirmation.
+
+### If competitors.md DOES NOT EXIST --> Full Research Mode
+
+Proceed to the full process below.
+
+---
 
 ## The core job
 
@@ -94,7 +138,7 @@ Three categories:
 
 ### Step 2: Competitor teardown framework
 
-For each key competitor (3-5), analyze:
+For each key competitor (3-5), analyze the following (see `references/competitive-frameworks.md` for the full messaging teardown checklist, 2x2 map templates, and gap taxonomy):
 
 **Positioning & Messaging:**
 - Homepage headline — what's the primary claim?
@@ -282,12 +326,100 @@ primary_gap: [one-line summary of biggest opportunity]
 
 ---
 
+## What this skill is NOT
+
+- **Not a feature comparison** — Feature matrices are commodity analysis. This skill maps messaging, positioning, and strategic gaps — the layer that actually drives differentiation decisions.
+- **Not market research** — This focuses on competitive messaging and positioning. For audience research, use /audience-research. For market sizing and trend analysis, that's a different skill.
+- **Not a one-time snapshot** — Competitors evolve their messaging. Run this again before major launches, after competitor funding rounds, or when your positioning feels stale.
+- **Not a strategy document** — The output is intelligence, not a plan. Use /positioning-angles to act on the gaps this skill finds.
+
+---
+
+## Output presentation
+
+### Header
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  COMPETITIVE INTELLIGENCE
+  [Product/Project Name]
+  Generated [Month Day, Year]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Files Saved
+
+```
+  FILES SAVED
+
+  ./brand/competitors.md             ✓
+```
+
+### What's Next
+
+```
+  WHAT'S NEXT
+
+  Your competitive landscape is mapped with {N}
+  competitors analyzed and {N} gaps identified.
+  Recommended moves:
+
+  -> /positioning-angles   Exploit the gaps with
+                           differentiated angles
+                           (~15 min)
+  -> /keyword-research     Find content territory
+                           competitors miss (~15 min)
+  -> /direct-response-copy Write copy that attacks
+                           competitor weaknesses
+                           (~15 min)
+
+  Or tell me what you're working on and
+  I'll route you.
+```
+
+---
+
+## Web search fallback
+
+If web search / Exa MCP is unavailable:
+
+1. Ask the user for competitor names and URLs directly.
+2. If the user provides URLs, attempt to fetch and analyze them.
+3. If no URLs available, build the analysis from user knowledge, brand/ files, and general market understanding.
+4. Note the limitation clearly: "Competitive analysis is based on provided information and general market knowledge, not live web research. Verify claims before making strategic decisions."
+5. Prefix unverified claims with "Estimated:" to signal uncertainty.
+
+---
+
+## Feedback Collection
+
+After delivering the competitive intel:
+
+```
+  How did this land?
+
+  a) Great -- using this analysis as-is
+  b) Good -- added some competitors I know
+  c) Rewrote significantly
+  d) Haven't used yet
+```
+
+**Processing feedback:**
+- **(a) Great:** Log to `./brand/learnings.md` with key gaps found.
+- **(b) Good:** Ask which competitors they added. Update competitors.md if they share details.
+- **(c) Rewrote:** Ask for the final version. Analyze differences. Offer to update competitors.md.
+- **(d) Haven't used:** Note it. Remind next time.
+
+---
+
 ## Safety rules
 
-- Never fabricate competitor data — if you can't verify a claim, say so
-- Never present assumptions as facts — mark unverified information clearly
-- Never copy competitor content verbatim beyond short quotes for analysis
-- Never write competitive data from one project into another project's brand/
-- Always check `--cwd` context if provided — competitors are project-specific
-- If Exa MCP is unavailable, skip live research steps and note the limitation
-- Focus on messaging and positioning, not feature-by-feature comparisons
+- Never fabricate competitor data — positioning decisions built on false competitive intel lead to differentiation claims that collapse on contact with the market. If you can't verify a claim, say so.
+- Never present assumptions as facts — the user may make pricing, positioning, or launch decisions based on this analysis. Mark unverified information clearly so they know what to double-check.
+- Never copy competitor content verbatim beyond short quotes — this is analysis, not plagiarism. Short quotes for messaging analysis are fair use; copying blocks of content is not.
+- Never write competitive data from one project into another project's brand/ — competitive landscapes are project-specific. Cross-contamination corrupts strategy.
+- Always check `--cwd` context if provided — the working directory determines which brand/ to read and write.
+- If Exa MCP is unavailable, follow the web search fallback section above — the skill still produces useful output from user knowledge and brand files.
+- Focus on messaging and positioning, not feature-by-feature comparisons — feature tables are commodity analysis anyone can build. Messaging-level competitive intel is what drives differentiation and is much harder to find elsewhere.

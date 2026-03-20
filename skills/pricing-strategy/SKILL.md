@@ -1,11 +1,12 @@
 ---
 name: pricing-strategy
-description: "When the user wants help with pricing decisions, packaging, or monetization strategy. Also use when the user mentions 'pricing', 'price', 'monetization', 'freemium', 'Van Westendorp', 'how much should I charge', 'pricing tiers', 'good-better-best', or is deciding between free and paid models. Covers value-based pricing, tier structure, price psychology, and competitor benchmarking."
+description: "When the user wants help with pricing decisions, packaging, monetization strategy, or subscription models. Also use when the user mentions 'pricing', 'price', 'monetization', 'freemium', 'Van Westendorp', 'how much should I charge', 'pricing tiers', 'good-better-best', 'SaaS pricing', 'subscription model', 'free vs paid', 'packaging', 'pricing page', 'annual vs monthly', or is deciding between free and paid models. Make sure to use this whenever someone is making ANY pricing decision — even questions like 'should I charge for this?' or 'is freemium right for us?' or 'my conversion rate is low, is it the price?' are pricing strategy questions. Covers value-based pricing, tier structure, price psychology, and competitor benchmarking."
 category: strategy
 tier: strategy
 reads:
   - brand/positioning.md
   - brand/audience.md
+  - brand/competitors.md
 writes:
   - marketing/pricing/strategy.md
 triggers:
@@ -15,7 +16,7 @@ triggers:
   - how much should I charge
   - pricing page
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Pricing Strategy
@@ -25,30 +26,129 @@ You are an expert in pricing and monetization strategy. Your goal is to help des
 ## On Activation
 
 1. Check if `brand/` directory exists in the project root
-2. If it exists, read `brand/brand-kit.md` and `brand/audience.md` for context
+2. If it exists, read `brand/positioning.md`, `brand/audience.md`, and `brand/competitors.md` for context
 3. Use that context and only ask for information not already covered or specific to this task
 
-Gather this context (ask if not provided):
+---
 
-### 1. Business Context
+## Agent Workflow
+
+Follow these phases in order. Do not skip phases.
+
+### Phase 1: Gather Context
+
+Ask these questions (skip any already answered by brand/ files):
+
+**Business Context:**
 - What type of product? (SaaS, marketplace, e-commerce, service, app)
 - What's your current pricing (if any)?
 - What's your target market? (SMB, mid-market, enterprise, consumer)
 - What's your go-to-market motion? (self-serve, sales-led, hybrid)
 
-### 2. Value & Competition
+**Value and Competition:**
 - What's the primary value you deliver?
 - What alternatives do customers consider?
 - How do competitors price?
 
-### 3. Current Performance
-- What's your current conversion rate?
-- What's your ARPU and churn rate?
+**Current Performance (if applicable):**
+- Current conversion rate, ARPU, churn rate?
 - Any feedback on pricing from customers/prospects?
 
-### 4. Goals
+**Goals:**
 - Optimizing for growth, revenue, or profitability?
 - Moving upmarket or expanding downmarket?
+
+### Phase 2: Research Competitors
+
+If web search is available (Exa MCP or firecrawl), research competitor pricing:
+- Find 3-5 direct competitors' pricing pages
+- Document their tiers, price points, value metrics, and positioning
+- Identify gaps and opportunities
+
+**If web search is unavailable:** Ask the user to provide competitor pricing tiers directly. Note limitation: "Market benchmarking is based on provided data, not live research. Validate competitor pricing before finalizing strategy."
+
+### Phase 3: Identify Value Metric
+
+Using the fundamentals below, determine the right value metric. Ask: "As a customer uses more of [metric], do they get more value?" If yes, it's a good metric.
+
+### Phase 4: Design Tier Structure
+
+Using [references/tier-structure.md](references/tier-structure.md), design tiers:
+- Choose number of tiers (default: 3 Good-Better-Best)
+- Map features to tiers based on persona needs
+- Differentiate tiers clearly (feature gating, usage limits, support level)
+
+### Phase 5: Set Price Points
+
+Apply value-based pricing:
+- **Ceiling:** Customer's perceived value
+- **Your price:** Between alternatives and perceived value
+- **Floor:** Next best alternative
+- Apply pricing psychology (anchoring, charm pricing, round pricing)
+
+### Phase 6: Write Deliverable
+
+Write `marketing/pricing/strategy.md` using this template:
+
+```markdown
+# Pricing Strategy: [Product Name]
+
+## Overview
+- **Product type:** [SaaS / Marketplace / etc.]
+- **Target market:** [SMB / Enterprise / Consumer]
+- **Go-to-market:** [Self-serve / Sales-led / Hybrid]
+- **Optimizing for:** [Growth / Revenue / Profitability]
+
+## Value Metric
+- **Metric:** [What you charge for]
+- **Why:** [How it aligns with value delivered]
+- **Scales with:** [What grows as customer gets more value]
+
+## Competitive Landscape
+| Competitor | Lowest Tier | Mid Tier | Highest Tier | Value Metric |
+|------------|-------------|----------|--------------|--------------|
+| [Name] | [Price] | [Price] | [Price] | [Metric] |
+
+## Recommended Tier Structure
+
+### [Tier 1 Name] — $[Price]/mo
+- **For:** [Target persona]
+- **Includes:** [Key features and limits]
+- **Purpose:** [Why this tier exists]
+
+### [Tier 2 Name] — $[Price]/mo (Recommended)
+- **For:** [Target persona]
+- **Includes:** [Key features and limits]
+- **Purpose:** [Why this tier exists]
+
+### [Tier 3 Name] — $[Price]/mo
+- **For:** [Target persona]
+- **Includes:** [Key features and limits]
+- **Purpose:** [Why this tier exists]
+
+## Pricing Psychology Applied
+- **Anchoring:** [How highest tier anchors perception]
+- **Recommended badge:** [Which tier and why]
+- **Annual discount:** [% and rationale]
+
+## Price Increase Strategy
+[When and how to raise prices as product matures]
+
+## Risks and Mitigations
+| Risk | Mitigation |
+|------|------------|
+| [e.g., Too cheap signals low quality] | [e.g., Round pricing, premium positioning] |
+```
+
+### Phase 7: Handoff
+
+Tell the user: "Pricing strategy written to `marketing/pricing/strategy.md`. Here's the summary: [2-3 sentences with specific price recommendations]. Suggested next steps: [specific skills]."
+
+Recommend related skills:
+- Need a pricing page? → /page-cro
+- Cancel flow and churn prevention? → /churn-prevention
+- Psychology for pricing page? → /marketing-psychology
+- Need to validate with research? → See [references/research-methods.md](references/research-methods.md)
 
 ---
 
@@ -103,17 +203,19 @@ The value metric is what you charge for -- it should scale with the value custom
 | Per transaction | Payments, marketplaces | Stripe |
 | Flat fee | Simple products | Basecamp |
 
-## Brand Integration
-
-- **positioning.md** → Premium positioning supports premium pricing. If brand is positioned as the affordable alternative, charm pricing ($29) works. If positioned as the premium choice, round pricing ($100) signals quality.
-- **audience.md** → Willingness to pay varies by persona. Enterprise buyers care about ROI, not price. Indie developers care about value per dollar. Price anchoring targets the persona's reference points.
-- **competitors.md** → Competitor pricing sets the reference frame. Price above competitors only if positioning justifies it. Price below only if you can sustain the margin.
-
 ### Choosing Your Value Metric
 
 Ask: "As a customer uses more of [metric], do they get more value?"
 - If yes -> good value metric
 - If no -> price doesn't align with value
+
+---
+
+## Brand Integration
+
+- **positioning.md** -> Premium positioning supports premium pricing. If brand is positioned as the affordable alternative, charm pricing ($29) works. If positioned as the premium choice, round pricing ($100) signals quality.
+- **audience.md** -> Willingness to pay varies by persona. Enterprise buyers care about ROI, not price. Indie developers care about value per dollar. Price anchoring targets the persona's reference points.
+- **competitors.md** -> Competitor pricing sets the reference frame. Price above competitors only if positioning justifies it. Price below only if you can sustain the margin.
 
 ---
 
@@ -206,11 +308,20 @@ Identifies which features customers value most:
 
 ---
 
+## Anti-Patterns
+
+| Anti-pattern | Why it fails | Instead |
+|-------------|-------------|---------|
+| Copying competitor pricing without analysis | Competitors may be mispriced themselves, or their positioning may not match yours — copying inherits their mistakes | Research competitors to understand their positioning, then price based on YOUR value |
+| Recommending prices without understanding the value metric | Without knowing what customers pay for, tier boundaries are arbitrary and upgrades feel forced | Always identify the value metric first — price follows value |
+| Skipping competitor research and guessing market rates | Users make real business decisions on this output — unresearched numbers can cost thousands in lost revenue | Use Exa MCP or ask user for competitor data before setting price points |
+| Producing generic "charge more" advice | Vague advice is indistinguishable from a blog post — the user came here for specific, actionable numbers | Commit to specific numbers with justification tied to research |
+| Recommending 5+ tiers for a new product | Paradox of choice — too many tiers causes decision paralysis and increases support complexity | Start with 3 tiers (Good-Better-Best). Add complexity only when data supports it |
+| Ignoring brand positioning when setting price points | A premium brand using charm pricing ($29) undercuts its own authority; a budget brand using round pricing ($100) alienates its audience | Premium positioning = round pricing. Budget positioning = charm pricing. Always align |
+
+---
+
 ## Pricing Checklist
-
-### If Web Search Is Unavailable
-
-Ask the user to provide competitor pricing tiers directly. Proceed with value-based pricing analysis using brand context (positioning.md, audience.md, competitors.md). Note limitation: 'Market benchmarking is based on provided data, not live research. Validate competitor pricing before finalizing strategy.'
 
 ### Before Setting Prices
 - [ ] Defined target customer personas
@@ -225,17 +336,6 @@ Ask the user to provide competitor pricing tiers directly. Proceed with value-ba
 - [ ] Set price points based on research
 - [ ] Created annual discount strategy
 - [ ] Planned enterprise/custom tier
-
----
-
-## Task-Specific Questions
-
-1. What pricing research have you done?
-2. What's your current ARPU and conversion rate?
-3. What's your primary value metric?
-4. Who are your main pricing personas?
-5. Are you self-serve, sales-led, or hybrid?
-6. What pricing changes are you considering?
 
 ---
 

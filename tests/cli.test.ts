@@ -67,7 +67,7 @@ describe("CLI integration", () => {
   test("list --json returns skills", async () => {
     const { stdout, exitCode } = await run(["list", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(39);
+    expect(parsed.total).toBe(41);
     expect(exitCode).toBe(0);
   });
 
@@ -133,7 +133,7 @@ describe("CLI error output is always valid JSON", () => {
     expect(names).toContain("schema");
     expect(names).toContain("skill");
     expect(names).toContain("brand");
-    expect(parsed.commands).toHaveLength(8);
+    expect(parsed.commands).toHaveLength(9);
     expect(exitCode).toBe(0);
   });
 });

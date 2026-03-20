@@ -343,6 +343,7 @@ export const assessFreshness = (
 // Get status of all brand files in a project
 export const getBrandStatus = async (
   projectRoot: string,
+  reviewIntervalDays: number = 30,
 ): Promise<BrandFileStatus[]> => {
   const brandDir = join(projectRoot, "brand");
   const statuses: BrandFileStatus[] = [];
@@ -357,14 +358,23 @@ export const getBrandStatus = async (
       continue;
     }
 
-    const stat = await bunFile.stat();
-    const ageDays = Math.floor((Date.now() - stat.mtimeMs) / (1000 * 60 * 60 * 24));
+    const [fileStat, content] = await Promise.all([
+      bunFile.stat(),
+      bunFile.text(),
+    ]);
+    const ageDays = Math.floor((Date.now() - fileStat.mtimeMs) / (1000 * 60 * 60 * 24));
     const isAppendOnly = (BRAND_APPEND_FILES as readonly string[]).includes(file);
 
-    // Append-only files are always "current" if they exist
-    const freshness: FreshnessLevel = isAppendOnly
-      ? "current"
-      : assessFreshness(stat.mtimeMs);
+    // Determine freshness: template > stale > current
+    // Append-only files (assets.md, learnings.md) are always "current" if they exist
+    let freshness: FreshnessLevel;
+    if (isAppendOnly) {
+      freshness = "current";
+    } else if (isTemplateContent(file, content)) {
+      freshness = "template";
+    } else {
+      freshness = assessFreshness(fileStat.mtimeMs, reviewIntervalDays);
+    }
 
     statuses.push({ file, exists: true, freshness, ageDays });
   }
@@ -375,7 +385,13 @@ export const getBrandStatus = async (
 // Check if brand/ directory exists
 export const brandExists = async (projectRoot: string): Promise<boolean> => {
   const brandDir = join(projectRoot, "brand");
-  return Bun.file(brandDir).exists();
+  try {
+    const { stat } = await import("node:fs/promises");
+    const s = await stat(brandDir);
+    return s.isDirectory();
+  } catch {
+    return false;
+  }
 };
 
 // Export brand/ as a portable JSON bundle
@@ -538,5 +554,6 @@ export const CONTEXT_MATRIX = {
   foundation: ["voice-profile.md", "positioning.md", "audience.md", "competitors.md"],
   strategy: ["voice-profile.md", "positioning.md", "audience.md", "competitors.md", "keyword-plan.md"],
   execution: ["voice-profile.md", "positioning.md", "audience.md", "creative-kit.md"],
+  creative: ["voice-profile.md", "positioning.md", "creative-kit.md"],
   distribution: ["voice-profile.md", "audience.md", "stack.md"],
 } as const satisfies Record<string, readonly BrandFile[]>;

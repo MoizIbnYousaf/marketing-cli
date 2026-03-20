@@ -1,7 +1,7 @@
 ---
 name: document-review
 description: |
-  Audits brand/ files for completeness, consistency, and freshness. Use when the agent or user wants to review brand files, audit marketing docs, check brand consistency, verify brand health, or assess what's missing from brand memory. Produces a structured audit report with per-file scores, cross-file contradiction detection, staleness flags, and recommended next skills to run. This is the quality gate for the brand memory system.
+  Audits brand/ files for completeness, consistency, and freshness. Use when the agent or user wants to review brand files, audit marketing docs, check brand consistency, verify brand health, or assess what's missing from brand memory. Produces a structured audit report with per-file scores, cross-file contradiction detection, staleness flags, and recommended next skills to run. This is the quality gate for the brand memory system. Also use when someone says 'check my brand', 'brand audit', 'what's missing', 'is my brand ready', 'brand health', 'review my marketing docs', or before running any campaign to verify brand foundations are solid.
 allowed-tools: []
 ---
 
@@ -13,9 +13,10 @@ For brand memory protocol, see /cmo [rules/brand-memory.md](../cmo/rules/brand-m
 
 ## On Activation
 
-1. Read all 9 `brand/` files (or confirm which are missing).
-2. Determine audit scope based on user request.
-3. Run all four phases sequentially.
+1. Verify `brand/` directory exists. If it does not exist, report Overall Health as **Not Started** and recommend `mktg init`. Skip all phases.
+2. Read all 9 `brand/` files (or confirm which are missing).
+3. Determine audit scope based on user request.
+4. Run all four phases sequentially.
 
 ## Phase 0: Assess Scope
 
@@ -92,6 +93,7 @@ Cross-reference files for contradictions. Only check files that are `complete` o
 | **Keyword-positioning alignment** | `keyword-plan.md` ↔ `positioning.md` | Do target keywords reflect the positioning angles? |
 | **Competitor consistency** | `competitors.md` ↔ `positioning.md` | Are competitor names consistent across both files? |
 | **Audience-keyword fit** | `audience.md` ↔ `keyword-plan.md` | Do keywords match the language/pain points of the target audience? |
+| **Stack-skill alignment** | `stack.md` ↔ all profile files | Do other files reference tools or channels not listed in stack.md? |
 | **Creative-voice alignment** | `creative-kit.md` ↔ `voice-profile.md` | Does visual style complement the voice? (e.g., minimalist design + maximalist voice = tension) |
 | **Learnings integration** | `learnings.md` ↔ all profile files | Are learnings reflected in strategy? (e.g., learning says "short subject lines work" but voice profile favors long-form) |
 

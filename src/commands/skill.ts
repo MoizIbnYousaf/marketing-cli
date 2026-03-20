@@ -265,11 +265,21 @@ const handleRegister = async (args: readonly string[], flags: { cwd: string; dry
   const path = args[0];
   if (!path) return invalidArgs("Missing path to SKILL.md", ["Usage: mktg skill register <path>"]);
 
+  const manifest = await resolveManifest(flags.cwd);
+
   if (flags.dryRun) {
-    return ok({ name: "(dry-run)", action: "created", manifestPath: join(flags.cwd, "skills-manifest.json") });
+    // Read and validate the skill to show what would be registered
+    const fullPath = path.startsWith("/") ? path : join(flags.cwd, path);
+    const skillMdPath = fullPath.endsWith("SKILL.md") ? fullPath : join(fullPath, "SKILL.md");
+    try {
+      const content = await readFile(skillMdPath, "utf-8");
+      const validated = validateSkillContent(content, manifest);
+      return ok({ name: validated.valid ? "(valid, would register)" : "(invalid, would fail)", action: "dry-run", manifestPath: join(flags.cwd, "skills-manifest.json"), validation: validated });
+    } catch {
+      return ok({ name: "(dry-run)", action: "dry-run", manifestPath: join(flags.cwd, "skills-manifest.json"), validation: null });
+    }
   }
 
-  const manifest = await resolveManifest(flags.cwd);
   const result = await registerSkill(path, flags.cwd, manifest);
 
   if ("error" in result) {
@@ -307,11 +317,20 @@ const handleEvaluate = async (args: readonly string[], flags: { cwd: string }): 
 };
 
 const handleUnregister = async (args: readonly string[], flags: { cwd: string; dryRun: boolean }): Promise<CommandResult> => {
-  const name = args[0];
-  if (!name) return invalidArgs("Missing skill name", ["Usage: mktg skill unregister <name>"]);
+  const name = args.find(a => !a.startsWith("--"));
+  const confirm = args.includes("--confirm");
+  if (!name) return invalidArgs("Missing skill name", ["Usage: mktg skill unregister <name> --confirm"]);
 
   if (flags.dryRun) {
     return ok({ name, action: "would-remove", manifestPath: join(flags.cwd, "skills-manifest.json") });
+  }
+
+  // Destructive: require --confirm
+  if (!confirm) {
+    return invalidArgs(`skill unregister removes '${name}' from the project manifest — pass --confirm to proceed`, [
+      `mktg skill unregister ${name} --confirm`,
+      `mktg skill unregister ${name} --dry-run`,
+    ]);
   }
 
   const packageManifest = await loadManifest();
@@ -335,7 +354,10 @@ const handleLog = async (args: readonly string[], flags: { cwd: string; dryRun: 
   const name = args[0];
   if (!name) return invalidArgs("Missing skill name", ["Usage: mktg skill log <name> [success|partial|failed]"]);
 
-  const resultArg = args.find(a => a === "success" || a === "partial" || a === "failed") ?? "success";
+  const VALID_RESULTS = ["success", "partial", "failed"] as const;
+  const resultArg = (args[1] && VALID_RESULTS.includes(args[1] as typeof VALID_RESULTS[number]))
+    ? args[1] as typeof VALID_RESULTS[number]
+    : "success";
 
   const record = {
     skill: name,

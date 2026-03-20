@@ -6,6 +6,7 @@ import { getBrandStatus, isTemplateContent } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { getIntegrationStatus } from "../core/integrations";
+import { getRunSummary } from "../core/run-log";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
 import { join } from "node:path";
 
@@ -15,26 +16,39 @@ export const schema: CommandSchema = {
   flags: [],
   output: {
     "project": "string — project name",
-    "brand": "Record<string, BrandEntry> — brand file statuses",
+    "brand": "Record<string, BrandEntry> — brand file statuses with freshness",
     "brand.*.isTemplate": "boolean — true if file is still scaffold template from mktg init",
+    "brand.*.freshness": "'current' | 'stale' | 'missing' | 'template' — file freshness state",
+    "brandSummary": "{populated, template, missing, stale} — quick counts for decision-making",
     "skills": "{installed, total} — skill counts",
     "agents": "{installed, total} — agent counts",
-    "content": "{totalFiles} — content file count",
+    "content": "{totalFiles, byDir} — content file counts with breakdown",
     "integrations": "Record<string, IntegrationEntry> — env var readiness for third-party skills",
-    "health": "'ready' | 'incomplete' | 'needs-setup'",
+    "recentActivity": "Record<string, {lastRun, result, daysSince}> — per-skill execution history",
+    "nextActions": "string[] — prioritized suggestions for what the agent should do next",
+    "health": "'ready' | 'incomplete' | 'needs-setup' — overall project marketing readiness",
   },
   examples: [
     { args: "mktg status --json", description: "Full project state snapshot" },
-    { args: "mktg status --fields health,project", description: "Quick health check" },
+    { args: "mktg status --fields health,nextActions", description: "Quick: what should I do?" },
+    { args: "mktg status --fields brandSummary", description: "Brand completeness at a glance" },
   ],
   vocabulary: ["status", "state", "overview", "snapshot"],
 };
 
 type BrandEntry = {
   readonly exists: boolean;
+  readonly freshness: "current" | "stale" | "missing" | "template";
   readonly lines?: number;
   readonly ageDays?: number | null;
   readonly isTemplate?: boolean;
+};
+
+type BrandSummary = {
+  readonly populated: number;
+  readonly template: number;
+  readonly missing: number;
+  readonly stale: number;
 };
 
 type IntegrationEntry = {
@@ -43,23 +57,39 @@ type IntegrationEntry = {
   readonly skills: readonly string[];
 };
 
+type ContentSummary = {
+  readonly totalFiles: number;
+  readonly byDir: Record<string, number>;
+};
+
+type ActivityEntry = {
+  readonly lastRun: string;
+  readonly result: string;
+  readonly daysSince: number;
+};
+
 type StatusResult = {
   readonly project: string;
   readonly brand: Record<string, BrandEntry>;
+  readonly brandSummary: BrandSummary;
   readonly skills: { readonly installed: number; readonly total: number };
   readonly agents: { readonly installed: number; readonly total: number };
   readonly integrations: Record<string, IntegrationEntry>;
-  readonly content: { readonly totalFiles: number };
+  readonly content: ContentSummary;
+  readonly recentActivity: Record<string, ActivityEntry>;
+  readonly nextActions: readonly string[];
   readonly health: "ready" | "incomplete" | "needs-setup";
 };
 
-// Count marketing content files in common directories
-const countContentFiles = async (cwd: string): Promise<number> => {
-  let count = 0;
+// Count marketing content files in common directories, with per-dir breakdown
+const countContentFiles = async (cwd: string): Promise<ContentSummary> => {
   const contentDirs = ["marketing", "campaigns", "content"];
+  const byDir: Record<string, number> = {};
+  let totalFiles = 0;
 
   for (const dir of contentDirs) {
     const dirPath = join(cwd, dir);
+    let count = 0;
     try {
       const glob = new Bun.Glob("**/*.{md,mdx,txt,html}");
       for await (const _file of glob.scan({ cwd: dirPath })) {
@@ -68,9 +98,11 @@ const countContentFiles = async (cwd: string): Promise<number> => {
     } catch {
       // Directory doesn't exist — fine
     }
+    if (count > 0) byDir[dir] = count;
+    totalFiles += count;
   }
 
-  return count;
+  return { totalFiles, byDir };
 };
 
 // Determine project name from package.json or directory name
@@ -86,6 +118,63 @@ const getProjectName = async (cwd: string): Promise<string> => {
     // Fall through
   }
   return cwd.split("/").pop() ?? "unknown";
+};
+
+// Generate prioritized next actions based on current state
+const buildNextActions = (
+  health: StatusResult["health"],
+  brand: Record<string, BrandEntry>,
+  brandSummary: BrandSummary,
+  recentActivity: Record<string, ActivityEntry>,
+): string[] => {
+  const actions: string[] = [];
+
+  if (health === "needs-setup") {
+    actions.push("Run 'mktg init' to scaffold brand/ directory and install skills");
+    return actions;
+  }
+
+  // Priority 1: Populate template files (foundation first)
+  const foundationFiles: BrandFile[] = ["voice-profile.md", "positioning.md", "audience.md"];
+  for (const file of foundationFiles) {
+    const entry = brand[file];
+    if (entry && entry.isTemplate) {
+      const skillMap: Record<string, string> = {
+        "voice-profile.md": "/brand-voice",
+        "positioning.md": "/positioning-angles",
+        "audience.md": "/audience-research",
+      };
+      actions.push(`Run ${skillMap[file]} to populate ${file} (still template)`);
+    }
+  }
+
+  // Priority 2: Missing files
+  for (const [file, entry] of Object.entries(brand)) {
+    if (!entry.exists) {
+      actions.push(`Create brand/${file} — run 'mktg init' to scaffold it`);
+    }
+  }
+
+  // Priority 3: Stale files
+  for (const [file, entry] of Object.entries(brand)) {
+    if (entry.freshness === "stale") {
+      actions.push(`Refresh brand/${file} — last updated ${entry.ageDays} days ago`);
+    }
+  }
+
+  // Priority 4: Remaining template files (non-foundation)
+  for (const [file, entry] of Object.entries(brand)) {
+    if (entry.isTemplate && !foundationFiles.includes(file as BrandFile)) {
+      actions.push(`Populate brand/${file} (still template)`);
+    }
+  }
+
+  // Priority 5: No recent activity
+  if (Object.keys(recentActivity).length === 0 && health === "ready") {
+    actions.push("Brand is ready — run /cmo to start marketing execution");
+  }
+
+  return actions;
 };
 
 export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
@@ -116,44 +205,60 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   }
 
   // Run checks in parallel
-  const [brandStatuses, contentCount, projectName] = await Promise.all([
+  const [brandStatuses, contentSummary, projectName, recentActivity] = await Promise.all([
     getBrandStatus(cwd),
     countContentFiles(cwd),
     getProjectName(cwd),
+    getRunSummary(cwd),
   ]);
 
-  // Build brand status map with line counts + template detection (parallel)
+  // Build brand status map with line counts, freshness, and template detection (parallel)
   const brandEntries = await Promise.all(
     brandStatuses.map(async (status) => {
-      if (!status.exists) return [status.file, { exists: false }] as const;
+      if (!status.exists) return [status.file, { exists: false, freshness: "missing" as const }] as const;
       const filePath = join(cwd, "brand", status.file);
       try {
         const content = await Bun.file(filePath).text();
+        const isTemplate = isTemplateContent(status.file as BrandFile, content);
+        // Override freshness to "template" when content matches scaffold — more useful for agents
+        const freshness = isTemplate ? "template" as const : status.freshness;
         return [status.file, {
           exists: true,
+          freshness,
           lines: content.split("\n").length,
           ageDays: status.ageDays,
-          isTemplate: isTemplateContent(status.file as BrandFile, content),
+          isTemplate,
         }] as const;
       } catch {
-        return [status.file, { exists: true, lines: 0, ageDays: status.ageDays, isTemplate: false }] as const;
+        return [status.file, { exists: true, freshness: status.freshness, lines: 0, ageDays: status.ageDays, isTemplate: false }] as const;
       }
     })
   );
   const brand: Record<string, BrandEntry> = Object.fromEntries(brandEntries);
 
+  // Compute brand summary counts
+  const brandValues = Object.values(brand);
+  const brandSummary: BrandSummary = {
+    populated: brandValues.filter(b => b.exists && !b.isTemplate).length,
+    template: brandValues.filter(b => b.exists && b.isTemplate).length,
+    missing: brandValues.filter(b => !b.exists).length,
+    stale: brandValues.filter(b => b.freshness === "stale").length,
+  };
+
   // Determine health — template-only files don't count as populated
   const hasBrandDir = brandStatuses.some((s) => s.exists);
-  const populatedCount = Object.values(brand).filter(b => b.exists && !b.isTemplate).length;
   const health: StatusResult["health"] = !hasBrandDir
     ? "needs-setup"
-    : populatedCount >= 3
+    : brandSummary.populated >= 3
       ? "ready"
       : "incomplete";
+
+  const nextActions = buildNextActions(health, brand, brandSummary, recentActivity);
 
   const result: StatusResult = {
     project: projectName,
     brand,
+    brandSummary,
     skills: {
       installed: installedCount,
       total: Object.keys(manifest.skills).length,
@@ -163,7 +268,9 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
       total: agentTotal,
     },
     integrations,
-    content: { totalFiles: contentCount },
+    content: contentSummary,
+    recentActivity,
+    nextActions,
     health,
   };
 
@@ -185,7 +292,7 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   lines.push(`  Health: ${healthIcon}`);
   lines.push("");
 
-  lines.push(bold("  Brand Files"));
+  lines.push(bold("  Brand Files") + dim(` (${brandSummary.populated} populated, ${brandSummary.template} template, ${brandSummary.missing} missing)`));
   for (const status of brandStatuses) {
     const icon = status.exists ? green("●") : red("●");
     const age = status.ageDays !== null ? dim(` (${status.ageDays}d ago)`) : "";
@@ -219,10 +326,31 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     lines.push("");
   }
 
-  if (contentCount > 0) {
-    lines.push(bold("  Content") + dim(` ${contentCount} files`));
+  if (contentSummary.totalFiles > 0) {
+    const dirBreakdown = Object.entries(contentSummary.byDir).map(([d, c]) => `${d}: ${c}`).join(", ");
+    lines.push(bold("  Content") + dim(` ${contentSummary.totalFiles} files (${dirBreakdown})`));
+  }
+
+  const activityKeys = Object.keys(recentActivity);
+  if (activityKeys.length > 0) {
+    lines.push(bold("  Recent Activity") + dim(` ${activityKeys.length} skills run`));
+    for (const [skill, activity] of Object.entries(recentActivity).slice(0, 5)) {
+      const icon = activity.result === "success" ? green("●") : activity.result === "partial" ? yellow("●") : red("●");
+      lines.push(`    ${icon} ${skill} ${dim(`(${activity.daysSince}d ago, ${activity.result})`)}`);
+    }
+    if (activityKeys.length > 5) {
+      lines.push(dim(`    ... and ${activityKeys.length - 5} more`));
+    }
   }
   lines.push("");
+
+  if (nextActions.length > 0) {
+    lines.push(bold("  Next Actions"));
+    for (const action of nextActions.slice(0, 3)) {
+      lines.push(`    → ${action}`);
+    }
+    lines.push("");
+  }
 
   if (health === "needs-setup") {
     lines.push(dim("  Run 'mktg init' to get started."));

@@ -5,7 +5,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { logRun, getRunHistory, getLastRun, getRunSummary } from "../src/core/run-log";
+import { logRun, getRunHistory, getLastRun, getRunSummary, getRunStats } from "../src/core/run-log";
 import type { SkillRunRecord } from "../src/types";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
@@ -159,6 +159,80 @@ describe("getRunSummary", () => {
     expect(summary["b"]).toBeDefined();
     expect(summary["a"]!.result).toBe("partial"); // most recent
     expect(summary["b"]!.result).toBe("failed");
+  });
+
+  test("includes runCount per skill", async () => {
+    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T10:00:00.000Z", result: "success", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T11:00:00.000Z", result: "success", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T12:00:00.000Z", result: "failed", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "b", timestamp: "2026-03-13T13:00:00.000Z", result: "success", brandFilesChanged: [] });
+
+    const summary = await getRunSummary(tmpDir);
+    expect(summary["a"]!.runCount).toBe(3);
+    expect(summary["b"]!.runCount).toBe(1);
+  });
+});
+
+describe("getRunStats", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "mktg-runlog-"));
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  test("returns zeros when no history", async () => {
+    const stats = await getRunStats(tmpDir);
+    expect(stats.totalRuns).toBe(0);
+    expect(stats.uniqueSkills).toBe(0);
+    expect(stats.successRate).toBe(0);
+  });
+
+  test("calculates aggregate stats correctly", async () => {
+    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T10:00:00.000Z", result: "success", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "b", timestamp: "2026-03-13T11:00:00.000Z", result: "failed", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T12:00:00.000Z", result: "success", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "c", timestamp: "2026-03-13T13:00:00.000Z", result: "partial", brandFilesChanged: [] });
+
+    const stats = await getRunStats(tmpDir);
+    expect(stats.totalRuns).toBe(4);
+    expect(stats.uniqueSkills).toBe(3);
+    expect(stats.successCount).toBe(2);
+    expect(stats.failedCount).toBe(1);
+    expect(stats.partialCount).toBe(1);
+    expect(stats.successRate).toBe(50);
+  });
+});
+
+describe("corrupted JSONL handling", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "mktg-runlog-"));
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  test("skips corrupted lines and parses valid ones", async () => {
+    const { mkdir: mkdirFs, writeFile } = await import("node:fs/promises");
+    await mkdirFs(join(tmpDir, ".mktg"), { recursive: true });
+    const logPath = join(tmpDir, ".mktg", "runs.jsonl");
+    const content = [
+      JSON.stringify({ skill: "a", timestamp: "2026-03-13T10:00:00.000Z", result: "success", brandFilesChanged: [] }),
+      "this is not valid json{{{",
+      JSON.stringify({ skill: "b", timestamp: "2026-03-13T11:00:00.000Z", result: "failed", brandFilesChanged: [] }),
+    ].join("\n") + "\n";
+    await writeFile(logPath, content);
+
+    const history = await getRunHistory(tmpDir);
+    expect(history.length).toBe(2);
+    expect(history[0]!.skill).toBe("b"); // most recent first
+    expect(history[1]!.skill).toBe("a");
   });
 });
 

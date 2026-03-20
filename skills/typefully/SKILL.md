@@ -4,7 +4,7 @@ description: >
   Create, schedule, and manage social media posts via Typefully. ALWAYS use this
   skill when asked to draft, schedule, post, or check tweets, posts, threads, or
   social media content for Twitter/X, LinkedIn, Threads, Bluesky, or Mastodon.
-last-updated: 2026-02-10
+last-updated: 2026-03-20
 allowed-tools: Bash(./scripts/typefully.js:*)
 ---
 
@@ -108,6 +108,12 @@ When determining which social set to use:
 | "Post this now" | `drafts:create ... --schedule now` or `drafts:publish <draft_id> --use-default` |
 | "Add notes/ideas to the draft" | `drafts:create ... --scratchpad "Your notes here"` |
 | "Check available tags" | `tags:list` |
+
+## Brand Integration
+
+Before writing post content, check for `brand/voice-profile.md` in the project. If it exists, calibrate tone and vocabulary to the brand voice. This skill handles the Typefully integration — voice guidance comes from brand context.
+
+If no brand files exist, proceed normally — the user provides the content directly or another skill handles voice.
 
 ## Workflow
 
@@ -266,117 +272,21 @@ All drafts commands support an optional `[social_set_id]` - if omitted, the conf
 
 ## Examples
 
-### Set up default social set
+See `references/examples.md` for the full example library (drafts, media, setup, scheduling). Quick essentials:
+
 ```bash
-# Check current config
-./scripts/typefully.js config:show
-
-# Set default (interactive - lists available social sets)
-./scripts/typefully.js config:set-default
-
-# Set default (non-interactive)
-./scripts/typefully.js config:set-default 123 --location global
-```
-
-### Create a tweet (using default social set)
-```bash
+# Create a tweet
 ./scripts/typefully.js drafts:create --text "Hello, world!"
-```
 
-### Create a tweet with explicit social_set_id
-```bash
-./scripts/typefully.js drafts:create 123 --text "Hello, world!"
-```
+# Cross-platform post
+./scripts/typefully.js drafts:create --platform x,linkedin --text "Big announcement!"
 
-### Create a cross-platform post (specific platforms)
-```bash
-./scripts/typefully.js drafts:create --platform x,linkedin,threads --text "Big announcement!"
-```
-
-### Create a post on all connected platforms
-```bash
-./scripts/typefully.js drafts:create --all --text "Posting everywhere!"
-```
-
-### Create and schedule for next slot
-```bash
+# Schedule for next slot
 ./scripts/typefully.js drafts:create --text "Scheduled post" --schedule next-free-slot
-```
 
-### Create with tags
-```bash
-./scripts/typefully.js drafts:create --text "Marketing post" --tags marketing,product
-```
-
-### List scheduled posts sorted by date
-```bash
-./scripts/typefully.js drafts:list --status scheduled --sort scheduled_date
-```
-
-### Reply to a tweet
-```bash
-./scripts/typefully.js drafts:create --platform x --text "Great thread!" --reply-to "https://x.com/user/status/123456"
-```
-
-### Post to an X community
-```bash
-./scripts/typefully.js drafts:create --platform x --text "Community update" --community 1493446837214187523
-```
-
-### Create draft with share URL
-```bash
-./scripts/typefully.js drafts:create --text "Check this out" --share
-```
-
-### Create draft with scratchpad notes
-```bash
-./scripts/typefully.js drafts:create --text "Launching next week!" --scratchpad "Draft for product launch. Coordinate with marketing team before publishing."
-```
-
-### Upload media and create post with it
-```bash
-# Single command handles upload + polling - returns when ready!
-./scripts/typefully.js media:upload ./image.jpg
-# Returns: {"media_id": "abc-123-def", "status": "ready", "message": "Media uploaded and ready to use"}
-
-# Create post with the media attached
-./scripts/typefully.js drafts:create --text "Check out this image!" --media abc-123-def
-```
-
-### Upload multiple media files
-```bash
-# Upload each file (each waits for processing)
-./scripts/typefully.js media:upload ./photo1.jpg  # Returns media_id: id1
-./scripts/typefully.js media:upload ./photo2.jpg  # Returns media_id: id2
-
-# Create post with multiple media (comma-separated)
-./scripts/typefully.js drafts:create --text "Photo dump!" --media id1,id2
-```
-
-### Add media to an existing draft
-```bash
-# Upload media
-./scripts/typefully.js media:upload ./new-image.jpg  # Returns media_id: xyz
-
-# Update draft with media (456 is the draft_id)
-./scripts/typefully.js drafts:update 456 --text "Updated post with image" --media xyz --use-default
-```
-
-### Setup (interactive)
-```bash
-./scripts/typefully.js setup
-```
-
-### Setup (non-interactive, for scripts/CI)
-```bash
-# Auto-selects default social set if only one exists
-./scripts/typefully.js setup --key typ_xxx --location global
-
-# With explicit default social set
-./scripts/typefully.js setup --key typ_xxx --location global --default-social-set 123
-
-# Skip default social set selection entirely
-./scripts/typefully.js setup --key typ_xxx --no-default
+# Upload media and attach to post
+./scripts/typefully.js media:upload ./image.jpg  # Returns media_id
+./scripts/typefully.js drafts:create --text "Check this out!" --media <media_id>
 ```
 
 ## Platform Names
@@ -416,6 +326,31 @@ The `--scratchpad` option attaches internal notes directly to the Typefully draf
 # WRONG: Do NOT write notes to local files when the user wants them in Typefully
 # Writing to /tmp/scratchpad/ or any local file is NOT the same thing
 ```
+
+## Output Logging
+
+After scheduling or creating drafts, log what was done to maintain a paper trail:
+
+Write a summary to `marketing/social/typefully-log.md` (append, don't overwrite):
+
+```markdown
+## [Date] — [Campaign/Context]
+
+| # | Draft ID | Platform | Scheduled | Text Preview (first 60 chars) |
+|---|----------|----------|-----------|-------------------------------|
+| 1 | draft-123 | x,linkedin | 2026-03-25T09:00:00Z | "Here's what we learned..." |
+```
+
+This ensures continuity across sessions — the agent can check what's already been scheduled.
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails | Instead |
+|-------------|-------------|---------|
+| Creating multiple drafts for the same cross-platform post | Clutters the Typefully queue, can't be managed as one unit | Always use a single draft — create with one platform, then update to add others |
+| Publishing without user confirmation | Irreversible, goes public instantly | Default to drafts. Only publish when user explicitly says "post now" |
+| Searching keychains or .env files for API keys | Wastes time, security risk, unreliable | Tell user to run the setup command and wait |
+| Writing scratchpad content to local files | Notes get lost, not attached to the draft in Typefully | Use `--scratchpad` flag to attach notes to the draft |
 
 ## Automation Guidelines
 

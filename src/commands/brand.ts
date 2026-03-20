@@ -1,14 +1,18 @@
 // mktg brand — Brand memory management
-import { ok, type CommandHandler, type CommandSchema, type BrandFile, type BrandBundle, type GlobalFlags, type CommandResult } from "../types";
+import { ok, BRAND_FILES, type CommandHandler, type CommandSchema, type BrandBundle, type GlobalFlags, type CommandResult } from "../types";
 import { isKeyOf } from "../core/routing";
 import { invalidArgs, notFound, parseJsonInput } from "../core/errors";
-import { getBrandStatus, isTemplateContent, exportBrand, importBrand, diffBrand } from "../core/brand";
+import { getBrandStatus, exportBrand, importBrand, diffBrand } from "../core/brand";
 import { resolveManifest } from "../core/skills";
 import { join } from "node:path";
+
+import { mkdir, writeFile } from "node:fs/promises";
+import type { BrandFile } from "../types";
 
 const SUBCOMMANDS = {
   "export": "Export brand memory as portable JSON bundle",
   "import": "Import brand memory from a JSON bundle",
+  "update": "Write brand files from raw JSON payload via --input",
   "freshness": "Check brand file freshness against skill review intervals",
   "diff": "Show brand file changes since last status baseline",
 } as const;
@@ -49,23 +53,27 @@ const handleDiff = async (_args: readonly string[], flags: GlobalFlags): Promise
 };
 
 const handleImport = async (args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
-  // Extract --file flag
+  // Extract --file and --confirm flags
   let filePath: string | undefined;
+  let confirm = false;
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--file" && args[i + 1]) {
-      filePath = args[i + 1];
-      break;
-    }
-    if (args[i]?.startsWith("--file=")) {
-      filePath = args[i]!.slice(7);
-      break;
-    }
+    if (args[i] === "--confirm") { confirm = true; continue; }
+    if (args[i] === "--file" && args[i + 1]) { filePath = args[i + 1]; i++; continue; }
+    if (args[i]?.startsWith("--file=")) { filePath = args[i]!.slice(7); continue; }
   }
 
   if (!filePath) {
     return invalidArgs("Missing --file argument", [
-      "Usage: mktg brand import --file <path> --json",
-      "Example: mktg brand import --file brand-bundle.json",
+      "Usage: mktg brand import --file <path> --confirm --json",
+      "Example: mktg brand import --file brand-bundle.json --confirm",
+    ]);
+  }
+
+  // Destructive: require --confirm or --dry-run
+  if (!confirm && !flags.dryRun) {
+    return invalidArgs("brand import overwrites existing brand files — pass --confirm to proceed, or --dry-run to preview", [
+      "mktg brand import --file bundle.json --confirm",
+      "mktg brand import --file bundle.json --dry-run",
     ]);
   }
 
@@ -104,40 +112,45 @@ const handleImport = async (args: readonly string[], flags: GlobalFlags): Promis
 
 const handleFreshness = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
   const cwd = flags.cwd;
-  const brandStatuses = await getBrandStatus(cwd);
   const manifest = await resolveManifest(cwd);
 
-  const files = await Promise.all(brandStatuses.map(async (status) => {
+  // Compute per-file review intervals from manifest writers
+  const reviewIntervals = new Map<string, { interval: number; writers: string[] }>();
+  for (const file of BRAND_FILES) {
     const writers = Object.entries(manifest.skills)
-      .filter(([_, entry]) => entry.writes.includes(status.file))
+      .filter(([_, entry]) => entry.writes.includes(file))
       .map(([name, entry]) => ({ skill: name, reviewIntervalDays: entry.review_interval_days }));
-
-    const reviewInterval = writers.length > 0
+    const interval = writers.length > 0
       ? Math.min(...writers.map(w => w.reviewIntervalDays))
       : 30;
+    reviewIntervals.set(file, { interval, writers: writers.map(w => w.skill) });
+  }
 
-    let isTemplate = false;
-    if (status.exists) {
-      const content = await Bun.file(join(cwd, "brand", status.file)).text();
-      isTemplate = isTemplateContent(status.file as BrandFile, content);
+  // Get statuses with the most restrictive review interval per file
+  // getBrandStatus now handles template detection in core
+  const brandStatuses = await getBrandStatus(cwd);
+
+  // Re-assess freshness using per-file review intervals from manifest
+  const files = brandStatuses.map((status) => {
+    const { interval, writers } = reviewIntervals.get(status.file) ?? { interval: 30, writers: [] };
+
+    // Override freshness with manifest-aware interval (core uses default 30 days)
+    let freshness = status.freshness;
+    if (status.exists && freshness === "current" && status.ageDays !== null && status.ageDays > interval) {
+      freshness = "stale";
     }
-
-    const isStale = status.exists && !isTemplate && status.ageDays !== null && status.ageDays > reviewInterval;
 
     return {
       file: status.file,
       exists: status.exists,
       ageDays: status.ageDays,
-      reviewIntervalDays: reviewInterval,
-      freshness: !status.exists ? "missing" as const
-        : isTemplate ? "template" as const
-        : isStale ? "stale" as const
-        : "current" as const,
-      writers: writers.map(w => w.skill),
-      remediation: (!status.exists || isTemplate || isStale) && writers.length > 0
-        ? `Run /${writers[0]!.skill}` : null,
+      reviewIntervalDays: interval,
+      freshness,
+      writers,
+      remediation: freshness !== "current" && writers.length > 0
+        ? `Run /${writers[0]!}` : null,
     };
-  }));
+  });
 
   return ok({
     files,
@@ -149,6 +162,58 @@ const handleFreshness = async (_args: readonly string[], flags: GlobalFlags): Pr
       missing: files.filter(f => f.freshness === "missing").length,
     },
     nextAction: files.find(f => f.freshness !== "current")?.remediation ?? null,
+  });
+};
+
+// brand update --input '{"voice-profile.md": "# Voice...", "audience.md": "# Audience..."}'
+// Accepts a JSON object mapping brand file names to content strings.
+// Only writes valid brand file names — rejects unknown files.
+const handleUpdate = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
+  const raw = flags.jsonInput;
+  if (!raw) {
+    return invalidArgs("Missing --input flag with JSON payload", [
+      'Usage: mktg brand update --input \'{"voice-profile.md": "# Voice Profile\\n..."}\'',
+      "Payload is a JSON object mapping brand file names to content strings",
+    ]);
+  }
+
+  const parsed = parseJsonInput<Record<string, string>>(raw);
+  if (!parsed.ok) {
+    return invalidArgs(`Invalid JSON payload: ${parsed.message}`, [
+      "Payload must be a JSON object: {\"filename.md\": \"content\"}",
+    ]);
+  }
+
+  const payload = parsed.data;
+  const brandFileSet = new Set(BRAND_FILES as readonly string[]);
+  const written: string[] = [];
+  const rejected: string[] = [];
+
+  const brandDir = join(flags.cwd, "brand");
+  if (!flags.dryRun) {
+    await mkdir(brandDir, { recursive: true });
+  }
+
+  for (const [fileName, content] of Object.entries(payload)) {
+    if (!brandFileSet.has(fileName)) {
+      rejected.push(fileName);
+      continue;
+    }
+    if (typeof content !== "string") {
+      rejected.push(fileName);
+      continue;
+    }
+    if (!flags.dryRun) {
+      await writeFile(join(brandDir, fileName), content);
+    }
+    written.push(fileName);
+  }
+
+  return ok({
+    written,
+    rejected,
+    dryRun: flags.dryRun,
+    brandDir,
   });
 };
 
@@ -171,6 +236,7 @@ export const handler: CommandHandler = async (args, flags) => {
   switch (subcommand) {
     case "export": return handleExport(subArgs, flags);
     case "import": return handleImport(subArgs, flags);
+    case "update": return handleUpdate(subArgs, flags);
     case "freshness": return handleFreshness(subArgs, flags);
     case "diff": return handleDiff(subArgs, flags);
     default: return invalidArgs(`Unknown subcommand: brand ${subcommand}`);

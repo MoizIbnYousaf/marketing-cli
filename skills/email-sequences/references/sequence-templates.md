@@ -1,6 +1,8 @@
 # Email Sequence Templates & Examples
 
-> Extracted from SKILL.md for token efficiency.
+> This reference file provides DEEP examples and output templates that complement the blueprints in SKILL.md.
+> SKILL.md defines WHAT each email does. This file shows HOW — with full copy examples, subject line variants, and file output format.
+> Read this file when writing actual email copy. The SKILL.md blueprints are sufficient for planning.
 
 ---
 

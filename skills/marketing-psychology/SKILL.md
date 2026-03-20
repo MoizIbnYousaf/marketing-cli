@@ -1,8 +1,7 @@
 ---
 name: marketing-psychology
 description: |
-  Knowledge skill that applies behavioral psychology and persuasion principles to any marketing asset. Covers Cialdini's 6 principles, cognitive biases, and ethical persuasion frameworks. This skill is invoked BY other skills to enhance their output — use it whenever copy needs psychological leverage, when a landing page feels flat, when email sequences lack urgency, or when any marketing asset needs to be more persuasive. Also use when someone says 'make this more convincing', 'add urgency', 'psychological triggers', or 'persuasion framework'.
-allowed-tools: []
+  Knowledge skill that applies behavioral psychology and persuasion principles to any marketing asset. Covers Cialdini's 6 principles, cognitive biases, and ethical persuasion frameworks. This skill is invoked BY other skills to enhance their output — use it whenever copy needs psychological leverage, when a landing page feels flat, when email sequences lack urgency, or when any marketing asset needs to be more persuasive. Also use when someone says 'make this more convincing', 'add urgency', 'psychological triggers', 'persuasion framework', 'behavioral psychology', 'conversion optimization', 'nudge', 'influence tactics', or 'why isn't this converting'. Make sure to use this whenever ANY marketing copy needs to be more persuasive — even if the user just says 'this feels weak' or 'how do I get more signups', psychology principles likely apply.
 ---
 
 # Marketing Psychology
@@ -16,6 +15,16 @@ When another skill produces copy or UX, this skill provides the psychological la
 ## No Reads/Writes
 
 This skill is pure reference. It reads no brand files and writes no outputs. It is applied ON TOP of other skills' work.
+
+## Brand Context Enhancement
+
+While this skill reads no files itself, the calling skill should provide brand context when available:
+
+- **audience.md** -> Knowing the audience helps select the right social proof type (peer testimonials for B2B, user statistics for consumer), the right authority signals (industry certifications for enterprise, founder story for indie), and the right scarcity framing (launch pricing for startups, seat limits for teams).
+- **voice-profile.md** -> Brand voice affects HOW principles are applied. A playful brand uses conversational loss aversion ("Don't miss out on..."). A professional brand uses data-driven framing ("Companies without X lose an average of...").
+- **positioning.md** -> Premium positioning supports authority and anchoring. Challenger positioning supports liking and social proof from peers.
+
+When calling this skill, pass relevant brand context so principles are applied in voice, not generically.
 
 ## Workflow
 
@@ -34,13 +43,25 @@ Determine what marketing asset is being optimized:
 
 ### Step 2: Select Applicable Principles
 
-Not every principle applies to every asset. Match principles to context.
+Not every principle applies to every asset. Match principles to context. Use the Application Matrix below for quick selection.
+
+### Step 3: Consider B2B vs B2C Differences
+
+| Principle | B2B Emphasis | B2C Emphasis |
+|-----------|-------------|-------------|
+| Social proof | Case studies, logos, ROI metrics | User counts, ratings, peer testimonials |
+| Authority | Industry certifications, compliance | Celebrity endorsements, media features |
+| Scarcity | Limited pilot spots, implementation slots | Limited stock, countdown timers |
+| Loss aversion | Revenue at risk, competitive disadvantage | Missing out on experiences, wasted time |
+| Anchoring | ROI comparison, cost of inaction | Was/now pricing, competitor comparison |
+
+**For real-world case studies of each principle in action:** See [references/case-studies.md](references/case-studies.md) — 11 examples from companies like HubSpot, Netflix, Stripe, Duolingo, and Superhuman showing how principles translate to specific implementations.
 
 ## How to Use This Skill
 
 This is a knowledge skill — it enhances other skills' output rather than producing standalone deliverables.
 
-**Invocation pattern:** When another skill produces copy or UX, ask: 'Apply marketing psychology principles to this asset.' This skill audits the output and suggests principle-specific rewrites.
+**Invocation pattern:** When another skill produces copy or UX, ask: "Apply marketing psychology principles to this asset." This skill audits the output and suggests principle-specific rewrites.
 
 **Example:** After /direct-response-copy produces a landing page, apply this skill to audit the hero for anchoring, the CTA for scarcity, and the testimonials for social proof.
 
@@ -237,6 +258,45 @@ People strongly prefer eliminating a risk entirely over reducing it. Money-back 
 - "Free tier available forever" (eliminates downgrade anxiety)
 - "We'll migrate your data for free" (eliminates switching risk)
 
+### Framing Effect
+
+The same information presented differently changes decisions. Frame to match your goal.
+
+**Application:**
+- "95% uptime" vs "Only 5% downtime" — same fact, different feeling
+- "Join 10,000 happy customers" vs "Don't be one of the few who miss out"
+- "Save $120/year" vs "Save $10/month" — annual framing feels bigger for savings
+- Positive frame for gains ("Get X"), negative frame for preventing losses ("Stop losing X")
+
+**Before:** "Our tool has 99.9% accuracy"
+**After:** "Our tool catches 999 out of every 1,000 errors — so nothing slips through"
+
+**Why this works:** Concrete framing (999/1000) is more vivid than abstract percentages. The reader can picture the result.
+
+### Status Quo Bias
+
+People prefer the current state of affairs. Reducing friction to switch is more effective than amplifying benefits.
+
+**Application:**
+- "Import your data in one click" (reduces switching cost)
+- "Works with tools you already use" (no workflow change)
+- "Keep your existing setup — we just plug in"
+- Free migration services eliminate the biggest barrier
+
+**Where it works best:** Competitor displacement, upgrade prompts, onboarding
+
+### Mere Exposure Effect
+
+Familiarity breeds preference. People like what they've seen before.
+
+**Application:**
+- Retargeting ads that keep your brand visible
+- Consistent visual branding across all touchpoints
+- Content marketing that puts your name in front of prospects repeatedly
+- Email nurture sequences that build familiarity before asking for the sale
+
+**Where it works best:** Top-of-funnel content, retargeting, email sequences, social media presence
+
 ## Framework Application Matrix
 
 Quick reference — which principles apply to which assets:
@@ -252,6 +312,8 @@ Quick reference — which principles apply to which assets:
 | Loss Aversion | Medium | High | High | High | Medium |
 | Anchoring | Medium | Low | High | Low | Medium |
 | Endowment | Low | Medium | Low | High | Low |
+| Framing | High | High | Medium | Medium | High |
+| Status Quo | Medium | Low | Low | High | Medium |
 
 ## How to Apply This Skill
 
@@ -259,10 +321,22 @@ When reviewing any marketing asset:
 
 1. **Identify** the asset type and primary conversion goal
 2. **Select** 2-4 most relevant principles (don't force all of them)
-3. **Audit** current copy/UX for existing psychology use (intentional or accidental)
-4. **Suggest** specific changes with before/after examples
-5. **Prioritize** by expected impact: social proof and loss aversion almost always win
-6. **Warn** about dark patterns: if a suggestion feels manipulative, flag it and offer an ethical alternative
+3. **Consider** B2B vs B2C context — application differs significantly
+4. **Audit** current copy/UX for existing psychology use (intentional or accidental)
+5. **Suggest** specific changes with before/after examples
+6. **Prioritize** by expected impact: social proof and loss aversion almost always win
+7. **Warn** about dark patterns: if a suggestion feels manipulative, flag it and offer an ethical alternative
+
+## Common Agent Mistakes
+
+| Mistake | Why it fails | Instead |
+|---------|-------------|---------|
+| Applying all principles to every asset | Stacking 10 principles on one page creates a manipulative wall of tricks that readers feel viscerally — less is more persuasive | Select 2-4 most relevant using the Application Matrix |
+| Forcing scarcity where none exists | Users share notes about fake urgency on social media — one "fake countdown timer" screenshot can destroy brand trust permanently | Only use scarcity with real constraints. Fake urgency destroys trust |
+| Generic "add social proof" without specifics | "Add social proof" gives the agent nothing to work with — peer testimonials work differently than user counts, and the wrong type falls flat | Specify the TYPE of social proof (peer testimonial, user count, expert endorsement) based on audience |
+| Applying principles without considering brand voice | A corporate brand writing "Don't miss out!!" and a playful brand writing "Enterprise-grade urgency metrics" both sound absurd | A playful brand and a corporate brand apply the same principle very differently |
+| Suggesting dark patterns as psychological techniques | Dark patterns generate short-term conversions but long-term refunds, chargebacks, and reputation damage | Always apply the transparency test: would you be comfortable if the user knew? |
+| Ignoring that the asset might already be effective | Over-optimizing working copy risks breaking what already converts — psychology should enhance, not overhaul | Audit first — if conversion is strong, don't add psychology for the sake of it |
 
 ## Ethical Boundaries
 

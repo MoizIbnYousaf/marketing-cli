@@ -144,4 +144,42 @@ describe("Init installs agents", () => {
     expect(result.data).toHaveProperty("agents");
     expect(Array.isArray(result.data.agents.installed)).toBe(true);
   });
+
+  test("--skip-agents skips agent installation but keeps skills", async () => {
+    const result = await handler(["--yes", "--skip-agents"], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    // Agents should be empty
+    expect(result.data.agents.installed).toHaveLength(0);
+    expect(result.data.agents.skipped).toHaveLength(0);
+    // Skills should still install
+    expect(result.data.skills.installed.length).toBeGreaterThan(0);
+  });
+
+  test("--skip-skills does not skip agents", async () => {
+    const result = await handler(["--yes", "--skip-skills"], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.skills.installed).toHaveLength(0);
+    // Agents should still install
+    expect(result.data.agents.installed.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Init idempotency", () => {
+  test("triple re-init produces consistent results", async () => {
+    await handler(["--yes"], flags);
+    await handler(["--yes"], flags);
+    const result = await handler(["--yes"], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    // Brand files should all be skipped on re-run
+    expect(result.data.brand.created).toHaveLength(0);
+    expect(result.data.brand.skipped).toHaveLength(9);
+    // Skills still install (overwrite is normal)
+    expect(result.data.skills.installed.length).toBeGreaterThan(0);
+  });
 });

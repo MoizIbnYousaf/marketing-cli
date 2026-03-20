@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public release
 - 5 CLI commands: `init`, `doctor`, `list`, `status`, `update`
-- 39 marketing skills across 9 categories
+- 41 marketing skills across 9 categories
 - 5 research and review agents
 - Brand memory system (9 compounding brand files)
 - Skill lifecycle management (dependency DAG, freshness, versioning)

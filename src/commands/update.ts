@@ -4,16 +4,23 @@
 import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { loadManifest, updateSkills } from "../core/skills";
 import { loadAgentManifest, updateAgents } from "../core/agents";
-import { bold, dim, green, yellow, isTTY } from "../core/output";
+import { bold, dim, green, yellow, red, isTTY } from "../core/output";
 
 export const schema: CommandSchema = {
   name: "update",
   description: "Re-copy bundled skills and agents to installed location",
   flags: [],
   output: {
-    "skills.updated": "string[] — skills that were updated",
+    "skills.updated": "string[] — skills whose content changed",
     "skills.unchanged": "string[] — skills already current",
-    "agents.updated": "string[] — agents that were updated",
+    "skills.notBundled": "string[] — skills in manifest but not bundled",
+    "agents.updated": "string[] — agents whose content changed",
+    "agents.unchanged": "string[] — agents already current",
+    "agents.notBundled": "string[] — agents in manifest but not bundled",
+    "versionChanges": "{ skill, from, to }[] — skills with version bumps",
+    "totalSkills": "number — total skills in manifest",
+    "totalAgents": "number — total installed/installable agents",
+    "agentError": "string | null — error if agent manifest failed to load",
   },
   examples: [
     { args: "mktg update --json", description: "Update all skills and agents" },
@@ -24,22 +31,24 @@ export const schema: CommandSchema = {
 
 type UpdateResult = {
   readonly skills: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
-  readonly agents: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[] };
+  readonly agents: { updated: readonly string[]; unchanged: readonly string[]; notBundled: readonly string[]; failed: readonly string[] };
   readonly versionChanges: readonly { skill: string; from: string; to: string }[];
   readonly totalSkills: number;
   readonly totalAgents: number;
+  readonly agentError: string | null;
 };
 
 export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
   const manifest = await loadManifest();
   const skillsUpdate = await updateSkills(manifest, flags.dryRun, flags.cwd);
 
-  let agentsUpdate = { updated: [] as string[], unchanged: [] as string[], notBundled: [] as string[] };
+  let agentsUpdate = { updated: [] as string[], unchanged: [] as string[], notBundled: [] as string[], failed: [] as string[] };
+  let agentError: string | null = null;
   try {
     const agentManifest = await loadAgentManifest();
     agentsUpdate = await updateAgents(agentManifest, flags.dryRun);
-  } catch {
-    // Agent manifest may not exist yet
+  } catch (e) {
+    agentError = e instanceof Error ? e.message : String(e);
   }
 
   const result: UpdateResult = {
@@ -47,7 +56,8 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
     agents: agentsUpdate,
     versionChanges: skillsUpdate.versionChanges,
     totalSkills: Object.keys(manifest.skills).length,
-    totalAgents: agentsUpdate.updated.length + agentsUpdate.unchanged.length + agentsUpdate.notBundled.length,
+    totalAgents: agentsUpdate.updated.length + agentsUpdate.unchanged.length,
+    agentError,
   };
 
   if (flags.json || !isTTY()) {
@@ -97,6 +107,17 @@ export const handler: CommandHandler<UpdateResult> = async (_args, flags) => {
 
   if (agentsUpdate.unchanged.length > 0) {
     lines.push(dim(`  = ${agentsUpdate.unchanged.length} agents unchanged`));
+  }
+
+  if (agentsUpdate.failed.length > 0) {
+    lines.push(red(`  ! ${agentsUpdate.failed.length} agents failed to update`));
+    for (const name of agentsUpdate.failed) {
+      lines.push(dim(`    ! ${name}`));
+    }
+  }
+
+  if (agentError) {
+    lines.push(yellow(`  ? agents skipped: ${agentError}`));
   }
 
   lines.push("");

@@ -34,10 +34,18 @@ This is a different game. AI engines don't rank pages — they synthesize answer
 
 ## On Activation
 
-1. Read `brand/voice-profile.md` — authoritative voice matters more for AI citation
-2. Read `brand/keyword-plan.md` — identify which queries are already AI-dominated
-3. Audit current content for AI visibility (see Audit workflow below)
-4. If no brand files exist, ask: What topics do you want to be cited for? Who are your competitors in AI results?
+1. Read `brand/` directory: load `voice-profile.md`, `keyword-plan.md`, `positioning.md`, `competitors.md` if present.
+2. Show what loaded:
+   ```
+   Brand context loaded:
+   ├── Voice Profile   ✓/✗
+   ├── Keyword Plan    ✓/✗
+   ├── Positioning     ✓/✗
+   └── Competitors     ✓/✗
+   ```
+3. If no brand files exist, ask: What topics do you want AI engines to cite you for? Who are your competitors in AI results?
+4. Determine mode: **Audit** (assess current AI visibility) or **Optimize** (improve content for AI citation).
+5. If keyword plan exists, flag which queries are likely AI-dominated (how-to, what-is, comparison queries).
 
 ---
 
@@ -63,13 +71,23 @@ AI search: User asks question → AI reads sources → AI synthesizes answer →
 
 ### Check Current AI Presence
 
-For each of your key topics, test across AI engines:
+Use available tools to test AI visibility. Not all engines will be testable — audit what you can, note what you can't.
 
-1. **ChatGPT**: Ask "[your core question]" — are you mentioned? Cited? Recommended?
-2. **Perplexity**: Search "[your topic]" — do your pages appear in sources?
-3. **Google AI Overviews**: Search on Google — are you in the AI Overview? As a source?
-4. **Claude**: Ask "[your question]" — are you referenced?
-5. **Gemini**: Same test
+**With browser tool available:**
+1. **Perplexity**: Navigate to perplexity.ai, search "[your topic]" — check if pages appear in sources
+2. **Google AI Overviews**: Search on google.com — check if brand appears in AI Overview
+3. **ChatGPT**: Navigate to chatgpt.com, ask "[your core question]" — check citations
+
+**With web search/Exa MCP only:**
+1. Search for "[brand] + [topic]" to assess web presence that AI engines index
+2. Check if key pages appear in top results (AI engines favor high-ranking pages)
+3. Search for competitor content on the same topics to benchmark
+
+**Without browser or web search:**
+1. Review existing content structure against AI citation patterns (see references/content-patterns.md)
+2. Check schema markup on existing pages
+3. Audit content formatting for extractability
+4. Note limitation: "Live AI visibility testing requires browser access. This audit covers content optimization only."
 
 ### Audit Output
 
@@ -273,17 +291,6 @@ AI engines are more likely to cite content that is easy to parse and extract fro
 
 ---
 
-## Output Structure
-
-```
-marketing/seo/
-├── ai-seo-audit.md         # Current AI visibility audit results
-├── ai-seo-content-plan.md  # Priority queries + content to create/optimize
-└── ai-seo-tracking.md      # Monthly tracking sheet
-```
-
----
-
 ## Key Differences from Traditional SEO
 
 | Traditional SEO | AI SEO |
@@ -295,6 +302,76 @@ marketing/seo/
 | Meta tags for CTR | Structured data for extraction |
 | Content length signals depth | Answer directness signals usefulness |
 | One-time optimization | Continuous monitoring across multiple engines |
+
+---
+
+## Anti-Patterns
+
+- **Traditional SEO is the foundation AI SEO sits on.** AI engines pull from web indexes — if your pages aren't ranking or indexed, they can't be cited. Check traditional SEO basics (/seo-audit) before investing in AI-specific optimization.
+- **FAQ schema only works when it matches real Q&A content.** Google penalizes schema that doesn't reflect what's visible on the page. Add FAQPage markup to pages with genuine questions and answers, not as a blanket optimization.
+- **AI citation is volatile — a single test proves nothing.** A page cited this week may drop next month as AI models update their indexes and weights. The monitoring step (Step 7) exists because ongoing tracking is the only way to maintain AI visibility.
+- **Write for humans, format for AI.** Over-optimizing for extractability (robotic, formulaic answers) hurts traditional SEO and user trust. The best AI-cited content is genuinely useful content that happens to be well-structured.
+- **Robots.txt is the gatekeeper.** If AI bots (GPTBot, PerplexityBot, ClaudeBot) are blocked, no amount of content optimization matters. This is the very first thing to check — see references/platform-ranking-factors.md for the full bot list.
+
+---
+
+## Error States
+
+- **No web search or browser available:** Skip live audit (Step 1), proceed with content optimization (Steps 2-6) using existing content analysis. Note: "AI visibility audit requires browser or web search. Content optimization complete — recommend live audit when tools are available."
+- **No brand files exist:** Ask for target topics and competitors directly. Proceed with generic optimization. Suggest running /brand-voice and /keyword-research first.
+- **No existing content to optimize:** Shift to content planning mode — create the ai-seo-content-plan.md with priority queries and content specs. Suggest /seo-content to create the actual content.
+- **Can't access AI engines for testing:** Focus on content structure, schema markup, and formatting optimization. Flag that live testing is deferred.
+
+---
+
+## File Output Format
+
+### Directory
+
+```
+marketing/seo/
+├── ai-seo-audit.md          # AI visibility audit results
+├── ai-seo-content-plan.md   # Priority queries + optimization plan
+└── ai-seo-tracking.md       # Monthly tracking sheet
+```
+
+### Frontmatter (ai-seo-audit.md)
+
+```yaml
+---
+title: "AI SEO Visibility Audit"
+date_created: "{YYYY-MM-DD}"
+last_updated: "{YYYY-MM-DD}"
+queries_tested: {number}
+engines_tested: ["Perplexity", "ChatGPT", "Google AI Overviews"]
+overall_status: "strong / partial / absent"
+priority_actions: {number}
+---
+```
+
+### Frontmatter (ai-seo-content-plan.md)
+
+```yaml
+---
+title: "AI SEO Content Optimization Plan"
+date_created: "{YYYY-MM-DD}"
+priority_queries: {number}
+content_to_create: {number}
+content_to_optimize: {number}
+---
+```
+
+---
+
+## Chain Offers
+
+After completing, suggest:
+
+- `/seo-audit` — ensure traditional SEO foundations support AI visibility
+- `/seo-content` — create new content optimized for AI citation
+- `/brand-voice` — consistent authoritative voice increases citation likelihood
+- `/keyword-research` — identify which queries are AI-dominated in your space
+- "Monthly recheck" — re-run the audit to track AI visibility changes
 
 ---
 

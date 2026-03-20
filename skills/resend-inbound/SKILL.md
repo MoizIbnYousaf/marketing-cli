@@ -7,13 +7,25 @@ description: Use when receiving emails with Resend - setting up inbound domains,
 
 ## Overview
 
-Resend processes incoming emails for your domain and sends webhook events to your endpoint. **Webhooks contain metadata only** - you must call separate APIs to retrieve email body and attachments.
+Resend processes incoming emails for your domain and sends webhook events to your endpoint. **Webhooks contain metadata only** — you must call separate APIs to retrieve email body and attachments.
+
+This skill is context-independent — it does not use `brand/` files and works identically in any project.
+
+## On Activation
+
+1. Determine if the user needs a Resend-managed domain or custom domain.
+2. Walk through domain setup and webhook configuration.
+3. Implement webhook handler with signature verification.
+4. Add content retrieval logic (body + attachments as needed).
+5. Add routing logic if multiple recipients are expected.
+
+**Output:** A webhook handler file with signature verification, content retrieval, and routing logic.
 
 ## Quick Start
 
-1. **Configure receiving domain** - Use Resend's `.resend.app` domain or add MX record for custom domain
-2. **Set up webhook** - Subscribe to `email.received` event
-3. **Retrieve content** - Call Receiving API for body, Attachments API for files
+1. **Configure receiving domain** — Use Resend's `.resend.app` domain or add MX record for custom domain
+2. **Set up webhook** — Subscribe to `email.received` event
+3. **Retrieve content** — Call Receiving API for body, Attachments API for files
 
 ## Domain Setup
 
@@ -235,15 +247,25 @@ if (event.type === 'email.received') {
 }
 ```
 
+## Error Handling
+
+| Failure | Action |
+|---------|--------|
+| Webhook signature verification fails | Return 400, log the attempt. Never process unverified webhooks. |
+| `resend.emails.receiving.get()` returns error | Log the email_id, return 200 to acknowledge webhook, queue for retry via your own retry logic. |
+| Attachment `download_url` expired | Call `resend.emails.receiving.attachments.list()` again for a fresh URL. |
+| Attachment download times out | Retry with exponential backoff (max 3 attempts). Log failure if all retries exhaust. |
+| Malformed email (missing from/subject) | Log and skip gracefully. Return 200 to prevent Resend retries on bad data. |
+
 ## Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Expecting body in webhook payload | Webhook has metadata only - call `resend.emails.receiving.get()` for body |
+| Expecting body in webhook payload | Webhook has metadata only — call `resend.emails.receiving.get()` for body |
 | MX record not lowest priority | Ensure Resend's MX has lowest number (highest priority) |
 | Adding MX to root domain with existing email | Use subdomain to avoid breaking existing email service |
-| Using expired download_url | URLs expire after 1 hour - call attachments API again for fresh URL |
-| Not verifying webhook signatures | Always verify - attackers can send fake events |
+| Using expired download_url | URLs expire after 1 hour — call attachments API again for fresh URL |
+| Not verifying webhook signatures | Always verify — attackers can send fake events |
 | Forgetting to return 200 OK | Resend retries on non-200 responses |
 
 ## Storage Note

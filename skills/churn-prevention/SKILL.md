@@ -1,7 +1,7 @@
 ---
 name: churn-prevention
 description: |
-  Designs cancel flow UX, dunning email sequences, win-back campaigns, and retention triggers. Covers the full churn prevention lifecycle from early warning signals to 90-day win-back. Use when someone mentions 'churn', 'retention', 'cancel flow', 'dunning', 'win-back', 'users leaving', 'reducing churn', 'keep users', or wants to prevent customers from canceling. Handles both voluntary churn (unhappy users) and involuntary churn (failed payments).
+  Designs cancel flow UX, dunning email sequences, win-back campaigns, and retention triggers. Covers the full churn prevention lifecycle from early warning signals to 90-day win-back. Use when someone mentions 'churn', 'retention', 'cancel flow', 'dunning', 'win-back', 'users leaving', 'reducing churn', 'keep users', 'customers canceling', 'payment failed', 'failed payments', 'losing subscribers', 'customer retention', or wants to prevent customers from leaving. Even if they just say 'people keep canceling' or 'how do I keep users' — this is the skill. Handles both voluntary churn (unhappy users) and involuntary churn (failed payments). Use this whenever subscription retention is the goal.
 allowed-tools: []
 ---
 
@@ -14,6 +14,14 @@ Reduce churn across three stages: before they want to leave (health scoring + pr
 ## Reads
 
 - `brand/audience.md` — Personas, pain points, what they value most
+- `brand/positioning.md` — Value props for reinforcement in save offers and win-back copy
+- `brand/voice-profile.md` — Brand voice for all cancel flow and email copy
+
+## Brand Integration
+
+- **audience.md** — Churn signals vary by persona. Power users churn from missing features; casual users churn from confusion. Tailor intervention messaging to the persona's primary motivation.
+- **positioning.md** — Save offers and win-back copy should reinforce the brand's core value proposition, not just offer discounts. Remind users of the specific value they're losing.
+- **voice-profile.md** — Cancel flow copy must match brand voice. A playful brand says 'We'll miss you! Here's what you'll lose...' A professional brand says 'Before you go, here's a summary of your account value.' Win-back emails must sound like the brand, not like a desperate ex.
 
 ## Workflow
 
@@ -60,11 +68,6 @@ Health score thresholds:
 - **60-79:** Monitor — proactive check-in
 - **40-59:** At risk — intervention needed
 - **0-39:** Critical — immediate outreach
-
-## Brand Integration
-
-- **audience.md** → Churn signals vary by persona. Power users churn from missing features; casual users churn from confusion. Tailor intervention messaging to the persona's primary motivation.
-- **voice-profile.md** → Cancel flow copy must match brand voice. A playful brand says 'We'll miss you! Here's what you'll lose...' A professional brand says 'Before you go, here's a summary of your account value.' Win-back emails must sound like the brand, not like a desperate ex.
 
 ### Step 3: Design Cancel Flow
 
@@ -271,6 +274,24 @@ Each churn prevention build produces:
 - Retention metrics dashboard spec
 - Proactive intervention playbook per risk signal
 
+## Anti-Patterns
+
+- Never hide the cancel button or make it hard to find — this is a dark pattern and may violate FTC rules
+- Never guilt-trip users ("You'll lose EVERYTHING!") — state facts about what changes, not emotional manipulation
+- Never use threatening language in dunning emails ("Your account will be TERMINATED") — keep the tone helpful
+- Never offer discounts to every canceller — this trains users to cancel for discounts; segment by reason and value
+- Never skip the cancel confirmation — users must see what they'll lose and confirm intentionally
+- Never send win-back emails more than 4 times in 90 days — respect the user's decision
+
+## Edge Cases
+
+- **Freemium products:** No payment to fail, so dunning doesn't apply. Focus on voluntary churn: cancel flow becomes "downgrade to free" flow. Lead with what they keep on free tier.
+- **Annual billing:** Cancel flow should show prorated refund options. Longer save window since they've already paid. Route to customer success more aggressively (higher LTV at stake).
+- **Regulated industries:** Healthcare and finance may have specific data retention and notification requirements. Flag for legal review before implementing data deletion timelines.
+- **Team/enterprise accounts:** Show team impact ("Your 8 team members will lose access"). Require admin role to cancel. Route high-MRR accounts to customer success.
+
+See `references/cancel-flow-patterns.md` for business-type segmentation and compliance details. See `references/dunning-playbook.md` for provider-specific setup and smart retry strategies.
+
 ## Quality Checks
 
 - [ ] Cancel flow offers genuine alternatives, not guilt trips
@@ -280,3 +301,6 @@ Each churn prevention build produces:
 - [ ] All emails have clear single CTA
 - [ ] Data deletion timeline is clearly communicated
 - [ ] Pause option available as cancel alternative
+- [ ] Cancel path is always completable — no dead ends or hidden buttons
+- [ ] Copy matches brand voice (if voice-profile.md exists)
+- [ ] Compliance considerations noted (FTC click-to-cancel, GDPR data retention)

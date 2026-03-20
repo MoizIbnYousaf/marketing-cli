@@ -9,10 +9,37 @@ description: >
   Produces Instagram carousels, TikTok slideshows, social posts, story slides,
   and visual assets. When used with content spec YAMLs from /slideshow-script,
   each agent gets a unique script AND unique design direction.
-  Triggers on "paper marketing", "design carousel", "create slides",
-  "visual content", "instagram design", "social graphics", "paper prototype
-  marketing", "design in paper", "create carousel", "slide design",
-  "TikTok design", "slideshow design".
+  Make sure to use this skill whenever the user wants visual marketing
+  content designed in Paper — carousels, slideshows, social posts, story
+  slides, or any visual asset. Even if they just say "design something" or
+  "make slides" or "create visual content", this is the skill. Also triggers
+  on "paper marketing", "instagram design", "TikTok design", "slideshow
+  design", "create carousel", or "social graphics".
+category: creative
+tier: core
+reads:
+  - brand/voice-profile.md
+  - brand/creative-kit.md
+  - brand/positioning.md
+  - brand/assets.md
+  - marketing/content-specs/*.yaml
+writes:
+  - brand/creative-kit.md
+  - marketing/content-specs/*.yaml
+  - marketing/handoffs/*-handoff.yaml
+  - brand/assets.md
+depends-on:
+  - brand-voice
+triggers:
+  - paper marketing
+  - design carousel
+  - create slides
+  - visual content
+  - instagram design
+  - social graphics
+  - slide design
+  - TikTok design
+  - slideshow design
 allowed-tools:
   - Bash(mktg status *)
 ---
@@ -20,6 +47,18 @@ allowed-tools:
 # /paper-marketing — On-Brand Visual Content in Paper MCP
 
 Spawn parallel designer agents in Paper, each creating a unique on-brand interpretation of marketing content. Same brand system, different creative executions. Agent count and approach intelligently adapt to the user's actual goal.
+
+## Quick Reference
+
+| Phase | What Happens | Key Tool |
+|-------|-------------|----------|
+| 1. Load Brand | Read brand/ files, discover Paper file, confirm with user | `mcp__paper__get_basic_info()` |
+| 2. Goal Discovery | Interrogate user: content type, variation count, priority | `AskUserQuestion` |
+| 3. Create Tasks | Build rich task descriptions with full brand system + content | `TeamCreate` + `TaskCreate` |
+| 4. Spawn Agents | Launch N designer agents in parallel | `Agent` (background, Sonnet) |
+| 5. Review | Screenshot artboards, compare, user selects winner | `mcp__paper__get_screenshot()` |
+| 6. Export | Extract JSX, write handoff YAML, instruct user to export PNG | `mcp__paper__get_jsx()` |
+| 7. Log | Update brand/assets.md, append workflow log | File writes |
 
 For Paper MCP HTML rules, see [references/paper-mcp-rules.md](references/paper-mcp-rules.md).
 For brand system extraction template, see [references/brand-system-template.md](references/brand-system-template.md).
@@ -318,7 +357,7 @@ Options:
 ```
 6. Clean up: `TeamDelete`
 
-### Phase 5.5: Export and Handoff (NEW)
+### Phase 6: Export and Handoff
 
 After user selects a variation:
 
@@ -365,7 +404,7 @@ After user selects a variation:
    Then tell me the file path so /video-content can process it."
    ```
 
-### Phase 6: Log and Register (if workflow logging active)
+### Phase 7: Log and Register (if workflow logging active)
 
 If a workflow log exists at `marketing/logs/`, append steps for:
 - Which brand files were read
@@ -375,6 +414,24 @@ If a workflow log exists at `marketing/logs/`, append steps for:
 - Tool calls made
 
 Update `brand/assets.md` with the new asset.
+
+## Anti-Patterns
+
+- **Spawning before confirming** — Each agent costs tokens and time. Creating 5 agents for a user who wanted 1 is wasteful and frustrating. Always get explicit approval on both the variation plan AND the content before spawning.
+- **Hardcoding brand values** — If you put hex codes or font names directly in the skill, it breaks the moment it's used on a different project. Always read from brand/ files at runtime so the skill works universally.
+- **Using CSS grid in Paper** — Paper MCP's HTML renderer only supports `display: flex`. Using `grid`, margins, or HTML tables produces broken layouts with no error message — elements just disappear or stack incorrectly.
+- **Modifying existing artboards** — The user's existing artboards may contain in-progress work. Agents must create new artboards only. Touching existing work risks destroying hours of effort.
+- **Identical variations** — The entire value of spawning multiple agents is seeing genuinely different creative directions. If two designs look similar, the user got one option at the cost of two. Each variation must use a structurally different layout approach from the direction table.
+- **Skipping font verification** — Paper renders missing fonts as a default fallback, which silently breaks the brand look. Always call `get_font_family_info()` first to confirm the font is loaded.
+- **Giant write_html calls** — Paper's HTML renderer handles ~15 lines per call reliably. Larger blocks risk partial rendering or silent truncation. Build incrementally: hero first, then body, then footer.
+
+## Edge Cases
+
+- **Paper MCP not connected** — If `get_basic_info()` fails, tell the user to open Paper and connect the MCP server. Do not proceed without it.
+- **Font not available** — If `get_font_family_info()` returns no match, fall back to a similar Google Font that IS available. Note the substitution in the task description.
+- **Agent task fails** — If an agent can't complete (Paper errors, timeout), note which variation failed and offer to re-run just that one.
+- **No brand files exist** — Skill still works. Use AskUserQuestion to gather basics (colors, fonts, vibe) and write creative-kit.md before proceeding.
+- **Content specs from /slideshow-script are stale** — If content spec YAMLs exist but are older than the current positioning.md, flag this to the user and ask whether to use existing specs or regenerate.
 
 ## Principles
 

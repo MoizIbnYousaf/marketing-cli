@@ -11,9 +11,9 @@ description: >
 category: copy-content
 tier: must-have
 reads:
-  - voice-profile.md
-  - keyword-plan.md
-  - audience.md
+  - brand/voice-profile.md
+  - brand/keyword-plan.md
+  - brand/audience.md
 writes:
   - assets.md
 triggers:
@@ -361,10 +361,14 @@ After saving, present:
 
 ---
 
-## Feedback
+## Anti-Patterns
 
-Feedback: Append learnings to brand/learnings.md.
+- **Phase 5 (Humanize) is the soul of this skill.** Unhumanized content reads like AI slop — readers bounce, Google devalues it, and the brand takes a credibility hit. If you're short on time, cut research depth before cutting humanization. The AI detection patterns in `references/anti-ai-detection.md` exist because content that sounds like a committee wrote it doesn't earn trust, links, or shares.
+- **Schema markup compounds over time.** Article + FAQ JSON-LD takes minutes to add but feeds rich results, AI citations, and structured search features for the life of the content. Skipping it is leaving free visibility on the table.
+- **Keyword-stuffed headings hurt more than they help.** Google's algorithms detect keyword stuffing and users find it off-putting. One keyword in H1, natural secondary keywords across H2s. If every heading reads like an SEO template, it's over-optimized.
+- **Generic intros signal "this isn't worth reading."** "In today's digital world..." tells the reader nothing. The search query brought them here — answer it in sentence one. First impressions in content are like first impressions in person: you don't get a second one.
 
+---
 
 ## Implementation Notes
 

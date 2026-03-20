@@ -18,7 +18,11 @@ export const loadManifest = async (): Promise<SkillsManifest> => {
   if (!exists) {
     throw new Error(`skills-manifest.json not found at ${manifestPath}`);
   }
-  return file.json() as Promise<SkillsManifest>;
+  try {
+    return await file.json() as SkillsManifest;
+  } catch (e) {
+    throw new Error(`skills-manifest.json is corrupt at ${manifestPath}: ${e instanceof Error ? e.message : String(e)}`);
+  }
 };
 
 // Get all skill names from manifest
@@ -98,10 +102,10 @@ export const installSkills = async (
   manifest: SkillsManifest,
   dryRun: boolean = false,
   cwd?: string,
-): Promise<{ installed: string[]; skipped: string[]; failed: string[] }> => {
+): Promise<{ installed: string[]; skipped: string[]; failed: Array<{ name: string; reason: string }> }> => {
   const installed: string[] = [];
   const skipped: string[] = [];
-  const failed: string[] = [];
+  const failed: Array<{ name: string; reason: string }> = [];
 
   // Ensure install dir exists
   if (!dryRun) {
@@ -135,7 +139,8 @@ export const installSkills = async (
           await copySkillDir(bundledDir, installDir);
           installed.push(name);
         } catch (e) {
-          failed.push(name);
+          const reason = e instanceof Error ? e.message : String(e);
+          failed.push({ name, reason });
         }
       })(),
     );

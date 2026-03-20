@@ -1,18 +1,29 @@
 ---
 name: frontend-slides
-description: "Create stunning, animation-rich HTML presentations from scratch or by converting PowerPoint files. Zero dependencies — single HTML files with inline CSS/JS. Use when the user wants a presentation, pitch deck, conference talk slides, HTML slideshow, or says 'make slides', 'presentation', 'pitch deck', 'conference talk', 'convert my PPT', 'HTML slides', or wants beautiful animated slides without PowerPoint. Includes 12 curated style presets and PPT-to-HTML conversion."
+description: "Create stunning, animation-rich HTML presentations from scratch or by converting PowerPoint files. Zero dependencies — single HTML files with inline CSS/JS. Use when the user wants a presentation, pitch deck, conference talk slides, HTML slideshow, slide deck, investor deck, demo day slides, keynote-style presentation, or says 'make slides', 'presentation', 'pitch deck', 'conference talk', 'convert my PPT', 'HTML slides', 'talk slides', or wants beautiful animated slides without PowerPoint. Also use when someone needs to present something and doesn't have a tool — this replaces Keynote, Google Slides, and PowerPoint with a single HTML file. Includes 12 curated style presets and PPT-to-HTML conversion."
 ---
 
 # Frontend Slides
 
 Create zero-dependency, animation-rich HTML presentations that run entirely in the browser.
 
+## Reads
+
+- `brand/creative-kit.md` — Brand colors, fonts, logo paths
+- `brand/voice-profile.md` — Copy tone for slide text
+
+## On Activation
+
+1. Read `brand/creative-kit.md` for brand colors and fonts. If found, use them as defaults in Phase 2 style selection — suggest presets that complement the brand palette, or offer a "Brand Custom" option that uses their exact colors/fonts.
+2. Read `brand/voice-profile.md` for copy tone. If found, use it to guide slide copy style (formal vs. conversational vs. bold) throughout Phases 1 and 3.
+3. If brand/ files don't exist, proceed normally. The skill works at zero context.
+
 ## Core Principles
 
 1. **Zero Dependencies** — Single HTML files with inline CSS/JS. No npm, no build tools.
 2. **Show, Don't Tell** — Generate visual previews, not abstract choices. People discover what they want by seeing it.
 3. **Distinctive Design** — No generic "AI slop." Every presentation must feel custom-crafted.
-4. **Viewport Fitting (NON-NEGOTIABLE)** — Every slide MUST fit exactly within 100vh. No scrolling within slides, ever. Content overflows? Split into multiple slides.
+4. **Viewport Fitting** — Every slide fits exactly within 100vh. No scrolling within slides, ever. Content overflows? Split into multiple slides. This is non-negotiable because a single scrolling slide breaks the entire navigation and pacing of the presentation.
 
 ## Design Aesthetics
 
@@ -190,9 +201,18 @@ If images were provided, the slide outline already incorporates them from Step 1
 When converting PowerPoint files:
 
 1. **Extract content** — Run `python scripts/extract-pptx.py <input.pptx> <output_dir>` (install python-pptx if needed: `pip install python-pptx`)
-2. **Confirm with user** — Present extracted slide titles, content summaries, and image counts
-3. **Style selection** — Proceed to Phase 2 for style discovery
-4. **Generate HTML** — Convert to chosen style, preserving all text, images (from assets/), slide order, and speaker notes (as HTML comments)
+2. **Review extraction** — Check the output directory for:
+   - `slides.json` — Structured slide data (titles, bullets, notes)
+   - `assets/` — Extracted images
+   - If extraction fails (corrupted file, unsupported format), ask user to export as PDF and extract text manually
+3. **Handle complex elements:**
+   - **Charts/SmartArt** — Cannot be extracted as live elements. Screenshot them from the PPT and include as images.
+   - **Embedded videos** — Note their existence, link to original files. Cannot be inlined in HTML.
+   - **Custom animations** — Log them but don't try to replicate 1:1. Map to the closest CSS animation from animation-patterns.md.
+   - **Tables** — Convert to HTML tables. If too wide, split across slides or use responsive scrolling.
+4. **Confirm with user** — Present extracted slide titles, content summaries, image counts, and any elements that couldn't be converted
+5. **Style selection** — Proceed to Phase 2 for style discovery
+6. **Generate HTML** — Convert to chosen style, preserving all text, images (from assets/), slide order, and speaker notes (as HTML comments)
 
 ---
 
@@ -205,6 +225,15 @@ When converting PowerPoint files:
    - Navigation: Arrow keys, Space, scroll/swipe, click nav dots
    - How to customize: `:root` CSS variables for colors, font link for typography, `.reveal` class for animations
    - If inline editing was enabled: Hover top-left corner or press E to enter edit mode, click any text to edit, Ctrl+S to save
+
+### Output Files
+
+```
+[name].html              # Self-contained presentation (all CSS/JS inline)
+[name]-assets/           # Images (only if images were provided)
+```
+
+If style previews were generated, they were in `.claude-design/slide-previews/` and have been cleaned up.
 
 ---
 

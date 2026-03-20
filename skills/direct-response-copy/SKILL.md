@@ -4,7 +4,7 @@ description: "Write copy that converts. Use when writing landing pages, emails, 
 category: copy
 tier: core
 reads:
-  - brand/voice.md
+  - brand/voice-profile.md
   - brand/positioning.md
   - brand/audience.md
   - brand/creative-kit.md
@@ -49,7 +49,7 @@ This skill operates in three modes. Select based on what the user needs:
 
 ## On Activation
 
-1. Read `brand/voice.md` if it exists — match tone, vocabulary, rhythm
+1. Read `brand/voice-profile.md` if it exists — match tone, vocabulary, rhythm
 2. Read `brand/positioning.md` if it exists — use the chosen angle as the copy's foundation
 3. Read `brand/audience.md` if it exists — match awareness level to headline approach
 4. Read `brand/creative-kit.md` if it exists — visual consistency for landing pages
@@ -64,7 +64,33 @@ Write like you're explaining to a smart friend who's skeptical but curious. Back
 
 ---
 
+## Brand Integration
+
+Brand files shape every piece of copy:
+
+- **voice-profile.md** → Tone, vocabulary, rhythm. If voice is casual/founder-led, use contractions, fragments, first person. If professional/corporate, complete sentences, third person. Copy that doesn't match voice fails regardless of technique.
+- **positioning.md** → The chosen angle becomes the copy's foundation. Every headline, every CTA, every proof point reinforces the positioning angle. Don't drift.
+- **audience.md** → Awareness level determines headline approach (see Schwartz's 5 Levels in references). Pain points become the "agitate" section. Language from the persona goes directly into copy.
+- **creative-kit.md** → Visual consistency for landing pages. Color palette, imagery style, layout preferences.
+
+---
+
 ## Mode: Generate (Default)
+
+### Execution Flow
+
+Follow this sequence for every Generate task:
+
+1. **Establish format** — What are we writing? (table below)
+2. **Identify awareness level** — Match to Schwartz's 5 Levels (see references)
+3. **Generate 5-10 headline variants** — Using different frameworks
+4. **Write opening lines** — Match format and awareness level
+5. **Write body copy** — Follow the full sequence for the format
+6. **Apply the So What? Chain** — Feature → Functional → Financial → Emotional
+7. **Write CTAs** — Benefit-oriented, friction reducers below
+8. **Score with rubric** — Must hit 56+ to ship
+9. **Suggest A/B tests** — 3-5 tests with priority
+10. **Output to files** — With frontmatter
 
 ### What Are We Writing?
 
@@ -336,7 +362,22 @@ marketing/campaigns/{name}/
     └── {platform}-{description}.md
 ```
 
-Every copy file includes frontmatter: type, campaign, target_audience, awareness_level, variant, platform, word_count, date, status, score.
+Every copy file includes this frontmatter:
+
+```yaml
+---
+type: landing-page | sales-page | email | ad | social-post
+campaign: "{campaign-name}"
+target_audience: "{segment}"
+awareness_level: unaware | problem-aware | solution-aware | product-aware | most-aware
+variant: a | b | c
+platform: web | email | facebook | instagram | linkedin | twitter
+word_count: 0
+date: 2026-03-20
+status: draft
+score: 0
+---
+```
 
 ---
 

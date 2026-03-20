@@ -35,6 +35,15 @@ Phase 3: VIDEO   — /video-content assembles videos from designs
 
 **Platform spec:** TikTok 1080×1920, 9:16, 30fps, H.264
 
+## Prerequisites
+
+Before starting, verify all 3 sub-skills are installed:
+- `~/.claude/skills/slideshow-script/SKILL.md`
+- `~/.claude/skills/paper-marketing/SKILL.md`
+- `~/.claude/skills/video-content/SKILL.md`
+
+If any sub-skill is missing, tell the user and recommend `mktg update` to install it. Do not proceed without all 3.
+
 ## Workflow
 
 ### Phase 1: SCRIPT
@@ -43,7 +52,7 @@ Load the `/slideshow-script` skill at `~/.claude/skills/slideshow-script/SKILL.m
 
 1. Read brand files (positioning, audience, voice)
 2. User selects positioning angle
-3. Generate 5 scripts using 5 storytelling frameworks (AIDA, PAS, BAB, Star-Story-Solution, Stat-Flip)
+3. Generate up to 5 scripts using 5 storytelling frameworks (AIDA, PAS, BAB, Star-Story-Solution, Stat-Flip). User may select fewer at the gate.
 4. Each script uses the brand voice from `brand/voice-profile.md` for tone, vocabulary, and signature phrases
 5. Present all 5 scripts for approval
 6. Write 5 content spec YAMLs to `marketing/content-specs/`
@@ -144,10 +153,30 @@ Same blocks, different combinations:
 /ad-creative         = /slideshow-script (1 script) → /paper-marketing (1 slide) → /video-content
 ```
 
+## Error Recovery
+
+| Failure | Action |
+|---------|--------|
+| Sub-skill not installed | Stop, recommend `mktg update`, do not proceed |
+| Phase 1 scripts rejected | Revise scripts with user feedback, do not advance to Phase 2 |
+| Paper MCP unavailable | Fall back to manual slide creation; user provides PNGs |
+| Phase 2 design export fails | User re-exports from Paper UI; agent retries video assembly |
+| Phase 3 video assembly fails | Check ffmpeg/Remotion installation, retry with v1 tier first |
+
+## Anti-Patterns
+
+| Anti-Pattern | Instead |
+|-------------|---------|
+| Skipping human gates between phases | Always wait for user approval at each gate |
+| Running all 3 phases without stopping | Each phase has an explicit gate — never auto-advance |
+| Generating all 5 when user only wants 2 | Respect user selection at Phase 1 gate |
+| Re-using the same visual direction for all designs | Each content spec maps to a unique visual direction |
+| Loading sub-skills via Bash instead of reading SKILL.md | Load each skill's SKILL.md and follow its instructions |
+
 ## Principles
 
 - **Skills never call skills** — this SKILL.md teaches the agent the sequence; the agent loads each skill
 - **Filesystem is the bus** — content specs and handoffs are YAML files, not API calls
 - **Human gates at every phase** — no runaway agent chains
 - **Progressive quality** — start with v1 to verify, upgrade to v2 for production
-- **All 5 are publishable** — different scripts, different designs, not 5 versions of 1
+- **All outputs are publishable** — different scripts, different designs, not N versions of 1

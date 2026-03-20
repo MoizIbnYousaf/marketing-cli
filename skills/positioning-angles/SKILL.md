@@ -1,20 +1,15 @@
 ---
 name: positioning-angles
-description: "Find the angle that makes something sell. Use when copy isn't converting, when marketing feels generic, when positioning is weak, when launching a product, creating a lead magnet, writing a landing page, or entering a crowded market. Triggers on 'positioning', 'angles', 'differentiation', 'unique selling', 'how do I stand out', 'what makes us different', 'value proposition', or 'messaging framework'. Generates 8 positioning angles with competitive web research and validation."
-category: brand
-tier: foundation
-reads:
-  - brand/voice-profile.md
-  - brand/audience.md
-  - brand/positioning.md
-writes:
-  - brand/positioning.md
-triggers:
-  - find angles
-  - how should I position
-  - what's the hook
-  - why isn't this selling
-  - differentiate this
+description: >
+  Find the angle that makes something sell. Use this skill whenever the user
+  mentions positioning, angles, differentiation, unique selling proposition,
+  'how do I stand out', 'what makes us different', value proposition, messaging
+  framework, or 'find the hook'. Also trigger when copy isn't converting (often
+  a positioning problem), when marketing feels generic, when launching a product,
+  creating a lead magnet, writing a landing page, or entering a crowded market.
+  Even if the user is about to write copy without established positioning, run
+  this first — the angle informs everything downstream. Generates 3-5 positioning
+  angles with competitive web research and validation.
 ---
 
 
@@ -35,9 +30,7 @@ This skill finds those angles.
 
 ## Brand memory integration
 
-Read `./brand/` per `_system/brand-memory.md`
-
-**Reads:** `audience.md`, `competitors.md` (if they exist)
+**Reads:** `audience.md`, `competitors.md`, `voice-profile.md` (if they exist)
 
 On invocation, check for `./brand/` and load available context:
 
@@ -173,6 +166,12 @@ Before generating angles, search the web for real competitor messaging. This gro
 
 **Why this matters:** Angles built on white space outperform angles that echo the market. If every competitor says "all-in-one platform," that phrase is dead. The competitive search reveals what NOT to say and where opportunity lives.
 
+**If web search is unavailable:**
+1. Use `./brand/competitors.md` if it exists — extract messaging data from previous competitive intel.
+2. If no competitors.md exists, ask the user to name 2-3 competitors and describe their positioning.
+3. If no competitor data is available at all, skip the competitive landscape map and note the limitation: "Angles are not competitively grounded. Run /competitive-intel first for stronger differentiation."
+4. Proceed to Step 3 with whatever context is available — the skill still works without competitive data, just at a lower enhancement level.
+
 ---
 
 ### Step 3: Find the unique mechanism
@@ -304,9 +303,21 @@ Works when: Risk is the primary objection. Confidence in delivery is high.
 
 ---
 
+## Progressive Enhancement Levels
+
+| Level | Context Available | Output Quality |
+|-------|------------------|---------------|
+| L0 | Product description only, no web search | 3-5 angles from frameworks, no competitive grounding |
+| L1 | + audience.md | Audience-aware angles, pain-point-driven psychology |
+| L2 | + competitors.md | Competitively grounded angles, gap-exploiting positioning |
+| L3 | + web search for live competitive messaging | Real-time white space identification, verified saturated claims |
+| L4 | + existing positioning.md (refinement) | Evolved angles with market shift tracking |
+
+---
+
 ## Output format
 
-Follow `_system/output-format.md` strictly. All output uses the four required sections: Header, Content, Files Saved, What's Next.
+All output uses the four required sections: Header, Content, Files Saved, What's Next.
 
 ### Header
 
@@ -337,61 +348,7 @@ Present the competitive search findings first (see Step 2.5 format above).
 
 ### Content: Angle Options
 
-Use numbered options with ★ recommendation per `output-format.md`:
-
-```
-  ANGLE OPTIONS
-
-  ①  [ANGLE NAME]                     ★ recommended
-     Statement: [one sentence positioning]
-     Psychology: [why this works with this audience]
-     Headline: "[example headline]"
-     Best for: [market conditions, audience segments]
-
-  ──────────────────────────────────────────────
-
-  ②  [ANGLE NAME]
-     Statement: [one sentence positioning]
-     Psychology: [why this works with this audience]
-     Headline: "[example headline]"
-     Best for: [market conditions, audience segments]
-
-  ──────────────────────────────────────────────
-
-  ③  [ANGLE NAME]
-     Statement: [one sentence positioning]
-     Psychology: [why this works with this audience]
-     Headline: "[example headline]"
-     Best for: [market conditions, audience segments]
-
-  ──────────────────────────────────────────────
-
-  ④  [ANGLE NAME]
-     Statement: [one sentence positioning]
-     Psychology: [why this works with this audience]
-     Headline: "[example headline]"
-     Best for: [market conditions, audience segments]
-
-  ──────────────────────────────────────────────
-
-  ⑤  [ANGLE NAME]
-     Statement: [one sentence positioning]
-     Psychology: [why this works with this audience]
-     Headline: "[example headline]"
-     Best for: [market conditions, audience segments]
-```
-
-Present 3-5 options. Place ★ recommended on the single best option for their situation. After the options, include a brief rationale:
-
-```
-  ──────────────────────────────────────────────
-
-  Why ★ [Angle Name]: [1-2 sentences explaining
-  why this is the strongest fit for their market
-  stage, audience, and competitive white space]
-```
-
-Then ask: "Which angle resonates? Pick a number, or tell me to combine elements from multiple."
+Present 3-5 numbered angle options using circled numbers (①②③④⑤). Each option includes: Statement (one sentence), Psychology (why it works), Headline (example), Best for (conditions). Mark the strongest with ★ recommended, then explain why in 1-2 sentences. Ask: "Which angle resonates? Pick a number, or tell me to combine elements from multiple."
 
 ### Files Saved
 
@@ -434,253 +391,17 @@ If the file already existed and was updated:
 
 ## File output protocol
 
-When the user selects an angle (or confirms the recommended one), write `./brand/positioning.md` with this format:
+When the user selects an angle, write `./brand/positioning.md` with: Last Updated date, Primary Positioning (angle name, statement, psychology, headline direction, best for), Competitive Landscape Summary (sophistication stage, saturated claims, white space), and All Angles Explored (statement + headline for each generated angle, marking the selected one).
 
-```markdown
-## Last Updated
-[Date] by /positioning-angles
-
-## Primary Positioning
-
-Angle: [Selected angle name]
-Statement: [One sentence positioning]
-Psychology: [Why this works]
-Headline direction: "[Example headline]"
-Best for: [Market conditions]
-
-## Competitive Landscape Summary
-
-Sophistication: Stage [N] -- [stage name]
-Primary alternative: [what customers do instead]
-
-Saturated claims:
-- [Claim 1]
-- [Claim 2]
-- [Claim 3]
-
-White space identified:
-- [Gap 1]
-- [Gap 2]
-
-## All Angles Explored
-
-### Angle 1: [Name] (selected)
-- Statement: [...]
-- Headline: "[...]"
-
-### Angle 2: [Name]
-- Statement: [...]
-- Headline: "[...]"
-
-### Angle 3: [Name]
-- Statement: [...]
-- Headline: "[...]"
-
-[Continue for all angles generated]
-```
-
-**If `./brand/positioning.md` already exists:**
-1. Read the existing file
-2. Show the user what will change: "Your current positioning focuses on '[current angle].' The new version shifts to '[new angle].' Key changes: ..."
-3. Ask for confirmation: "Replace the existing file? (y/n)"
-4. Only overwrite after explicit confirmation
-5. Confirm: "Updated your positioning at ./brand/positioning.md"
+If `./brand/positioning.md` already exists, show what will change ("Your current positioning focuses on X, the new version shifts to Y"), ask for confirmation, and only overwrite after explicit approval.
 
 ---
 
 ## 12-ad matrix seed (optional)
 
-After the user selects an angle, offer:
+After the user selects an angle, offer to generate a 12-ad testing matrix: 4 hooks (direct statement, question, proof, contrarian) across 3 formats (static image, video, carousel). Each cell gets a unique ID for performance tracking.
 
-"Want me to generate a testing matrix for this angle? I'll map 4 hooks across 3 formats for a 12-ad testing grid."
-
-If yes, produce the matrix:
-
-```
-──────────────────────────────────────────────────
-
-  AD TESTING MATRIX
-  Angle: [selected angle name]
-
-──────────────────────────────────────────────────
-
-       │ Format A        │ Format B       │ Format C
-       │ (Static Image)  │ (Video)        │ (Carousel)
-  ─────┼─────────────────┼────────────────┼──────────────
-  H1   │ MA-H1-A         │ MA-H1-B        │ MA-H1-C
-       │ [hook 1 + fmt]  │ [hook 1 + fmt] │ [hook 1 + fmt]
-  ─────┼─────────────────┼────────────────┼──────────────
-  H2   │ MA-H2-A         │ MA-H2-B        │ MA-H2-C
-       │ [hook 2 + fmt]  │ [hook 2 + fmt] │ [hook 2 + fmt]
-  ─────┼─────────────────┼────────────────┼──────────────
-  H3   │ MA-H3-A         │ MA-H3-B        │ MA-H3-C
-       │ [hook 3 + fmt]  │ [hook 3 + fmt] │ [hook 3 + fmt]
-  ─────┼─────────────────┼────────────────┼──────────────
-  H4   │ MA-H4-A         │ MA-H4-B        │ MA-H4-C
-       │ [hook 4 + fmt]  │ [hook 4 + fmt] │ [hook 4 + fmt]
-
-──────────────────────────────────────────────────
-```
-
-**Matrix structure:**
-- 4 rows = 4 different hooks derived from the selected angle
-  - H1: The direct statement hook (lead with the claim)
-  - H2: The question hook (lead with curiosity)
-  - H3: The proof hook (lead with evidence)
-  - H4: The contrarian hook (lead with a challenge)
-
-- 3 columns = 3 ad formats
-  - Format A: Static image (single visual + headline)
-  - Format B: Video (talking head or motion + headline)
-  - Format C: Carousel (multi-slide story)
-
-**Each cell contains:**
-- Cell ID (e.g., MA-H1-A) for tracking
-- Hook text tailored to the format
-- Visual concept (1 sentence)
-- Primary text (ad body, 1-2 sentences)
-- CTA text
-
-**After generating the matrix:**
-- Ask which cells to develop first
-- Suggest: "Pick 3-4 cells and I can hand them to /creative for production"
-- Note: "The cell IDs let you track performance back to specific hook/format combos"
-
----
-
-## Example: Finding angles for a "Claude Skills Pack"
-
-### Context
-- Product: 10 marketing skills for Claude Code
-- Transformation: Better marketing output without becoming a marketer
-- Alternatives: Generic prompting, hiring copywriters, learning marketing yourself
-- Mechanism: Skills transfer expertise through principles, not just prompts
-
-### Competitive Landscape (example)
-
-```
-──────────────────────────────────────────────────
-
-  COMPETITIVE MESSAGING LANDSCAPE
-
-──────────────────────────────────────────────────
-
-  Competitors Analyzed
-  ├── PromptBase -- "Find the best prompts"
-  ├── Jasper -- "AI copilot for enterprise
-  │   marketing teams"
-  ├── Copy.ai -- "GTM AI platform"
-  └── Generic prompt packs on Gumroad
-
-  ──────────────────────────────────────────────
-
-  Saturated Claims
-  ├── "Save hours on content creation"
-  ├── "AI-powered marketing"
-  └── "Generate copy in seconds"
-
-  Partially Claimed
-  ├── "Enterprise-grade" -- Jasper only
-  └── "Marketplace model" -- PromptBase only
-
-  Underexploited Territory
-  ├── Nobody frames it as expertise transfer
-  │   (not just prompt shortcuts)
-  ├── The "methodology-inside" angle is
-  │   wide open (prompts vs. principles)
-  └── Solo founders/builders have no
-  │   champion in this space
-
-──────────────────────────────────────────────────
-```
-
-### Market Assessment
-
-```
-  MARKET ASSESSMENT
-
-  Sophistication: Stage 3 -- mechanism needed
-  Transformation: Better marketing output
-                  without becoming a marketer
-  Mechanism: Skills encode marketing
-             principles, not just prompts
-  Primary alternative: Generic AI prompting
-                       or hiring a copywriter
-```
-
-### Angle Options
-
-```
-  ①  THE CAPABILITY TRANSFER              ★ recommended
-     Statement: Give Claude marketing
-     superpowers so you don't need them
-     yourself
-     Psychology: Buyers want the outcome
-     without the learning curve
-     Headline: "Turn Claude into a marketing
-     team that actually sells."
-     Best for: Technical/builder audience,
-     not marketing-focused
-
-  ──────────────────────────────────────────────
-
-  ②  THE ANTI-GENERIC
-     Statement: Stop getting generic AI output
-     that sounds like everyone else
-     Psychology: Universal frustration with AI
-     output quality -- taps into existing pain
-     Headline: "Same Claude. Different playbook.
-     10x output."
-     Best for: Audience that has tried Claude
-     and been disappointed with results
-
-  ──────────────────────────────────────────────
-
-  ③  THE METHODOLOGY TRANSFER
-     Statement: Packaged expertise from $400k+
-     in real results
-     Psychology: Credibility through specific
-     proof, not theory
-     Headline: "The marketing methodology behind
-     $400k+ in 9 months -- now packaged for
-     Claude."
-     Best for: Results-focused audience that
-     values proven systems over promises
-
-  ──────────────────────────────────────────────
-
-  ④  THE TIME RECAPTURE
-     Statement: Stop spending hours on AI
-     babysitting
-     Psychology: Quantifies the hidden cost of
-     the current approach
-     Headline: "You're burning 10+ hours a month
-     on AI babysitting. Skills fix this."
-     Best for: Time-constrained audience,
-     values efficiency over features
-
-  ──────────────────────────────────────────────
-
-  ⑤  THE SPECIALIST UNLOCK
-     Statement: Access copywriter/marketer
-     expertise without hiring one
-     Psychology: Positions against the expensive
-     alternative
-     Headline: "Specialist marketing output
-     without specialist costs."
-     Best for: Audience that has considered
-     hiring but balked at price
-
-  ──────────────────────────────────────────────
-
-  Why ★ The Capability Transfer: At Stage 3,
-  the market needs a mechanism. This angle
-  frames skills as expertise transfer (not
-  prompt shortcuts), which is the white space
-  no competitor occupies. It also matches the
-  builder audience who wants outcomes without
-  learning marketing themselves.
-```
+> See references/ad-matrix-and-examples.md for the full matrix template, cell structure, and the complete Claude Skills Pack worked example.
 
 ---
 
@@ -730,44 +451,17 @@ Before delivering angles, verify each one:
 
 ## Iteration and update mode
 
-When `./brand/positioning.md` already exists, the skill enters update mode:
+This section adds detail to the iteration path described in "Brand memory integration" step 1. When `./brand/positioning.md` already exists, display current primary angle and offer: "Refine this, or start fresh?"
 
-### Display current state
+**Refine mode:** Load existing angles, run fresh competitive web search, compare new landscape to saved landscape, identify shifts (new competitors, new saturated claims, new white space), and suggest specific adjustments. Present 1-3 refined variations alongside the original. Let the user choose to keep, tweak, or replace.
 
-```
-  CURRENT POSITIONING
-
-  Primary angle: [angle name from file]
-  Statement: [current statement]
-  Last updated: [date from file]
-
-  ──────────────────────────────────────────────
-
-  Options: Refine this, or start fresh?
-```
-
-### Refine mode
-
-1. Load existing angles from positioning.md
-2. Run fresh competitive web search to see what has changed
-3. Compare new landscape to the landscape saved in positioning.md
-4. Identify shifts: new competitors, new saturated claims, new white space
-5. Suggest specific adjustments to the existing angle:
-   - "Your current angle still has white space. No changes needed."
-   - "Two competitors now use similar messaging. Consider sharpening to [suggestion]."
-   - "New white space opened up around [topic]. Consider pivoting to [suggestion]."
-6. Present 1-3 refined angle variations alongside the original
-7. Let the user choose to keep, tweak, or replace
-
-### Start fresh mode
-
-Run the complete process from Step 1 as if no positioning exists. Previous positioning.md is preserved until the user explicitly confirms the replacement.
+**Start fresh mode:** Run the complete process from Step 1. Previous positioning.md is preserved until the user explicitly confirms the replacement.
 
 ---
 
 ## Feedback collection
 
-After delivering the final angle selection and writing to positioning.md, present the standard feedback prompt per `_system/brand-memory.md`:
+After delivering the final angle selection and writing to positioning.md:
 
 ```
   How did this perform?
@@ -802,3 +496,4 @@ For deeper frameworks, see the `references/` folder:
 - `unique-mechanism.md` -- How to find and name your mechanism
 - `angle-frameworks.md` -- Halbert, Ogilvy, Hopkins, Bencivenga, Kennedy approaches
 - `hormozi-offer.md` -- Value equation and Grand Slam Offer thinking
+- `ad-matrix-and-examples.md` -- 12-ad testing matrix template and full Claude Skills Pack worked example

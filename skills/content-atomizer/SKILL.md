@@ -1,7 +1,7 @@
 ---
 name: content-atomizer
 description: |
-  Take one piece of long-form content and atomize it into 10-20 platform-specific posts. Turns blog posts, podcasts, videos, and newsletters into Twitter threads, LinkedIn posts, Reddit comments, Instagram carousels, and email snippets. Use when someone has existing content and wants to distribute it across platforms, says 'repurpose', 'atomize', 'social posts', 'content distribution', 'cross-post', 'turn this into tweets', or wants maximum reach from minimum content creation effort.
+  Take one piece of long-form content and atomize it into 10-20 platform-specific posts across 8 platforms (Twitter/X, LinkedIn, Instagram, Reddit, TikTok, YouTube, Threads, Bluesky). Turns blog posts, podcasts, videos, and newsletters into native social content for each platform. Use this skill whenever someone has existing content they want to distribute — even if they don't say 'atomize' explicitly. Triggers include: 'repurpose this', 'turn this into posts', 'social content from my blog', 'I wrote an article and want to promote it', 'cross-post this', 'content distribution', 'break this down for social', 'I have a podcast episode', 'turn this video into clips', 'make social posts from this', 'content calendar from this article', or any request to get more mileage from existing content.
 category: content
 tier: core
 reads:
@@ -31,8 +31,17 @@ You take one piece of long-form content and extract 10-20 standalone social post
 
 1. Read `brand/voice-profile.md` — maintain consistent voice across platforms
 2. Read `brand/audience.md` — know which platforms matter and how the audience behaves on each
-3. Accept the source content (blog post, newsletter, video transcript, podcast transcript)
-4. If no source provided, check `marketing/content/` for recent articles
+3. Load `references/platform-specs.md` for the quick reference table, then load individual platform files from `references/platforms/` as needed (linkedin.md, twitter.md, instagram.md, tiktok.md, youtube.md, threads.md, bluesky.md, reddit.md)
+4. Accept the source content (blog post, newsletter, video transcript, podcast transcript)
+5. If no source provided, check `marketing/content/` for recent articles
+
+### Zero Context (No Brand Files)
+
+If brand files don't exist, the skill still works:
+
+- **No voice-profile.md**: Write in a clear, professional default voice. Ask the user for 2-3 adjectives describing their brand tone.
+- **No audience.md**: Default to all platforms. Ask which platforms matter most to them.
+- The skill always works — brand files enhance, never gate.
 
 ---
 
@@ -65,15 +74,17 @@ Tag each extraction with its type. This is your raw material inventory.
 
 Each extraction type maps naturally to specific platforms and formats:
 
-| Extraction Type | Twitter/X | LinkedIn | Instagram | Reddit |
-|----------------|-----------|----------|-----------|--------|
-| Key insight | Single tweet | Text post | Carousel slide | Comment/post |
-| Quotable line | Quote tweet | Text post with context | Quote graphic caption | — |
-| Stats/data | Data tweet | Data post with analysis | Infographic caption | Data post |
-| Story | Thread opener | Story post | Story caption | Long-form post |
-| Contrarian take | Hot take tweet | Debate post | — | Discussion post |
-| Step-by-step | Thread | Carousel/document | Carousel | How-to post |
-| List | Thread or single | Listicle post | Carousel | List post |
+| Extraction Type | Twitter/X | LinkedIn | Instagram | Reddit | TikTok | YouTube | Threads | Bluesky |
+|----------------|-----------|----------|-----------|--------|--------|---------|---------|---------|
+| Key insight | Single tweet | Text post | Carousel slide | Comment/post | Hot take (15s) | Short (30s) | Single post | Single post |
+| Quotable line | Quote tweet | Text post with context | Quote graphic caption | — | Green screen | — | Quote-post | Thoughtful take |
+| Stats/data | Data tweet | Data post with analysis | Infographic caption | Data post | Data reveal (20s) | Short (30s) | Mini-thread | Link post |
+| Story | Thread opener | Story post | Story caption | Long-form post | Story format (30-60s) | Long-form (8-12m) | Conversational post | Experience report |
+| Contrarian take | Hot take tweet | Debate post | — | Discussion post | Controversy spark (15s) | Short (15s) | Friendly disagreement | Informed take |
+| Step-by-step | Thread | Carousel/document | Carousel | How-to post | Tutorial (30-60s) | Long-form (8-12m) | Mini-thread | Thread |
+| List | Thread or single | Listicle post | Carousel | List post | Listicle (20s) | Short (45s) | Single post | Single post |
+
+Load the specific platform file from `references/platforms/` for full playbooks, algorithm signals, templates, and hook formulas.
 
 ### Step 3: Write Platform-Native Posts
 
@@ -246,8 +257,14 @@ marketing/social/{source-slug}/
 ├── twitter-singles.md    # 5-8 standalone tweets
 ├── linkedin-posts.md     # 3-5 LinkedIn posts
 ├── instagram-captions.md # 2-3 captions with carousel briefs
-└── reddit-posts.md       # 1-2 Reddit posts with subreddit targets
+├── reddit-posts.md       # 1-2 Reddit posts with subreddit targets
+├── tiktok-scripts.md     # 1-2 short video scripts (15-60s)
+├── youtube-shorts.md     # 1-2 YouTube Shorts scripts
+├── threads-posts.md      # 2-3 Threads posts or mini-threads
+└── bluesky-posts.md      # 2-3 Bluesky posts
 ```
+
+Only generate files for platforms the user wants. If no preference stated, generate for all 8 platforms. If source content is short (under 500 words), reduce to 6-10 posts across fewer platforms rather than stretching thin.
 
 Each post includes:
 
@@ -274,8 +291,25 @@ status: draft
 | LinkedIn | 8-10am Tue-Thu | 3-5x weekly |
 | Instagram | 11am-1pm, 7-9pm | 4-7x weekly |
 | Reddit | 6-9am, varies by sub | 2-3x weekly |
+| TikTok | 7-9pm Tue/Thu | 3-5x weekly |
+| YouTube Shorts | 9-11am Sat | 2-3x weekly |
+| Threads | 9-11am daily | 3-5x weekly |
+| Bluesky | 10am-12pm weekdays | 3-5x weekly |
 
 Space out atomized content over 1-2 weeks. Don't dump everything the same day.
+
+---
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails | Instead |
+|-------------|-------------|---------|
+| Copy-paste the same text across platforms | Platform algorithms detect duplicate content and suppress it. Users who follow you on multiple platforms see identical posts and feel spammed. Each platform has different character limits, norms, and audience expectations. | Rewrite natively for each platform's format and voice |
+| Reuse the same hook pattern in a batch | When 5 posts in a row start with "Here's what I learned:", the algorithm treats it as low-variety content and your audience scrolls past. Batch monotony is the #1 tell of AI-generated content. | Vary hook formulas — alternate numbers, stories, contrarian, question |
+| Atomize everything regardless of source length | A 300-word email stretched to 15 posts produces hollow filler. Each post needs a standalone insight — if the source doesn't have enough, the posts won't have enough. | Under 500 words → 6-10 posts max. Under 200 words → don't atomize |
+| Post all atomized content the same day | Followers see 8 posts from you in one feed scroll and either mute or unfollow. Algorithms also penalize velocity spikes from a single account. | Space over 1-2 weeks with variety in timing |
+| Ignore platform culture (marketing speak on Reddit, hashtag spam on Twitter) | Reddit moderators remove overt marketing. Twitter's algorithm deprioritizes hashtag-heavy tweets. Each platform's community has unwritten rules about tone and format. | Read the platform rules in this skill and adapt |
+| Over-hashtag | Twitter and LinkedIn algorithms now treat excessive hashtags as spam signals. On Reddit, hashtags don't exist. Only Instagram still rewards them, and even there the trend is toward fewer. | Twitter: 0-1. LinkedIn: 3-5 at bottom. Instagram: 5-15. Reddit: 0 |
 
 ---
 

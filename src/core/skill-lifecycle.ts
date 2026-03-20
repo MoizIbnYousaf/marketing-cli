@@ -38,7 +38,7 @@ const VALID_CATEGORIES: readonly SkillCategory[] = [
 ];
 
 const VALID_LAYERS: readonly SkillLayer[] = [
-  "foundation", "strategy", "execution", "distribution",
+  "foundation", "strategy", "execution", "distribution", "orchestrator",
 ];
 
 const VALID_TIERS = ["must-have", "nice-to-have"] as const;
@@ -248,7 +248,7 @@ export const buildGraph = (manifest: SkillsManifest): SkillGraph => {
   const nodes: SkillGraphNode[] = [];
   const edges: SkillGraphEdge[] = [];
   const layerMap: Record<SkillLayer, string[]> = {
-    foundation: [], strategy: [], execution: [], distribution: [],
+    foundation: [], strategy: [], execution: [], distribution: [], orchestrator: [],
   };
   const dependedOnBy: Record<string, string[]> = {};
 
@@ -315,6 +315,7 @@ export const buildGraph = (manifest: SkillsManifest): SkillGraph => {
       strategy: layerMap.strategy,
       execution: layerMap.execution,
       distribution: layerMap.distribution,
+      orchestrator: layerMap.orchestrator,
     },
     order,
     hasCycles,

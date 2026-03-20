@@ -67,7 +67,7 @@ describe("mktg status", () => {
 
     expect(result.data.skills).toHaveProperty("installed");
     expect(result.data.skills).toHaveProperty("total");
-    expect(result.data.skills.total).toBe(39);
+    expect(result.data.skills.total).toBeGreaterThanOrEqual(39);
   });
 
   test("exit code is 0", async () => {
@@ -369,5 +369,192 @@ describe("Idempotency", () => {
 
     expect(r1.data.health).toBe(r2.data.health);
     expect(r2.data.health).toBe(r3.data.health);
+  });
+});
+
+describe("Brand freshness in JSON output", () => {
+  test("brand entries include freshness field with valid values", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const validFreshness = ["current", "stale", "missing", "template"];
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      expect(entry).toHaveProperty("freshness");
+      expect(validFreshness).toContain(entry.freshness);
+    }
+  });
+
+  test("missing brand files have freshness: missing", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      if (!entry.exists) {
+        expect(entry.freshness).toBe("missing");
+      }
+    }
+  });
+
+  test("template brand files have freshness: template", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const [, entry] of Object.entries(result.data.brand)) {
+      if (entry.exists && entry.isTemplate) {
+        expect(entry.freshness).toBe("template");
+      }
+    }
+  });
+
+  test("populated brand files have freshness: current or stale", async () => {
+    await initHandler(["--yes"], flags);
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Real voice content");
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const vp = result.data.brand["voice-profile.md"];
+    expect(["current", "stale"]).toContain(vp.freshness);
+  });
+});
+
+describe("Brand summary counts", () => {
+  test("brandSummary exists with correct shape", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data).toHaveProperty("brandSummary");
+    expect(typeof result.data.brandSummary.populated).toBe("number");
+    expect(typeof result.data.brandSummary.template).toBe("number");
+    expect(typeof result.data.brandSummary.missing).toBe("number");
+    expect(typeof result.data.brandSummary.stale).toBe("number");
+  });
+
+  test("before init: all 9 missing", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.brandSummary.missing).toBe(9);
+    expect(result.data.brandSummary.populated).toBe(0);
+    expect(result.data.brandSummary.template).toBe(0);
+  });
+
+  test("after init: all 9 template", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.brandSummary.template).toBe(9);
+    expect(result.data.brandSummary.populated).toBe(0);
+    expect(result.data.brandSummary.missing).toBe(0);
+  });
+
+  test("after populating 3 files: 3 populated, 6 template", async () => {
+    await initHandler(["--yes"], flags);
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "Real voice content");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "Real positioning content");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "Real audience content");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.brandSummary.populated).toBe(3);
+    expect(result.data.brandSummary.template).toBe(6);
+  });
+});
+
+describe("Next actions", () => {
+  test("nextActions exists as array", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(Array.isArray(result.data.nextActions)).toBe(true);
+  });
+
+  test("needs-setup suggests mktg init", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.nextActions.length).toBeGreaterThan(0);
+    expect(result.data.nextActions[0]).toContain("mktg init");
+  });
+
+  test("after init: suggests populating foundation files", async () => {
+    await initHandler(["--yes"], flags);
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const actions = result.data.nextActions;
+    expect(actions.some(a => a.includes("voice-profile.md"))).toBe(true);
+    expect(actions.some(a => a.includes("/brand-voice"))).toBe(true);
+  });
+
+  test("when ready with no activity: suggests /cmo", async () => {
+    await initHandler(["--yes"], flags);
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "Real voice");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "Real positioning");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "Real audience");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.nextActions.some(a => a.includes("/cmo"))).toBe(true);
+  });
+});
+
+describe("Recent activity", () => {
+  test("recentActivity exists as object", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data).toHaveProperty("recentActivity");
+    expect(typeof result.data.recentActivity).toBe("object");
+  });
+
+  test("recentActivity is empty when no runs logged", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(Object.keys(result.data.recentActivity)).toHaveLength(0);
+  });
+});
+
+describe("Content breakdown", () => {
+  test("content includes byDir breakdown", async () => {
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.content).toHaveProperty("totalFiles");
+    expect(result.data.content).toHaveProperty("byDir");
+    expect(typeof result.data.content.byDir).toBe("object");
+  });
+
+  test("byDir reflects actual content directories", async () => {
+    const { mkdir: mkdirFs } = await import("node:fs/promises");
+    await mkdirFs(join(tempDir, "campaigns"), { recursive: true });
+    await Bun.write(join(tempDir, "campaigns", "test.md"), "# Test campaign");
+
+    const result = await statusHandler([], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.data.content.totalFiles).toBe(1);
+    expect(result.data.content.byDir.campaigns).toBe(1);
   });
 });

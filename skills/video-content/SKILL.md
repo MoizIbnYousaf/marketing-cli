@@ -1,6 +1,26 @@
 ---
 name: video-content
-description: "Three-tier video pipeline: ffmpeg Quick (5s, instant) → ffmpeg Enhanced with Ken Burns (15s, polished) → Remotion Animated (60-90s, production-grade). Takes static slides from Paper MCP or any PNGs and assembles them into video. Use when someone has slides and wants video, says 'make video', 'video from slides', 'animate slides', 'render video', 'video content', 'assemble video', 'ffmpeg video', or 'remotion render'. Reads handoff YAML from /paper-marketing for seamless chaining."
+description: "Three-tier video pipeline: ffmpeg Quick (5s, instant) → ffmpeg Enhanced with Ken Burns (15s, polished) → Remotion Animated (60-90s, production-grade). Takes static slides from Paper MCP or any PNGs and assembles them into platform-ready video. Make sure to use this skill whenever the user has slides, images, or PNGs and wants to turn them into video — even if they just say 'make a video from these', 'animate my slides', 'I have images and need a TikTok', or 'stitch these together'. Also use when they mention ffmpeg video assembly, Remotion rendering, Ken Burns effects, or any slides-to-video pipeline. Works with any PNG source — Paper exports, Canva, screenshots, anything."
+category: creative
+tier: core
+reads:
+  - marketing/handoffs/*-handoff.yaml
+  - marketing/content-specs/*.yaml
+  - brand/creative-kit.md
+  - brand/assets.md
+writes:
+  - marketing/video/*/
+  - brand/assets.md
+depends-on: []
+triggers:
+  - make video
+  - video from slides
+  - animate slides
+  - render video
+  - video content
+  - assemble video
+  - ffmpeg video
+  - remotion render
 allowed-tools:
   - Bash(mktg status *)
   - Bash(ffmpeg *)
@@ -70,6 +90,11 @@ Options:
 ### Phase 2: ffmpeg Slice (START bookend)
 
 If input is a tall artboard (not individual slides):
+
+**Where does SLIDE_COUNT come from?**
+- From `artboard.slide_count` in handoff YAML (preferred — exact value)
+- From content spec YAML `slides` array length
+- If neither exists, ask the user: "How many slides are in this image?"
 
 ```bash
 # Detect slide count from image height
@@ -225,6 +250,25 @@ This skill works independently:
 - `ffmpeg` installed (8.0+)
 - `bun` installed (for Remotion v2)
 - For v2: Remotion packages installed automatically during scaffold
+
+## Anti-Patterns
+
+- **Wrong pixel format** — Always use `-pix_fmt yuv420p` for H.264. Without it, some players show a green screen or won't play at all.
+- **Missing faststart** — Always include `-movflags +faststart` for web/social video. Without it, the video won't play until fully downloaded.
+- **Scaling after stitching** — Always scale individual slides BEFORE stitching. Scaling the final video degrades quality.
+- **Skipping the slice step** — Even if the input "looks like" individual slides, verify dimensions. A tall artboard that isn't sliced will produce a single stretched frame.
+- **CRF too high** — CRF 18 is the sweet spot. CRF 23+ looks muddy on mobile. CRF below 15 balloons file size for marginal quality gain.
+- **Assuming Remotion packages exist** — Before importing `@remotion/sfx` or `@remotion/light-leaks`, check if they're real packages. If unavailable, implement SFX with standard `<Audio>` component and light leaks with CSS gradients + opacity animation.
+- **No audio track** — Social platforms may reject videos without an audio track. For v1, add a silent audio track: `-f lavfi -i anullsrc=r=44100:cl=stereo -shortest`.
+
+## Edge Cases
+
+- **ffmpeg not installed** — Check with `which ffmpeg`. If missing, tell the user: "Install ffmpeg: `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux)." Do not proceed without it.
+- **Image height not divisible by slide count** — Round down the slide height. Warn the user that the bottom few pixels may be cropped. This is usually imperceptible.
+- **Remotion render fails** — Common causes: missing fonts (use `@remotion/google-fonts`), missing assets in `public/`, or TypeScript errors. Check the error output and fix before retrying.
+- **Disk space** — Video rendering needs space. A 7-slide v2 project can use 500MB+. Check available space before rendering.
+- **Background music sourcing** — For v1.5, the user must provide a music file. Suggest royalty-free sources: YouTube Audio Library, Pixabay Music, or Uppbeat. Never use copyrighted music.
+- **Corrupted PNG input** — If ffmpeg fails on a specific slide, verify the PNG opens in an image viewer. Re-export from Paper if corrupted.
 
 ## Principles
 

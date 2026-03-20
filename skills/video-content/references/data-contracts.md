@@ -4,7 +4,7 @@ Two YAML files bridge the skills in the video pipeline. Both use filesystem path
 
 ## Handoff YAML
 
-**Written by:** `/paper-marketing` Phase 5.5
+**Written by:** `/paper-marketing` Phase 6
 **Read by:** `/video-content` Phase 1
 **Path:** `marketing/handoffs/{name}-handoff.yaml`
 

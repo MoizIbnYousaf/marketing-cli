@@ -865,57 +865,13 @@ See `references/newsletter-examples.md` for detailed breakdowns of each newslett
 
 ---
 
-# Complete Execution Flow
+# Output Format Reference
 
-## Complete Execution Flow
+## Output Format
 
-When a user invokes this skill, follow this sequence:
+> The execution flow is defined in SKILL.md (Steps 1-6). This section defines the OUTPUT FORMAT to use when presenting the finished newsletter.
 
-```
-1. Load brand context
-   ├── Read voice-profile.md, audience.md, learnings.md
-   ├── Check ./campaigns/newsletters/ for past editions
-   └── Display context loading tree
-
-2. Determine newsletter type
-   ├── If user specifies format → use that
-   ├── If user describes topic only → recommend format
-   └── If unclear → show archetype menu and ask
-
-3. Gather content
-   ├── If news/curated format → run web search
-   ├── If deep-dive/essay → work from user input
-   └── If topic specified → search for supporting data
-
-4. Generate newsletter
-   ├── Apply chosen template
-   ├── Write in brand voice (or default voice)
-   ├── Generate 3 subject line variants
-   ├── Include all template sections
-   └── Apply scannability checklist
-
-5. Present output
-   ├── Show header (NEWSLETTER EDITION)
-   ├── Display subject line variants with recommendation
-   ├── Show full newsletter content
-   ├── Show send-time recommendation
-   └── Note any sources used
-
-6. Save to file
-   ├── Write to ./campaigns/newsletters/{date}-{topic}.md
-   ├── Append to ./brand/assets.md
-   └── Confirm files saved
-
-7. Offer next steps
-   ├── → /content-atomizer (atomize for social)
-   ├── → "Iterate" (revise subject line or sections)
-   ├── → "Different format" (try another archetype)
-   └── → Feedback prompt
-```
-
-### Output Format
-
-Follow `_system/output-format.md` exactly. The newsletter output should use this structure:
+When presenting the finished newsletter, use this structure:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

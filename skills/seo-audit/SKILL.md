@@ -1,10 +1,10 @@
 ---
 name: seo-audit
-description: "When the user wants to audit, review, or diagnose SEO issues, plan site architecture, or implement schema markup. Use when someone says 'SEO audit', 'technical SEO', 'site architecture', 'schema markup', 'internal linking', 'why isn't my site ranking', 'site health check', 'crawl issues', or 'fix my SEO'. Three modes: Full Audit (comprehensive health check), Architecture (URL structure and internal linking), Schema (JSON-LD structured data). Covers crawlability, indexation, Core Web Vitals, and on-page factors."
+description: "When the user wants to audit, review, or diagnose SEO issues, plan site architecture, or implement schema markup. Use when someone says 'SEO audit', 'technical SEO', 'site architecture', 'schema markup', 'internal linking', 'why isn't my site ranking', 'site health check', 'crawl issues', 'fix my SEO', 'my traffic dropped', 'rankings fell', or 'site not ranking'. Also trigger when someone wants to plan URL structure, design navigation, add structured data, or review any website for search performance. Three modes: Full Audit (comprehensive health check), Architecture (URL structure and internal linking), Schema (JSON-LD structured data). Covers crawlability, indexation, Core Web Vitals, and on-page factors."
 category: seo
 tier: core
 reads:
-  - brand/voice.md
+  - brand/voice-profile.md
   - brand/stack.md
   - brand/audience.md
 writes:
@@ -44,10 +44,17 @@ This skill operates in three modes. Select based on what the user needs:
 
 ## On Activation
 
-1. Read `brand/stack.md` if it exists to understand the tech stack
-2. Read `brand/audience.md` if it exists for target audience context
-3. Determine which mode applies based on user request
-4. Ask only for information not already available from brand files
+1. Read `brand/` directory: load `voice-profile.md`, `stack.md`, `audience.md`, `keyword-plan.md` if present.
+2. Show what loaded:
+   ```
+   Brand context loaded:
+   ├── Voice Profile   ✓/✗
+   ├── Tech Stack      ✓/✗
+   ├── Audience        ✓/✗
+   └── Keyword Plan    ✓/✗
+   ```
+3. Determine which mode applies based on user request. If ambiguous, confirm before proceeding.
+4. Ask only for information not already available from brand files.
 
 ---
 
@@ -148,6 +155,8 @@ Before auditing, understand:
 2. High-impact improvements
 3. Quick wins (easy, immediate benefit)
 4. Long-term recommendations
+
+Save the audit report to `marketing/seo/audit-report.md`. For Architecture mode, save to `marketing/seo/site-architecture.md`. For Schema mode, save to `marketing/seo/schema-implementation.md`.
 
 ---
 
@@ -310,6 +319,38 @@ Proceed with all technical audits (crawlability, indexation, site speed, on-page
 - [Architecture Patterns](references/architecture-patterns.md): Site type templates, URL patterns, navigation specs
 - [Schema Templates](references/schema-templates.md): Complete JSON-LD code examples for all common types
 - [AI Writing Detection](references/ai-writing-detection.md): Common AI writing patterns to avoid
+
+---
+
+## Anti-Patterns
+
+- **Scope before you audit.** A 10,000-page audit helps no one — the user needs actionable findings, not a catalog. Prioritize revenue-driving pages, high-traffic pages, and pages that recently dropped. Ask about scope if it's unclear.
+- **Every finding needs evidence.** "Title tags need improvement" is useless. Show the specific title, explain what's wrong, and provide the exact fix. Findings without evidence feel like guesswork and get ignored.
+- **Match tool recommendations to the user's stack.** Check brand/stack.md before suggesting Screaming Frog or Sitebulb — recommending paid tools the user doesn't have wastes their time and yours.
+- **Audit and Architecture are different modes for a reason.** Audit diagnoses what's wrong with existing pages. Architecture plans new structure. If someone asks for an audit, don't redesign their site. If the audit reveals structural issues, suggest switching to Architecture mode.
+- **Prioritization is the deliverable, not the findings.** A list of 50 findings without priority is overwhelming and leads to paralysis. Rank by impact and effort — the user should know what to fix first, second, and third.
+
+---
+
+## Error States
+
+- **Site unreachable / no URL provided:** Ask for the site URL. If site is down, note limitation and audit what's possible from cached/provided content.
+- **No brand files exist:** Proceed with audit using default assumptions. Note: "No brand context loaded — audit is based on general SEO best practices. Run /brand-voice and /keyword-research for targeted recommendations."
+- **Web search unavailable:** Complete technical audit (crawlability, indexation, speed, on-page, schema). Skip competitive benchmarking and SERP position analysis. Note limitation.
+- **Can't access site programmatically:** Rely on user-provided screenshots, HTML, or descriptions. Note which checks require live access.
+- **Scope ambiguous:** Confirm with user before proceeding: "Full site audit, specific pages, or a focus area (technical / on-page / content)?"
+
+---
+
+## Chain Offers
+
+After completing, suggest based on findings:
+
+- `/seo-content` — for content gaps found during audit (missing pages, thin content)
+- `/ai-seo` — if site lacks AI search visibility
+- `/keyword-research` — if audit reveals no keyword strategy
+- `/page-cro` — if pages rank but don't convert
+- `/competitor-alternatives` — if missing comparison/alternatives pages competitors have
 
 ---
 

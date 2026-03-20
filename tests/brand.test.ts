@@ -186,11 +186,26 @@ describe("getBrandStatus", () => {
     expect(assetsStatus?.freshness).toBe("current");
   });
 
-  test("profile files report stale when old", async () => {
+  test("template files report template even when old", async () => {
     await scaffoldBrand(tempDir);
 
-    // Make voice-profile.md old
+    // Make voice-profile.md old — but it's still template content
     const voicePath = join(tempDir, "brand", "voice-profile.md");
+    const oldDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+    await utimes(voicePath, oldDate, oldDate);
+
+    const statuses = await getBrandStatus(tempDir);
+    const voiceStatus = statuses.find((s) => s.file === "voice-profile.md");
+    // Template detection takes priority over age — template content was never customized
+    expect(voiceStatus?.freshness).toBe("template");
+  });
+
+  test("customized old files report stale", async () => {
+    await scaffoldBrand(tempDir);
+
+    // Write non-template content, then make it old
+    const voicePath = join(tempDir, "brand", "voice-profile.md");
+    await Bun.write(voicePath, "# Real Voice\n\nDirect, confident, no BS.");
     const oldDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
     await utimes(voicePath, oldDate, oldDate);
 

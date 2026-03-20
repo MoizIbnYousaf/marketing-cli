@@ -1,7 +1,7 @@
 ---
 name: marketing-demo
 description: |
-  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, or wants to show their product in action. Even if they just say 'show what it does' or 'make a video of the app' — this is the skill.
+  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, landing page video, hero video, product video, app preview video, or wants to show their product in action. Even if they just say 'show what it does', 'make a video of the app', 'I need a demo for my landing page', or 'record the app' — this is the skill. If someone has a working product and needs marketing assets that show it off, start here.
 allowed-tools:
   - Bash(ply *)
   - Bash(ffmpeg *)
@@ -12,13 +12,17 @@ allowed-tools:
 
 Record product demos for marketing. Two production paths: quick (ply + ffmpeg) for rough demos, polished (Remotion) for branded marketing videos.
 
-For brand memory protocol, see /cmo [rules/brand-memory.md](../cmo/rules/brand-memory.md).
+## Reads
+
+- `brand/creative-kit.md` — Colors, fonts, logo paths for branded overlays
+- `brand/voice-profile.md` — Tone guidance for text overlays
+- `brand/stack.md` — Available tools (ply, ffmpeg, remotion)
 
 ## On Activation
 
-1. Read `brand/creative-kit.md` for colors, fonts, logo paths.
-2. Read `brand/voice-profile.md` for tone guidance on text overlays.
-3. Read `brand/stack.md` to confirm available tools.
+1. Read `brand/creative-kit.md` for colors, fonts, logo paths. If missing, ask for brand colors and logo.
+2. Read `brand/voice-profile.md` for tone guidance on text overlays. If missing, use clear/neutral tone.
+3. Read `brand/stack.md` to confirm available tools. If missing, detect tools directly.
 4. Check tool availability:
    ```bash
    command -v ply && echo "ply: ready" || echo "ply: missing"
@@ -35,6 +39,16 @@ For brand memory protocol, see /cmo [rules/brand-memory.md](../cmo/rules/brand-m
 | Feature demo | 2-3s | Time to read + comprehend |
 | Walkthrough | 4-5s | Instructional pacing |
 | Social clip | 1-2s | Attention-grabbing, fast |
+
+## Demo Storytelling Principles
+
+Demos fail when they show the product mechanically instead of telling a story. The viewer needs a reason to keep watching. These principles come from what actually gets engagement on landing pages and social:
+
+1. **Open with the outcome, not the setup.** The first 2 seconds decide if someone watches the rest. Show the "after" state — the dashboard with data, the completed design, the result. Setup (login, loading, navigation) earns zero attention.
+2. **One feature = one demo.** Trying to cram 5 features into 30 seconds makes all of them forgettable. A focused demo of one feature is worth more than a rushed tour.
+3. **Show the magic moment.** Every product has one interaction where users go "oh wow." Find that moment and build the demo around it — it's why people click "try it."
+4. **Add context with text overlays.** Social videos autoplay muted. Without text callouts, viewers see UI changing with no idea what's happening or why it matters. Every shot needs a 3-6 word overlay explaining the value.
+5. **Pacing: 2-3 seconds per concept.** This feels fast, but viewer attention is brutal. If a shot doesn't earn its screen time with new information, cut it.
 
 ## Step 1: Determine Demo Type
 
@@ -135,16 +149,28 @@ src/
 └── Outro.tsx          # CTA + URL
 ```
 
-**Key Remotion patterns:**
+**Key Remotion patterns** (see [references/remotion-examples.md](references/remotion-examples.md) for complete component code):
 - Use `<Img>` for screenshots, `<AbsoluteFill>` for layout
 - `useCurrentFrame()` + `interpolate()` for animations
 - Pull brand colors from `brand/creative-kit.md`
 - 30fps for smooth playback, 1280x720 or 1920x1080
 - Add text overlays calling out features with `<Sequence>`
 
+**Intro scene (2-3s):** Logo centered, tagline fades in. Brand colors as background gradient. Keep it short — the product is the star.
+
+**Demo scene (per shot):** Screenshot fills 80% of frame. Text overlay at top or bottom with 1-line feature callout. Use `interpolate()` for a subtle zoom-in (1.0 → 1.05 over the scene duration) to add life.
+
+**Transition between scenes:** Fade + slight slide (200ms). Never use fancy wipes — they distract from the product.
+
+**Outro scene (3-4s):** CTA text ("Try it free at [url]"), logo, and optional social proof line. This is the only slide that sells — keep all other slides focused on showing.
+
 ### Error Recovery
 
-If ply interaction fails at shot N (page doesn't load, element not found, timeout), skip to shot N+1 and document the failure in the shot list. After all shots complete, review skipped shots and retry once. If still failing, use manual screenshots as fallback.
+**ply failures** (page doesn't load, element not found, timeout): Skip to shot N+1 and document the failure in the shot list. After all shots complete, review skipped shots and retry once. If still failing, use manual screenshots as fallback.
+
+**ffmpeg failures** (codec not found, format error): Check `ffmpeg -codecs` for available codecs. If libx264 is missing, try `-c:v h264` or install via `brew install ffmpeg`. For GIF palette issues, simplify the filter chain — drop `split/palettegen/paletteuse` and use basic `-vf "fps=10,scale=640:-1"`.
+
+**Remotion failures** (render crashes, composition errors): Check node version (`node -v`, needs 18+). If `npx remotion render` fails, try `npx remotion render --gl=angle` or `--gl=swangle` for GPU issues. For composition errors, verify all `<Img>` src paths are correct and images exist.
 
 ## Step 4: Convert & Output
 
@@ -183,6 +209,18 @@ All assets saved to `marketing/demos/`.
 | Instagram | 1080 | 1080 | 1x |
 | Twitter/X | 1200 | 675 | 1x |
 | Email | 600 | 400 | 1x |
+
+## Anti-Patterns
+
+| Mistake | Why It Fails |
+|---------|-------------|
+| Recording login/signup flows | Nobody cares about your auth screen. Start after login. |
+| Showing loading spinners | Edit them out or skip to the loaded state. Spinners kill momentum. |
+| No text overlays on silent autoplay | Social videos autoplay muted. Without text, viewers have no idea what they're watching. |
+| Demo longer than 60s without chapter breaks | Attention drops after 15s. If it's long, add clear section titles. |
+| Recording at inconsistent viewport sizes | Shots that jump between sizes look amateur. Lock viewport before recording. |
+| Showing every feature | Pick 3-5 features max. Demos that show everything sell nothing. |
+| Mouse cursor wandering aimlessly | Plan each click. Cursor should move with purpose — straight lines to targets. |
 
 ## Related Skills
 

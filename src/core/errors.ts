@@ -22,8 +22,8 @@ export const invalidArgs = (message: string, suggestions: readonly string[] = []
 export const missingDep = (dep: string, suggestions: readonly string[] = [], docs?: string): CommandResult<never> =>
   err("MISSING_DEPENDENCY", `Required dependency not found: ${dep}`, suggestions, 3, docs);
 
-export const skillFailed = (skill: string, message: string, docs?: string): CommandResult<never> =>
-  err("SKILL_FAILED", `Skill '${skill}' failed: ${message}`, [], 4, docs);
+export const skillFailed = (skill: string, message: string, suggestions: readonly string[] = [], docs?: string): CommandResult<never> =>
+  err("SKILL_FAILED", `Skill '${skill}' failed: ${message}`, suggestions.length > 0 ? suggestions : [`mktg run ${skill} --help`, "mktg doctor"], 4, docs);
 
 export const networkError = (message: string, docs?: string): CommandResult<never> =>
   err("NETWORK_ERROR", message, ["Check your internet connection"], 5, docs);
@@ -37,6 +37,22 @@ export const missingInput = (example: string): CommandResult<never> =>
     "Non-interactive mode requires --json input",
     [`Example: mktg init --json '${example}'`],
     2,
+  );
+
+export const permissionError = (path: string, operation: string): CommandResult<never> =>
+  err(
+    "PERMISSION_ERROR",
+    `Cannot ${operation} '${path}': permission denied`,
+    [`Check file permissions: ls -la ${path}`, `Try with elevated privileges if appropriate`],
+    1,
+  );
+
+export const ioError = (path: string, message: string): CommandResult<never> =>
+  err(
+    "IO_ERROR",
+    `File operation failed on '${path}': ${message}`,
+    [`Verify the path exists: ls -la ${path}`, "Check disk space and permissions"],
+    1,
   );
 
 // sandboxPath — resolve + verify a path stays within the project root
@@ -98,6 +114,77 @@ export const parseJsonInput = <T>(raw: string): { ok: true; data: T } | { ok: fa
   } catch {
     return { ok: false, message: "Invalid JSON" };
   }
+};
+
+// --- Input hardening: "The agent is not a trusted operator" ---
+
+// Reject control characters in text inputs (skill names, brand content, etc.)
+// Allows tabs and newlines (needed for markdown) but rejects everything else < 0x20
+// plus DEL (0x7F) and Unicode control chars (0x80-0x9F)
+const CONTROL_CHAR_RE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F\x80-\x9F]/;
+
+export const rejectControlChars = (
+  input: string,
+  fieldName: string = "input",
+): { ok: true } | { ok: false; message: string } => {
+  if (CONTROL_CHAR_RE.test(input)) {
+    return { ok: false, message: `${fieldName} contains control characters — these are never valid in marketing content` };
+  }
+  return { ok: true };
+};
+
+// Validate resource IDs (skill names, brand file names, command names)
+// Allows lowercase alphanumeric, hyphens, dots, and file extensions
+// Rejects: ?, #, %, spaces, slashes, unicode, special chars
+const VALID_RESOURCE_ID_RE = /^[a-z0-9][a-z0-9._-]*$/;
+
+export const validateResourceId = (
+  id: string,
+  resourceType: string = "resource",
+): { ok: true } | { ok: false; message: string } => {
+  if (id.length === 0) {
+    return { ok: false, message: `${resourceType} name cannot be empty` };
+  }
+  if (id.length > 128) {
+    return { ok: false, message: `${resourceType} name exceeds 128 character limit` };
+  }
+  if (!VALID_RESOURCE_ID_RE.test(id)) {
+    return { ok: false, message: `${resourceType} name '${id}' contains invalid characters — use lowercase letters, numbers, hyphens, and dots only` };
+  }
+  return { ok: true };
+};
+
+// Detect double-encoded strings (e.g., %252F for /, %252E%252E for ..)
+// These can bypass path validation if decoded after sandboxing
+export const detectDoubleEncoding = (
+  input: string,
+): { ok: true } | { ok: false; message: string } => {
+  // Check for percent-encoded percent signs (%25) which indicate double encoding
+  if (/%25[0-9a-fA-F]{2}/.test(input)) {
+    return { ok: false, message: "Double-encoded input detected — this is never valid" };
+  }
+  // Check for common double-encoded traversal patterns
+  if (input.includes("%2e%2e") || input.includes("%2E%2E") || input.includes("%2f") || input.includes("%2F")) {
+    return { ok: false, message: "URL-encoded path components detected — use plain paths" };
+  }
+  return { ok: true };
+};
+
+// Combined input validation for paths — runs all checks
+export const validatePathInput = (
+  root: string,
+  untrusted: string,
+): { ok: true; path: string } | { ok: false; message: string } => {
+  // Step 1: Reject control characters
+  const controlCheck = rejectControlChars(untrusted, "path");
+  if (!controlCheck.ok) return controlCheck;
+
+  // Step 2: Detect double encoding before any decoding
+  const encodingCheck = detectDoubleEncoding(untrusted);
+  if (!encodingCheck.ok) return encodingCheck;
+
+  // Step 3: Validate with sandboxPath (traversal, symlinks, absolute)
+  return sandboxPath(root, untrusted);
 };
 
 // Map exit code to human label (for TTY output)

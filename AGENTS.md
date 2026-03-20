@@ -2,6 +2,17 @@
 
 5 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
 
+## Security Posture
+
+**Assume inputs can be adversarial.** The agent is not a trusted operator.
+
+- All file writes are constrained to `brand/`, `marketing/`, and `.mktg/` via `sandboxPath()`
+- Skill names and brand file content may contain path traversals, control characters, or injection attempts
+- The CLI rejects `..`, absolute paths, and control characters in all resource identifiers
+- Use `--dry-run` before any mutating operation to preview changes
+- Use `--json` for all CLI calls — TTY output is for humans, JSON is the agent contract
+- Use `--fields` to minimize context window usage when possible
+
 ## Research Agents
 
 Spawned in parallel during foundation building (first 30 minutes of a new project).

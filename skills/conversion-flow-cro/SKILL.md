@@ -1,7 +1,7 @@
 ---
 name: conversion-flow-cro
 description: |
-  Optimizes multi-step conversion flows including signup, onboarding, upgrade, and checkout. Maps each step, identifies friction and drop-off risks, then recommends specific copy/UX changes with A/B test plans. Use when someone says 'signup flow', 'onboarding optimization', 'checkout conversion', 'paywall optimization', 'activation rate', 'funnel analysis', 'why are users dropping off', or wants to improve any multi-step user journey. If they mention a flow with multiple steps that leads to conversion, this is the skill.
+  Optimizes multi-step conversion flows including signup, onboarding, upgrade, and checkout. Maps each step, identifies friction and drop-off risks, then recommends specific copy/UX changes with A/B test plans. Use when someone says 'signup flow', 'onboarding optimization', 'checkout conversion', 'paywall optimization', 'activation rate', 'funnel analysis', 'why are users dropping off', 'registration flow', 'trial conversion', 'free to paid', 'upgrade flow', 'user journey', or wants to improve any multi-step user journey. If they mention steps, screens, or a sequence that leads to signup, payment, or activation, this is the skill. Even casual mentions like 'users aren't finishing signup' or 'our onboarding sucks' should trigger this. Use this instead of page-cro when the problem spans multiple screens rather than a single page.
 allowed-tools: []
 ---
 
@@ -14,10 +14,26 @@ Audit and optimize any multi-step conversion flow — signup, onboarding, trial-
 ## Reads
 
 - `brand/audience.md` — Personas, pain points, motivation levels at each stage
+- `brand/positioning.md` — Value props for reinforcement copy at each step
+- `brand/voice-profile.md` — Brand voice for all copy suggestions
+
+## Brand Integration
+
+- **audience.md** — Persona determines friction tolerance. A developer persona accepts more setup steps; a non-technical buyer needs fewer. Pain points inform which value reminders to show at each step.
+- **positioning.md** — Value proposition reinforcement copy at each step should echo the positioning angle. If the brand positions on "saves time," every motivation booster references time savings.
+- **voice-profile.md** — All redesigned copy (headlines, CTAs, supporting text) must match brand voice. A casual brand writes "Almost there!" while a professional brand writes "One final step."
 
 ## Workflow
 
 ### Step 1: Map the Current Flow
+
+Get the flow information. Try these in order:
+1. **User provides screenshots or screen recordings** — Best source, map directly
+2. **Read the codebase** — If accessible, find route files, page components, and form definitions
+3. **User walks through the flow verbally** — Accept but flag that recommendations will be more accurate with actual screens
+4. **Use browser tool on live URL** — Walk through the flow step by step
+
+If the flow is partially provided (only some screens), audit what's available and note which steps need investigation.
 
 Document every screen/step in the flow:
 
@@ -191,6 +207,8 @@ For each high-impact change, define a test:
 - "You're all set. Here's what to do first:"
 - "[Product] is ready. Your first [outcome] is [X] away."
 
+See `references/flow-benchmarks.md` for completion rate benchmarks by flow type, step-by-step drop-off patterns, mobile-specific data, and A/B test priorities. Use these to ground recommendations in real numbers.
+
 ## Output
 
 Each flow audit produces:
@@ -200,6 +218,22 @@ Each flow audit produces:
 - Prioritized A/B test suggestions
 - Before/after comparison of total flow friction score
 - Implementation checklist ordered by impact
+
+## Anti-Patterns
+
+- Don't remove security steps (2FA, email verification) — flag them as necessary friction and suggest making them smoother, not removing them
+- Don't skip legally required fields (KYC, age verification, GDPR consent) — these stay; optimize their placement and copy instead
+- Don't simplify past compliance requirements — if a step exists for legal reasons, note it and move on
+- Don't suggest removing steps without understanding the business logic behind them — ask first
+- Don't use fake urgency (countdown timers, "only 2 left") — the "Urgency Without Sleaze" principles apply
+- Don't optimize for signup completion at the expense of user quality — vanity signups that never activate are worse than fewer, engaged signups
+
+## Edge Cases
+
+- **Partial flow information:** Audit available steps, clearly flag gaps, and ask the user for the missing screens before finalizing recommendations.
+- **Mobile vs. desktop divergence:** If the flow differs by platform, audit both. Mobile-specific issues: tap targets, keyboard types for input fields, thumb-zone CTA placement.
+- **Legally required steps:** Mark as "required — optimize, don't remove." Focus copy and UX improvements within the constraint.
+- **Enterprise/B2B flows:** Longer flows are acceptable when the buyer expects a consultative process. Don't force a consumer-style 2-step signup on an enterprise product.
 
 ## Quality Checks
 
@@ -211,3 +245,5 @@ Each flow audit produces:
 - [ ] CTA copy is action + outcome, not generic
 - [ ] Mobile experience considered for every step
 - [ ] Error states are helpful, not punishing
+- [ ] Security and compliance steps preserved (not removed)
+- [ ] Copy rewrites match brand voice (if voice-profile.md exists)

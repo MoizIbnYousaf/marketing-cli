@@ -1,7 +1,7 @@
 ---
 name: referral-program
 description: |
-  Designs viral referral programs with incentive structures, sharing mechanics, and tracking. Covers one-sided, two-sided, tiered, and milestone models with viral coefficient calculations. Use when someone wants word-of-mouth growth, viral loops, invite programs, or says 'referral', 'viral loop', 'word of mouth', 'invite program', 'refer a friend', 'growth loop', or 'referral incentive'. Includes anti-fraud measures and copy templates for both referrer and referee.
+  Designs viral referral programs with incentive structures, sharing mechanics, and tracking. Covers one-sided, two-sided, tiered, and milestone models with viral coefficient calculations. Use when someone wants word-of-mouth growth, viral loops, invite programs, or says 'referral', 'viral loop', 'word of mouth', 'invite program', 'refer a friend', 'growth loop', 'referral incentive', 'affiliate program', 'ambassador program', 'get users to invite friends', or 'organic growth'. Even casual mentions like 'how do I get my users to spread the word' or 'can users invite others' should trigger this. Includes anti-fraud measures and copy templates for both referrer and referee. Use this whenever user-driven acquisition or viral mechanics are discussed.
 allowed-tools: []
 ---
 
@@ -15,6 +15,13 @@ Design a referral program that turns existing users into an acquisition channel.
 
 - `brand/audience.md` — Personas, what they value, their networks
 - `brand/positioning.md` — Value props, pricing context for incentive sizing
+- `brand/voice-profile.md` — Brand voice for all referral copy
+
+## Brand Integration
+
+- **audience.md** — Incentive type depends on audience. B2B audiences prefer account credits. B2C audiences prefer discounts or free months. Developer audiences prefer swag or extended trials.
+- **positioning.md** — Referral messaging reinforces the brand's positioning angle, not generic 'share with a friend' copy. If positioning is around simplicity, the referral CTA is 'Know someone drowning in complexity?'
+- **voice-profile.md** — All referral copy (dashboard prompts, share text, emails) should match the brand voice. A casual brand writes "Your friend's gonna love this" while a professional brand writes "Share a professional recommendation."
 
 ## Workflow
 
@@ -51,11 +58,6 @@ Selection criteria:
 - Customer lifetime value (can you afford the incentive?)
 - Network effects (does the product get better with more users?)
 - Purchase frequency (one-time vs recurring)
-
-## Brand Integration
-
-- **audience.md** → Incentive type depends on audience. B2B audiences prefer account credits. B2C audiences prefer discounts or free months. Developer audiences prefer swag or extended trials.
-- **positioning.md** → Referral messaging reinforces the brand's positioning angle, not generic 'share with a friend' copy. If positioning is around simplicity, the referral CTA is 'Know someone drowning in complexity?'
 
 ### Step 2: Define the Incentive
 
@@ -243,15 +245,28 @@ To improve K:
 | Viral coefficient | Invites x Conversion rate | >0.3 |
 | Referral CAC | Program cost / Referred customers | <Paid CAC |
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
-- Referral link buried in settings (must be prominent in dashboard)
-- Requiring both parties to be paid users before reward triggers
-- Complex reward rules nobody understands
-- Rewards that expire too quickly (<30 days)
-- No tracking dashboard for referrers to see their progress
-- Generic share text that sounds corporate
-- Making the referee create an account before seeing the product
+- Referral link buried in settings — if users can't find it, they won't share. It needs to be visible in the main dashboard, not hidden three clicks deep.
+- Requiring both parties to be paid users before reward triggers — this kills conversion because the referee has no incentive to sign up, and the referrer waits forever for credit.
+- Complex reward rules nobody understands — if the incentive takes more than one sentence to explain, participation drops. Simplicity drives sharing.
+- Rewards that expire too quickly (<30 days) — referrers who discover the program after a few weeks feel cheated. Give at least 90 days.
+- No tracking dashboard for referrers — without visibility into "how many people clicked, how many signed up," referrers lose motivation to keep sharing.
+- Generic share text that sounds corporate — "Check out this tool" gets ignored. Pre-written text should sound like something a real person would say.
+- Making the referee create an account before seeing the product — the referee should see the value (and their incentive) before being asked to commit.
+
+## Edge Cases
+
+- **B2B enterprise:** End-users often aren't the buyers. Referral must target decision-makers. Consider "recommend to your network" framing instead of "invite a friend." Reward the referrer's company, not just the individual.
+- **Marketplaces (two-sided):** Design separate referral programs for each side (e.g., rider referral vs. driver referral). Each side needs different incentives and copy.
+- **Pre-launch / no existing users:** Use waitlist-style referrals (Morning Brew model). "Refer friends to move up the waitlist" or "Unlock early access by inviting 3 friends."
+- **Low-price products:** Cash incentives may exceed product value. Use product-based rewards (extra storage, extended trial, feature unlock) instead of money.
+
+## Launch Measurement Milestones
+
+- **Week 2:** Check participation rate (target: >5% of active users sharing) and shares per user (target: >2). If below, the prompt timing or incentive needs adjustment.
+- **Month 1:** Evaluate invite conversion rate (target: >10%) and K-factor (target: >0.3). If conversion is low, the referee landing page or incentive needs work.
+- **Month 3:** Full program review — referral CAC vs. paid CAC, referred customer LTV vs. average LTV, fraud rate. Decide whether to scale, adjust incentives, or restructure the model.
 
 ## Output
 
@@ -263,3 +278,14 @@ Each referral program design produces:
 - Launch plan (pre-launch, launch, sustained)
 - Metrics dashboard spec
 - Viral coefficient projection
+
+## Quality Checks
+
+- [ ] Incentive is ROI-positive (reward < LTV margin)
+- [ ] Sharing flow is 2 clicks or fewer
+- [ ] Copy provided for both referrer and referee touchpoints
+- [ ] Anti-fraud measures defined (at minimum: email verification, delayed payout)
+- [ ] Referee landing page has clear incentive + product value + CTA
+- [ ] Referral link is visible in user dashboard, not buried in settings
+- [ ] Copy matches brand voice (if voice-profile.md exists)
+- [ ] Launch plan includes measurement milestones with specific targets

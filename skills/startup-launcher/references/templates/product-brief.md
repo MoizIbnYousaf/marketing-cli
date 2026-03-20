@@ -1,6 +1,6 @@
 # Product Brief Template
 
-Fill this once. The agent transforms it into platform-specific submissions across 39 platforms.
+Fill this once. The agent transforms it into platform-specific submissions across 56 platforms.
 
 ## Core Info
 - **Product Name:**

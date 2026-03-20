@@ -1,7 +1,7 @@
 ---
 name: newsletter
 description: |
-  Design, write, and grow editorial newsletters with consistent voice and format. Creates newsletter strategy, templates, and growth playbook. Use when someone wants to start a newsletter, improve an existing one, grow subscribers, or says 'newsletter', 'editorial', 'weekly email', 'subscriber growth', 'newsletter template', or 'email digest'. Covers curated, editorial, and hybrid formats with referral programs and engagement metrics.
+  Design, write, and grow editorial newsletters with consistent voice and format. Creates newsletter strategy, templates, and growth playbook. Use when someone wants to start a newsletter, improve an existing one, grow subscribers, write a newsletter issue, plan newsletter content, or set up on Substack, Beehiiv, Ghost, or ConvertKit. Triggers on 'newsletter', 'editorial', 'weekly email', 'subscriber growth', 'newsletter template', 'email digest', 'Substack', 'Beehiiv', 'newsletter strategy', 'newsletter issue', 'recurring email', or 'email content'. Even if they just say 'I want to email my audience regularly' or 'start a weekly email', this is the skill. Covers curated, editorial, and hybrid formats with referral programs, platform guidance, and engagement metrics.
 category: email
 tier: core
 reads:
@@ -177,6 +177,15 @@ status: draft
 - **Predictable structure**: Readers should know where to find what they want.
 - **End with a question**: The reply is the highest-engagement action. Invite it.
 
+### AI Tells to Avoid in Newsletters
+
+Newsletters live or die on voice. Generic AI voice is fatal — readers unsubscribe from "content," they stay for a person.
+
+**Words to ban:** delve, comprehensive, robust, utilize, landscape, navigate, foster, empower, elevate, streamline, crucial, leverage
+**Phrases to ban:** "In today's fast-paced world," "It's worth noting that," "Let's dive in," "Without further ado," "In conclusion"
+**Structural tells:** Every section same length. No personal anecdotes. No opinions without hedging. Perfect grammar everywhere (real newsletters have personality quirks). No contractions.
+**The test:** Read it aloud. If it sounds like a press release or a textbook, rewrite it. It should sound like a smart friend talking over coffee.
+
 ---
 
 ## Step 4: Frequency Recommendations
@@ -192,9 +201,43 @@ status: draft
 
 ---
 
-## Step 5: Growth Strategies
+## Step 5: Growth Assets (Agent-Actionable)
 
-### Acquisition Channels
+For each newsletter, generate these growth assets:
+
+### Signup Page Copy
+Write a dedicated newsletter signup page with:
+- Headline: What they get + how often ("Weekly insights for founders building in public")
+- 3 bullet points: Specific value per issue
+- Social proof: Subscriber count, notable readers, or open rate stats
+- Single email field + subscribe button
+- "No spam. Unsubscribe anytime."
+
+### Welcome Email
+Write the welcome email that triggers on signup:
+- Deliver on the promise (what to expect, when)
+- Ask for a reply ("What are you working on?") — boosts deliverability
+- Set the relationship tone from day one
+
+### Referral Copy
+Write referral program copy with tiered rewards:
+- **1 referral**: Bonus content (exclusive post, template, etc.)
+- **3 referrals**: Free resource or community access
+- **10 referrals**: Product discount or 1:1 consultation
+- Include the share CTA copy and referral email template
+
+### Cross-Promotion Outreach Template
+Write a cross-promo pitch email for newsletters of similar size:
+- Introduce your newsletter (subscriber count, niche, open rate)
+- Propose mutual recommendation
+- Keep it short, genuine, no-strings
+
+### Social Teaser Copy
+For each issue, generate 1-2 social posts that share a highlight and link to the archive/signup:
+- Pull the most surprising or valuable line from the issue
+- End with "Subscribe for more like this: [link]"
+
+### Growth Channel Reference
 
 | Channel | Tactic | Expected Conversion |
 |---------|--------|-------------------|
@@ -204,21 +247,6 @@ status: draft
 | Lead magnet | Free resource into newsletter opt-in | 20-40% of landing page visitors |
 | Referral | Give subscribers a referral link + incentive | 10-20% of new subs |
 | Content | SEO articles with newsletter CTA | Compounding over time |
-
-### Referral Program
-
-- **1 referral**: Bonus content (exclusive post, template, etc.)
-- **3 referrals**: Free resource or community access
-- **10 referrals**: Product discount or 1:1 consultation
-- Keep it simple. Most won't refer — make the few who do feel appreciated.
-
-### Growth Tactics That Work
-
-1. **Share one section publicly** each issue on social — builds curiosity
-2. **Welcome email** sets expectations and asks for a reply (deliverability boost)
-3. **Consistent send time** — subscribers should know when to expect you
-4. **Archive on your site** — SEO captures new subscribers from old issues
-5. **"Forward to a friend" CTA** in every issue — include a subscribe link for the friend
 
 ---
 
@@ -231,6 +259,61 @@ status: draft
 | Reply rate | 1-2% | 3-5%+ | Ask better questions, be more personal |
 | Unsubscribe | <0.5% | <0.2% | Check frequency, relevance, expectations |
 | Growth rate | 5-10%/mo | 10-20%/mo | Add acquisition channels, improve lead magnets |
+
+---
+
+---
+
+## Worked Example
+
+**Newsletter: "The Build Log" — Weekly hybrid newsletter for indie hackers**
+
+**Subject Line Variants:**
+1. "The feature that almost killed our conversion rate" (recommended)
+2. "Build Log #12: when metrics lie"
+3. "What I learned from a $0 week"
+
+**Preview Text:** Plus 3 tools I switched to this month
+
+**Issue:**
+
+```
+# The Build Log — Issue #12
+
+## The feature that almost killed our conversion rate
+
+Last week I shipped a "smart onboarding" flow. Took 3 days to build. Looked beautiful.
+
+Conversion dropped 23%.
+
+Turns out, users don't want smart. They want fast. The old flow was 2 steps. The new one was 5. Each step was better — but 5 steps is 5 chances to leave.
+
+I reverted Thursday morning. Conversion recovered by Friday.
+
+**The lesson:** Complexity is a tax. Every step you add needs to earn 10x what it costs in drop-off.
+
+---
+
+### 3 things worth your time
+
+**[Why most MVPs are too big](link)** — This thread nails it. Your MVP should embarrass you, not impress your friends.
+
+**[Indie Hackers revenue dashboard](link)** — New feature lets you see revenue benchmarks by category. I spent 30 minutes comparing and it was worth every second.
+
+**[PostHog's session replay](link)** — Free tier is generous. Watching real users navigate your app is humbling and instructive.
+
+---
+
+### Tool I switched to
+
+**Plausible Analytics** — Replaced Google Analytics. Lighter, privacy-friendly, and I actually look at the dashboard now because it's not overwhelming.
+
+---
+
+What's the last feature you shipped that backfired? Hit reply — I read everything.
+
+— James
+```
 
 ---
 
@@ -247,6 +330,15 @@ marketing/newsletter/
 ```
 
 **Integration**: Issues output in plain text format compatible with `gws` CLI for sending.
+
+See [references/archetype-templates.md](references/archetype-templates.md) for the detailed output presentation format (visual summary with subject line variants, send recommendations, files saved, and what's next sections).
+
+---
+
+## References
+
+- [newsletter-examples.md](references/newsletter-examples.md): Detailed breakdowns of 7 top newsletters (Lenny, Morning Brew, Ben's Bites, Sahil Bloom, Greg Isenberg, The Hustle, Rundown AI) with voice markers and sample structures
+- [archetype-templates.md](references/archetype-templates.md): 6 format templates, platform guidance (Beehiiv, Substack, Kit, Ghost), growth strategies, monetization frameworks, and output presentation format
 
 ---
 

@@ -14,7 +14,7 @@ const VALID_CATEGORIES: SkillCategory[] = [
   "creative", "seo", "conversion", "growth", "knowledge",
 ];
 
-const VALID_LAYERS: SkillLayer[] = ["foundation", "strategy", "execution", "distribution"];
+const VALID_LAYERS: SkillLayer[] = ["foundation", "strategy", "execution", "distribution", "orchestrator"];
 const VALID_SOURCES = ["v1", "v2", "new", "third-party"];
 const VALID_TIERS = ["must-have", "nice-to-have"];
 
@@ -32,8 +32,8 @@ describe("Manifest structure", () => {
     expect(typeof manifest.redirects).toBe("object");
   });
 
-  test("exactly 39 skills", () => {
-    expect(Object.keys(manifest.skills)).toHaveLength(39);
+  test("exactly 41 skills", () => {
+    expect(Object.keys(manifest.skills)).toHaveLength(41);
   });
 });
 

@@ -1,0 +1,1 @@
+- generic [ref=e6]: ✅ MCP client "unknown" connected.

@@ -1,6 +1,6 @@
 ---
 name: launch-strategy
-description: "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch plan', 'go to market', 'Product Hunt', 'beta launch', 'how do I launch', 'pre-launch', 'launch checklist', or is about to ship something and needs a distribution plan. Even vague requests like 'I'm almost done building, what now?' should trigger this skill."
+description: "When the user wants to plan a product launch, feature announcement, release strategy, or go-to-market plan. Also use when the user mentions 'launch plan', 'go to market', 'GTM', 'Product Hunt', 'beta launch', 'how do I launch', 'pre-launch', 'launch checklist', 'distribution plan', 'release strategy', 'feature announcement', or is about to ship something and needs a distribution plan. Even vague requests like 'I'm almost done building, what now?' or 'how do I get users?' should trigger this skill. Make sure to use this whenever someone is planning ANY kind of product or feature release, even if they don't say 'launch' explicitly — if they're thinking about getting something in front of users, this is the skill. This is the STRATEGIC planner — for operational platform submissions and directory launches, see /startup-launcher instead."
 category: growth
 tier: strategy
 reads:
@@ -17,7 +17,7 @@ triggers:
   - beta launch
   - launch checklist
 metadata:
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Launch Strategy
@@ -27,8 +27,104 @@ You are an expert in product launches and feature announcements. Your goal is to
 ## On Activation
 
 1. Check if `brand/` directory exists in the project root
-2. If it exists, read `brand/brand-kit.md`, `brand/voice.md`, and `brand/audience.md` for context
+2. If it exists, read `brand/voice-profile.md`, `brand/positioning.md`, and `brand/audience.md` for context
 3. Use that context and only ask for information not already covered or specific to this task
+
+### Decision Gate
+
+Before proceeding, determine which skill is appropriate:
+- **This skill (/launch-strategy):** Strategic planning — phased timeline, channel strategy, messaging, positioning. Use when the user needs a PLAN.
+- **/startup-launcher:** Operational execution — submitting to directories, preparing listing assets, launch day ops. Use when the user needs to DO the launch across platforms.
+
+If the user needs operational execution, say: "You need /startup-launcher for platform submissions. This skill builds the strategic plan. Want the plan first, or jump straight to execution?"
+
+---
+
+## Agent Workflow
+
+Follow these phases in order. Do not skip phases.
+
+### Phase 1: Gather Context
+
+Ask these questions (skip any already answered by brand/ files):
+
+1. What are you launching? (New product, major feature, minor update)
+2. What's your current audience size and engagement?
+3. What owned channels do you have? (Email list size, blog traffic, community)
+4. What's your timeline for launch?
+5. Have you launched before? What worked/didn't work?
+6. Are you considering Product Hunt? What's your preparation status?
+
+### Phase 2: Classify the Launch
+
+Based on context, classify:
+
+| Launch Type | Signals | Approach |
+|-------------|---------|----------|
+| New product, no audience | No email list, no social, first launch | Focus on Phase 1-3, borrowed channels, community seeding |
+| New product, existing audience | Has email list or social following | Focus on Phase 3-5, owned channels first |
+| Major feature update | Existing product, significant new capability | Abbreviated timeline, existing user base + expansion |
+| Minor update | Bug fixes, small improvements | Changelog + email segment, skip full campaign |
+
+### Phase 3: Build the Plan
+
+Using the ORB Framework, Five-Phase Approach, and reference files, produce a plan tailored to the classification. Reference:
+- [references/launch-timeline.md](references/launch-timeline.md) for week-by-week timeline
+- [references/launch-checklist.md](references/launch-checklist.md) for comprehensive pre-flight checklist
+
+### Phase 4: Write Deliverables
+
+Write `marketing/launch/plan.md` using this template:
+
+```markdown
+# Launch Plan: [Product/Feature Name]
+
+## Overview
+- **Launch type:** [New product / Major feature / Minor update]
+- **Target date:** [Date]
+- **Audience size:** [Current size]
+- **Primary goal:** [Signups / Revenue / Awareness]
+
+## Positioning
+- **One-line value prop:** [From positioning.md or crafted here]
+- **Launch angle:** [What makes this newsworthy NOW]
+- **Target audience:** [Who, specifically]
+
+## Channel Strategy (ORB)
+
+### Owned Channels
+[List with specific actions and dates]
+
+### Rented Channels
+[List with specific actions and dates]
+
+### Borrowed Channels
+[List with specific targets and outreach plan]
+
+## Timeline
+[Phased timeline adapted from launch-timeline.md reference]
+
+## Success Metrics
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| [e.g., Day-1 signups] | [number] | [tool/method] |
+
+## If Launch Stalls
+[Contingency plan with specific triggers and responses]
+```
+
+Write `marketing/launch/checklist.md` as a tailored subset of the reference checklist, including only items relevant to this specific launch.
+
+### Phase 5: Handoff
+
+Tell the user: "Launch plan written to `marketing/launch/`. Here's the summary: [2-3 sentences]. Suggested next steps: [specific skills]."
+
+Recommend related skills based on gaps:
+- No email sequences? → /email-sequences
+- Landing page needs work? → /page-cro
+- Need comparison pages? → /competitor-alternatives
+- Need psychology for waitlists/exclusivity? → /marketing-psychology
+- Ready to submit to directories? → /startup-launcher
 
 ---
 
@@ -266,62 +362,23 @@ Add dedicated sections about the new feature/product across your site.
 
 ---
 
-## Launch Checklist
+## Anti-Patterns
 
-### Pre-Launch
-- [ ] Landing page with clear value proposition
-- [ ] Email capture / waitlist signup
-- [ ] Early access list built
-- [ ] Owned channels established (email, blog, community)
-- [ ] Rented channel presence (social profiles optimized)
-- [ ] Borrowed channel opportunities identified (podcasts, influencers)
-- [ ] Product Hunt listing prepared (if using)
-- [ ] Launch assets created (screenshots, demo video, GIFs)
-- [ ] Onboarding flow ready
-- [ ] Analytics/tracking in place
-
-### Launch Day
-- [ ] Announcement email to list
-- [ ] Blog post published
-- [ ] Social posts scheduled and posted (use ply for automation)
-- [ ] Product Hunt listing live (if using)
-- [ ] In-app announcement for existing users
-- [ ] Website banner/notification active
-- [ ] Team ready to engage and respond
-- [ ] Monitor for issues and feedback
-
-### Post-Launch
-- [ ] Onboarding email sequence active
-- [ ] Follow-up with engaged prospects
-- [ ] Roundup email includes announcement
-- [ ] Comparison pages published
-- [ ] Gather and act on feedback
-- [ ] Plan next launch moment
-
-### If Launch Stalls
-
-1. Survey existing users for unmet needs (the product may be fine but the messaging wrong)
-2. Refresh positioning — run /positioning-angles to find a new angle
-3. Try a different rented channel (if Twitter didn't work, try Reddit or newsletters)
-4. Revisit borrowed partnerships — find aligned creators or communities
-5. Consider a re-launch with new framing (many successful products launched 2-3 times)
-
----
-
-## Task-Specific Questions
-
-1. What are you launching? (New product, major feature, minor update)
-2. What's your current audience size and engagement?
-3. What owned channels do you have? (Email list size, blog traffic, community)
-4. What's your timeline for launch?
-5. Have you launched before? What worked/didn't work?
-6. Are you considering Product Hunt? What's your preparation status?
+| Anti-pattern | Why it fails | Instead |
+|-------------|-------------|---------|
+| Producing a 5-page plan when user needs a quick checklist | Minor updates don't warrant full campaigns — overwrought plans get ignored | Ask the launch type first — minor updates get a checklist, not a strategy doc |
+| Running this skill when user needs operational platform submissions | This skill produces plans, not actions — the user will get frustrated waiting for a strategy when they need directory submissions done | Route to /startup-launcher for directory submissions and launch day ops |
+| Recommending all ORB channels regardless of audience size | A <1K audience spreading across 6 channels dilutes effort to zero — focus compounds, scatter doesn't | Use the prioritization matrix — <1K audience should focus on owned only |
+| Writing a plan without asking key context questions first | A plan built on assumptions wastes the user's time and produces generic advice | Always gather context in Phase 1, even if brand/ files exist |
+| Ignoring existing brand/ context and asking everything fresh | Asking questions already answered in brand/ files annoys users who've invested in brand memory | Read brand files first, only ask what's missing or launch-specific |
+| Creating a generic timeline not adapted to launch type | A solo founder doesn't need an 8-week timeline, and a funded team shouldn't compress to 2 weeks | Classify the launch in Phase 2, then adapt timeline from references |
 
 ---
 
 ## Related Skills
 
-- **email-sequence**: For launch and onboarding email sequences
+- **email-sequences**: For launch and onboarding email sequences
 - **page-cro**: For optimizing launch landing pages
 - **marketing-psychology**: For psychology behind waitlists and exclusivity
 - **competitor-alternatives**: For comparison pages mentioned in post-launch
+- **startup-launcher**: For operational multi-platform launch execution

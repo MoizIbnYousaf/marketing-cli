@@ -1,6 +1,26 @@
 ---
 name: competitor-alternatives
-description: "Creates high-converting 'X vs Y' and 'X alternatives' SEO pages that capture comparison search traffic. Researches competitors, writes honest comparison content, and adds schema markup (FAQPage, ItemList). Use when someone needs alternatives pages, comparison content, or says 'alternatives page', 'vs page', 'comparison', 'competitor alternatives', 'X vs Y page', or wants to capture competitor brand search traffic with SEO content."
+description: "Creates high-converting 'X vs Y' and 'X alternatives' SEO pages that capture comparison search traffic. Researches competitors, writes honest comparison content, and adds schema markup (FAQPage, ItemList). Use when someone needs alternatives pages, comparison content, or says 'alternatives page', 'vs page', 'comparison', 'competitor alternatives', 'X vs Y page', or wants to capture competitor brand search traffic with SEO content. Also trigger when someone wants to rank for competitor brand names, steal competitor search traffic, create a compare page, or build a competitive content hub. Even if they just say 'how do we compete with X' or 'we need to show up when people search for [competitor]', this skill applies."
+category: seo
+tier: core
+reads:
+  - brand/competitors.md
+  - brand/positioning.md
+  - brand/voice-profile.md
+  - brand/audience.md
+writes:
+  - campaigns/comparisons/vs/{competitor}-vs-{product}.md
+  - campaigns/comparisons/alternatives/{competitor}-alternatives.md
+triggers:
+  - alternatives page
+  - vs page
+  - comparison page
+  - competitor alternatives
+  - X vs Y
+  - compete with
+  - competitor search traffic
+  - brand comparison
+  - steal traffic
 allowed-tools: []
 ---
 
@@ -10,14 +30,31 @@ allowed-tools: []
 
 People searching "[Competitor] alternatives" or "[Product] vs [Competitor]" have high purchase intent. They already know the category — they're choosing. This skill captures that traffic with structured comparison content that ranks and converts.
 
+## On Activation
+
+1. Read `brand/` directory: load `competitors.md`, `positioning.md`, `voice-profile.md`, `audience.md` if present.
+2. Show what loaded:
+   ```
+   Brand context loaded:
+   ├── Competitors    ✓/✗  ({N} competitors profiled)
+   ├── Positioning    ✓/✗  ("{primary angle}")
+   ├── Voice Profile  ✓/✗
+   └── Audience       ✓/✗
+   ```
+3. If `competitors.md` is missing: suggest running `/competitive-intel` first, or ask user to provide competitor names, pricing, and key differentiators.
+4. If `positioning.md` is missing: ask for the product's primary value prop and target audience.
+5. Ask which competitors to create pages for (or "all" from competitors.md).
+
 ## Reads
 
 - `brand/competitors.md` — Known competitors, their positioning, pricing, weaknesses
 - `brand/positioning.md` — Your product's unique value props, differentiators, target audience
+- `brand/voice-profile.md` — Tone for comparison copy
+- `brand/audience.md` — Who is choosing between you and competitors
 
 ## Depends On
 
-- `competitive-intel` — Must have competitor research completed first
+- `competitive-intel` — Should have competitor research completed first (not hard-blocked — can proceed with user-provided data)
 
 ## Workflow
 
@@ -184,6 +221,62 @@ Each comparison generates:
 - SEO metadata and schema markup included in frontmatter
 - Internal linking suggestions between comparison pages
 
+## File Output Format
+
+### Directory Structure
+
+```
+./campaigns/comparisons/
+├── vs/
+│   ├── {competitor-slug}-vs-{your-product-slug}.md
+│   └── ...
+├── alternatives/
+│   ├── {competitor-slug}-alternatives.md
+│   └── {your-product-slug}-alternatives.md  (defensive)
+└── index.md                                  (comparison hub page)
+```
+
+### Frontmatter (VS Pages)
+
+```yaml
+---
+title: "{Competitor} vs {Your Product}: Honest Comparison {Year}"
+meta_description: "{150-160 chars}"
+slug: /compare/{competitor}-vs-{your-product}
+page_type: comparison
+competitor: "{Competitor Name}"
+date_created: "{YYYY-MM-DD}"
+last_updated: "{YYYY-MM-DD}"
+status: "draft"
+schema_faq: |
+  {FAQPage JSON-LD}
+schema_article: |
+  {Article JSON-LD}
+---
+```
+
+### Frontmatter (Alternatives Pages)
+
+```yaml
+---
+title: "Best {Competitor} Alternatives {Year}"
+meta_description: "{150-160 chars}"
+slug: /compare/{competitor}-alternatives
+page_type: alternatives
+competitor: "{Competitor Name}"
+alternatives_count: {number}
+date_created: "{YYYY-MM-DD}"
+last_updated: "{YYYY-MM-DD}"
+status: "draft"
+schema_itemlist: |
+  {ItemList JSON-LD}
+schema_article: |
+  {Article JSON-LD}
+---
+```
+
+---
+
 ## Quality Checks
 
 - [ ] Every competitor strength acknowledged (credibility)
@@ -193,3 +286,36 @@ Each comparison generates:
 - [ ] Schema markup validates
 - [ ] CTAs match the comparison context
 - [ ] No competitor trademark violations in meta titles
+- [ ] Files saved to correct paths with complete frontmatter
+
+---
+
+## Anti-Patterns
+
+- **Snark destroys credibility.** Backhanded compliments ("Competitor is fine if you don't need real features") make you look petty, not confident. Genuine respect for competitors makes your wins land harder — the reader trusts you more when you're fair.
+- **Unverifiable claims undermine everything.** "Our platform is 10x faster" without benchmarks reads as marketing fluff. Readers researching alternatives are already skeptical — every claim needs evidence (benchmark, case study, specific feature comparison).
+- **Acknowledging competitor strengths builds trust.** Readers know competitors aren't terrible — they're actively considering them. Trying to make competitors look bad makes your content look biased. Honest acknowledgment is what makes your differentiators credible.
+- **Stale pricing erodes trust instantly.** If a reader checks and your pricing is wrong, they'll question everything else on the page. When you can't verify current pricing, say "as of {date}" and note it may have changed — this is more trustworthy than confident-but-wrong numbers.
+- **Thin comparison pages are doorway pages.** A feature table with checkmarks and no analysis doesn't help anyone choose. Each page needs genuine insight about *when* to choose each option — that's what earns the ranking and the conversion.
+
+---
+
+## Error States
+
+- **No competitors.md:** Ask user for competitor names and key info. Suggest running `/competitive-intel` first for thorough research. Can proceed with user-provided data.
+- **No positioning.md:** Ask user for their product's value prop, target audience, and key differentiators. Comparison quality will be lower without clear positioning.
+- **No web search available:** Use data from brand/competitors.md. Ask user directly for current pricing and recent product changes. Note: "Competitor data based on provided context — verify current pricing and features before publishing."
+- **Incomplete competitor data:** Generate pages for competitors with sufficient data, skip others. Note which competitors need more research.
+- **Can't save files:** Display content for manual copy. Suggest checking write permissions.
+
+---
+
+## Chain Offers
+
+After saving, suggest:
+
+- `/competitive-intel` — deepen research on specific competitors
+- `/seo-content` — create supporting content (e.g., "[category] buyer's guide")
+- `/page-cro` — optimize comparison pages for conversion
+- `/content-atomizer` — distribute comparison insights across social channels
+- "Update" — refresh pricing and features periodically

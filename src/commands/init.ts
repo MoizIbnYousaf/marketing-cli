@@ -15,7 +15,8 @@ export const schema: CommandSchema = {
   description: "Detect project, scaffold brand/, install skills and agents",
   flags: [
     { name: "--skip-brand", type: "boolean", required: false, description: "Skip brand/ scaffolding" },
-    { name: "--skip-skills", type: "boolean", required: false, description: "Skip skill and agent installation" },
+    { name: "--skip-skills", type: "boolean", required: false, description: "Skip skill installation" },
+    { name: "--skip-agents", type: "boolean", required: false, description: "Skip agent installation" },
     { name: "--yes", type: "boolean", required: false, description: "Accept defaults without prompting" },
     { name: "--json", type: "string", required: false, description: "JSON input for non-interactive mode" },
   ],
@@ -50,12 +51,14 @@ type InitInput = {
 const parseInitFlags = (args: readonly string[]) => {
   let skipBrand = false;
   let skipSkills = false;
+  let skipAgents = false;
   let yes = false;
   let jsonInput: string | undefined;
 
   for (const arg of args) {
     if (arg === "--skip-brand") skipBrand = true;
     else if (arg === "--skip-skills") skipSkills = true;
+    else if (arg === "--skip-agents") skipAgents = true;
     else if (arg === "--yes" || arg === "-y") yes = true;
     else if (arg.startsWith("--json=")) jsonInput = arg.slice(7);
     else if (!arg.startsWith("--")) jsonInput ??= arg;
@@ -68,19 +71,29 @@ const parseInitFlags = (args: readonly string[]) => {
     }
   }
 
-  return { skipBrand, skipSkills, yes, jsonInput };
+  return { skipBrand, skipSkills, skipAgents, yes, jsonInput };
 };
 
 // Detect project info from the working directory
 const detectProject = async (cwd: string): Promise<{ name: string; hasPackageJson: boolean; hasReadme: boolean; hasBrand: boolean }> => {
   const pkgFile = Bun.file(join(cwd, "package.json"));
   const readmeFile = Bun.file(join(cwd, "README.md"));
-  const brandDir = Bun.file(join(cwd, "brand"));
+
+  // Use stat().isDirectory() for brand/ — Bun.file() is unreliable for directories
+  const checkBrandDir = async (): Promise<boolean> => {
+    try {
+      const { stat } = await import("node:fs/promises");
+      const s = await stat(join(cwd, "brand"));
+      return s.isDirectory();
+    } catch {
+      return false;
+    }
+  };
 
   const [hasPackageJson, hasReadme, hasBrand] = await Promise.all([
     pkgFile.exists(),
     readmeFile.exists(),
-    brandDir.exists(),
+    checkBrandDir(),
   ]);
 
   let name = cwd.split("/").pop() ?? "project";
@@ -151,7 +164,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   const projectName = input.business ?? project.name;
   const goal = input.goal ?? "launch";
 
-  const totalSteps = (initFlags.skipBrand ? 0 : 1) + (initFlags.skipSkills ? 0 : 2) + 1;
+  const totalSteps = (initFlags.skipBrand ? 0 : 1) + (initFlags.skipSkills ? 0 : 1) + (initFlags.skipAgents ? 0 : 1) + 1;
   let step = 0;
 
   const stepLabel = () => {
@@ -192,15 +205,17 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
         }
       }
     } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : "unknown error";
+      skillsResult.failed.push(`_error:${errorMsg}`);
       if (isTTY() && !flags.json) {
-        writeStderr(`  ${yellow("●")} Could not install skills: ${e instanceof Error ? e.message : "unknown error"}`);
+        writeStderr(`  ${yellow("●")} Could not install skills: ${errorMsg}`);
       }
     }
   }
 
   // Step 3: Install agents
   let agentsResult = { installed: [] as string[], skipped: [] as string[], failed: [] as string[] };
-  if (!initFlags.skipSkills) {
+  if (!initFlags.skipAgents) {
     if (isTTY() && !flags.json) {
       writeStderr(`${stepLabel()} Installing marketing agents...`);
     }
@@ -212,8 +227,10 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
         writeStderr(`  ${green("✓")} ${total} agents installed to ~/.claude/agents/`);
       }
     } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : "unknown error";
+      agentsResult.failed.push(`_error:${errorMsg}`);
       if (isTTY() && !flags.json) {
-        writeStderr(`  ${yellow("●")} Could not install agents: ${e instanceof Error ? e.message : "unknown error"}`);
+        writeStderr(`  ${yellow("●")} Could not install agents: ${errorMsg}`);
       }
     }
   }

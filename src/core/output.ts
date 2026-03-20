@@ -7,16 +7,56 @@ import type { CommandResult, GlobalFlags } from "../types";
 export const isTTY = (): boolean =>
   typeof process.stdout.isTTY === "boolean" && process.stdout.isTTY;
 
-const pickFields = <T>(data: T, fields: readonly string[]): Partial<T> => {
-  if (!data || typeof data !== "object") return data;
+/** Resolve a dot-notation path like "checks.name" to a nested value */
+const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+  const parts = path.split(".");
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (current === null || current === undefined || typeof current !== "object") return undefined;
+    current = (current as Record<string, unknown>)[part];
+  }
+  return current;
+};
+
+/** Set a value at a dot-notation path, creating intermediate objects */
+const setNestedValue = (obj: Record<string, unknown>, path: string, value: unknown): void => {
+  const parts = path.split(".");
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i]!;
+    if (!(part in current) || typeof current[part] !== "object") {
+      current[part] = {};
+    }
+    current = current[part] as Record<string, unknown>;
+  }
+  current[parts[parts.length - 1]!] = value;
+};
+
+const pickFieldsOne = (data: Record<string, unknown>, fields: readonly string[]): Record<string, unknown> => {
   const result: Record<string, unknown> = {};
   for (const field of fields) {
-    const key = field as keyof T;
-    if (key in (data as object)) {
-      result[field] = (data as Record<string, unknown>)[field];
+    if (field.includes(".")) {
+      const value = getNestedValue(data, field);
+      if (value !== undefined) {
+        setNestedValue(result, field, value);
+      }
+    } else if (field in data) {
+      result[field] = data[field];
     }
   }
-  return result as Partial<T>;
+  return result;
+};
+
+const pickFields = <T>(data: T, fields: readonly string[]): unknown => {
+  if (!data || typeof data !== "object") return data;
+  if (Array.isArray(data)) {
+    return data.map((item) =>
+      item && typeof item === "object" && !Array.isArray(item)
+        ? pickFieldsOne(item as Record<string, unknown>, fields)
+        : item,
+    );
+  }
+  return pickFieldsOne(data as Record<string, unknown>, fields);
 };
 
 // ANSI helpers for TTY output
@@ -25,6 +65,7 @@ export const bold = (s: string): string => (isTTY() ? `\x1b[1m${s}\x1b[0m` : s);
 export const green = (s: string): string => (isTTY() ? `\x1b[32m${s}\x1b[0m` : s);
 export const red = (s: string): string => (isTTY() ? `\x1b[31m${s}\x1b[0m` : s);
 export const yellow = (s: string): string => (isTTY() ? `\x1b[33m${s}\x1b[0m` : s);
+export const cyan = (s: string): string => (isTTY() ? `\x1b[36m${s}\x1b[0m` : s);
 
 // Format a successful result for terminal display
 const formatForTerminal = <T>(data: T): string => {
@@ -46,15 +87,19 @@ export const formatOutput = <T>(
   if (!result.ok) {
     if (isTTY() && !flags.json) {
       const lines = [
-        `Error: ${result.error.message}`,
-        ...result.error.suggestions.map(s => `  ${s}`),
+        `Error [${result.error.code}]: ${result.error.message}`,
+        ...result.error.suggestions.map(s => `  → ${s}`),
       ];
       if (result.error.docs) {
-        lines.push(`Docs: ${result.error.docs}`);
+        lines.push(`  Docs: ${result.error.docs}`);
       }
       return lines.join("\n");
     }
-    return JSON.stringify({ error: result.error }, null, 2);
+    return JSON.stringify(
+      { error: result.error, exitCode: result.exitCode },
+      null,
+      2,
+    );
   }
 
   const filtered =
@@ -63,7 +108,17 @@ export const formatOutput = <T>(
       : result.data;
 
   if (flags.json || !isTTY()) {
-    return JSON.stringify(filtered, null, 2);
+    const json = JSON.stringify(filtered, null, 2);
+    // Warn agents when response exceeds 10KB — large payloads can blow context windows
+    if (json.length > 10_240) {
+      writeStderr(`warning: response is ${Math.round(json.length / 1024)}KB — consider using --fields to reduce output size`);
+    }
+    return json;
+  }
+
+  // Use display field for TTY-friendly output when provided
+  if (result.display) {
+    return result.display;
   }
 
   return formatForTerminal(filtered);

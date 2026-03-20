@@ -1,6 +1,25 @@
 ---
 name: slideshow-script
-description: "Generate 5 different narrative scripts for visual slideshows from a single positioning angle. Each script uses a different storytelling framework (AIDA, PAS, BAB, Stat-Flip, Myth-Buster) producing genuinely different stories, not layout variations. Use when someone needs TikTok scripts, carousel scripts, slideshow narratives, or says 'slideshow script', 'generate scripts', 'narrative scripts', 'content scripts', 'TikTok scripts', or 'storytelling frameworks'. Outputs YAML content specs that chain to /paper-marketing."
+description: "Generate 5 different narrative scripts for visual slideshows from a single positioning angle. Each script uses a different storytelling framework (AIDA, PAS, BAB, Star-Story-Solution, Stat-Flip) producing genuinely different stories, not layout variations. Make sure to use this skill whenever the user wants slideshow scripts, TikTok content scripts, carousel copy, narrative frameworks for visual content, or says anything about writing scripts for slides or social media storytelling. Even 'write me some TikTok content' or 'I need carousel copy' should trigger this. Outputs structured YAML content specs that chain directly to /paper-marketing for visual design."
+category: creative
+tier: core
+reads:
+  - brand/positioning.md
+  - brand/audience.md
+  - brand/voice-profile.md
+writes:
+  - marketing/content-specs/*.yaml
+depends-on:
+  - brand-voice
+  - positioning-angles
+triggers:
+  - slideshow script
+  - generate scripts
+  - narrative scripts
+  - content scripts
+  - TikTok scripts
+  - storytelling frameworks
+  - carousel scripts
 allowed-tools:
   - Bash(mktg status *)
 ---
@@ -25,10 +44,12 @@ Each script has a DIFFERENT narrative, DIFFERENT hook, DIFFERENT proof points. W
 
 ### Phase 1: Load Brand Context
 
-Read in parallel:
+Read in parallel (if they exist):
 - `brand/positioning.md` — available angles, headlines, proof points
 - `brand/audience.md` — pain points, desires, language patterns
 - `brand/voice-profile.md` — tone, vocabulary, do's/don'ts, signature phrases
+
+If any files are missing, the skill still works — see Progressive Enhancement below for how to handle zero-context and partial-context scenarios.
 
 ### Phase 2: Select Positioning Angle
 
@@ -180,6 +201,31 @@ This skill works independently from any orchestrator:
 - `/slideshow-script` → `/paper-marketing` → manual export (no video)
 - `/slideshow-script` → `/content-atomizer` → repurpose scripts as text posts
 - `/slideshow-script` → `/email-sequences` → use narratives in email campaigns
+
+## Progressive Enhancement
+
+This skill works at three levels of context:
+
+1. **Zero context** — No brand files. Ask the user for: product name, one-sentence description, target audience, and the key benefit. Generate scripts from that. They'll be generic but functional.
+2. **Partial context** — Only `positioning.md` exists. Generate scripts from the positioning angles. Copy will be accurate but may lack voice personality.
+3. **Full context** — All three brand files exist (`positioning.md`, `audience.md`, `voice-profile.md`). Scripts use the right angles, speak to the right pain points, and sound like the brand.
+
+## Anti-Patterns
+
+- **Same hook across scripts** — The whole point of 5 scripts is 5 chances to grab attention differently. If two scripts start with a question hook, you've wasted one. A viewer who scrolled past hook A might stop for hook B — but only if B looks and sounds different.
+- **Recycled proof points** — Reusing the same stat in multiple scripts means a viewer who sees script 2 after script 1 hears the same argument. Each script should use different proof points from positioning.md so every post adds new information.
+- **Generic voice** — "Transform your life" could be any brand on any platform. Viewers tune it out because they've seen it a thousand times. Using the exact vocabulary and signature phrases from voice-profile.md makes the content feel authored and recognizable.
+- **Platform-specific copy in scripts** — Scripts are the narrative layer, not the design layer. Writing "swipe right" or "link in bio" locks the script to one platform. Keep scripts platform-agnostic so the same narrative works for TikTok, Instagram, YouTube Shorts, or any other format.
+- **Too many slides** — Every slide the viewer must sit through is friction. If a slide doesn't advance the narrative toward the CTA, it's a drop-off point. 5-7 slides usually hits the sweet spot for social content.
+- **Ignoring the framework** — Each framework works because of its specific psychological structure. AIDA builds desire before asking for action. PAS makes pain visceral before offering relief. Blending frameworks dilutes the psychological effect that makes each one work.
+
+## Edge Cases
+
+- **positioning.md missing** — Ask the user: "What's the main angle or benefit you want to highlight?" Use their answer as the positioning angle. Offer to run /positioning-angles to build proper angles.
+- **Only 1-2 proof points available** — Generate fewer scripts (3 instead of 5) and tell the user which frameworks were dropped and why. Quality over quantity.
+- **User wants fewer than 5 scripts** — Respect the request. Ask which frameworks they want, or recommend the best 2-3 for their content type.
+- **User wants a framework not in the list** — Accept custom frameworks. Ask for the structure (what are the phases?) and generate a script following that structure.
+- **Brand voice conflicts with framework** — If the brand voice is "calm, no hype" but PAS requires agitation, dial the agitation to match the voice. Agitate with quiet observations, not exclamation marks.
 
 ## Principles
 

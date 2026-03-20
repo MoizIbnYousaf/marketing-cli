@@ -1,7 +1,7 @@
 {
   "name": "mktg",
   "version": "0.1.0",
-  "description": "Agent-native marketing playbook CLI — one install gives AI agents a full CMO brain with 39 skills, brand memory, and parallel research.",
+  "description": "Agent-native marketing playbook CLI — one install gives AI agents a full CMO brain with 41 skills, brand memory, and parallel research.",
   "type": "module",
   "bin": {
     "mktg": "./dist/cli.js"

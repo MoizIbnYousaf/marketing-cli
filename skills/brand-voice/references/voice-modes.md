@@ -527,7 +527,7 @@ Minimal emojis."}
 ## Formatted Output Structure
 
 When presenting the completed voice profile to the user, follow the output
-format specification from `_system/output-format.md`. The terminal output
+format specification from /cmo `rules/output-format.md`. The terminal output
 uses the premium formatting system. The markdown file saved to disk uses
 standard markdown.
 

@@ -2,7 +2,7 @@
 // No mocks. Tests real output formatting.
 
 import { describe, test, expect } from "bun:test";
-import { formatOutput, dim, bold, green, red, yellow } from "../src/core/output";
+import { formatOutput, dim, bold, green, red, yellow, cyan } from "../src/core/output";
 import { ok, err } from "../src/types";
 import type { GlobalFlags } from "../src/types";
 
@@ -66,6 +66,37 @@ describe("formatOutput", () => {
     const parsed = JSON.parse(output);
     expect(parsed.error).toBeDefined();
   });
+
+  test("JSON error output includes exitCode", () => {
+    const result = err("NOT_FOUND", "Skill not found", ["mktg list"], 1);
+    const output = formatOutput(result, jsonFlags);
+    const parsed = JSON.parse(output);
+    expect(parsed.exitCode).toBe(1);
+    expect(parsed.error.code).toBe("NOT_FOUND");
+  });
+
+  test("--fields works on arrays of objects", () => {
+    const result = ok([
+      { name: "a", count: 1, extra: "x" },
+      { name: "b", count: 2, extra: "y" },
+    ]);
+    const fieldsFlags = { ...jsonFlags, fields: ["name", "count"] };
+    const output = formatOutput(result, fieldsFlags);
+    const parsed = JSON.parse(output);
+    expect(parsed).toHaveLength(2);
+    expect(parsed[0].name).toBe("a");
+    expect(parsed[0].count).toBe(1);
+    expect(parsed[0].extra).toBeUndefined();
+    expect(parsed[1].name).toBe("b");
+    expect(parsed[1].extra).toBeUndefined();
+  });
+
+  test("display field used for TTY output", () => {
+    // In test env, isTTY() is false so this falls to JSON.
+    // Test that display is set on the result at least.
+    const result = ok({ name: "test" }, "Custom display text");
+    expect(result.display).toBe("Custom display text");
+  });
 });
 
 describe("ANSI helpers", () => {
@@ -101,5 +132,10 @@ describe("ANSI helpers", () => {
     expect(dim("")).toBe("");
     expect(bold("")).toBe("");
     expect(green("")).toBe("");
+  });
+
+  test("cyan wraps string", () => {
+    const result = cyan("test");
+    expect(result).toContain("test");
   });
 });

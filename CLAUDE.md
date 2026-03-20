@@ -19,7 +19,7 @@ This needs to work on any machine. `mktg init` self-bootstraps everything: insta
 1. `mktg` CLI — infrastructure tool (9 top-level commands: init, doctor, list, status, update, schema, skill, brand, run)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
 3. `brand/` directory — the memory (9 files that compound across sessions)
-4. 40 marketing skills — the knowledge
+4. 41 marketing skills — the knowledge
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
 ## Architecture
@@ -44,7 +44,7 @@ src/
 │   ├── brand.ts        # Brand dir management + freshness assessment
 │   ├── skills.ts       # Skill registry, install, integrity verification
 │   └── agents.ts       # Agent registry, install to ~/.claude/agents/
-skills/                  # 40 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 41 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 5 agent .md files installed to ~/.claude/agents/
 ├── research/            # brand-researcher, audience-researcher, competitive-scanner
@@ -82,7 +82,7 @@ mktg run        — Load a skill and log execution
 
 **Global flags:** `--json`, `--dry-run`, `--fields`, `--cwd`, `--help`, `--version`
 
-## Skills (40 total)
+## Skills (41 total)
 
 Skills follow the drop-in contract. See `skills-manifest.json` for the full registry.
 
@@ -96,6 +96,19 @@ Skills follow the drop-in contract. See `skills-manifest.json` for the full regi
 **Growth:** churn-prevention, referral-program, free-tool-strategy, startup-launcher
 **Knowledge:** marketing-psychology
 **Orchestrators:** tiktok-slideshow (chains slideshow-script → paper-marketing → video-content)
+
+## Security Posture
+
+**The agent is not a trusted operator.** All inputs from agent callers are treated as potentially adversarial:
+
+- `rejectControlChars()` — reject control characters in all text inputs (skill names, brand content)
+- `validateResourceId()` — reject `?`, `#`, `%`, spaces, slashes in resource IDs
+- `detectDoubleEncoding()` — catch `%25XX` bypass attempts before path resolution
+- `validatePathInput()` — combined pipeline: control chars → double encoding → sandboxPath
+- `sandboxPath()` — reject absolute paths, `..` traversal, symlink escape
+- `parseJsonInput()` — size limits (64KB), prototype pollution detection
+
+All validation functions return `{ ok, message }` — never throw. Error messages explain what's wrong and why.
 
 ## Dev Notes
 

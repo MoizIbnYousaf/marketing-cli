@@ -1,14 +1,16 @@
 ---
 name: audience-research
 description: >
-  Build detailed buyer personas and audience profiles from research. Use when
-  starting a project, when content feels unfocused, when you don't know who
-  you're talking to, when conversion is low because messaging doesn't resonate,
-  or when any skill needs audience.md but it doesn't exist. Triggers on
-  'audience', 'buyer persona', 'ideal customer', 'target market', 'watering
-  holes', 'who am I selling to', 'customer research', or 'audience profile'.
-  Three approaches: Quick Profile, Persona Build, Community Mining — picks the
-  right one based on available context.
+  Build detailed buyer personas and audience profiles from research. Use this
+  skill whenever the user mentions audience, buyer persona, ideal customer,
+  target market, ICP, watering holes, 'who am I selling to', customer research,
+  or audience profile. Also use when content feels unfocused or generic (that's
+  an audience problem), when conversion is low because messaging doesn't
+  resonate, when starting any new project (audience should be first), or when
+  any downstream skill needs audience.md but it doesn't exist yet. Even if the
+  user doesn't explicitly ask for audience research, trigger this if they're
+  writing copy or building a landing page without a clear audience defined.
+  Three approaches: Quick Profile, Persona Build, Community Mining.
 ---
 
 # /audience-research -- Know Who You're Talking To
@@ -28,15 +30,57 @@ No SaaS tools needed. Systematic research plus web search.
 
 ## On Activation
 
-1. Read `brand/` files if they exist for project context
-2. Use available context to skip questions the user has already answered
+1. Check if `brand/` directory exists in the project root.
+2. If it does, read available files: `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md`, `creative-kit.md`, `stack.md`, `learnings.md`.
+3. Apply any loaded brand context to enhance output quality — skip questions the user has already answered.
+4. If `brand/` does not exist, proceed without it — this skill works standalone.
 
 ---
 
-## Brand Memory
+## Iteration Detection
 
-Brand memory: Follow brand memory protocol in /cmo skill.
+Before starting, check whether `./brand/audience.md` already exists.
 
+### If audience.md EXISTS --> Update Mode
+
+Do not start from scratch. Instead:
+
+1. Read the existing audience profile.
+2. Present a summary of current personas:
+   ```
+   EXISTING AUDIENCE PROFILE
+   Last updated {date} by /audience-research
+
+   Personas:
+   ├── {Persona 1 name}    {one-liner}
+   ├── {Persona 2 name}    {one-liner}
+   └── Primary: {primary persona name}
+
+   Watering holes: {N} mapped
+
+   ──────────────────────────────────────────────
+
+   What would you like to do?
+
+   1. Refine existing personas with fresh research
+   2. Add a new persona segment
+   3. Deep-dive into watering holes
+   4. Full rebuild from scratch
+   ```
+
+3. Process the user's choice:
+   - Option 1 --> Re-run research for existing personas, update with new data
+   - Option 2 --> Identify the new segment, build persona, merge into existing file
+   - Option 3 --> Focus on community mining for existing personas
+   - Option 4 --> Full process from scratch
+
+4. Before overwriting, show what changed and ask for confirmation.
+
+### If audience.md DOES NOT EXIST --> Full Research Mode
+
+Proceed to the full process below.
+
+---
 
 ## The core job
 
@@ -104,7 +148,7 @@ For each distinct audience segment (usually 1-3), build:
 - Values and beliefs about this category
 - How they make decisions (data-driven, social proof, gut feel)
 
-**Jobs-to-be-done** (why they hire your product):
+**Jobs-to-be-done** (why they hire your product — see `references/jtbd-framework.md` for the full framework, Forces of Progress, and job mapping template):
 - Functional job: What task are they trying to accomplish?
 - Emotional job: How do they want to feel?
 - Social job: How do they want to be perceived?
@@ -278,10 +322,65 @@ primary_persona: [name]
 
 ---
 
+## What this skill is NOT
+
+- **Not persona fiction** — Every claim must come from research, user input, or web data. Never invent demographics or psychographics to fill gaps.
+- **Not audience.md only** — This skill writes the file, but the real output is strategic understanding of who buys and why.
+- **Not market research** — This focuses on buyer personas and watering holes. For competitive landscape, use /competitive-intel. For market sizing and trends, that's a different analysis.
+- **Not a one-time exercise** — Personas evolve. Run this again when conversion drops, when expanding to new segments, or when feedback contradicts existing personas.
+
+---
+
+## What's Next
+
+After writing audience.md, present:
+
+```
+  WHAT'S NEXT
+
+  Your audience profile is set. Every downstream
+  skill will use these personas. Recommended moves:
+
+  -> /positioning-angles   Find the angle that
+                           resonates with this
+                           audience (~15 min)
+  -> /competitive-intel    Map competitors your
+                           audience is comparing
+                           you against (~10 min)
+  -> /keyword-research     Find what this audience
+                           searches for (~15 min)
+
+  Or tell me what you're working on and
+  I'll route you.
+```
+
+---
+
+## Feedback Collection
+
+After delivering the audience profile:
+
+```
+  How did this land?
+
+  a) Great -- using these personas as-is
+  b) Good -- tweaked some details
+  c) Rewrote significantly
+  d) Haven't used yet
+```
+
+**Processing feedback:**
+- **(a) Great:** Log to `./brand/learnings.md` with persona names and context.
+- **(b) Good:** Ask what changed. Log the adjustment to learnings.md.
+- **(c) Rewrote:** Ask for the final version. Analyze differences. Offer to update audience.md with their version.
+- **(d) Haven't used:** Note it. Remind next time.
+
+---
+
 ## Safety rules
 
-- Never fabricate quotes — mark web-sourced language as "representative" if paraphrased
-- Never assume demographics without evidence — ask or research
-- Never write audience data from one project into another project's brand/
-- Always check `--cwd` context if provided — audience is project-specific
-- If Exa MCP is unavailable, skip web research steps and note the limitation
+- Never fabricate quotes — downstream skills use language mines as real customer voice in copy. Fabricated quotes produce inauthentic messaging that erodes trust. Mark web-sourced language as "representative" if paraphrased.
+- Never assume demographics without evidence — persona decisions drive targeting, pricing, and channel strategy. Wrong demographics cascade into wrong marketing. Ask or research.
+- Never write audience data from one project into another project's brand/ — audience profiles are project-specific. Cross-contamination means one project's strategy infects another.
+- Always check `--cwd` context if provided — the working directory determines which brand/ to read and write.
+- If Exa MCP is unavailable, skip web research steps and note the limitation — the skill still produces useful output at L0-L2, just without verified watering holes and real quotes.

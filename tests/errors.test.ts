@@ -13,6 +13,8 @@ import {
   networkError,
   notImplemented,
   missingInput,
+  permissionError,
+  ioError,
   sandboxPath,
   parseJsonInput,
   exitCodeLabel,
@@ -81,6 +83,39 @@ describe("Named error constructors", () => {
     if (result.ok) return;
     expect(result.error.code).toBe("MISSING_INPUT");
     expect(result.error.suggestions[0]).toContain('{"business":"test"}');
+  });
+
+  test("skillFailed has default suggestions when none provided", () => {
+    const result = skillFailed("brand-voice", "No audience data");
+    if (result.ok) return;
+    expect(result.error.suggestions.length).toBeGreaterThan(0);
+    expect(result.error.suggestions[0]).toContain("brand-voice");
+  });
+
+  test("skillFailed uses custom suggestions when provided", () => {
+    const result = skillFailed("brand-voice", "No audience data", ["Run audience-research first"]);
+    if (result.ok) return;
+    expect(result.error.suggestions[0]).toBe("Run audience-research first");
+  });
+
+  test("permissionError returns exit code 1 with path", () => {
+    const result = permissionError("/brand/voice-profile.md", "write");
+    expect(result.exitCode).toBe(1);
+    if (result.ok) return;
+    expect(result.error.code).toBe("PERMISSION_ERROR");
+    expect(result.error.message).toContain("write");
+    expect(result.error.message).toContain("voice-profile.md");
+    expect(result.error.suggestions.length).toBeGreaterThan(0);
+  });
+
+  test("ioError returns exit code 1 with path and message", () => {
+    const result = ioError("brand/audience.md", "ENOENT: file not found");
+    expect(result.exitCode).toBe(1);
+    if (result.ok) return;
+    expect(result.error.code).toBe("IO_ERROR");
+    expect(result.error.message).toContain("audience.md");
+    expect(result.error.message).toContain("ENOENT");
+    expect(result.error.suggestions.length).toBeGreaterThan(0);
   });
 });
 

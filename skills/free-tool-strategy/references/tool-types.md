@@ -215,3 +215,39 @@ Detailed guide to each type of marketing tool you can build.
 - Budget planner
 - Tax estimator
 - Loan calculator
+
+---
+
+## Real-World Success Stories
+
+These are well-known examples of free tools that drove significant traffic and signups for their parent products. Use these as inspiration when recommending tool strategies.
+
+### HubSpot — Website Grader
+- **Tool type**: Analyzer/Auditor
+- **What it does**: Enter a URL, get a score and report on SEO, mobile, security, and performance
+- **Why it worked**: Curiosity-driven (everyone wants to know their score), shareable results, natural lead-in to HubSpot's marketing platform
+- **Key insight**: The tool creates awareness of problems that HubSpot solves. Users discover they need help → HubSpot is right there
+
+### CoSchedule — Headline Analyzer
+- **Tool type**: Analyzer/Grader
+- **What it does**: Score a headline for emotional appeal, word balance, and length
+- **Why it worked**: Bloggers and marketers use it repeatedly (every time they write). Extremely shareable. Positioned CoSchedule as the content marketing expert
+- **Key insight**: Tools people use weekly become bookmarks. Bookmarks become brand awareness
+
+### Zapier — Zap Templates Library
+- **Tool type**: Template Library
+- **What it does**: Pre-built automation templates for common workflows
+- **Why it worked**: Each template is a landing page targeting a long-tail keyword ("connect Gmail to Slack"). Thousands of pages = massive SEO footprint
+- **Key insight**: Template libraries can generate thousands of SEO-targeted pages, each solving a micro-problem
+
+### Stripe — Stripe Atlas (indirect)
+- **Tool type**: Interactive Educational
+- **What it does**: Guide to incorporating a startup, with tools to actually do it
+- **Why it worked**: Solves a real pain (incorporating is confusing), positions Stripe as the default payment processor for new startups
+- **Key insight**: Tools that help at the start of a journey lock in users for the entire journey
+
+### Moz — Domain Authority Checker
+- **Tool type**: Checker/Grader
+- **What it does**: Check any website's domain authority score
+- **Why it worked**: Created an industry-standard metric. Every SEO professional uses it. Massive organic traffic from "domain authority" queries
+- **Key insight**: If your free tool creates a metric that becomes an industry standard, you own the category

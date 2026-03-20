@@ -5,6 +5,17 @@ description: Use when sending transactional emails (welcome messages, order conf
 
 # Send Email with Resend
 
+This skill is primarily context-independent, but when `brand/voice-profile.md` exists, use it to inform email tone, vocabulary, and personality for any copy written within emails.
+
+## On Activation
+
+1. Detect project language from config files (package.json, requirements.txt, go.mod, etc.).
+2. Install Resend SDK if not present — see [references/installation.md](references/installation.md).
+3. Determine single vs batch send based on the user's needs (see decision matrix below).
+4. Implement with idempotency keys, error handling, and retry logic.
+
+**Output:** Email sending code with production-grade error handling integrated into the user's project.
+
 ## Overview
 
 Resend provides two endpoints for sending emails:

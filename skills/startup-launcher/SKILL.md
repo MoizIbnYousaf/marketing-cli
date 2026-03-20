@@ -1,6 +1,6 @@
 ---
 name: startup-launcher
-description: "When the user wants to launch a product across multiple platforms, submit to launch directories, prepare launch assets, plan a multi-platform campaign, or needs launch day operational support. Activates on: 'submit to directories', 'launch on Product Hunt', 'submit to BetaList', 'multi-platform launch', 'launch campaign', 'directory submissions', 'startup launch playbook', 'AppSumo campaign', 'Hacker News launch', 'where should I launch', 'launch across platforms'. This is the operational launcher — it does the work. For high-level launch strategy and phased planning, see launch-strategy."
+description: "Launch a product across 56 platforms — generates all copy, tracks submissions, and guides launch day operations. Use this skill whenever someone wants to submit to directories, get backlinks, launch on Product Hunt or Hacker News, run an AppSumo campaign, or needs help getting their product in front of users. Also triggers on: 'I just built something and want people to know', 'how do I get users', 'where can I submit my SaaS', 'get backlinks for my product', 'multi-platform launch', 'directory submissions', 'startup launch playbook', 'submit everywhere', 'launch across platforms'. This is the operational launcher — it does the work. For high-level launch strategy and phased planning, see launch-strategy."
 category: growth
 tier: must-have
 reads:
@@ -117,67 +117,12 @@ Explain WHY each is skipped (e.g., "OpenAlternative requires open source, your p
 
 ## Step 4: Platform Quick Reference Matrix
 
-| Platform | Category | Cost | Best For | Traffic Potential | File |
-|----------|----------|------|----------|-------------------|------|
-| **LAUNCH DIRECTORIES (29)** |
-| Product Hunt | Directory | Free | SaaS, consumer apps, visual products | 5K-25K visitors | `producthunt.md` |
-| Hacker News | Directory | Free | Dev tools, OSS, technical products | 10K-30K visitors | `hackernews.md` |
-| BetaList | Directory | $0/$99 | Pre-launch validation, waitlist building | 50-500 signups | `betalist.md` |
-| Indie Hackers | Directory | Free | Bootstrapped SaaS, founder stories | High-intent, slow burn | `indiehackers.md` |
-| Uneed | Directory | $0/$30 | Indie tools, SaaS | 200-2K visitors | `uneed.md` |
-| Fazier | Directory | $0/$79 | Indie makers, founders | Low traffic, high SEO | `fazier.md` |
-| MicroLaunch | Directory | $0/$49 | Side projects, MVPs | Moderate | `microlaunch.md` |
-| Peerlist | Directory | Free | Dev tools, OSS, portfolios | Moderate, high quality | `peerlist.md` |
-| TinyLaunch | Directory | $0/$39 | Indie makers, first launches | Low-moderate | `tinylaunch.md` |
-| Tiny Startups | Directory | Free | Bootstrapped products | Newsletter: 20K subs | `tinystartups.md` |
-| SideProjectors | Directory | Free | Side projects, showcases | 250K pageviews/mo | `sideprojectors.md` |
-| LaunchIgniter | Directory | $0/$12 | SaaS, AI tools | 50-300 clicks | `launchigniter.md` |
-| PeerPush | Directory | $0/paid | Builder tools, SaaS | 250K visitors/mo | `peerpush.md` |
-| DevHunt | Directory | Free | Developer tools, OSS | Growing dev community | `devhunt.md` |
-| TrustMRR | Directory | Free | SaaS, recurring revenue | Moderate | `trustmrr.md` |
-| Startup Stash | Directory | Free | Startup resources, tools | Moderate | `startupstash.md` |
-| Launching Next | Directory | Free | Early-stage startups | Moderate | `launchingnext.md` |
-| Firsto | Directory | Free | New product launches | Moderate | `firsto.md` |
-| LaunchIt | Directory | Free | Launch announcements | Moderate | `launchit.md` |
-| Launch Your App | Directory | Free | Mobile app launches | Moderate | `launchyourapp.md` |
-| DesiFounder | Directory | Free | Indian founder community | Moderate | `desifounder.md` |
-| Rank In Public | Directory | Free | Public building, startups | Moderate | `rankinpublic.md` |
-| Launchboard | Directory | Free | Launch discovery | Moderate | `launchboard.md` |
-| Aura++ | Directory | Free | Creator tools, SaaS | Moderate | `auraplusplus.md` |
-| TryLaunch | Directory | Free | Product trials, launches | Moderate | `trylaunch.md` |
-| Selected | Directory | Free | Curated product launches | Moderate | `selected.md` |
-| LaunchFast | Directory | Free | Quick launch submissions | Moderate | `launchfast.md` |
-| Lab Startups | Directory | Free | Experimental projects | Moderate | `labstartups.md` |
-| indie.deals | Directory | Free | Indie product deals | Moderate | `indiedeals.md` |
-| **DEAL/LTD MARKETPLACES (13)** |
-| AppSumo | Deal | Revenue share | SaaS, productivity tools | $40K-$400K campaigns | `appsumo.md` |
-| RocketHub | Deal | Revenue share | Software deals | Moderate | `rockethub.md` |
-| StackSocial | Deal | Revenue share | Tech products | High volume | `stacksocial.md` |
-| SaaS Mantra | Deal | Revenue share | SaaS lifetime deals | Growing | `saasmantra.md` |
-| SaaS Warrior | Deal | Revenue share | SaaS tools | Moderate | `saaswarrior.md` |
-| LTD Hunt | Deal | Revenue share | Lifetime deals | Moderate | `ltdhunt.md` |
-| KEN Moo | Deal | Revenue share | Software deals | Moderate | `kenmoo.md` |
-| Prime Club | Deal | Revenue share | Premium deals | Moderate | `primeclub.md` |
-| SaaSZilla | Deal | Revenue share | SaaS deals | Moderate | `saaszilla.md` |
-| SaaS Pirate | Deal | Revenue share | SaaS lifetime deals | Moderate | `saaspirate.md` |
-| Product Canyon | Deal | Revenue share | Product deals | Moderate | `productcanyon.md` |
-| Deal Mirror | Deal | Revenue share | Software deals | Moderate | `dealmirror.md` |
-| Dealify | Deal | Revenue share | Deal marketplace | Moderate | `dealify.md` |
-| **SOFTWARE DIRECTORIES (14)** |
-| SaaSHub | Directory | Free | SaaS discovery | High SEO value | `saashub.md` |
-| G2 | Directory | Free | Enterprise software | High-intent buyers | `g2.md` |
-| Capterra | Directory | Free | Business software | High commercial intent | `capterra.md` |
-| OpenAlternative | Directory | Free | Open source alternatives | Developer audience | `openalternative.md` |
-| LibHunt | Directory | Free | Libraries, frameworks | Developer tools | `libhunt.md` |
-| Toolfolio | Directory | Free | Tool discovery | Moderate | `toolfolio.md` |
-| SaaS Genius | Directory | Free | SaaS tools | Moderate | `saasgenius.md` |
-| There's an AI for that | Directory | Free | AI tools | AI-focused audience | `theresanaiforthat.md` |
-| AlternativeTo | Directory | Free | Software alternatives | High traffic | `alternativeto.md` |
-| SourceForge | Directory | Free | Open source projects | Developer audience | `sourceforge.md` |
-| Softonic | Directory | Free | Software downloads | Consumer software | `softonic.md` |
-| Crunchbase | Directory | Free | Startup database | High authority, investors | `crunchbase.md` |
-| HackerNoon | Directory | Free | Tech publishing | Developer audience | `hackernoon.md` |
-| Devpost | Directory | Free | Developer projects | Hackathon, dev showcase | `devpost.md` |
+See `references/platform-matrix.md` for the full 56-platform table with category, cost, best-for, traffic potential, and reference file paths.
+
+**Summary by category:**
+- **29 Launch Directories** — Free/low-cost submission. Agent drafts copy, user clicks submit.
+- **13 Deal/LTD Marketplaces** — Revenue share models. Need pricing strategy.
+- **14 Software Directories** — Free listings for SEO value and discoverability.
 
 ## Step 5: Execution Flow
 
@@ -256,68 +201,9 @@ Condensed playbooks for platforms where launch day is a live event:
 
 ## File Router Reference
 
-When you need to prep a specific platform submission, load the corresponding reference file:
+When prepping a specific platform submission, load the reference file from `references/platforms/[platform].md`. See `references/file-router.md` for the full platform-to-file mapping table (56 entries).
 
-| Platform | Reference File |
-|----------|----------------|
-| Product Hunt | `references/platforms/producthunt.md` |
-| AppSumo | `references/platforms/appsumo.md` |
-| Hacker News | `references/platforms/hackernews.md` |
-| BetaList | `references/platforms/betalist.md` |
-| Indie Hackers | `references/platforms/indiehackers.md` |
-| G2 | `references/platforms/g2.md` |
-| DevHunt | `references/platforms/devhunt.md` |
-| Uneed | `references/platforms/uneed.md` |
-| Fazier | `references/platforms/fazier.md` |
-| MicroLaunch | `references/platforms/microlaunch.md` |
-| Peerlist | `references/platforms/peerlist.md` |
-| TinyLaunch | `references/platforms/tinylaunch.md` |
-| Tiny Startups | `references/platforms/tinystartups.md` |
-| SideProjectors | `references/platforms/sideprojectors.md` |
-| LaunchIgniter | `references/platforms/launchigniter.md` |
-| PeerPush | `references/platforms/peerpush.md` |
-| TrustMRR | `references/platforms/trustmrr.md` |
-| Aura++ | `references/platforms/auraplusplus.md` |
-| DesiFounder | `references/platforms/desifounder.md` |
-| Firsto | `references/platforms/firsto.md` |
-| indie.deals | `references/platforms/indiedeals.md` |
-| Lab Startups | `references/platforms/labstartups.md` |
-| Launchboard | `references/platforms/launchboard.md` |
-| LaunchFast | `references/platforms/launchfast.md` |
-| LaunchIt | `references/platforms/launchit.md` |
-| Launch Your App | `references/platforms/launchyourapp.md` |
-| Launching Next | `references/platforms/launchingnext.md` |
-| Rank In Public | `references/platforms/rankinpublic.md` |
-| Selected | `references/platforms/selected.md` |
-| Startup Stash | `references/platforms/startupstash.md` |
-| TryLaunch | `references/platforms/trylaunch.md` |
-| SaaSHub | `references/platforms/saashub.md` |
-| Capterra | `references/platforms/capterra.md` |
-| OpenAlternative | `references/platforms/openalternative.md` |
-| LibHunt | `references/platforms/libhunt.md` |
-| Toolfolio | `references/platforms/toolfolio.md` |
-| SaaS Genius | `references/platforms/saasgenius.md` |
-| There's an AI for that | `references/platforms/theresanaiforthat.md` |
-| AlternativeTo | `references/platforms/alternativeto.md` |
-| SourceForge | `references/platforms/sourceforge.md` |
-| Softonic | `references/platforms/softonic.md` |
-| Crunchbase | `references/platforms/crunchbase.md` |
-| HackerNoon | `references/platforms/hackernoon.md` |
-| Devpost | `references/platforms/devpost.md` |
-| RocketHub | `references/platforms/rockethub.md` |
-| StackSocial | `references/platforms/stacksocial.md` |
-| SaaS Mantra | `references/platforms/saasmantra.md` |
-| SaaS Warrior | `references/platforms/saaswarrior.md` |
-| LTD Hunt | `references/platforms/ltdhunt.md` |
-| KEN Moo | `references/platforms/kenmoo.md` |
-| Prime Club | `references/platforms/primeclub.md` |
-| SaaSZilla | `references/platforms/saaszilla.md` |
-| SaaS Pirate | `references/platforms/saaspirate.md` |
-| Product Canyon | `references/platforms/productcanyon.md` |
-| Deal Mirror | `references/platforms/dealmirror.md` |
-| Dealify | `references/platforms/dealify.md` |
-
-Each file contains exact submission requirements, strategy tips, hard rules that cause rejection, and pre/post-launch checklists.
+Each reference file contains exact submission requirements, strategy tips, hard rules that cause rejection, and pre/post-launch checklists.
 
 ## Cross-Platform Timing & Coordination
 
@@ -335,6 +221,25 @@ Factor these cadences into launch sequencing:
 | All others | Rolling review | Hours-days | Minimal wait times |
 
 **SEO Value Note:** Submitting to all platforms generates 28+ dofollow backlinks from DR 48-90+ domains. Even with zero traffic, the backlink portfolio is worth hundreds of dollars in SEO value.
+
+## Anti-Patterns
+
+| Anti-Pattern | Why It Fails | Instead |
+|-------------|-------------|---------|
+| Launching on all 56 platforms simultaneously | Spreads attention too thin, can't engage with comments, support collapses | Sequence in waves: Immediate (free, fast) first, then Scheduled, then Premium |
+| Using marketing language on Hacker News | HN detects and punishes marketing speak — gets flagged, downvoted, killed | Write factually. "Show HN: [Name] - [plain description]". No superlatives. |
+| Submitting before product is ready | AppSumo tests your product, PH users try it immediately — bugs = negative reviews that persist | Ensure the product is stable, demo works without signup, pricing is transparent |
+| Asking for upvotes on any platform | PH detects coordination from 5-6 accounts, HN bans for it | Ask for "feedback" or "support", never "upvotes" |
+| Ignoring platform cadences | Launching on PH mid-week when competition is highest, missing Peerlist's Monday window | Check the Cross-Platform Timing table and schedule around each platform's cadence |
+| Same copy on every platform | Each platform has different audiences, norms, and formats | Generate platform-specific copy from the universal brief — adapt, don't copy |
+| Launching without a support plan | AppSumo expects 100-1,300+ tickets month one, PH expects comment replies in 5-10 min | Staff up before launch. Response templates, FAQ, live chat for deal platforms |
+
+## Failure Handling
+
+- **Submission rejected**: Check the platform's reference file for hard rules and gotchas. Fix the issue, then resubmit. If rejected twice, mark as "Skipped" with reason in the tracker.
+- **Platform process changed**: Flag to the user. Check the reference file's freshness (many have "Last researched" dates). Offer to research the current process via web search.
+- **User wants only specific platforms**: Skip the full classification in Step 3. Load only the requested platform reference files and generate copy for those. Still update the tracker for the selected platforms.
+- **Product not ready**: Recommend the user address readiness gaps first. Point them to the asset checklist (`references/templates/asset-checklist.md`) and suggest a timeline for prep before launch.
 
 ## Related Skills
 

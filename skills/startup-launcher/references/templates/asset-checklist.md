@@ -1,6 +1,6 @@
 # Universal Asset Checklist
 
-Prepare assets ONCE for all 39 platforms. This checklist consolidates requirements across Launch Directories, Deal/LTD Marketplaces, and Software Directories.
+Prepare assets ONCE for all 56 platforms. This checklist consolidates requirements across Launch Directories, Deal/LTD Marketplaces, and Software Directories.
 
 ---
 
@@ -215,4 +215,4 @@ Free platforms with fast approval:
 
 ---
 
-*Prepare all assets according to this checklist BEFORE starting any platform submissions. Having everything ready allows for rapid deployment across all 39 platforms.*
+*Prepare all assets according to this checklist BEFORE starting any platform submissions. Having everything ready allows for rapid deployment across all 56 platforms.*

@@ -7,6 +7,7 @@ export type GlobalFlags = {
   readonly dryRun: boolean;
   readonly fields: readonly string[];
   readonly cwd: string;
+  readonly jsonInput: string | undefined;
 };
 
 // Exit codes with distinct meanings
@@ -125,7 +126,8 @@ export type SkillLayer =
   | "foundation"
   | "strategy"
   | "execution"
-  | "distribution";
+  | "distribution"
+  | "orchestrator";
 
 export type SkillMeta = {
   readonly name: string;
@@ -336,7 +338,11 @@ export type SkillRunRecord = {
 };
 
 // Freshness levels for brand files
-export type FreshnessLevel = "current" | "stale" | "missing";
+// - "current": exists, customized, within review interval
+// - "stale": exists, customized, past review interval
+// - "template": exists but still contains scaffolded template content (never customized)
+// - "missing": file does not exist
+export type FreshnessLevel = "current" | "stale" | "template" | "missing";
 
 // Brand file status
 export type BrandFileStatus = {

@@ -1,7 +1,7 @@
 ---
 name: free-tool-strategy
 description: |
-  Plans free tools, calculators, generators, and interactive widgets that attract target audience through search and social sharing. Engineering as marketing — build something useful, capture leads. Use when someone wants to build a free tool for marketing, says 'free tool', 'calculator', 'generator', 'engineering as marketing', 'side project marketing', 'interactive widget', or wants to attract users through utility. Includes search volume validation, UX flow templates, and conversion hook design.
+  Plans free tools, calculators, generators, and interactive widgets that attract target audience through search and social sharing. Engineering as marketing — build something useful, capture leads. Use when someone wants to build a free tool for marketing, says 'free tool', 'calculator', 'generator', 'engineering as marketing', 'side project marketing', 'interactive widget', 'lead generation tool', 'SEO tool', 'growth hack', 'build something to attract users', or wants to attract users through utility rather than content. Also use when someone asks 'how do I get more signups', 'what should I build for marketing', or 'content marketing alternative' — a free tool is often the best answer. Includes search volume validation, UX flow templates, and conversion hook design.
 allowed-tools: []
 ---
 
@@ -15,12 +15,22 @@ Free tools are permanent acquisition assets. Build a calculator, checker, genera
 
 - `brand/audience.md` — Personas, daily workflow, pain points
 - `brand/keyword-plan.md` — Search volume data for tool-related queries
+- `brand/positioning.md` — Positioning angles to connect tool → product
+- `brand/creative-kit.md` — Brand colors, fonts for tool landing page
+
+## On Activation
+
+1. Read `brand/audience.md`, `brand/keyword-plan.md`, `brand/positioning.md`, `brand/creative-kit.md`.
+2. If any file is missing, note what's unavailable. The skill works at zero context — ask the user directly for missing info in Step 1.
+3. Pre-fill persona details, keyword data, and positioning angles from whatever brand/ files exist. Only ask for what's genuinely unknown.
+
+Why these files matter: audience.md tells you whose pain to solve (without this, tools target the wrong users). keyword-plan.md gives search volume data so you don't build tools nobody searches for. positioning.md connects the free tool to the paid product (without this connection, traffic doesn't convert). creative-kit.md ensures the tool landing page matches the brand.
 
 ## Workflow
 
 ### Step 1: Identify Audience Workflow Pain Points
 
-Map your target audience's daily workflow and find friction:
+If `brand/audience.md` exists, extract the primary persona and their pain points — skip the interview below and go straight to Step 2 with that data. If not, map the target audience's daily workflow and find friction:
 
 ```
 Persona: [Role/Title]
@@ -73,12 +83,6 @@ Score each idea:
 | Build effort (inverse) | 20% | |
 | Shareability | 15% | |
 | Data capture opportunity | 10% | |
-
-## Brand Integration
-
-- **audience.md** → The tool must solve a pain point your audience actually has. Use the persona's job-to-be-done, not a generic utility.
-- **keyword-plan.md** → Tool names and landing pages target keyword clusters from the plan. The tool IS the SEO strategy — it ranks for high-intent queries.
-- **positioning.md** → The conversion hook connects the free tool to your paid product's positioning angle. The tool demonstrates the value; the product delivers it at scale.
 
 ### Step 3: Validate Search Volume
 
@@ -228,6 +232,29 @@ continuously, and with [additional benefits].
 [Start Free Trial] — No credit card required.
 ```
 
+## Anti-Patterns
+
+| Mistake | Why It Fails |
+|---------|-------------|
+| Building a tool that requires ongoing data maintenance | You'll abandon it in 3 months. Tools should be stateless or use user-provided input. |
+| Tool has no connection to paid product | Drives traffic that never converts. The tool must demonstrate a pain your product solves. |
+| Too complex for a side project | If it takes more than 2-3 weeks to build, it's not a free tool — it's a product. Scope aggressively. |
+| Gating core results behind signup | Users bounce. Show results first, gate the detailed report or saved history. |
+| Copying an existing tool without differentiation | "Another X calculator" won't rank or get shared. Find the angle — faster, more specific, better UX. |
+| Building for vanity search volume | High-volume generic tools (e.g., "word counter") attract the wrong audience. Target tool queries adjacent to your product. |
+
+## Tech Stack Recommendations
+
+Pick the simplest stack that works:
+
+| Complexity | Stack | When to Use |
+|-----------|-------|-------------|
+| Low | Single HTML + vanilla JS | Calculators, converters, simple generators |
+| Medium | Next.js / Astro | Multi-page tools, tools needing API calls |
+| High | Next.js + database | Tools requiring saved results, user accounts |
+
+Default recommendation: **single-page HTML/JS** unless the tool genuinely requires server-side processing. Simpler = ships faster = starts ranking sooner.
+
 ## Tool Category Examples
 
 **For Marketers:**
@@ -263,11 +290,37 @@ continuously, and with [additional benefits].
 
 ## Output
 
-Each free tool strategy produces:
-- Ranked list of tool ideas with scores
-- Search volume validation for top 3 candidates
-- UX flow wireframe for recommended tool
-- SEO strategy (on-page + link building)
-- Landing page copy (full page, ready to build)
-- Conversion hook strategy
-- Build effort estimate and recommended tech stack
+Write all deliverables to `marketing/free-tool-strategy/`. Each strategy produces:
+
+```markdown
+# Free Tool Strategy: [Product Name]
+
+## Recommended Tool: [Tool Name]
+- Type: [Calculator/Generator/Checker/etc.]
+- Primary keyword: "[keyword]" — [X] monthly searches
+- Build effort: [Low/Medium/High] — estimated [X] days
+- Tech stack: [recommendation]
+
+## Tool Ideas (Ranked)
+
+| Rank | Tool | Type | Search Vol | Product Relevance | Score |
+|------|------|------|-----------|-------------------|-------|
+| 1 | [name] | [type] | [vol] | [relevance] | [X/5] |
+| 2 | ... | ... | ... | ... | ... |
+| 3 | ... | ... | ... | ... | ... |
+
+## Search Volume Validation (Top 3)
+[Validation data per Step 3]
+
+## UX Flow
+[Per Step 4 template]
+
+## SEO Strategy
+[Per Step 5]
+
+## Conversion Hook
+[Per Step 6]
+
+## Landing Page Copy
+[Per Step 7 template]
+```

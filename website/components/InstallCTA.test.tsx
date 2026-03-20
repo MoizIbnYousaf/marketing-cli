@@ -11,7 +11,7 @@ describe("InstallCTA", () => {
     const view = render(<InstallCTA />, { container: host });
     const scoped = within(view.container);
     const section = view.container.querySelector("section#install");
-    const command = scoped.getByText("npx mktg init");
+    const command = scoped.getByText("bun install -g mktg && mktg init");
     const steps = Array.from(view.container.querySelectorAll("[data-install-step]"));
     const stepNumbers = steps.map((step) => step.querySelector("span")?.textContent?.trim());
     const stepTitles = steps.map((step) => step.querySelector("h3")?.textContent?.trim());
@@ -45,7 +45,7 @@ describe("InstallCTA", () => {
     fireEvent.click(scoped.getByRole("button", { name: /copy install command/i }));
 
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith("npx mktg init");
+      expect(writeText).toHaveBeenCalledWith("bun install -g mktg && mktg init");
       expect(scoped.getByText("Copied!")).toBeDefined();
     });
   });

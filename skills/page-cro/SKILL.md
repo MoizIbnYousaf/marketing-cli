@@ -1,7 +1,7 @@
 ---
 name: page-cro
 description: |
-  Audits existing landing pages for conversion rate optimization. Scores hero section, CTA placement, social proof, objection handling, and form friction on a 1-10 scale. Use when someone says 'audit my landing page', 'improve conversions', 'why isn't my page converting', 'CRO audit', 'landing page feedback', 'optimize my signup page', or anything about improving an existing page's performance. If they have a live URL and want it to convert better, this is the skill.
+  Audits existing landing pages for conversion rate optimization. Scores hero section, CTA placement, social proof, objection handling, and form friction on a 1-10 scale. Use when someone says 'audit my landing page', 'improve conversions', 'why isn't my page converting', 'CRO audit', 'landing page feedback', 'optimize my signup page', 'page review', 'conversion rate', 'bounce rate is high', 'nobody is signing up', or anything about improving an existing page's performance. Even if they just share a URL and say 'what do you think' or 'how can I improve this' — if there's a page involved and conversion matters, this is the skill. Always use this over generic advice when an actual page exists to audit.
 allowed-tools: []
 ---
 
@@ -15,15 +15,24 @@ Take any landing page and audit it for conversion leaks. Score each element, pri
 
 - `brand/audience.md` — Target personas, pain points, buying triggers
 - `brand/positioning.md` — Value props, differentiators, proof points
+- `brand/voice-profile.md` — Brand voice for copy rewrites
+
+## Brand Integration
+
+- **audience.md** — Scoring thresholds shift by persona. A developer audience tolerates minimal social proof; a non-technical buyer needs more hand-holding. Pain points from audience.md inform which objections the page should address — unaddressed objections are the most common conversion killer.
+- **positioning.md** — Every copy rewrite must reinforce the positioning angle. If the brand differentiates on speed, the hero rewrite should lead with speed. Proof points from positioning.md become the social proof recommendations.
+- **voice-profile.md** — All before/after copy rewrites match the brand voice. A playful brand gets different CTA copy than a professional brand.
 
 ## Workflow
 
 ### Step 1: Capture the Page
 
-Get the page content via one of:
-- Firecrawl scrape (preferred — gets full rendered content)
-- Screenshot analysis (if available via browser tool)
-- Raw HTML/markdown provided by user
+Get the page content. Try these in order:
+1. **User provides URL** — Use WebFetch or browser tool to get the rendered page
+2. **User provides HTML/markdown** — Work with what's given
+3. **User describes the page** — Ask for the actual page content before auditing; descriptions alone produce weak audits
+
+If the page is behind authentication, ask the user to paste the HTML or provide screenshots.
 
 Extract and map:
 - Hero section (headline, subheadline, CTA)
@@ -55,10 +64,6 @@ Score each element 1-10 with specific reasoning.
 2. Who is it for?
 3. Why should I care?
 4. What do I do next?
-
-### Why This Works
-
-Each recommendation is grounded in conversion psychology: social proof leverages conformity bias, anxiety reducers counter loss aversion, and benefit-focused CTAs activate approach motivation. The 5-second test works because users form lasting first impressions in 50ms — if the value prop isn't instant, bounce rates spike.
 
 #### CTA Audit
 
@@ -105,7 +110,7 @@ Each recommendation is grounded in conversion psychology: social proof leverages
 
 ### Step 3: Score and Prioritize
 
-Generate an overall score and priority matrix:
+Generate a priority matrix. Score each of the 5 audit areas 1-10 (hero, CTA, social proof, objection handling, form friction). Sum them, multiply by 2 to get a /100 score. Then assign priority based on impact and effort:
 
 ```
 ## CRO Audit Score: [X]/100
@@ -118,7 +123,7 @@ Generate an overall score and priority matrix:
 | Form friction | 6/10 | Medium | Medium | P2 |
 | Objection handling | 2/10 | High | Medium | P1 |
 
-Impact x Inverse-Effort = Priority
+Priority ranking: High impact + Low effort = P0, High impact + Medium effort = P1, everything else = P2
 ```
 
 ### Step 4: Generate Recommendations
@@ -198,6 +203,28 @@ Everything visible without scrolling must include:
 - **CTA: 5/10** — Generic 'Sign Up' button. Recommend: 'Start your free trial' with benefit reinforcement.
 - **Social Proof: 3/10** — No testimonials above fold. Recommend: add 1-2 customer quotes near CTA.
 
+## Anti-Patterns
+
+- Don't suggest a complete page redesign — focus on conversion fixes within the existing structure
+- Don't critique branding, aesthetics, or color choices unless they directly impact conversion (e.g., CTA blends into background)
+- Don't provide vague advice ("improve the headline") — every recommendation must include specific rewrite copy
+- Don't audit content/blog pages as if they were landing pages — different goals, different criteria
+- Don't recommend tools or integrations the agent can't implement — stay within copy and structural changes
+- Don't ignore mobile — flag any element that would break on small screens
+
+## Edge Cases
+
+- **Page behind auth:** Ask user to paste HTML or provide screenshots. Don't attempt to bypass login.
+- **Blog/content page:** Shift criteria — evaluate for CTA to next step (newsletter, lead magnet), not for direct conversion. Skip form friction audit.
+- **No clear CTA:** Flag as P0. The page needs a CTA before anything else matters.
+- **Mobile-only page:** Prioritize tap target sizes, scroll depth, and thumb-zone placement in recommendations.
+
+See `references/cro-benchmarks.md` for industry conversion rates, element-specific impact data, and A/B test planning benchmarks. Use these to ground scores and expected impact estimates in real numbers.
+
+## Recommendation Psychology
+
+Ground every recommendation in conversion psychology: social proof leverages conformity bias, anxiety reducers counter loss aversion, benefit-focused CTAs activate approach motivation. The 5-second test works because users form lasting first impressions in 50ms — if the value prop isn't instant, bounce rates spike.
+
 ## Output
 
 The audit produces:
@@ -206,3 +233,12 @@ The audit produces:
 - Before/after copy rewrites for every P0 and P1 item
 - Implementation checklist ordered by impact/effort
 - Framework references for each recommendation
+
+## Quality Checks
+
+- [ ] Every P0/P1 issue has a specific before/after rewrite, not vague advice
+- [ ] Copy rewrites match brand voice (if voice-profile.md exists)
+- [ ] Recommendations are achievable without a full redesign
+- [ ] Mobile experience considered for all recommendations
+- [ ] Prioritization reflects actual impact/effort, not just opinion
+- [ ] Social proof recommendations reference specific proof types available to the brand

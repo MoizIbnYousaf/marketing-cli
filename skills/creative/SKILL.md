@@ -1,12 +1,13 @@
 ---
 name: creative
 description: |
-  Generate visual asset briefs, ad copy variants, AI image prompts, and video scripts. Produces complete creative briefs for any marketing channel including social ads, display ads, video, and thumbnails. Use when someone needs marketing visuals, ad creative, image prompts, video scripts, or says 'creative', 'visual', 'image', 'graphic', 'ad copy', 'thumbnail', 'video script', 'ad creative', or 'marketing assets'. Includes platform-specific dimensions and Remotion composition templates.
+  Generate visual asset briefs, ad copy variants, AI image prompts, video scripts, and storyboards. Full creative production system with 5 specialized modes: product photos, product video, social graphics, talking heads, and ad creative. Make sure to use this skill whenever the user mentions any visual or creative marketing need — ad creative, image prompts, video scripts, thumbnails, banners, social graphics, product photography, storyboards, or marketing visuals of any kind. Even if they just say 'I need images for my campaign' or 'make something visual', this is the skill. Includes platform-specific dimensions, AI anti-slop techniques, and Remotion composition templates.
 category: creative
 tier: core
 reads:
   - brand/voice-profile.md
   - brand/creative-kit.md
+  - brand/positioning.md
 writes:
   - brand/creative-kit.md
   - marketing/creative/{campaign}/
@@ -26,6 +27,10 @@ triggers:
   - brand visuals
   - remotion
   - video ad
+  - product photography
+  - marketing visuals
+  - product video
+  - talking head
 allowed-tools: []
 ---
 
@@ -37,8 +42,22 @@ You generate everything needed to produce visual and video marketing assets — 
 
 1. Read `brand/creative-kit.md` — if it exists, use these brand guidelines for all output
 2. Read `brand/voice-profile.md` — match copy tone to brand voice
-3. If `brand/creative-kit.md` doesn't exist and the user needs brand visuals, offer to build it (see Creative Kit Builder below)
-4. Ask: What type of asset? What platform? What's the campaign goal?
+3. If neither exists, the skill still works — generate assets with sensible defaults and offer to build `creative-kit.md` (see Creative Kit Builder below)
+4. Read [references/VISUAL_INTELLIGENCE.md](references/VISUAL_INTELLIGENCE.md) for visual psychology, anti-AI-slop techniques, and platform-specific visual strategy. This is the knowledge base for all visual decisions.
+5. Route to the appropriate **mode** based on the user's request:
+
+### Mode Selection
+
+| Mode | When to Use | File |
+|------|------------|------|
+| **Product Photos** | Product photography, e-commerce images, hero shots, lifestyle photos | [modes/product-photo.md](modes/product-photo.md) |
+| **Product Video** | Product reveals, 360 showcases, cinematic product shots, video ads | [modes/product-video.md](modes/product-video.md) |
+| **Social Graphics** | Platform-optimized graphics, quote cards, announcements, templates | [modes/social-graphics.md](modes/social-graphics.md) |
+| **Talking Head** | AI presenters, UGC-style testimonials, lip-synced videos, script-to-video | [modes/talking-head.md](modes/talking-head.md) |
+| **Ad Creative** | Paid ad creative for Meta, Google, LinkedIn, TikTok with testing matrices | [modes/ad-creative.md](modes/ad-creative.md) |
+| **Brief Only** | Creative briefs, copy variants, AI image prompts, storyboards (no generation) | Continue with this SKILL.md |
+
+If the user's request matches a mode, load that mode file and follow it. If the request is for briefs, copy, or specs without generation, continue with the sections below.
 
 ---
 
@@ -291,6 +310,29 @@ marketing/creative/{campaign}/
 
 ---
 
+## Anti-Patterns
+
+- **Generic stock aesthetic** — Words like "beautiful" or "professional" tell an AI image generator nothing. The result is generic, forgettable output. Instead, specify exact lighting (soft natural, golden hour), composition (rule of thirds, close-up), and color treatment (muted earth tones, high-contrast neon). Specificity is what separates scroll-stopping from scroll-past.
+- **Ignoring platform context** — A TikTok thumbnail viewed on a phone at arm's length and a LinkedIn post viewed on a desktop monitor require fundamentally different visual approaches — different aspect ratios, text sizes, safe zones, and even color contrast levels. Always check the platform dimension table before generating any spec.
+- **Copy-pasting the same prompt** — When generating multiple variants, each must use a genuinely different angle (benefit vs. social proof vs. urgency vs. curiosity). Swapping adjectives doesn't count — a user testing 3 identical concepts learns nothing.
+- **Skipping brand check** — Always read creative-kit.md first. Off-brand assets get rejected and waste everyone's time. Even a quick palette check prevents the most common re-dos.
+- **AI slop** — The telltale AI look (perfect symmetry, over-saturated colors, plastic skin, meaningless backgrounds) immediately signals "cheap" to viewers who've been trained by years of stock photos. See VISUAL_INTELLIGENCE.md for specific anti-slop techniques that make AI output indistinguishable from professional creative.
+- **Text in AI images without text spec** — AI models need exact words, font style, placement, and contrast instructions to render legible text. Vague instructions ("add a headline") produce garbled or illegible results, wasting a generation cycle.
+
+## Edge Cases
+
+- **No brand files exist** — Skill works at zero context. Generate with sensible defaults (neutral palette, clean sans-serif, professional tone). Offer to build creative-kit.md after first asset.
+- **Unsupported platform** — If the target platform isn't in the dimension table, ask the user for dimensions and safe zones. Add to the brief.
+- **Conflicting brand guidelines** — If creative-kit.md and voice-profile.md conflict (e.g., playful visuals but serious voice), flag the conflict to the user and ask which takes priority.
+- **No campaign goal specified** — Don't guess. Ask the user: awareness, consideration, or conversion? The goal changes everything about the creative.
+
+## Principles
+
+- **Specs over pixels** — This skill produces specs so precise that any designer, AI tool, or video pipeline can execute them. The brief IS the deliverable.
+- **Platform-native** — Every asset is designed for where it will live. Dimensions, safe zones, text sizes, and contrast are platform-specific.
+- **Brand fidelity** — Every creative asset reinforces the brand. Colors, fonts, voice, and positioning from brand/ files are non-negotiable.
+- **Progressive enhancement** — Works at zero context with sensible defaults, gets better with brand/ files.
+
 ## Related Skills
 
 - **brand-voice**: Voice consistency across all creative copy
@@ -298,3 +340,5 @@ marketing/creative/{campaign}/
 - **content-atomizer**: Generates content that needs creative assets
 - **launch-strategy**: Creative assets for launch campaigns
 - **seo-content**: Blog hero images and OG images
+- **paper-marketing**: Visual content production in Paper MCP (design execution)
+- **video-content**: Turn static slides into video (video assembly)

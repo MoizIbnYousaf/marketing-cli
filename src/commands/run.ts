@@ -7,11 +7,11 @@ import { ok } from "../types";
 import { invalidArgs, notFound, DOCS } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
-import { logRun } from "../core/run-log";
+import { logRun, getLastRun, getRunHistory } from "../core/run-log";
 
 export const schema: CommandSchema = {
   name: "run",
-  description: "Load a skill for agent consumption — checks prerequisites and logs execution",
+  description: "Load a skill for agent consumption — checks prerequisites, surfaces prior run context, and logs execution",
   positional: { name: "skill", description: "Skill name to run", required: true },
   flags: [],
   output: {
@@ -19,6 +19,7 @@ export const schema: CommandSchema = {
     content: "string — full SKILL.md content",
     prerequisites: "PrerequisiteStatus — prerequisite check results",
     loggedAt: "string — ISO timestamp of logged run",
+    priorRuns: "object — lastRun timestamp, runCount, and lastResult for this skill",
   },
   examples: [
     { args: "mktg run seo-content --json", description: "Load SEO content skill for agent" },
@@ -27,11 +28,18 @@ export const schema: CommandSchema = {
   vocabulary: ["run", "execute", "load skill"],
 };
 
+type PriorRunContext = {
+  readonly lastRun: string | null;
+  readonly lastResult: string | null;
+  readonly runCount: number;
+};
+
 type RunResult = {
   readonly skill: string;
   readonly content: string;
   readonly prerequisites: PrerequisiteStatus;
   readonly loggedAt: string | null;
+  readonly priorRuns: PriorRunContext;
 };
 
 export const handler: CommandHandler<RunResult> = async (args, flags) => {
@@ -66,6 +74,15 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   const content = await skillFile.text();
   const now = new Date().toISOString();
 
+  // Surface prior run context — agent sees usage history with every load
+  const lastRun = await getLastRun(flags.cwd, resolved.name);
+  const priorHistory = await getRunHistory(flags.cwd, resolved.name, 10000);
+  const priorRuns: PriorRunContext = {
+    lastRun: lastRun?.timestamp ?? null,
+    lastResult: lastRun?.result ?? null,
+    runCount: priorHistory.length,
+  };
+
   // Log execution (unless dry-run)
   if (!flags.dryRun) {
     await logRun(flags.cwd, {
@@ -81,5 +98,6 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     content,
     prerequisites,
     loggedAt: flags.dryRun ? null : now,
+    priorRuns,
   });
 };
