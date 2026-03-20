@@ -1,6 +1,15 @@
 // E2E: Input Security — fuzz every input path
 // Proves the CLI rejects ALL adversarial inputs at system boundaries.
 // Real CLI subprocess calls, real file I/O, no mocks.
+//
+// Agent DX Axes Validated:
+//   Axis 5: INPUT HARDENING — Score 3/3
+//     - Control char rejection (rejectControlChars)
+//     - Resource ID validation (validateResourceId rejects ?, #, %, spaces, slashes)
+//     - Double-encoding detection (detectDoubleEncoding catches %25XX bypass)
+//     - Path traversal sandboxing (sandboxPath + validatePathInput)
+//     - JSON payload validation (parseJsonInput: size limits, proto pollution)
+//     - "The agent is not a trusted operator" posture documented in CLAUDE.md
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";

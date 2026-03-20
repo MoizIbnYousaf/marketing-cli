@@ -386,7 +386,9 @@ export const handler: CommandHandler = async (args, flags) => {
     ]);
   }
 
-  const subArgs = args.filter(a => !a.startsWith("--")).slice(1);
+  // Pass all args after the subcommand name (including --flags like --confirm)
+  const subcommandIndex = args.indexOf(subcommand);
+  const subArgs = subcommandIndex >= 0 ? args.slice(subcommandIndex + 1) : args.filter(a => a !== subcommand);
 
   switch (subcommand) {
     case "info": return handleInfo(subArgs, flags);
