@@ -1,5 +1,13 @@
 // CONTEXT WINDOW DISCIPLINE — --fields works on every command, dot-notation support, field mask examples
 // Real CLI subprocess calls. NO MOCKS.
+//
+// Agent DX Axis 4: CONTEXT WINDOW DISCIPLINE — PROVES 3/3
+//   - --fields works on list, doctor, status, schema, run (ALL commands)
+//   - Dot-notation --fields (brand.profiles) picks nested values
+//   - mktg run --fields skill,priorRuns excludes content (99% token savings)
+//   - Nonexistent fields return empty object (no crash)
+//   - --fields=value equals-sign syntax works
+//   - Multiple comma-separated fields work
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";

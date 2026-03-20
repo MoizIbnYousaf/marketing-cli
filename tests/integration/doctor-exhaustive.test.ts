@@ -1,5 +1,10 @@
 // DOCTOR EXHAUSTIVE — Every check passes on good state, every check fails correctly on broken state.
 // Real file I/O in isolated temp dirs. NO MOCKS. NO FAKE DATA.
+//
+// Agent DX Axes Validated:
+//   Axis 1: MACHINE-READABLE OUTPUT (3/3) — JSON output contract verified (passed + checks fields)
+//   Axis 6: SAFETY RAILS (partial) — doctor never crashes (exit code always 0), fix fields actionable
+//   Axis 3: SCHEMA INTROSPECTION (partial) — check names are stable identifiers agents can switch on
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";

@@ -49,10 +49,10 @@ describe("CLI help includes all 9 commands", () => {
     }
   });
 
-  test("--help --json has 8 commands", async () => {
+  test("--help --json has 9 commands", async () => {
     const { stdout } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toHaveLength(8);
+    expect(parsed.commands).toHaveLength(9);
   });
 });
 

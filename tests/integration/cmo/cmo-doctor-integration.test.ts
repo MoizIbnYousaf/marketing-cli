@@ -1,6 +1,11 @@
 // CMO DOCTOR INTEGRATION — CMO reads doctor output, surfaces fix suggestions
 // Proves an agent can use mktg doctor --json to understand project health and route to fixes.
 // Real file I/O in isolated temp dirs. NO MOCKS.
+//
+// Agent DX Axes Validated:
+//   Axis 4: CONTEXT WINDOW DISCIPLINE (3/3) — CMO uses --fields passed for 1-field health check
+//   Axis 1: MACHINE-READABLE OUTPUT (3/3) — doctor JSON is parseable, fix commands are executable
+//   Axis 7: AGENT KNOWLEDGE PACKAGING (partial) — check names are stable, fix commands are actionable
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";

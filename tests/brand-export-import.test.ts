@@ -140,7 +140,7 @@ describe("brand export/import CLI integration", () => {
   });
 
   test("mktg brand import --file nonexistent --json returns NOT_FOUND", async () => {
-    const { stdout, exitCode } = await run(["brand", "import", "--file", "/tmp/nonexistent-bundle-xyz.json", "--json"]);
+    const { stdout, exitCode } = await run(["brand", "import", "--file", "/tmp/nonexistent-bundle-xyz.json", "--confirm", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(1);
     expect(parsed.error.code).toBe("NOT_FOUND");
@@ -162,7 +162,7 @@ describe("brand export/import CLI integration", () => {
     await rm(join(tempDir, "brand"), { recursive: true, force: true });
 
     // Import
-    const { stdout: importOut, exitCode } = await run(["brand", "import", "--file", bundlePath, "--json"]);
+    const { stdout: importOut, exitCode } = await run(["brand", "import", "--file", bundlePath, "--confirm", "--json"]);
     const result = JSON.parse(importOut);
     expect(exitCode).toBe(0);
     expect(result.imported).toHaveLength(9);

@@ -633,7 +633,7 @@ describe("mktg skill register", () => {
     const { stdout, exitCode } = await run(["skill", "register", tmpDir, "--json", "--dry-run"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
-    expect(parsed.action).toBe("created");
+    expect(parsed.action).toBe("dry-run");
     // Manifest should NOT exist
     const exists = await Bun.file(join(tmpDir, "skills-manifest.json")).exists();
     expect(exists).toBe(false);
@@ -708,7 +708,7 @@ describe("mktg skill unregister", () => {
     await run(["skill", "register", skillDir, "--json", "--cwd", tmpDir]);
 
     // Unregister
-    const { stdout, exitCode } = await run(["skill", "unregister", "temp-skill", "--json", "--cwd", tmpDir]);
+    const { stdout, exitCode } = await run(["skill", "unregister", "temp-skill", "--confirm", "--json", "--cwd", tmpDir]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
     expect(parsed.name).toBe("temp-skill");
@@ -721,17 +721,17 @@ describe("mktg skill unregister", () => {
   });
 
   test("cannot unregister package skills", async () => {
-    const { stdout, exitCode } = await run(["skill", "unregister", "seo-content", "--json", "--cwd", tmpDir]);
+    const { stdout, exitCode } = await run(["skill", "unregister", "seo-content", "--confirm", "--json", "--cwd", tmpDir]);
     // Need a project manifest to exist first
     await writeFile(join(tmpDir, "skills-manifest.json"), JSON.stringify({ version: 1, skills: {}, redirects: {} }));
-    const result = await run(["skill", "unregister", "seo-content", "--json", "--cwd", tmpDir]);
+    const result = await run(["skill", "unregister", "seo-content", "--confirm", "--json", "--cwd", tmpDir]);
     expect(result.exitCode).toBe(2);
     const parsed = JSON.parse(result.stdout);
     expect(parsed.error.message).toContain("Cannot unregister package skill");
   });
 
   test("returns error when no project manifest exists", async () => {
-    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--json", "--cwd", tmpDir]);
+    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--confirm", "--json", "--cwd", tmpDir]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(2);
     expect(parsed.error.message).toContain("No project manifest found");
@@ -739,7 +739,7 @@ describe("mktg skill unregister", () => {
 
   test("returns error for skill not in project manifest", async () => {
     await writeFile(join(tmpDir, "skills-manifest.json"), JSON.stringify({ version: 1, skills: {}, redirects: {} }));
-    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--json", "--cwd", tmpDir]);
+    const { stdout, exitCode } = await run(["skill", "unregister", "nonexistent", "--confirm", "--json", "--cwd", tmpDir]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(2);
     expect(parsed.error.message).toContain("not found in project manifest");
@@ -781,7 +781,7 @@ describe("mktg skill unregister", () => {
     expect(manifest.skills["roundtrip-skill"]).toBeDefined();
 
     // Unregister
-    await run(["skill", "unregister", "roundtrip-skill", "--json", "--cwd", tmpDir]);
+    await run(["skill", "unregister", "roundtrip-skill", "--confirm", "--json", "--cwd", tmpDir]);
     manifest = JSON.parse(await Bun.file(join(tmpDir, "skills-manifest.json")).text());
     expect(manifest.skills["roundtrip-skill"]).toBeUndefined();
   });

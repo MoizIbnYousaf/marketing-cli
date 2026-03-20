@@ -1,6 +1,16 @@
 // Integration test: Schema Introspection (Agent DX - dev-3)
 // Proves schema command returns machine-parseable response schemas for all commands.
 // Real handler calls, no mocks.
+//
+// Agent DX Axis: SCHEMA INTROSPECTION — Score: 3/3
+// Proves:
+// - Every command has responseSchema with typed fields (field, type, description)
+// - Enum fields include enumValues arrays for agent output validation
+// - Nested fields distinguished from top-level with nested: true
+// - Top-level fields marked required: true
+// - Subcommands enriched with responseSchema
+// - Single-command deep introspection works (mktg schema status --json)
+// - Agent can build a complete type map from responseSchema without reading docs
 
 import { describe, test, expect } from "bun:test";
 import { handler as schemaHandler } from "../../src/commands/schema";

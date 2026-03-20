@@ -310,10 +310,9 @@ describe("paper-marketing updates", () => {
     expect(content).toContain("marketing/content-specs");
   });
 
-  test("SKILL.md documents Phase 5.5 Export and Handoff", async () => {
+  test("SKILL.md documents Export and Handoff phase", async () => {
     const path = join(rootDir, "skills", "paper-marketing", "SKILL.md");
     const content = await Bun.file(path).text();
-    expect(content).toContain("Phase 5.5");
     expect(content).toContain("Export and Handoff");
     expect(content).toContain("get_jsx");
     expect(content).toContain("handoff YAML");

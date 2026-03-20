@@ -37,14 +37,18 @@ describe("CLI integration", () => {
     expect(exitCode).toBe(0);
   });
 
-  test("--help returns help text", async () => {
+  test("--help returns structured JSON when piped (non-TTY auto-JSON)", async () => {
     const { stdout, exitCode } = await run(["--help"]);
-    expect(stdout).toContain("mktg");
-    expect(stdout).toContain("init");
-    expect(stdout).toContain("doctor");
-    expect(stdout).toContain("list");
-    expect(stdout).toContain("status");
-    expect(stdout).toContain("update");
+    // Piped subprocesses auto-enable JSON output
+    const parsed = JSON.parse(stdout);
+    expect(parsed).toHaveProperty("commands");
+    expect(parsed).toHaveProperty("version");
+    const names = parsed.commands.map((c: { name: string }) => c.name);
+    expect(names).toContain("init");
+    expect(names).toContain("doctor");
+    expect(names).toContain("list");
+    expect(names).toContain("status");
+    expect(names).toContain("update");
     expect(exitCode).toBe(0);
   });
 
@@ -97,9 +101,12 @@ describe("CLI flag combinations", () => {
     expect(exitCode).toBe(0);
   });
 
-  test("no arguments shows help", async () => {
+  test("no arguments returns JSON help when piped (non-TTY auto-JSON)", async () => {
     const { stdout, exitCode } = await run([]);
-    expect(stdout).toContain("mktg");
+    // Piped subprocesses auto-enable JSON output
+    const parsed = JSON.parse(stdout);
+    expect(parsed).toHaveProperty("version");
+    expect(parsed).toHaveProperty("commands");
     expect(exitCode).toBe(0);
   });
 
