@@ -176,10 +176,10 @@ describe("Exit code contract is consistent", () => {
 // ============================================================
 
 describe("Help and schema produce discoverable JSON", () => {
-  test("--help --json lists all 10 commands", async () => {
+  test("--help --json lists all 13 commands", async () => {
     const { stdout } = await runCli(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toHaveLength(10);
+    expect(parsed.commands).toHaveLength(13);
     const names = parsed.commands.map((c: { name: string }) => c.name);
     expect(names).toContain("init");
     expect(names).toContain("doctor");

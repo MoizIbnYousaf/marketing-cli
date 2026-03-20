@@ -19,11 +19,11 @@ const run = async (args: string[]): Promise<{ stdout: string; stderr: string; ex
 
 // ---------- Help text ----------
 
-describe("CLI help includes all 10 commands", () => {
-  test("--help output contains all 9 command names", async () => {
+describe("CLI help includes all 13 commands", () => {
+  test("--help output contains all 13 command names", async () => {
     const { stdout, exitCode } = await run(["--help"]);
     expect(exitCode).toBe(0);
-    const commandNames = ["init", "doctor", "status", "list", "update", "schema", "skill", "brand"];
+    const commandNames = ["init", "doctor", "plan", "status", "list", "update", "schema", "skill", "brand", "run", "context", "publish", "compete"];
     for (const cmd of commandNames) {
       expect(stdout).toContain(cmd);
     }
@@ -49,10 +49,10 @@ describe("CLI help includes all 10 commands", () => {
     }
   });
 
-  test("--help --json has 10 commands", async () => {
+  test("--help --json has 13 commands", async () => {
     const { stdout } = await run(["--help", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.commands).toHaveLength(10);
+    expect(parsed.commands).toHaveLength(13);
   });
 });
 

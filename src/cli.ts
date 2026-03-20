@@ -12,8 +12,9 @@ const VERSION = pkg.version;
 const HELP = `mktg v${VERSION} — Agent-native marketing playbook CLI
 
 Commands:
-  init       Detect project + build brand/ + install skills
-  doctor     Health checks + skill updates
+  init       Detect project + build brand/ + install skills (--from <url>)
+  doctor     Health checks + skill updates (--fix to auto-remediate)
+  plan       Execution loop — prioritized task queue from project state
   status     Project marketing state snapshot
   list       Show available skills
   update     Force-update skills
@@ -21,6 +22,9 @@ Commands:
   skill      Skill lifecycle management (info, validate, graph, check, register)
   brand      Brand memory management (export, import, freshness)
   run        Load a skill and log execution
+  context    Brand context compiler — token-budgeted JSON artifact
+  publish    Distribution pipeline — push content to platforms
+  compete    Competitive war room — monitor, diff, route changes
 
 Flags:
   --json           Machine-readable JSON output
@@ -94,6 +98,9 @@ const COMMANDS: Record<string, () => Promise<{ handler: (args: readonly string[]
   brand: () => import("./commands/brand"),
   run: () => import("./commands/run"),
   context: () => import("./commands/context"),
+  plan: () => import("./commands/plan"),
+  publish: () => import("./commands/publish"),
+  compete: () => import("./commands/compete"),
 };
 
 // Format a command schema as readable help text

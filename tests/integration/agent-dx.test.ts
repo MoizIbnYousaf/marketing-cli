@@ -106,7 +106,7 @@ describe("Axis 1: Machine-Readable Output", () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe("Axis 2: Schema Introspection", () => {
-  test("schema lists all 10 commands", async () => {
+  test("schema lists all 13 commands", async () => {
     const result = await schemaHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
