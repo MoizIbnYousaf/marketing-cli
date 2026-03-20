@@ -110,6 +110,73 @@ Skills follow the drop-in contract. See `skills-manifest.json` for the full regi
 
 All validation functions return `{ ok, message }` — never throw. Error messages explain what's wrong and why.
 
+## Agent DX Score: 21/21 (Agent-First)
+
+Every code change must maintain this score. The 7 axes:
+
+| Axis | Standard | Test proof |
+|---|---|---|
+| Machine-Readable Output | All commands return valid JSON. Auto-JSON when piped (non-TTY). Consistent error envelope with code + message + suggestions + exitCode. | `tests/integration/machine-readable-output.test.ts` |
+| Raw Payload Input | `--input` accepts full JSON payload on brand/skill commands. Zero translation loss. | `tests/integration/raw-payload-input.test.ts` |
+| Schema Introspection | `mktg schema` returns responseSchema with typed fields, enums, required markers, nested detection. | `tests/integration/schema-introspection.test.ts` |
+| Context Window Discipline | `--fields` works on all commands with dot-notation. 10KB response size warning on stderr. | `tests/integration/context-window-discipline.test.ts` |
+| Input Hardening | rejectControlChars, validateResourceId, detectDoubleEncoding, validatePathInput on all inputs. 52 fuzz tests. | `tests/integration/input-hardening.test.ts` |
+| Safety Rails | `--dry-run` on ALL mutating commands. `--confirm` on destructive ops (brand import, skill unregister). Response size warnings. | `tests/integration/safety-rails.test.ts` |
+| Agent Knowledge Packaging | AGENTS.md, brand/SCHEMA.md, all 41 skills versioned, OpenClaw-compatible frontmatter. | Manual review |
+
+Environment variables: `OUTPUT_FORMAT=json` forces JSON. `NO_COLOR=1` disables ANSI.
+
+## Testing Standards
+
+**NO MOCKS. NO FAKE DATA. Real file I/O in isolated temp dirs.**
+
+```
+tests/                    # Unit tests per module
+tests/integration/        # Per-command integration tests
+tests/integration/cmo/    # CMO coherence tests (orchestrator visibility)
+tests/e2e/                # Full pipeline soup-to-nuts tests
+```
+
+Rules:
+- `bun:test` imports only
+- Real file I/O in temp dirs created with `mkdtemp`
+- Every assertion checks REAL output from REAL operations
+- Zero mocks, zero fake data, zero fake API calls
+- Run `bun test` after every change, report results
+- Never hardcode skill counts — read from manifest or use `toBeGreaterThanOrEqual`
+
+## CLI Command Standards
+
+Every command handler must:
+- Return `CommandResult<T>` with typed data
+- Support `--json` (auto-enabled when piped via `!isTTY()`)
+- Support `--dry-run` for mutating operations
+- Support `--fields` for output filtering (dot-notation)
+- Support `--confirm` for destructive operations
+- Include `fix` field on error/warning checks
+- Have schema documentation in `schema.ts` with responseSchema
+- Have NDJSON option for list-like commands (`--ndjson`)
+
+## Skill Standards
+
+Every SKILL.md must:
+- Be under 500 lines (offload depth to `references/`)
+- Have frontmatter: `name`, `description` (pushy triggers that combat undertriggering)
+- Have On Activation section reading brand/ files with fallback behavior
+- Have Anti-Patterns with WHY reasoning (not just "don't do X → do Y")
+- Have progressive enhancement (work at L0 zero context, better at L4 full brand)
+- Use `voice-profile.md` (NEVER `voice.md`)
+- Have consistent section ordering matching sibling skills
+- All brand file references use `brand/` prefix in frontmatter reads
+
+## Brand File Standards
+
+Per `brand/SCHEMA.md`: 9 files, each with defined required sections.
+- `voice-profile.md` is the canonical name
+- Template detection via SHA-256 hash comparison in `isTemplateContent()`
+- Freshness: 30-day for profiles, 90-day for config, never-stale for append-only
+- CONTEXT_MATRIX maps skill layers to required brand files
+
 ## Dev Notes
 
 - Use `bun` for all package operations
@@ -119,3 +186,5 @@ All validation functions return `{ ok, message }` — never throw. Error message
 - Tests: `bun test` with `bun:test` imports, real file I/O in isolated temp dirs (no mocks)
 - Build: `bun build src/cli.ts --outdir dist --target node`
 - Type check: `bun x tsc --noEmit`
+- Commit frequently during long sessions to protect work
+- Never hardcode "39" or "41" — read skill count from manifest dynamically
