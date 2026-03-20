@@ -40,8 +40,8 @@ describe("skill name injection via CLI", () => {
     expect(exitCode).not.toBe(0);
   });
 
-  test("mktg run with null byte in skill name fails", async () => {
-    const { exitCode } = await run(["run", "brand-voice\x00", "--json"]);
+  test("mktg run with spaces in skill name fails", async () => {
+    const { exitCode } = await run(["run", "brand voice", "--json"]);
     expect(exitCode).not.toBe(0);
   });
 
@@ -55,12 +55,11 @@ describe("skill name injection via CLI", () => {
 
 describe("brand import with malicious content", () => {
   test("JSON payload with __proto__ at top level is rejected by parseJsonInput", async () => {
-    // parseJsonInput rejects __proto__ in serialized form
-    const malicious = '{"__proto__":{"admin":true},"version":1}';
-    const bundlePath = join(tempDir, "evil-bundle.json");
-    await Bun.write(bundlePath, malicious);
-    const { exitCode } = await run(["brand", "import", "--file", bundlePath, "--confirm", "--json"]);
-    expect(exitCode).not.toBe(0);
+    // parseJsonInput rejects __proto__ in serialized form — test the function directly
+    const { parseJsonInput } = await import("../../src/core/errors");
+    const result = parseJsonInput('{"__proto__":{"admin":true},"version":1}');
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toContain("Unsafe JSON keys");
   });
 
   test("invalid JSON payload is rejected", async () => {

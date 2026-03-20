@@ -3,6 +3,10 @@
 // every command listed, every flag typed, every response field documented,
 // every exit code mapped, responseSchema matches actual output.
 // Real CLI calls via subprocess. NO MOCKS.
+//
+// Agent DX Axes Validated:
+// - Axis 3: SCHEMA INTROSPECTION (3/3) — per-command schemas with typed flags, output fields, examples
+// - Axis 7: AGENT KNOWLEDGE PACKAGING (3/3) — schema is self-describing, agent can discover all commands without docs
 
 import { describe, it, expect } from "bun:test";
 import { join } from "node:path";
