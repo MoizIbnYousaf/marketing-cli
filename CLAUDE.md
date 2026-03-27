@@ -1,5 +1,10 @@
 # mktg — Agent-Native Marketing Playbook CLI
 
+## Workflow Gates
+
+- **Session start:** Always run `/mktg-coding-bar` before any work to internalize coding standards.
+- **Before final commits:** Always run `/agent-dx-cli-scale` to verify the 21/21 Agent DX score is maintained.
+
 ## Vision
 
 `mktg` gives an AI agent a complete CMO brain: durable brand memory, parallel research, and a packaged marketing playbook that can work across projects and machines.
