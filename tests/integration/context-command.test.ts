@@ -33,7 +33,7 @@ describe("context command integration", () => {
     expect(typeof result.data.compiledAt).toBe("string");
     expect(typeof result.data.project).toBe("string");
     expect(typeof result.data.tokenEstimate).toBe("number");
-    expect(result.data.summary.totalFiles).toBe(9);
+    expect(result.data.summary.totalFiles).toBe(10);
 
     // Each file should have content, tokens, truncated, freshness
     for (const [, entry] of Object.entries(result.data.files)) {

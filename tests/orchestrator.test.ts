@@ -408,9 +408,9 @@ describe("cmo routing for orchestrator skills", () => {
     expect(content).toContain('"I have slides, make video"');
   });
 
-  test("skill count updated to 41", async () => {
+  test("skill count updated to 42", async () => {
     const content = await Bun.file(cmoPath).text();
-    expect(content).toContain("41 marketing skills");
+    expect(content).toContain("42 marketing skills");
   });
 });
 

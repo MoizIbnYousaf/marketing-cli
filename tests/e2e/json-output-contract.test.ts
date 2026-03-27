@@ -108,19 +108,19 @@ describe("Axis 9: Three JSON paths produce identical results", () => {
   test("--json flag produces valid JSON", async () => {
     const { stdout } = await runCli(["list", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
   });
 
   test("piped output (non-TTY) auto-produces valid JSON without --json", async () => {
     const { stdout } = await runCli(["list"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
   });
 
   test("OUTPUT_FORMAT=json env var produces valid JSON", async () => {
     const { stdout } = await runCli(["list"], { OUTPUT_FORMAT: "json" });
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
   });
 
   test("all three paths return same skill count", async () => {

@@ -30,7 +30,7 @@ describe("OUTPUT_FORMAT=json environment variable", () => {
     const { exitCode, stdout } = await runCli(["list"], { OUTPUT_FORMAT: "json" });
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
     expect(Array.isArray(parsed.skills)).toBe(true);
   });
 
@@ -54,7 +54,7 @@ describe("OUTPUT_FORMAT=json environment variable", () => {
     const { exitCode, stdout } = await runCli(["list", "--json"], { OUTPUT_FORMAT: "json" });
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
   });
 });
 

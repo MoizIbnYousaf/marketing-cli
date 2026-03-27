@@ -17,6 +17,7 @@ Brand memory lives in `./brand/` at the project root. It accumulates as skills r
   positioning.md       ← Written by positioning-angles
   audience.md          ← Written by audience-research
   competitors.md       ← Written by competitive-intel
+  landscape.md         ← Written by landscape-scan
   creative-kit.md      ← Written by creative (setup mode)
   stack.md             ← Written by mktg init
   keyword-plan.md      ← Written by keyword-research
@@ -28,7 +29,7 @@ Brand memory lives in `./brand/` at the project root. It accumulates as skills r
 
 Each file has a primary owner — the skill that creates and maintains it. Other skills may read any file but never overwrite a file they do not own.
 
-**Profile files** (create-or-overwrite): voice-profile, positioning, audience, competitors, creative-kit, stack, keyword-plan.
+**Profile files** (create-or-overwrite): voice-profile, positioning, audience, competitors, landscape, creative-kit, stack, keyword-plan.
 **Append-only files** (never overwrite): assets.md, learnings.md.
 
 ## Reading Protocol
@@ -48,10 +49,10 @@ Each skill declares which brand files it reads. Do not load everything.
 |-------|-------|
 | brand-voice | positioning.md, audience.md |
 | positioning-angles | audience.md, competitors.md |
-| direct-response-copy | voice-profile.md, positioning.md, audience.md |
-| seo-content | voice-profile.md, keyword-plan.md, audience.md |
-| email-sequences | voice-profile.md, positioning.md, audience.md |
-| content-atomizer | voice-profile.md, creative-kit.md |
+| direct-response-copy | voice-profile.md, positioning.md, audience.md, landscape.md |
+| seo-content | voice-profile.md, keyword-plan.md, audience.md, landscape.md |
+| email-sequences | voice-profile.md, positioning.md, audience.md, landscape.md |
+| content-atomizer | voice-profile.md, creative-kit.md, landscape.md |
 | keyword-research | positioning.md, audience.md, competitors.md |
 | lead-magnet | voice-profile.md, positioning.md, audience.md |
 | newsletter | voice-profile.md, audience.md, learnings.md |
@@ -98,12 +99,23 @@ If a file seems outdated or conflicts with what the user is saying:
 3. Never overwrite or truncate.
 4. Confirm: "Added 3 new entries to brand/assets.md."
 
+## Respect the Claims Blacklist
+
+`brand/landscape.md` contains a **Claims Blacklist** — a table of ecosystem claims that are factually wrong, outdated, or unverifiable. This is a hard gate:
+
+1. Before any content skill makes a claim about the market, ecosystem, competitors, or industry trends, check the Claims Blacklist in `brand/landscape.md`.
+2. If a claim appears in the blacklist, **DO NOT make it.** Use the "What To Say Instead" column for the approved alternative.
+3. If `landscape.md` does not exist or is stale (>14 days), warn the user before making ecosystem claims: "I don't have a current ecosystem snapshot. Any market claims I make may be outdated. Run /landscape-scan to ground my output in current reality."
+4. The blacklist is append-only within a landscape scan cycle. Skills never remove entries — only `/landscape-scan` refreshes the full file.
+
+This prevents the most common marketing failure mode: confidently stating things about the market that are no longer true.
+
 ## Progressive Enhancement Levels
 
 - **L0**: Zero context. Skill works by asking the user 3-5 key questions.
 - **L1**: Voice profile only. Output matches brand tone.
 - **L2**: Voice + positioning + audience. Output is targeted and differentiated.
-- **L3**: Full brand context + keyword plan. Output is strategic and data-informed.
+- **L3**: Full brand + keyword plan + landscape — output strategic, data-informed, and grounded in current ecosystem reality.
 - **L4**: Full brand + learnings + campaign history. Output compounds on past results.
 
 Every skill must work at L0. Brand memory enhances output — it never gates it.

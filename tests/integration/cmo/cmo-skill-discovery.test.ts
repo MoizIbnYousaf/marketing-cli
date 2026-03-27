@@ -1,5 +1,5 @@
 // CMO Skill Discovery Integration Test
-// Proves mktg list gives CMO enough metadata to route all 41 skills.
+// Proves mktg list gives CMO enough metadata to route all 42 skills.
 // Real CLI subprocess calls. No mocks.
 
 import { describe, test, expect } from "bun:test";
@@ -39,7 +39,7 @@ describe("mktg list provides complete skill inventory", () => {
     expect(Array.isArray(parsed.skills)).toBe(true);
   });
 
-  test("lists all 41 skills from manifest", async () => {
+  test("lists all 42 skills from manifest", async () => {
     const { stdout } = await run(["list", "--json"]);
     const parsed = JSON.parse(stdout);
     const listNames = parsed.skills.map((s: { name: string }) => s.name).sort();

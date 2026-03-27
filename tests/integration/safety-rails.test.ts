@@ -50,7 +50,7 @@ describe("--dry-run: init command", () => {
     if (!result.ok) return;
 
     // Should still report brand files that WOULD be created
-    expect(result.data.brand.created.length).toBe(9);
+    expect(result.data.brand.created.length).toBe(10);
   });
 
   test("dry-run init does not write .mktg/ files", async () => {
@@ -153,10 +153,10 @@ describe("Dry-run idempotency", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    // Now brand/ should exist with 9 files
+    // Now brand/ should exist with 10 files
     const brandStat = await stat(join(tempDir, "brand"));
     expect(brandStat.isDirectory()).toBe(true);
-    expect(result.data.brand.created.length).toBe(9);
+    expect(result.data.brand.created.length).toBe(10);
   });
 
   test("multiple dry-runs are idempotent", async () => {

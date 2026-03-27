@@ -21,7 +21,7 @@ afterEach(async () => {
 });
 
 describe("mktg init", () => {
-  test("scaffolds brand/ with 9 files", async () => {
+  test("scaffolds brand/ with 10 files", async () => {
     const result = await handler(["--yes"], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -48,7 +48,7 @@ describe("mktg init", () => {
       expect(exists).toBe(true);
     }
 
-    expect(result.data.brand.created.length).toBe(9);
+    expect(result.data.brand.created.length).toBe(10);
   });
 
   test("returns valid JSON result structure", async () => {
@@ -85,7 +85,7 @@ describe("mktg init", () => {
     if (!result.ok) return;
 
     expect(result.data.brand.created.length).toBe(0);
-    expect(result.data.brand.skipped.length).toBe(9);
+    expect(result.data.brand.skipped.length).toBe(10);
   });
 
   test("--skip-brand skips brand scaffolding", async () => {
@@ -178,7 +178,7 @@ describe("Init idempotency", () => {
 
     // Brand files should all be skipped on re-run
     expect(result.data.brand.created).toHaveLength(0);
-    expect(result.data.brand.skipped).toHaveLength(9);
+    expect(result.data.brand.skipped).toHaveLength(10);
     // Skills still install (overwrite is normal)
     expect(result.data.skills.installed.length).toBeGreaterThan(0);
   });

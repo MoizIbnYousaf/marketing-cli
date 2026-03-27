@@ -75,12 +75,12 @@ describe("Result constructors", () => {
 });
 
 describe("Brand file constants", () => {
-  test("BRAND_FILES has exactly 9 files", () => {
-    expect(BRAND_FILES).toHaveLength(9);
+  test("BRAND_FILES has exactly 10 files", () => {
+    expect(BRAND_FILES).toHaveLength(10);
   });
 
-  test("BRAND_PROFILE_FILES has exactly 7 files", () => {
-    expect(BRAND_PROFILE_FILES).toHaveLength(7);
+  test("BRAND_PROFILE_FILES has exactly 8 files", () => {
+    expect(BRAND_PROFILE_FILES).toHaveLength(8);
   });
 
   test("BRAND_APPEND_FILES has exactly 2 files", () => {

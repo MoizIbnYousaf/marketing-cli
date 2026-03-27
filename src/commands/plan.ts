@@ -111,7 +111,7 @@ const buildTasks = async (
   }
 
   // 2. Template files need population (foundation first)
-  const foundationOrder: BrandFile[] = ["voice-profile.md", "audience.md", "competitors.md", "positioning.md"];
+  const foundationOrder: BrandFile[] = ["voice-profile.md", "audience.md", "competitors.md", "landscape.md", "positioning.md"];
   const strategyOrder: BrandFile[] = ["keyword-plan.md"];
   const configOrder: BrandFile[] = ["creative-kit.md", "stack.md"];
 
@@ -131,6 +131,7 @@ const buildTasks = async (
         const skillMap: Record<string, string> = {
           "voice-profile.md": "brand-voice", "positioning.md": "positioning-angles",
           "audience.md": "audience-research", "competitors.md": "competitive-intel",
+          "landscape.md": "landscape-scan",
           "keyword-plan.md": "keyword-research", "creative-kit.md": "creative",
           "stack.md": "cmo",
         };

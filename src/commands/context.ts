@@ -83,6 +83,7 @@ const FILE_PRIORITY: readonly BrandFile[] = [
   "positioning.md",
   "audience.md",
   "competitors.md",
+  "landscape.md",
   "keyword-plan.md",
   "creative-kit.md",
   "stack.md",

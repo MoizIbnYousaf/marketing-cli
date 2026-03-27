@@ -72,6 +72,12 @@ Follow this escalation pattern. Always start at the highest applicable level:
    - If the user's request routes to a skill needing an unconfigured integration, mention it proactively:
      "I can write the social posts, but to publish them via Typefully, you'll need a 2-minute API key setup. Want me to walk you through it?"
    - If the request doesn't need it, proceed normally.
+2c. Check landscape.md freshness:
+    - missing/template: "No ecosystem snapshot yet. I can work without it,
+      but my market claims won't be grounded. Run /landscape-scan first?"
+    - stale (>14 days): WARN: "Ecosystem data is [N] days old. Stale
+      landscape = stale claims. Refresh before content?"
+    - current: Proceed. Read Claims Blacklist before any content routing.
 3. Assess: does `brand/` exist? Which files? Skills installed?
 4. Determine mode:
    - **FIRST RUN** — Brand files are templates. Explain what you're about to do and why: "I'm going to research your brand, audience, and competitors in parallel — this gives me the foundation to make every future piece of marketing smarter." Then run foundation skills.
@@ -88,6 +94,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Define brand voice | `brand-voice` | First time or refreshing brand | Foundation |
 | Research target audience | `audience-research` | No audience.md yet | Foundation |
 | Analyze competitors | `competitive-intel` | No competitors.md yet | Foundation |
+| Scan ecosystem landscape | `landscape-scan` | No landscape.md or stale (>14 days) | Foundation |
 | Find positioning angles | `positioning-angles` | Have voice + audience, need market angle | Foundation |
 | Find SEO keywords | `keyword-research` | Planning content strategy | Strategy |
 | Plan product launch | `launch-strategy` | New product or feature launch | Strategy |
@@ -180,6 +187,8 @@ When a request is ambiguous, use this matrix:
 | "what are competitors doing" | `mktg compete scan` | `competitive-intel` | Compete monitors changes over time. Intel does deep initial research. |
 | "something's broken" | `mktg doctor --fix` | N/A | Auto-fixes missing brand files, skills, agents. |
 | "set up from my website" | `mktg init --from <url>` | `brand-voice` | Init --from populates all brand files from one URL. Brand-voice only extracts voice. |
+| "what's happening in the market" | `landscape-scan` | `competitive-intel` | Landscape scans the ecosystem broadly. Competitive-intel does deep dives on specific competitors. |
+| "market trends" | `landscape-scan` | `brainstorm` | Landscape researches real market data. Brainstorm explores marketing directions. |
 
 ## First 30 Minutes (New Project)
 
@@ -201,6 +210,10 @@ If the user's goal is unclear, share your assessment and suggest a direction BEF
 Each agent reads the corresponding skill methodology from `~/.claude/skills/` and uses Exa MCP for real research. They write directly to `brand/voice-profile.md`, `brand/audience.md`, and `brand/competitors.md`.
 
 **Wait for all 3 agents to complete.**
+
+**Step 2b: If time permits or content campaign planned, run /landscape-scan
+to create the ecosystem snapshot. This grounds all downstream content in
+current market reality.**
 
 **Step 3: Synthesize and share.** Don't just silently move to the next skill. Share what you learned: "Here's what I found — your main competitors are X and Y, your audience hangs out in Z, and the positioning angle I'd recommend is W. Here's why."
 
@@ -294,6 +307,9 @@ These old names map to new skills:
 - **Monitor competitors.** If `brand/competitors.md` exists, periodically run `mktg compete scan --json` to detect changes. Route detected changes to the relevant skill (pricing change → `pricing-strategy`, new content → `seo-content`, etc.).
 - **Distribute via the right channel.** Use `mktg publish` for API platforms (Typefully, Resend). Use `/ply` for browser-automated platforms (Instagram, TikTok, Facebook, YouTube). Never try to API-post to platforms that require OAuth — just drive the browser.
 - **Use `mktg doctor --fix` for setup issues.** If skills are missing, brand files are broken, or something's not right — don't troubleshoot manually. Run `mktg doctor --fix` and it auto-remediates.
+- Before ANY content skill makes ecosystem claims, check brand/landscape.md
+  Claims Blacklist. If a claim is blacklisted, DO NOT make it. Use the
+  "What To Say Instead" column. The blacklist is a hard gate.
 
 ## Conversational Guardrails
 

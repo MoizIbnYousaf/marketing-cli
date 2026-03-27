@@ -59,12 +59,13 @@ export type CommandHandler<T = unknown> = (
   flags: GlobalFlags,
 ) => Promise<CommandResult<T>>;
 
-// Brand file names as literal union (9 files)
+// Brand file names as literal union (10 files)
 export type BrandFile =
   | "voice-profile.md"
   | "positioning.md"
   | "audience.md"
   | "competitors.md"
+  | "landscape.md"
   | "keyword-plan.md"
   | "creative-kit.md"
   | "stack.md"
@@ -76,6 +77,7 @@ export const BRAND_FILES: readonly BrandFile[] = [
   "positioning.md",
   "audience.md",
   "competitors.md",
+  "landscape.md",
   "keyword-plan.md",
   "creative-kit.md",
   "stack.md",
@@ -89,6 +91,7 @@ export const BRAND_PROFILE_FILES: readonly BrandFile[] = [
   "positioning.md",
   "audience.md",
   "competitors.md",
+  "landscape.md",
   "keyword-plan.md",
   "creative-kit.md",
   "stack.md",

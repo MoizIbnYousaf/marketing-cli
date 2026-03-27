@@ -25,9 +25,9 @@ afterEach(async () => {
 });
 
 describe("scaffoldBrand", () => {
-  test("creates brand/ directory with all 9 files", async () => {
+  test("creates brand/ directory with all 10 files", async () => {
     const result = await scaffoldBrand(tempDir);
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
     expect(result.skipped).toHaveLength(0);
 
     for (const file of BRAND_FILES) {
@@ -81,7 +81,7 @@ describe("scaffoldBrand", () => {
 
   test("dry-run does not create files", async () => {
     const result = await scaffoldBrand(tempDir, true);
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
     expect(result.skipped).toHaveLength(0);
 
     // brand/ should NOT exist
@@ -93,7 +93,7 @@ describe("scaffoldBrand", () => {
     await scaffoldBrand(tempDir);
     const result2 = await scaffoldBrand(tempDir);
     expect(result2.created).toHaveLength(0);
-    expect(result2.skipped).toHaveLength(9);
+    expect(result2.skipped).toHaveLength(10);
   });
 
   test("preserves existing file content on re-scaffold", async () => {
@@ -119,7 +119,7 @@ describe("scaffoldBrand", () => {
     await Bun.write(join(brandDir, "voice-profile.md"), "# Custom");
 
     const result = await scaffoldBrand(tempDir);
-    expect(result.created).toHaveLength(8);
+    expect(result.created).toHaveLength(9);
     expect(result.skipped).toHaveLength(1);
     expect(result.skipped[0]).toBe("voice-profile.md");
   });
@@ -155,7 +155,7 @@ describe("assessFreshness", () => {
 describe("getBrandStatus", () => {
   test("all files missing before scaffold", async () => {
     const statuses = await getBrandStatus(tempDir);
-    expect(statuses).toHaveLength(9);
+    expect(statuses).toHaveLength(10);
     for (const status of statuses) {
       expect(status.exists).toBe(false);
       expect(status.freshness).toBe("missing");
@@ -166,7 +166,7 @@ describe("getBrandStatus", () => {
   test("all files present after scaffold", async () => {
     await scaffoldBrand(tempDir);
     const statuses = await getBrandStatus(tempDir);
-    expect(statuses).toHaveLength(9);
+    expect(statuses).toHaveLength(10);
     for (const status of statuses) {
       expect(status.exists).toBe(true);
       expect(status.ageDays).toBe(0);
@@ -257,8 +257,8 @@ describe("brand freshness command", () => {
     const { stdout, exitCode } = await run(["brand", "freshness", "--json", "--cwd", tempDir]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
-    expect(parsed.summary.total).toBe(9);
-    expect(parsed.summary.missing).toBe(9);
+    expect(parsed.summary.total).toBe(10);
+    expect(parsed.summary.missing).toBe(10);
     expect(parsed.summary.current).toBe(0);
     for (const f of parsed.files) {
       expect(f.freshness).toBe("missing");

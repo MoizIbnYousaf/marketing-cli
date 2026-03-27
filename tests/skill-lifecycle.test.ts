@@ -132,10 +132,10 @@ describe("mktg skill info", () => {
     expect(parsed.dependsOn).toEqual([]);
   });
 
-  test("cmo reads all 9 brand files", async () => {
+  test("cmo reads all 10 brand files", async () => {
     const { stdout } = await run(["skill", "info", "cmo", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.reads.length).toBe(9);
+    expect(parsed.reads.length).toBe(10);
   });
 
   test("positioning-angles depends on brand-voice and audience-research", async () => {
@@ -167,8 +167,8 @@ describe("mktg skill validate", () => {
     expect(rules).toContain("line-count");
   });
 
-  test("all 41 bundled skills pass validation", async () => {
-    // Test a representative sample (testing all 41 would be slow in subprocess mode)
+  test("all 42 bundled skills pass validation", async () => {
+    // Test a representative sample (testing all 42 would be slow in subprocess mode)
     const skills = ["cmo", "brand-voice", "seo-content", "keyword-research", "tiktok-slideshow"];
     for (const skill of skills) {
       const { stdout, exitCode } = await run(["skill", "validate", `skills/${skill}`, "--json"]);
@@ -320,11 +320,11 @@ describe("mktg skill validate", () => {
 // ==================== skill graph ====================
 
 describe("mktg skill graph", () => {
-  test("returns 41 nodes for all skills", async () => {
+  test("returns 42 nodes for all skills", async () => {
     const { stdout, exitCode } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(exitCode).toBe(0);
-    expect(parsed.nodes.length).toBe(41);
+    expect(parsed.nodes.length).toBe(42);
   });
 
   test("each node has name, category, layer, tier, dependsOn", async () => {
@@ -377,10 +377,10 @@ describe("mktg skill graph", () => {
     expect(parsed.hasCycles).toBe(false);
   });
 
-  test("topological order includes all 41 skills", async () => {
+  test("topological order includes all 42 skills", async () => {
     const { stdout } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.order.length).toBe(41);
+    expect(parsed.order.length).toBe(42);
   });
 
   test("topological order: deps come before dependents", async () => {
@@ -406,7 +406,7 @@ describe("mktg skill graph", () => {
     expect(parsed.layers.distribution).toContain("content-atomizer");
   });
 
-  test("total skills across all layers equals 41", async () => {
+  test("total skills across all layers equals 42", async () => {
     const { stdout } = await run(["skill", "graph", "--json"]);
     const parsed = JSON.parse(stdout);
     const total =
@@ -415,7 +415,7 @@ describe("mktg skill graph", () => {
       parsed.layers.execution.length +
       parsed.layers.distribution.length +
       (parsed.layers.orchestrator?.length ?? 0);
-    expect(total).toBe(41);
+    expect(total).toBe(42);
   });
 
   test("edges match manifest depends_on", async () => {
@@ -1024,7 +1024,7 @@ describe("isTemplateContent", () => {
     expect(isTemplateContent("voice-profile.md", "")).toBe(false);
   });
 
-  test("works for all 9 brand files", () => {
+  test("works for all 10 brand files", () => {
     for (const file of BRAND_FILES) {
       const template = BRAND_TEMPLATES[file];
       expect(isTemplateContent(file, template)).toBe(true);

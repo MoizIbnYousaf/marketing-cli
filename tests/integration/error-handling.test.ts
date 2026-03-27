@@ -371,11 +371,11 @@ describe("parseJsonInput security", () => {
 
 describe("formatOutput JSON consistency", () => {
   test("success output is valid JSON without error envelope", () => {
-    const result = ok({ status: "healthy", skills: 41 });
+    const result = ok({ status: "healthy", skills: 42 });
     const output = formatOutput(result, jsonFlags);
     const parsed = JSON.parse(output);
     expect(parsed.status).toBe("healthy");
-    expect(parsed.skills).toBe(41);
+    expect(parsed.skills).toBe(42);
     expect(parsed.error).toBeUndefined();
   });
 
@@ -423,7 +423,7 @@ describe("CLI subprocess error handling", () => {
     const { exitCode, stdout } = await runCli(["list", "--json"]);
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
-    expect(parsed.total).toBe(41);
+    expect(parsed.total).toBe(42);
   });
 
   test("mktg run nonexistent --json returns structured error", async () => {

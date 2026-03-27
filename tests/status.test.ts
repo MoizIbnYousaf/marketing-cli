@@ -42,9 +42,9 @@ describe("mktg status", () => {
     expect(result.data).toHaveProperty("health");
     expect(result.data).toHaveProperty("content");
 
-    // All 9 brand files should exist after init
+    // All 10 brand files should exist after init
     const brandEntries = Object.entries(result.data.brand);
-    expect(brandEntries.length).toBe(9);
+    expect(brandEntries.length).toBe(10);
 
     for (const [, entry] of brandEntries) {
       expect(entry.exists).toBe(true);
@@ -145,7 +145,7 @@ describe("Status JSON shape for agent consumption", () => {
     if (!result.ok) return;
 
     const brandKeys = Object.keys(result.data.brand);
-    expect(brandKeys).toHaveLength(9);
+    expect(brandKeys).toHaveLength(10);
     expect(brandKeys).toContain("voice-profile.md");
     expect(brandKeys).toContain("positioning.md");
     expect(brandKeys).toContain("audience.md");
@@ -436,23 +436,23 @@ describe("Brand summary counts", () => {
     expect(typeof result.data.brandSummary.stale).toBe("number");
   });
 
-  test("before init: all 9 missing", async () => {
+  test("before init: all 10 missing", async () => {
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.brandSummary.missing).toBe(9);
+    expect(result.data.brandSummary.missing).toBe(10);
     expect(result.data.brandSummary.populated).toBe(0);
     expect(result.data.brandSummary.template).toBe(0);
   });
 
-  test("after init: all 9 template", async () => {
+  test("after init: all 10 template", async () => {
     await initHandler(["--yes"], flags);
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.brandSummary.template).toBe(9);
+    expect(result.data.brandSummary.template).toBe(10);
     expect(result.data.brandSummary.populated).toBe(0);
     expect(result.data.brandSummary.missing).toBe(0);
   });
@@ -468,7 +468,7 @@ describe("Brand summary counts", () => {
     if (!result.ok) return;
 
     expect(result.data.brandSummary.populated).toBe(3);
-    expect(result.data.brandSummary.template).toBe(6);
+    expect(result.data.brandSummary.template).toBe(7);
   });
 });
 

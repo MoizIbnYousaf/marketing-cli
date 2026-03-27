@@ -75,9 +75,9 @@ describe("scaffoldBrand creates directories with fs.mkdir", () => {
     expect(existsSync(join(tmpDir, "brand"))).toBe(true);
   });
 
-  test("creates all 9 brand files", async () => {
+  test("creates all 10 brand files", async () => {
     const result = await scaffoldBrand(tmpDir);
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
   });
 
   test("each brand file exists on disk after scaffold", async () => {
@@ -107,7 +107,7 @@ describe("scaffoldBrand creates directories with fs.mkdir", () => {
 
   test("dry-run does not create any files", async () => {
     const result = await scaffoldBrand(tmpDir, true);
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
     expect(existsSync(join(tmpDir, "brand"))).toBe(false);
   });
 
@@ -115,7 +115,7 @@ describe("scaffoldBrand creates directories with fs.mkdir", () => {
     await scaffoldBrand(tmpDir);
     const result2 = await scaffoldBrand(tmpDir);
     expect(result2.created).toHaveLength(0);
-    expect(result2.skipped).toHaveLength(9);
+    expect(result2.skipped).toHaveLength(10);
   });
 
   test("nested directory creation works (brand/ does not exist)", async () => {

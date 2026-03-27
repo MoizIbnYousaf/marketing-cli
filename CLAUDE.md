@@ -23,7 +23,7 @@ This needs to work on any machine. `mktg init` self-bootstraps everything: insta
 **Five components:**
 1. `mktg` CLI — infrastructure tool (9 top-level commands: init, doctor, list, status, update, schema, skill, brand, run)
 2. `/cmo` skill — the brain (teaches agents how to orchestrate everything)
-3. `brand/` directory — the memory (9 files that compound across sessions)
+3. `brand/` directory — the memory (10 files that compound across sessions)
 4. 41 marketing skills — the knowledge
 5. 5 marketing agents — parallel sub-agents for research and review (installed to `~/.claude/agents/`)
 
@@ -176,7 +176,7 @@ Every SKILL.md must:
 
 ## Brand File Standards
 
-Per `brand/SCHEMA.md`: 9 files, each with defined required sections.
+Per `brand/SCHEMA.md`: 10 files, each with defined required sections.
 - `voice-profile.md` is the canonical name
 - Template detection via SHA-256 hash comparison in `isTemplateContent()`
 - Freshness: 30-day for profiles, 90-day for config, never-stale for append-only

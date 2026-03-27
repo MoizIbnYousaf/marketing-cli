@@ -1,5 +1,5 @@
 // E2E Test: SKILL INSTALL & VERIFY
-// Proves: install all 41 skills → verify each has SKILL.md → verify SHA integrity → list shows all → reinstall → verify
+// Proves: install all 42 skills → verify each has SKILL.md → verify SHA integrity → list shows all → reinstall → verify
 //
 // Agent DX Axes Validated:
 // - Axis 1 (Machine-Readable Output): All commands produce valid JSON when piped (3/3)
@@ -32,12 +32,12 @@ const run = async (args: string[]): Promise<{ stdout: string; exitCode: number }
 
 const parseJson = (stdout: string): unknown => JSON.parse(stdout);
 
-// ==================== INSTALL ALL 41 SKILLS ====================
+// ==================== INSTALL ALL 42 SKILLS ====================
 
 describe("E2E: install all skills", () => {
-  test("manifest contains 41 skills", async () => {
+  test("manifest contains 42 skills", async () => {
     const manifest = await loadManifest();
-    expect(Object.keys(manifest.skills)).toHaveLength(41);
+    expect(Object.keys(manifest.skills)).toHaveLength(42);
   });
 
   test("installSkills installs all bundled skills", async () => {
@@ -115,9 +115,9 @@ describe("E2E: mktg list --json shows all skills", () => {
 
     // Axis 1 proof: output is valid JSON
     expect(data).toBeDefined();
-    expect(data.total).toBe(41);
+    expect(data.total).toBe(42);
     expect(Array.isArray(data.skills)).toBe(true);
-    expect(data.skills.length).toBe(41);
+    expect(data.skills.length).toBe(42);
   });
 
   test("every skill in list has required metadata fields", async () => {

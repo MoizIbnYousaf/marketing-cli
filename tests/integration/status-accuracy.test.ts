@@ -73,7 +73,7 @@ describe("health state accuracy", () => {
 describe("brandSummary accuracy", () => {
   test("all missing before scaffold", async () => {
     const status = await getStatus();
-    expect(status.brandSummary.missing).toBe(9);
+    expect(status.brandSummary.missing).toBe(10);
     expect(status.brandSummary.populated).toBe(0);
     expect(status.brandSummary.template).toBe(0);
     expect(status.brandSummary.stale).toBe(0);
@@ -82,8 +82,8 @@ describe("brandSummary accuracy", () => {
   test("all template after scaffold", async () => {
     await scaffoldBrand(tempDir);
     const status = await getStatus();
-    // All 9 files contain template content after scaffold (including append-only)
-    expect(status.brandSummary.template).toBe(9);
+    // All 10 files contain template content after scaffold (including append-only)
+    expect(status.brandSummary.template).toBe(10);
     expect(status.brandSummary.populated).toBe(0);
     expect(status.brandSummary.missing).toBe(0);
   });
@@ -98,7 +98,7 @@ describe("brandSummary accuracy", () => {
 
     const status = await getStatus();
     expect(status.brandSummary.populated).toBe(2); // 2 real content files
-    expect(status.brandSummary.template).toBe(6); // remaining template files (including append-only)
+    expect(status.brandSummary.template).toBe(7); // remaining template files (including append-only)
     expect(status.brandSummary.missing).toBe(1); // competitors.md
   });
 });
@@ -148,7 +148,7 @@ describe("brand entry accuracy", () => {
     expect(voice.isTemplate).toBe(false);
   });
 
-  test("all 9 brand files are present in status output", async () => {
+  test("all 10 brand files are present in status output", async () => {
     const status = await getStatus();
     for (const file of BRAND_FILES) {
       expect(status.brand[file]).toBeDefined();
@@ -310,7 +310,7 @@ describe("status JSON shape", () => {
     const status = await getStatus();
     const { populated, template, missing } = status.brandSummary;
     // populated + template + missing = total brand files (stale is a subset of populated, not additive)
-    expect(populated + template + missing).toBe(9);
+    expect(populated + template + missing).toBe(10);
   });
 });
 

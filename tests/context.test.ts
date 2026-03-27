@@ -39,7 +39,7 @@ describe("mktg context", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.summary.totalFiles).toBe(9);
+    expect(result.data.summary.totalFiles).toBe(10);
     expect(result.data.tokenEstimate).toBeGreaterThan(0);
     expect(result.data).toHaveProperty("compiledAt");
     expect(result.data).toHaveProperty("project");

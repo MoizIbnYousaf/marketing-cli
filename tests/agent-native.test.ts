@@ -104,7 +104,7 @@ describe("status JSON shape", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(Object.keys(result.data.brand)).toHaveLength(9);
+    expect(Object.keys(result.data.brand)).toHaveLength(10);
   });
 
   test("each brand entry has exists boolean", async () => {

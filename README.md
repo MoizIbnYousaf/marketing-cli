@@ -80,7 +80,7 @@ Other marketing skill repos give you a folder of markdown files and wish you luc
 |---|---|---|
 | **Install** | `bun install -g mktg && mktg init` | `git clone` + manually copy files |
 | **CLI** | 9 top-level commands, JSON output, exit codes, `--dry-run` | None |
-| **Memory** | 9 brand files that compound across sessions | Stateless — starts from scratch every time |
+| **Memory** | 10 brand files that compound across sessions | Stateless — starts from scratch every time |
 | **Health checks** | `mktg doctor` with pass/warn/fail diagnostics | None |
 | **Skill lifecycle** | Dependency DAG, freshness tracking, versioning | Flat directory of markdown |
 | **Integration checks** | Proactive env var verification before routing | Fails mid-execution |

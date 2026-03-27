@@ -135,7 +135,7 @@ const buildNextActions = (
   }
 
   // Priority 1: Populate template files (foundation first)
-  const foundationFiles: BrandFile[] = ["voice-profile.md", "positioning.md", "audience.md"];
+  const foundationFiles: BrandFile[] = ["voice-profile.md", "positioning.md", "audience.md", "landscape.md"];
   for (const file of foundationFiles) {
     const entry = brand[file];
     if (entry && entry.isTemplate) {
@@ -143,6 +143,8 @@ const buildNextActions = (
         "voice-profile.md": "/brand-voice",
         "positioning.md": "/positioning-angles",
         "audience.md": "/audience-research",
+        "landscape.md": "/landscape-scan",
+        "competitors.md": "/competitive-intel",
       };
       actions.push(`Run ${skillMap[file]} to populate ${file} (still template)`);
     }

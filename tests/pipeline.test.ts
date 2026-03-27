@@ -35,7 +35,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(result.data.health).toBe("needs-setup");
     // Skills are global (~/.claude/skills/), so count may be >0 from prior runs
     expect(typeof result.data.skills.installed).toBe("number");
-    expect(result.data.skills.total).toBe(41);
+    expect(result.data.skills.total).toBe(42);
     expect(result.data.content.totalFiles).toBe(0);
 
     // All brand files should be missing
@@ -64,7 +64,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     if (!result.ok) return;
 
     // Brand files created
-    expect(result.data.brand.created).toHaveLength(9);
+    expect(result.data.brand.created).toHaveLength(10);
     expect(result.data.brand.skipped).toHaveLength(0);
 
     // Skills installed
@@ -88,16 +88,16 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     // Health should not be needs-setup
     expect(result.data.health).not.toBe("needs-setup");
 
-    // All 9 brand files should exist
+    // All 10 brand files should exist
     const entries = Object.entries(result.data.brand);
-    expect(entries).toHaveLength(9);
+    expect(entries).toHaveLength(10);
     for (const [file, entry] of entries) {
       expect(entry.exists).toBe(true);
     }
 
     // Skills should be installed
     expect(result.data.skills.installed).toBeGreaterThan(0);
-    expect(result.data.skills.total).toBe(41);
+    expect(result.data.skills.total).toBe(42);
   });
 
   test("Step 5: doctor passes after init", async () => {
@@ -119,13 +119,13 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     expect(bunCheck?.status).toBe("pass");
   });
 
-  test("Step 6: list shows all 41 skills", async () => {
+  test("Step 6: list shows all 42 skills", async () => {
     const result = await listHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(41);
-    expect(result.data.skills).toHaveLength(41);
+    expect(result.data.total).toBe(42);
+    expect(result.data.skills).toHaveLength(42);
 
     // Check skill names
     const names = result.data.skills.map((s) => s.name);
@@ -156,8 +156,8 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
     if (!result.ok) return;
 
     // After init + immediate update, all should be unchanged
-    expect(result.data.totalSkills).toBe(41);
-    expect(result.data.skills.unchanged.length + result.data.skills.updated.length + result.data.skills.notBundled.length).toBe(41);
+    expect(result.data.totalSkills).toBe(42);
+    expect(result.data.skills.unchanged.length + result.data.skills.updated.length + result.data.skills.notBundled.length).toBe(42);
   });
 
   test("Step 8: re-init is idempotent", async () => {
@@ -173,7 +173,7 @@ describe("Full pipeline: init → status → doctor → list → update", () => 
 
     // Brand should all be skipped (already exist)
     expect(second.data.brand.created).toHaveLength(0);
-    expect(second.data.brand.skipped).toHaveLength(9);
+    expect(second.data.brand.skipped).toHaveLength(10);
   });
 });
 
@@ -189,8 +189,8 @@ describe("Pipeline with --dry-run flag", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    // Reports 9 files would be created
-    expect(result.data.brand.created).toHaveLength(9);
+    // Reports 10 files would be created
+    expect(result.data.brand.created).toHaveLength(10);
 
     // But no files actually exist
     const brandDir = join(tempDir, "brand");

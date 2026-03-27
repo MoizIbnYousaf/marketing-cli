@@ -48,7 +48,7 @@ describe("CMO reads status for brand health", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.skills.total).toBe(41);
+    expect(result.data.skills.total).toBe(42);
     expect(result.data.skills.installed).toBeGreaterThan(0);
   });
 
@@ -62,14 +62,14 @@ describe("CMO reads status for brand health", () => {
     expect(result.data.agents.installed).toBeGreaterThan(0);
   });
 
-  test("status exposes all 9 brand file entries", async () => {
+  test("status exposes all 10 brand file entries", async () => {
     await initHandler(["--yes"], flags);
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const brandKeys = Object.keys(result.data.brand);
-    expect(brandKeys.length).toBe(9);
+    expect(brandKeys.length).toBe(10);
     expect(brandKeys).toContain("voice-profile.md");
     expect(brandKeys).toContain("audience.md");
     expect(brandKeys).toContain("positioning.md");
@@ -117,12 +117,12 @@ describe("CMO reads status brand freshness", () => {
 });
 
 describe("CMO uses list for skill routing", () => {
-  test("list returns all 41 skills with metadata", async () => {
+  test("list returns all 42 skills with metadata", async () => {
     const result = await listHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(41);
+    expect(result.data.total).toBe(42);
     expect(Array.isArray(result.data.skills)).toBe(true);
 
     // Each skill has routing-relevant metadata
@@ -153,7 +153,7 @@ describe("CMO uses list for skill routing", () => {
 
     // formatOutput applies field filtering — result.data still has everything
     // but the formatted JSON output would only include specified fields
-    expect(result.data.total).toBe(41);
+    expect(result.data.total).toBe(42);
   });
 });
 

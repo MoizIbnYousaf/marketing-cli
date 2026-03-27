@@ -40,7 +40,7 @@ describe("Phase 1: Fresh init creates complete foundation", () => {
     if (!result.ok) return;
 
     // Brand scaffolded
-    expect(result.data.brand.created.length).toBe(9);
+    expect(result.data.brand.created.length).toBe(10);
     expect(result.data.brand.skipped.length).toBe(0);
 
     // Skills installed
@@ -54,9 +54,9 @@ describe("Phase 1: Fresh init creates complete foundation", () => {
     // Doctor embedded in init
     expect(result.data.doctor.passed).toBeDefined();
 
-    // All 9 brand files exist on disk
+    // All 10 brand files exist on disk
     const brandFiles = await readdir(join(tempDir, "brand"));
-    expect(brandFiles.length).toBe(9);
+    expect(brandFiles.length).toBe(10);
   });
 });
 
@@ -148,7 +148,7 @@ describe("Phase 4: Status reflects all activity", () => {
     expect(status.ok).toBe(true);
     if (!status.ok) return;
 
-    expect(status.data.skills.total).toBe(41);
+    expect(status.data.skills.total).toBe(42);
     expect(status.data.skills.installed).toBeGreaterThan(0);
     expect(status.data.agents.total).toBe(5);
     expect(status.data.agents.installed).toBeGreaterThan(0);
@@ -215,13 +215,13 @@ describe("Phase 6: Update preserves everything", () => {
 });
 
 describe("Phase 7: List provides complete routing data", () => {
-  test("list returns all 41 skills with routing metadata", async () => {
+  test("list returns all 42 skills with routing metadata", async () => {
     const result = await listHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.total).toBe(41);
-    expect(result.data.skills.length).toBe(41);
+    expect(result.data.total).toBe(42);
+    expect(result.data.skills.length).toBe(42);
 
     // Every skill has routing-essential fields
     for (const skill of result.data.skills) {
@@ -261,7 +261,7 @@ describe("Full pipeline coherence", () => {
     const status = await statusHandler([], flags);
     expect(status.ok).toBe(true);
     if (!status.ok) return;
-    expect(status.data.skills.total).toBe(41);
+    expect(status.data.skills.total).toBe(42);
     expect(status.data.agents.total).toBe(5);
 
     // Step 5: Doctor passes
@@ -278,7 +278,7 @@ describe("Full pipeline coherence", () => {
     const statusAfter = await statusHandler([], flags);
     expect(statusAfter.ok).toBe(true);
     if (!statusAfter.ok) return;
-    expect(statusAfter.data.skills.total).toBe(41);
+    expect(statusAfter.data.skills.total).toBe(42);
     expect(statusAfter.data.health).not.toBe("needs-setup");
 
     // Brand content survived update

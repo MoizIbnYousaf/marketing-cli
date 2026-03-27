@@ -25,13 +25,13 @@ afterEach(async () => {
 });
 
 describe("Fresh install pipeline", () => {
-  test("init on clean dir creates brand/ with all 9 files", async () => {
+  test("init on clean dir creates brand/ with all 10 files", async () => {
     const result = await initHandler(["--yes"], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const brandFiles = await readdir(join(tempDir, "brand"));
-    expect(brandFiles.length).toBe(9);
+    expect(brandFiles.length).toBe(10);
 
     const expected = [
       "voice-profile.md",
@@ -135,13 +135,13 @@ describe("Fresh install pipeline", () => {
     // Health should not be needs-setup after init
     expect(statusResult.data.health).not.toBe("needs-setup");
 
-    // Brand summary should show all 9 files exist
+    // Brand summary should show all 10 files exist
     const brandEntries = Object.keys(statusResult.data.brand);
-    expect(brandEntries.length).toBe(9);
+    expect(brandEntries.length).toBe(10);
 
     // Skills should be installed
     expect(statusResult.data.skills.installed).toBeGreaterThan(0);
-    expect(statusResult.data.skills.total).toBe(41);
+    expect(statusResult.data.skills.total).toBe(42);
 
     // Agents should be installed
     expect(statusResult.data.agents.installed).toBeGreaterThan(0);
@@ -155,7 +155,7 @@ describe("Fresh install pipeline", () => {
     expect(listResult.ok).toBe(true);
     if (!listResult.ok) return;
 
-    expect(listResult.data.total).toBe(41);
+    expect(listResult.data.total).toBe(42);
   });
 });
 
@@ -195,7 +195,7 @@ describe("Idempotent re-init", () => {
     if (!second.ok) return;
 
     // Brand files should be skipped (not recreated)
-    expect(second.data.brand.skipped.length).toBe(9);
+    expect(second.data.brand.skipped.length).toBe(10);
     expect(second.data.brand.created.length).toBe(0);
 
     // Custom content should be preserved
@@ -213,7 +213,7 @@ describe("Init skip flags", () => {
     // Skills should not be installed
     expect(result.data.skills.installed.length).toBe(0);
     // Brand should still be created
-    expect(result.data.brand.created.length).toBe(9);
+    expect(result.data.brand.created.length).toBe(10);
   });
 
   test("--skip-agents skips agent installation", async () => {

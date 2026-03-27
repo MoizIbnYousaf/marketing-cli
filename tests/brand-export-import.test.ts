@@ -17,12 +17,12 @@ afterEach(async () => {
 });
 
 describe("brand export", () => {
-  test("exports all 9 brand files after scaffold", async () => {
+  test("exports all 10 brand files after scaffold", async () => {
     await scaffoldBrand(tempDir);
     const bundle = await exportBrand(tempDir);
     expect(bundle.version).toBe(1);
     expect(bundle.exportedAt).toBeDefined();
-    expect(Object.keys(bundle.files)).toHaveLength(9);
+    expect(Object.keys(bundle.files)).toHaveLength(10);
     for (const entry of Object.values(bundle.files)) {
       expect(entry!.content.length).toBeGreaterThan(0);
       expect(entry!.sha256).toMatch(/^[a-f0-9]{64}$/);
@@ -59,7 +59,7 @@ describe("brand import", () => {
 
     // Import
     const result = await importBrand(tempDir, bundle, false);
-    expect(result.imported).toHaveLength(9);
+    expect(result.imported).toHaveLength(10);
     expect(result.skipped).toHaveLength(0);
 
     // Verify content matches
@@ -80,7 +80,7 @@ describe("brand import", () => {
     };
     const result = await importBrand(tempDir, bundle, false);
     expect(result.imported).toHaveLength(3);
-    expect(result.skipped).toHaveLength(6); // 9 - 3
+    expect(result.skipped).toHaveLength(7); // 9 - 3
     expect(result.imported).toContain("voice-profile.md");
   });
 
@@ -165,7 +165,7 @@ describe("brand export/import CLI integration", () => {
     const { stdout: importOut, exitCode } = await run(["brand", "import", "--file", bundlePath, "--confirm", "--json"]);
     const result = JSON.parse(importOut);
     expect(exitCode).toBe(0);
-    expect(result.imported).toHaveLength(9);
+    expect(result.imported).toHaveLength(10);
 
     // Verify
     const content = await Bun.file(join(tempDir, "brand", "positioning.md")).text();

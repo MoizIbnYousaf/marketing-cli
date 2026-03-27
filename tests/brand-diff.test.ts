@@ -19,7 +19,7 @@ describe("computeBrandHashes", () => {
   test("computes SHA-256 for all existing brand files", async () => {
     await scaffoldBrand(tempDir);
     const hashes = await computeBrandHashes(tempDir);
-    expect(Object.keys(hashes)).toHaveLength(9);
+    expect(Object.keys(hashes)).toHaveLength(10);
     for (const hash of Object.values(hashes)) {
       expect(hash).toMatch(/^[a-f0-9]{64}$/);
     }
@@ -55,7 +55,7 @@ describe("diffBrand", () => {
     expect(result.baselineTimestamp).toBeNull();
     expect(result.hasChanges).toBe(true);
     expect(result.changes.every(c => c.status === "added")).toBe(true);
-    expect(result.changes).toHaveLength(9);
+    expect(result.changes).toHaveLength(10);
   });
 
   test("unchanged after baseline — all unchanged", async () => {

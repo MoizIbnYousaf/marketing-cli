@@ -1,11 +1,11 @@
 // E2E: Brand Roundtrip
-// scaffold → write all 9 files with real content → export bundle → delete brand/ → import bundle → verify SHA match → freshness correct
+// scaffold → write all 10 files with real content → export bundle → delete brand/ → import bundle → verify SHA match → freshness correct
 // NO MOCKS. Real file I/O in isolated temp dirs.
 //
 // Agent DX Axes Validated:
 // - Schema Introspection (3/3): status command returns machine-parseable brandSummary, freshness enums, health enums
 // - Machine-Readable Output (supports): all status calls use --json, output is structured and parseable
-// - Agent Knowledge Packaging (supports): brand files follow documented 9-file contract, SHA-256 integrity verified
+// - Agent Knowledge Packaging (supports): brand files follow documented 10-file contract, SHA-256 integrity verified
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
@@ -28,7 +28,7 @@ import type { GlobalFlags } from "../../src/types";
 let tempDir: string;
 let flags: GlobalFlags;
 
-// Real brand content for all 9 files — not templates, not stubs
+// Real brand content for all 10 files — not templates, not stubs
 const REAL_CONTENT: Record<BrandFile, string> = {
   "voice-profile.md": `# Brand Voice Profile
 
@@ -62,7 +62,7 @@ const REAL_CONTENT: Record<BrandFile, string> = {
 3. Built for agents, not humans
 
 ## Proof Points
-- 41 marketing skills, zero configuration
+- 42 marketing skills, zero configuration
 - Brand memory persists across sessions
 - Parallel research with sub-agents
 `,
@@ -181,10 +181,10 @@ afterEach(async () => {
   await rm(tempDir, { recursive: true, force: true });
 });
 
-describe("Phase 1: Scaffold and populate all 9 brand files", () => {
-  test("scaffold creates all 9 template files", async () => {
+describe("Phase 1: Scaffold and populate all 10 brand files", () => {
+  test("scaffold creates all 10 template files", async () => {
     const result = await scaffoldBrand(tempDir);
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
 
     for (const file of BRAND_FILES) {
       const exists = await Bun.file(join(tempDir, "brand", file)).exists();
@@ -192,7 +192,7 @@ describe("Phase 1: Scaffold and populate all 9 brand files", () => {
     }
   });
 
-  test("write real content to all 9 files", async () => {
+  test("write real content to all 10 files", async () => {
     await scaffoldBrand(tempDir);
 
     for (const file of BRAND_FILES) {
@@ -207,7 +207,7 @@ describe("Phase 1: Scaffold and populate all 9 brand files", () => {
     }
   });
 
-  test("status shows all 9 populated, health ready", async () => {
+  test("status shows all 10 populated, health ready", async () => {
     await scaffoldBrand(tempDir);
     for (const file of BRAND_FILES) {
       await Bun.write(join(tempDir, "brand", file), REAL_CONTENT[file]);
@@ -218,14 +218,14 @@ describe("Phase 1: Scaffold and populate all 9 brand files", () => {
     if (!result.ok) return;
 
     expect(result.data.health).toBe("ready");
-    expect(result.data.brandSummary.populated).toBe(9);
+    expect(result.data.brandSummary.populated).toBe(10);
     expect(result.data.brandSummary.template).toBe(0);
     expect(result.data.brandSummary.missing).toBe(0);
   });
 });
 
 describe("Phase 2: Export brand bundle", () => {
-  test("export produces a valid bundle with all 9 files", async () => {
+  test("export produces a valid bundle with all 10 files", async () => {
     await scaffoldBrand(tempDir);
     for (const file of BRAND_FILES) {
       await Bun.write(join(tempDir, "brand", file), REAL_CONTENT[file]);
@@ -235,7 +235,7 @@ describe("Phase 2: Export brand bundle", () => {
 
     expect(bundle.version).toBe(1);
     expect(typeof bundle.exportedAt).toBe("string");
-    expect(Object.keys(bundle.files)).toHaveLength(9);
+    expect(Object.keys(bundle.files)).toHaveLength(10);
 
     for (const file of BRAND_FILES) {
       const entry = bundle.files[file];
@@ -286,10 +286,10 @@ describe("Phase 3: Delete brand/ and import bundle", () => {
 
     // Step 5: Import bundle
     const importResult = await importBrand(tempDir, bundle, false);
-    expect(importResult.imported).toHaveLength(9);
+    expect(importResult.imported).toHaveLength(10);
     expect(importResult.skipped).toHaveLength(0);
 
-    // Step 6: Verify all 9 files restored with correct content
+    // Step 6: Verify all 10 files restored with correct content
     for (const file of BRAND_FILES) {
       const content = await Bun.file(join(tempDir, "brand", file)).text();
       expect(content).toBe(REAL_CONTENT[file]);
@@ -306,7 +306,7 @@ describe("Phase 3: Delete brand/ and import bundle", () => {
     expect(statusAfterImport.ok).toBe(true);
     if (!statusAfterImport.ok) return;
     expect(statusAfterImport.data.health).toBe("ready");
-    expect(statusAfterImport.data.brandSummary.populated).toBe(9);
+    expect(statusAfterImport.data.brandSummary.populated).toBe(10);
   });
 });
 
@@ -370,9 +370,9 @@ describe("Phase 5: Diff tracking across roundtrip", () => {
     const changed = diff.changes.find(c => c.file === "voice-profile.md");
     expect(changed?.status).toBe("modified");
 
-    // Other 8 files should be unchanged
+    // Other 9 files should be unchanged
     const unchanged = diff.changes.filter(c => c.status === "unchanged");
-    expect(unchanged).toHaveLength(8);
+    expect(unchanged).toHaveLength(10);
   });
 });
 
@@ -389,7 +389,7 @@ describe("Phase 6: Cross-project import", () => {
     const projectB = await mkdtemp(join(tmpdir(), "mktg-e2e-projB-"));
     const importResult = await importBrand(projectB, bundle, false);
 
-    expect(importResult.imported).toHaveLength(9);
+    expect(importResult.imported).toHaveLength(10);
 
     // Verify content matches across projects
     for (const file of BRAND_FILES) {
@@ -411,7 +411,7 @@ describe("Phase 6: Cross-project import", () => {
     expect(statusB.ok).toBe(true);
     if (!statusB.ok) return;
     expect(statusB.data.health).toBe("ready");
-    expect(statusB.data.brandSummary.populated).toBe(9);
+    expect(statusB.data.brandSummary.populated).toBe(10);
 
     await rm(projectB, { recursive: true, force: true });
   });
@@ -425,14 +425,14 @@ describe("Phase 7: Partial bundle import", () => {
     await Bun.write(join(tempDir, "brand", "positioning.md"), REAL_CONTENT["positioning.md"]);
     await Bun.write(join(tempDir, "brand", "audience.md"), REAL_CONTENT["audience.md"]);
 
-    // Export (only 9 files in bundle, but 6 are templates)
+    // Export (only 10 files in bundle, but 7 are templates)
     const bundle = await exportBrand(tempDir);
 
     // Import to fresh dir
     const target = await mkdtemp(join(tmpdir(), "mktg-e2e-partial-"));
     const result = await importBrand(target, bundle, false);
 
-    expect(result.imported).toHaveLength(9); // All 9 present in bundle
+    expect(result.imported).toHaveLength(10); // All 10 present in bundle
 
     // But only 3 should have real content
     for (const file of ["voice-profile.md", "positioning.md", "audience.md"] as BrandFile[]) {

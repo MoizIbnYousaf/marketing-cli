@@ -102,7 +102,7 @@ describe("brand update --input", () => {
     expect(data.error.code).toBe("INVALID_ARGS");
   });
 
-  test("writes all 9 brand files simultaneously", async () => {
+  test("writes all 10 brand files simultaneously", async () => {
     const payload = JSON.stringify({
       "voice-profile.md": "# Voice",
       "positioning.md": "# Positioning",
@@ -119,7 +119,7 @@ describe("brand update --input", () => {
     expect(result.exitCode).toBe(0);
 
     const data = parseJson(result.stdout) as { written: string[] };
-    expect(data.written).toHaveLength(9);
+    expect(data.written).toHaveLength(10);
   });
 });
 

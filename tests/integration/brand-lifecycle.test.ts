@@ -34,10 +34,10 @@ afterEach(async () => {
 });
 
 describe("Phase 1: Scaffold brand/ from nothing", () => {
-  test("scaffoldBrand creates all 9 files in brand/ directory", async () => {
+  test("scaffoldBrand creates all 10 files in brand/ directory", async () => {
     const result = await scaffoldBrand(tempDir);
 
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
     expect(result.skipped).toHaveLength(0);
 
     for (const file of BRAND_FILES) {
@@ -61,13 +61,13 @@ describe("Phase 1: Scaffold brand/ from nothing", () => {
     const result = await scaffoldBrand(tempDir);
 
     expect(result.created).toHaveLength(0);
-    expect(result.skipped).toHaveLength(9);
+    expect(result.skipped).toHaveLength(10);
   });
 
   test("dry-run does not create any files", async () => {
     const result = await scaffoldBrand(tempDir, true);
 
-    expect(result.created).toHaveLength(9);
+    expect(result.created).toHaveLength(10);
     for (const file of BRAND_FILES) {
       const exists = await Bun.file(join(tempDir, "brand", file)).exists();
       expect(exists).toBe(false);
@@ -166,7 +166,7 @@ describe("Phase 3: Write real content and detect changes", () => {
     if (!result.ok) return;
 
     expect(result.data.brandSummary.populated).toBe(2);
-    expect(result.data.brandSummary.template).toBe(7);
+    expect(result.data.brandSummary.template).toBe(8);
     expect(result.data.brandSummary.missing).toBe(0);
   });
 
@@ -203,7 +203,7 @@ describe("Phase 4: Freshness and staleness detection", () => {
     await scaffoldBrand(tempDir);
     const statuses = await getBrandStatus(tempDir);
 
-    expect(statuses).toHaveLength(9);
+    expect(statuses).toHaveLength(10);
     for (const status of statuses) {
       expect(status.exists).toBe(true);
       // Freshness can be "current" or "template" depending on whether init sets a special value
@@ -267,7 +267,7 @@ describe("Phase 5: Brand diff tracking", () => {
     await scaffoldBrand(tempDir);
     const hashes = await computeBrandHashes(tempDir);
 
-    expect(Object.keys(hashes)).toHaveLength(9);
+    expect(Object.keys(hashes)).toHaveLength(10);
     for (const file of BRAND_FILES) {
       expect(typeof hashes[file]).toBe("string");
       expect(hashes[file].length).toBe(64); // SHA-256 hex
@@ -314,13 +314,13 @@ describe("Phase 5: Brand diff tracking", () => {
 });
 
 describe("Phase 6: Export and import brand bundle", () => {
-  test("exportBrand produces a valid bundle with all 9 files", async () => {
+  test("exportBrand produces a valid bundle with all 10 files", async () => {
     await scaffoldBrand(tempDir);
     const bundle = await exportBrand(tempDir);
 
     expect(bundle.version).toBe(1);
     expect(typeof bundle.exportedAt).toBe("string");
-    expect(Object.keys(bundle.files)).toHaveLength(9);
+    expect(Object.keys(bundle.files)).toHaveLength(10);
 
     for (const file of BRAND_FILES) {
       const entry = bundle.files[file];
@@ -340,7 +340,7 @@ describe("Phase 6: Export and import brand bundle", () => {
     const importDir = await mkdtemp(join(tmpdir(), "mktg-import-"));
     const result = await importBrand(importDir, bundle, false);
 
-    expect(result.imported).toHaveLength(9);
+    expect(result.imported).toHaveLength(10);
     const importedContent = await Bun.file(join(importDir, "brand", "voice-profile.md")).text();
     expect(importedContent).toBe("# Imported voice");
 
@@ -392,7 +392,7 @@ describe("Phase 7: Missing files and partial states", () => {
   test("getBrandStatus returns missing for files that do not exist", async () => {
     // No scaffold — brand/ doesn't exist
     const statuses = await getBrandStatus(tempDir);
-    expect(statuses).toHaveLength(9);
+    expect(statuses).toHaveLength(10);
 
     for (const status of statuses) {
       expect(status.exists).toBe(false);
@@ -410,6 +410,6 @@ describe("Phase 7: Missing files and partial states", () => {
     expect(result.created).toHaveLength(2);
     expect(result.created).toContain("voice-profile.md");
     expect(result.created).toContain("positioning.md");
-    expect(result.skipped).toHaveLength(7);
+    expect(result.skipped).toHaveLength(8);
   });
 });
