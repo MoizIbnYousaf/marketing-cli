@@ -113,6 +113,7 @@ describe("brand update --input", () => {
       "stack.md": "# Stack",
       "assets.md": "# Assets",
       "learnings.md": "# Learnings",
+      "landscape.md": "# Landscape",
     });
 
     const result = await run(["brand", "update", "--input", payload, "--json", `--cwd=${tmpDir}`]);

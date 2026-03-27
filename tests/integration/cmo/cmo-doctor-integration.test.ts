@@ -170,7 +170,7 @@ describe("CMO decision tree based on doctor results", () => {
     // Create brand files with real content
     const brandDir = join(tempDir, "brand");
     await mkdir(brandDir, { recursive: true });
-    for (const file of ["voice-profile.md", "positioning.md", "audience.md", "competitors.md", "keyword-plan.md", "creative-kit.md", "stack.md"]) {
+    for (const file of ["voice-profile.md", "positioning.md", "audience.md", "competitors.md", "keyword-plan.md", "creative-kit.md", "stack.md", "landscape.md"]) {
       await writeFile(join(brandDir, file), `# Real Content\n\nThis is real brand content for ${file}.\nOur voice is warm and conversational.\n`);
     }
     for (const file of ["assets.md", "learnings.md"]) {

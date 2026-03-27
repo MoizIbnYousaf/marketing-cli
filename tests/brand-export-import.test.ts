@@ -41,7 +41,7 @@ describe("brand export", () => {
     await rm(join(tempDir, "brand", "assets.md"));
     await rm(join(tempDir, "brand", "learnings.md"));
     const bundle = await exportBrand(tempDir);
-    expect(Object.keys(bundle.files)).toHaveLength(7);
+    expect(Object.keys(bundle.files)).toHaveLength(8);
     expect(bundle.files["assets.md"]).toBeUndefined();
     expect(bundle.files["learnings.md"]).toBeUndefined();
   });
@@ -80,7 +80,7 @@ describe("brand import", () => {
     };
     const result = await importBrand(tempDir, bundle, false);
     expect(result.imported).toHaveLength(3);
-    expect(result.skipped).toHaveLength(7); // 9 - 3
+    expect(result.skipped).toHaveLength(7); // 10 - 3
     expect(result.imported).toContain("voice-profile.md");
   });
 

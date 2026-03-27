@@ -9,8 +9,8 @@ const countVisibleCards = (container: HTMLElement) =>
   container.querySelectorAll("[data-skill-card]").length;
 
 const EXPECTED_COUNTS = {
-  All: 41,
-  Foundation: 9,
+  All: 42,
+  Foundation: 10,
   Strategy: 3,
   "Copy & Content": 3,
   Distribution: 8,
@@ -22,7 +22,7 @@ const EXPECTED_COUNTS = {
 } as const;
 
 describe("SkillsCatalog", () => {
-  test("renders all category tabs and shows all 41 skills by default", () => {
+  test("renders all category tabs and shows all 42 skills by default", () => {
     const view = render(<SkillsCatalog />);
     const scoped = within(view.container);
     const tabs = scoped.getAllByRole("tab");
@@ -44,7 +44,7 @@ describe("SkillsCatalog", () => {
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
     expect(tabs[0].getAttribute("tabindex")).toBe("0");
     expect(tabs[1].getAttribute("tabindex")).toBe("-1");
-    expect(countVisibleCards(view.container)).toBe(41);
+    expect(countVisibleCards(view.container)).toBe(42);
     expect(scoped.getAllByText("cmo")[0]).toBeDefined();
     expect(scoped.getAllByText("marketing-psychology")[0]).toBeDefined();
   });

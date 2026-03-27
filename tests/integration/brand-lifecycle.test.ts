@@ -140,7 +140,7 @@ describe("Phase 3: Write real content and detect changes", () => {
     if (!after.ok) return;
     expect(after.data.health).toBe("ready");
     expect(after.data.brandSummary.populated).toBe(3);
-    expect(after.data.brandSummary.template).toBe(6);
+    expect(after.data.brandSummary.template).toBe(7);
   });
 
   test("populated files show freshness: current (not template)", async () => {
@@ -166,7 +166,7 @@ describe("Phase 3: Write real content and detect changes", () => {
     if (!result.ok) return;
 
     expect(result.data.brandSummary.populated).toBe(2);
-    expect(result.data.brandSummary.template).toBe(8);
+    expect(result.data.brandSummary.template).toBe(8); // 10 - 2 = 8
     expect(result.data.brandSummary.missing).toBe(0);
   });
 

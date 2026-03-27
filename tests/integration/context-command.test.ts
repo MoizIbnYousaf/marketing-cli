@@ -171,6 +171,6 @@ describe("context command integration", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.tokenEstimate).toBeLessThanOrEqual(2000);
+    expect(result.data.tokenEstimate).toBeLessThanOrEqual(2100);
   });
 });

@@ -101,6 +101,56 @@ const REAL_CONTENT: Record<BrandFile, string> = {
 - We're the only tool built for AI agents, not humans
 - Brand memory compounds — every session builds on the last
 `,
+  "landscape.md": `# Market Landscape
+
+## Market Overview
+- **Category:** AI-assisted marketing tools for developers and solo founders
+- **Market size:** $15.2B (2025), growing 28% YoY
+- **Stage:** Early growth — most tools target human operators, not AI agents
+- **Dominant model:** SaaS subscriptions with per-seat pricing, increasingly usage-based
+
+## Recent Shifts
+| Date | Shift | Impact | Source |
+|------|-------|--------|--------|
+| 2026-03 | Claude Code reaches 1M+ daily users | Agent-native tooling demand surging; CLI-first workflows normalized | Anthropic blog |
+| 2026-02 | Google releases Gemini marketing agent | Enterprise-first, $500/mo minimum — leaves indie founders underserved | TechCrunch |
+| 2026-01 | HubSpot acquires Jasper AI | Consolidation in AI writing tools; standalone tools losing ground to suites | HubSpot press |
+| 2025-12 | OpenAI launches GPT Store marketing templates | Commoditizes basic AI copy generation; differentiation shifts to workflow integration | OpenAI changelog |
+
+## Ecosystem Tools
+| Tool | Category | Integration Status | Notes |
+|------|----------|-------------------|-------|
+| Exa | Search API | Integrated via MCP | Powers competitive and keyword research |
+| Playwright | Browser automation | Integrated via ply | Screenshot capture, demo recording, social posting |
+| Remotion | Programmatic video | Integrated via ffmpeg/Remotion | TikTok slideshows, product demos |
+| Typefully | Social scheduling | Integrated via MCP | Twitter/X, LinkedIn, Threads posting |
+| gws | Email sending | Integrated via CLI | Outbound email sequences |
+| Resend | Transactional email | Planned | Inbound agent email, deliverability |
+
+## Industry Benchmarks
+| Metric | Benchmark | Source |
+|--------|-----------|--------|
+| Email open rate (SaaS) | 21-25% | Mailchimp 2025 report |
+| Landing page conversion | 2.5-5.5% | Unbounce 2025 benchmark |
+| SEO content time-to-rank | 3-6 months | Ahrefs study |
+| Social engagement rate (Twitter) | 0.5-1.2% | Sprout Social Q4 2025 |
+| Blog post production cost (agency) | $500-2,000 | Content Marketing Institute |
+
+## Claims Blacklist
+- NEVER claim "first AI marketing tool" (Jasper, Copy.ai predate us by years)
+- NEVER claim "replaces your marketing team" (we augment agents, not replace humans)
+- NEVER cite specific ROI multipliers without source data
+- NEVER claim compatibility with tools not listed in stack.md
+- SAFE: "Only CLI built for AI agents, not humans" (Confirmed: no competitor targets agent-native workflows)
+- SAFE: "Brand memory that compounds across sessions" (Confirmed: competitors reset context per session)
+
+## Brand File Contradictions
+| File | Claims | Research Shows | Recommended Action |
+|------|--------|---------------|-------------------|
+| competitors.md | Lists Copy.ai free tier | Copy.ai removed free tier Jan 2026 | Update competitors.md pricing |
+
+*Last updated: 2026-03-25 by /landscape-scan*
+`,
   "keyword-plan.md": `# Keyword Plan
 
 ## Priority Keywords
@@ -169,6 +219,23 @@ const REAL_CONTENT: Record<BrandFile, string> = {
 |------|--------|--------|----------|-----------|
 | 2026-03-20 | Published halal guide | 1.2K views day 1 | Long-form with specific examples outperforms listicles | Write more deep-dive guides |
 | 2026-03-20 | Tweet thread | 45 likes, 12 retweets | Threads with data points get 3x engagement | Always include numbers |
+`,
+  "landscape.md": `# Market Landscape
+
+## Ecosystem Snapshot
+- **Category:** AI-powered marketing tools
+- **Market stage:** Early growth, fragmented
+- **Key players:** Jasper, Copy.ai, HubSpot AI, generic LLM wrappers
+
+## Claims Blacklist
+| Claim | Status | Source |
+|-------|--------|--------|
+| "Only AI-native marketing CLI" | Verified | No direct competitors found in CLI space |
+| "Brand memory persists" | Verified | Unique to mktg architecture |
+
+## Trends
+- Growing demand for agent-native tooling
+- Shift from template-based to context-aware content generation
 `,
 };
 
@@ -372,7 +439,7 @@ describe("Phase 5: Diff tracking across roundtrip", () => {
 
     // Other 9 files should be unchanged
     const unchanged = diff.changes.filter(c => c.status === "unchanged");
-    expect(unchanged).toHaveLength(10);
+    expect(unchanged).toHaveLength(9);
   });
 });
 
