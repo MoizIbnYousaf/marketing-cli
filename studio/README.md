@@ -2,7 +2,7 @@
 
 > The visual layer that ships inside [`marketing-cli`](https://www.npmjs.com/package/marketing-cli). Your brand memory on disk, one agent running the show.
 
-Studio is the dashboard companion to the `mktg` CLI. The CLI ships the brain: 50 marketing skills + the `/cmo` orchestrator. Studio ships the eyes: a Next.js dashboard, a local Bun API, SQLite, live SSE, and a 21/21 agent-DX HTTP surface that `/cmo` drives via Bash + curl. No SDK, no MCP config. Claude Code already has `Bash`; that's the whole contract.
+Studio is the dashboard companion to the `mktg` CLI. The CLI ships the brain: 51 marketing skills + the `/cmo` orchestrator. Studio ships the eyes: a Next.js dashboard, a local Bun API, SQLite, live SSE, and a 21/21 agent-DX HTTP surface that `/cmo` drives via Bash + curl. No SDK, no MCP config. Claude Code already has `Bash`; that's the whole contract.
 
 Studio lives under `studio/` inside the `marketing-cli` repo as a bun-workspace member. It is not a separate package. Installing the CLI brings the launcher with it.
 
@@ -11,7 +11,7 @@ Studio lives under `studio/` inside the `marketing-cli` repo as a bun-workspace 
 ## Quick start
 
 ```bash
-npm i -g marketing-cli         # CLI + /cmo + 50 skills + studio launcher
+npm i -g marketing-cli         # CLI + /cmo + 51 skills + studio launcher
 mktg init                      # seed brand/*.md in the current project
 mktg studio                    # boot API (:3001) + dashboard (:3000)
 ```

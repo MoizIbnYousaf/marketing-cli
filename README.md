@@ -4,10 +4,10 @@
 
 <p align="center">
   <a href="https://github.com/MoizIbnYousaf/marketing-cli/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-10b981" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/skills-50-10b981" alt="50 Skills">
+  <img src="https://img.shields.io/badge/skills-51-10b981" alt="51 Skills">
   <img src="https://img.shields.io/badge/agents-5-10b981" alt="5 Agents">
   <a href="https://www.npmjs.com/package/marketing-cli"><img src="https://img.shields.io/npm/v/marketing-cli?color=10b981" alt="npm"></a>
-  <img src="https://img.shields.io/badge/tests-2,599-10b981" alt="2,599 tests">
+  <img src="https://img.shields.io/badge/tests-2,624-10b981" alt="2,624 tests">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript Strict">
 </p>
 
