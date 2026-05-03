@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "agents": {
+    "brand-researcher": {
+      "category": "research",
+      "file": "research/brand-researcher.md",
+      "writes": ["voice-profile.md"],
+      "reads": ["positioning.md", "audience.md"],
+      "references_skill": "brand-voice",
+      "tier": "must-have"
+    },
+    "audience-researcher": {
+      "category": "research",
+      "file": "research/audience-researcher.md",
+      "writes": ["audience.md"],
+      "reads": ["voice-profile.md", "positioning.md", "competitors.md"],
+      "references_skill": "audience-research",
+      "tier": "must-have"
+    },
+    "competitive-scanner": {
+      "category": "research",
+      "file": "research/competitive-scanner.md",
+      "writes": ["competitors.md"],
+      "reads": ["voice-profile.md", "audience.md"],
+      "references_skill": "competitive-intel",
+      "tier": "must-have"
+    },
+    "content-reviewer": {
+      "category": "review",
+      "file": "review/content-reviewer.md",
+      "writes": [],
+      "reads": ["voice-profile.md", "positioning.md", "audience.md"],
+      "references_skill": null,
+      "tier": "nice-to-have"
+    },
+    "seo-analyst": {
+      "category": "review",
+      "file": "review/seo-analyst.md",
+      "writes": [],
+      "reads": ["keyword-plan.md", "audience.md", "competitors.md"],
+      "references_skill": "seo-audit",
+      "tier": "nice-to-have"
+    }
+  }
+}

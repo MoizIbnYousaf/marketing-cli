@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest a new capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      placeholder: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: existing-coverage
+    attributes:
+      label: What does the CLI do today?
+      description: "Run `mktg <command> --help` or `mktg list --json | jq '.skills[] | .name'`. What is the closest existing capability and where does it fall short?"
+      placeholder: |
+        Closest skill / command:
+        Why it doesn't cover this:
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      placeholder: How should this work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: What else did you try or consider?
+    validations:
+      required: false

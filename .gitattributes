@@ -1,0 +1,21 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Explicit text files
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.svg binary
+
+# Linguist overrides — mark skills and agents as documentation
+skills/** linguist-documentation
+agents/** linguist-documentation
+docs/** linguist-documentation

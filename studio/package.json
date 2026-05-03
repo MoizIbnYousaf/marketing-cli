@@ -1,0 +1,37 @@
+{
+  "name": "@marketing-cli/studio",
+  "version": "0.5.3",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Moiz Ibn Yousaf",
+  "description": "Local-first marketing dashboard. Bundled inside the marketing-cli npm package. Boots from `mktg studio`.",
+  "scripts": {
+    "dev": "next dev",
+    "server": "bun run server.ts",
+    "dev:all": "bun run --watch server.ts & next dev",
+    "start:studio": "bun run bin/mktg-studio.ts",
+    "start:studio:open": "bun run bin/mktg-studio.ts --open",
+    "seed:demo": "bun run scripts/seed-demo.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint && bun run scripts/check-no-em-dash.ts",
+    "lint:em-dash": "bun run scripts/check-no-em-dash.ts",
+    "test": "bun test tests/unit tests/server tests/integration tests/dx tests/agent-dx.test.ts",
+    "test:e2e": "bun x playwright test",
+    "test:e2e:ui": "bun x playwright test --ui",
+    "test:all": "bun run test && bun run test:e2e",
+    "typecheck": "bun x tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/react": "^4.11.1",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.5",
+    "typescript": "^5",
+    "vitest": "^4.0.18"
+  }
+}

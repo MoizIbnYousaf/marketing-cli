@@ -1,0 +1,8 @@
+# Captured fixtures are regression artifacts, not committed data.
+# Golden fixtures (hand-committed schemas) live at fixtures/golden/ instead.
+fixtures/captured/*
+!fixtures/captured/.gitkeep
+
+# void-test/ is the namespace used by setup.test.ts own-harness tests.
+# Any file landing there is a test artifact, not a real golden.
+fixtures/golden/void-test/

@@ -1,0 +1,69 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*
+*.pem
+*.key
+id_rsa*
+secrets/
+credentials.json
+*.log
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+brand-playground.html
+.claude/
+demo.webm
+demo-setup.sh
+/tmp/mktg-demo-path
+__pycache__/
+*.pyc
+.venv/
+media/
+explainer/out/
+explainer/node_modules/
+explainer/bun.lock
+website/.next/
+website/out/
+website/node_modules/
+website/bun.lock
+.mktg/
+.omc/
+.firecrawl/
+.playwright-cli/
+.vercel
+
+# prepack/postpack lifecycle: temporary backup of package.json while npm packs
+# the tarball without the `workspaces` field. Restored automatically by
+# scripts/postpack-restore.cjs. Should never be committed.
+package.json.prepack-backup
+
+# launch / local marketing scratch (not for public repo)
+marketing/
+
+# Public-readiness audit artifacts (local-only)
+docs/PUBLIC-READINESS-*.md
+
+# Working drafts: launch copy, verification reports, anything pre-publish.
+# Already-tracked files inside _drafts/ stay tracked; this just keeps fresh
+# notes and reports out of git status until someone deliberately adds them.
+_drafts/
+
+# Launch video drafts (large, distributed via tweets/site, not the repo)
+brand/assets/launch-video-v2*.mp4
+
+# studio (folded in from mktg-studio; published as a separate npm package)
+studio/node_modules/
+studio/.next/
+studio/dist/
+studio/playwright-report/
+studio/test-results/
+studio/.playwright-cli/
+studio/.mktg-studio/
+studio/.mktg/
+studio/marketing.db
+studio/marketing.db-*
+studio/tsconfig.tsbuildinfo
+studio/next-env.d.ts

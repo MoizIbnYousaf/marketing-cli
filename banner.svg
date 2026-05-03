@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" fill="none" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0b0f12"/>
+      <stop offset="100%" stop-color="#080b0e"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="280" cy="220" r="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d8ff3c" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#d8ff3c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="1020" cy="460" r="460" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d8ff3c" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#d8ff3c" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M 44 0 L 0 0 0 44" fill="none" stroke="#1a2128" stroke-width="0.5" stroke-opacity="0.55"/>
+    </pattern>
+    <pattern id="grain" width="3" height="3" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="0.5" fill="#f5f0e6" opacity="0.025"/>
+    </pattern>
+  </defs>
+
+  <!-- Background stack -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#glow1)"/>
+  <rect width="1280" height="640" fill="url(#glow2)"/>
+  <rect width="1280" height="640" fill="url(#grain)"/>
+
+  <!-- Top accent: lime hairline -->
+  <rect x="0" y="0" width="1280" height="2" fill="#d8ff3c" opacity="0.55"/>
+
+  <!-- Terminal traffic-light dots (top-left chrome) -->
+  <g transform="translate(56, 56)">
+    <circle cx="0" cy="0" r="6" fill="#ff6b6b" opacity="0.78"/>
+    <circle cx="22" cy="0" r="6" fill="#eab308" opacity="0.78"/>
+    <circle cx="44" cy="0" r="6" fill="#22c55e" opacity="0.78"/>
+  </g>
+
+  <!-- Top-right meta tag -->
+  <g transform="translate(1224, 56)" text-anchor="end" font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="13" fill="#5a6068">
+    <text>v0.3.2 · MIT · npm</text>
+  </g>
+
+  <!-- Wordmark: marketing-cli -->
+  <text x="640" y="252" text-anchor="middle"
+        font-family="'JetBrains Mono', 'SF Mono', 'Fira Code', monospace"
+        font-size="96" font-weight="700" letter-spacing="0.04em"
+        fill="#f5f0e6">marketing-cli</text>
+
+  <!-- Tagline -->
+  <text x="640" y="312" text-anchor="middle"
+        font-family="'Inter', 'SF Pro Display', system-ui, sans-serif"
+        font-size="24" font-weight="400" fill="#8a9098">
+    One install. A full marketing department for your agent.
+  </text>
+
+  <!-- Stats strip -->
+  <g transform="translate(640, 392)" text-anchor="middle"
+     font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="15">
+    <text x="-385" y="0" fill="#d8ff3c" font-weight="700">50</text>
+    <text x="-340" y="0" fill="#8a9098">skills</text>
+    <text x="-280" y="0" fill="#2a323a">·</text>
+    <text x="-238" y="0" fill="#d8ff3c" font-weight="700">5</text>
+    <text x="-200" y="0" fill="#8a9098">agents</text>
+    <text x="-138" y="0" fill="#2a323a">·</text>
+    <text x="-88" y="0" fill="#8a9098">brand memory</text>
+    <text x="0" y="0" fill="#2a323a">·</text>
+    <text x="60" y="0" fill="#8a9098">parallel research</text>
+    <text x="170" y="0" fill="#2a323a">·</text>
+    <text x="232" y="0" fill="#d8ff3c" font-weight="700">2,599</text>
+    <text x="295" y="0" fill="#8a9098">tests</text>
+    <text x="352" y="0" fill="#2a323a">·</text>
+    <text x="395" y="0" fill="#8a9098">real CLI</text>
+  </g>
+
+  <!-- Install command card -->
+  <g transform="translate(640, 482)">
+    <rect x="-280" y="-32" width="560" height="64" rx="10"
+          fill="#11161a" stroke="rgba(245,240,230,0.18)" stroke-width="1"/>
+    <rect x="-280" y="-32" width="560" height="64" rx="10"
+          fill="rgba(216,255,60,0.04)"/>
+    <text x="-258" y="9" font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="18">
+      <tspan fill="#d8ff3c" font-weight="700">$</tspan><tspan fill="#f5f0e6"> npm i -g marketing-cli </tspan><tspan fill="#5a6068">&amp;&amp;</tspan><tspan fill="#f5f0e6"> mktg init</tspan>
+    </text>
+    <!-- Blinking cursor pip on the right side of the card -->
+    <rect x="232" y="-12" width="3" height="22" fill="#d8ff3c" opacity="0.65">
+      <animate attributeName="opacity" values="0.65;0.05;0.65" dur="1.2s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+
+  <!-- Footer line: agent-native marker -->
+  <g transform="translate(640, 568)" text-anchor="middle">
+    <text font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="12" fill="#5a6068" letter-spacing="0.18em">
+      <tspan fill="#d8ff3c" opacity="0.85">▸</tspan> AGENT-NATIVE  ·  LOCAL-FIRST  ·  AGPL-FREE CORE
+    </text>
+  </g>
+
+  <!-- Bottom accent: lime hairline -->
+  <rect x="0" y="638" width="1280" height="2" fill="#d8ff3c" opacity="0.32"/>
+</svg>

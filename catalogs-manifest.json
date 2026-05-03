@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "catalogs": {
+    "postiz": {
+      "name": "postiz",
+      "repo_url": "https://github.com/gitroomhq/postiz-app",
+      "docs_url": "https://docs.postiz.com",
+      "license": "AGPL-3.0",
+      "version_pinned": "v2.21.6",
+      "capabilities": {
+        "publish_adapters": ["postiz"]
+      },
+      "transport": "http",
+      "sdk_reference": null,
+      "auth": {
+        "style": "bearer",
+        "base_env": "POSTIZ_API_BASE",
+        "credential_envs": ["POSTIZ_API_KEY"],
+        "header_format": "bare"
+      },
+      "skills": ["postiz"]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+# Defense-in-depth denylist for npm pack on the studio workspace.
+# Pairs with the granular allowlist in root package.json files[] so any
+# new sensitive file dropped into studio/ stays out of the published
+# tarball regardless of which entry includes its parent.
+
+# Secrets and runtime config
+.env
+.env.*
+
+# Local SQLite + WAL/SHM
+*.db
+*.db-shm
+*.db-wal
+
+# Local mktg-native workspace state
+.mktg/
+
+# Local IDE / harness config
+.claude/
+
+# Build + dev artifacts
+.next/
+node_modules/
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# CI configs (root .github/workflows is what runs CI; studio/.github is dead weight)
+.github/

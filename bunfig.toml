@@ -1,0 +1,11 @@
+# Scope `bun test` (no args) to marketing-cli's tests/ directory.
+# Without this, bun walks the entire repo and discovers studio/tests/ as well,
+# which belong to the bundled mktg-studio workspace and have their own runner
+# config (next/react/playwright). Studio's tests run via `bun run --cwd studio test`.
+#
+# Note: this excludes the 2 colocated unit tests under src/
+# (src/core/agents.test.ts, src/commands/update.test.ts). Those are still
+# runnable explicitly with `bun test src`. A follow-up will relocate them
+# under tests/ so a single root keeps full coverage.
+[test]
+root = "./tests"

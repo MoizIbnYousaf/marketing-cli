@@ -1,0 +1,13 @@
+{
+  "sourceType": "github",
+  "source": "github",
+  "url": "https://github.com/MoizIbnYousaf/marketing-cli",
+  "repo": "MoizIbnYousaf/marketing-cli",
+  "ref": null,
+  "subpath": "firecrawl",
+  "installSource": "mktg/skills/firecrawl",
+  "skillName": "firecrawl",
+  "scope": "global",
+  "installedAt": "2026-04-09T10:11:18.140Z",
+  "updatedAt": "2026-04-09T10:11:18.140Z"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "marketing-cli",
+  "owner": {
+    "name": "Moiz Ibn Yousaf",
+    "url": "https://github.com/MoizIbnYousaf/marketing-cli/issues"
+  },
+  "metadata": {
+    "description": "Agent-native marketing skills and /cmo orchestration for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "marketing-cli",
+      "description": "Agent-native marketing playbook CLI: 51 skills, 5 research/review agents, brand memory, and /cmo orchestration.",
+      "version": "0.5.3",
+      "source": "./",
+      "homepage": "https://github.com/MoizIbnYousaf/marketing-cli",
+      "repository": "https://github.com/MoizIbnYousaf/marketing-cli",
+      "keywords": [
+        "marketing",
+        "cmo",
+        "agent-skills",
+        "claude-code",
+        "brand-memory",
+        "social-publishing"
+      ]
+    }
+  ]
+}

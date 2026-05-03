@@ -1,0 +1,7 @@
+# Core CLI — require review on critical paths
+/src/cli.ts              @MoizIbnYousaf
+/src/core/errors.ts      @MoizIbnYousaf
+/src/core/output.ts      @MoizIbnYousaf
+/src/core/skills.ts      @MoizIbnYousaf
+/skills-manifest.json    @MoizIbnYousaf
+/agents-manifest.json    @MoizIbnYousaf

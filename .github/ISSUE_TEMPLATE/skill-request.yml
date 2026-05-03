@@ -1,0 +1,38 @@
+name: Skill Request
+description: Suggest a new marketing skill for the playbook
+labels: ["skill-request"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What marketing task does this solve?
+      placeholder: "e.g., I need to write podcast show notes from transcripts"
+    validations:
+      required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Existing skills checked
+      placeholder: "Which of the 50 existing skills did you check? Why don't they cover this?"
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Proposed layer
+      description: Match one of the categories already used in skills-manifest.json.
+      options:
+        - Foundation
+        - Strategy
+        - Copy-Content
+        - Distribution
+        - Creative
+        - SEO
+        - Conversion
+        - Growth
+        - Knowledge
+        - Review
+        - Infrastructure
+        - Orchestrator
+    validations:
+      required: true

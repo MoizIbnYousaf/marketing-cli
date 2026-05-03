@@ -1,0 +1,1498 @@
+{
+  "version": 1,
+  "skills": {
+    "cmo": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md",
+        "competitors.md",
+        "keyword-plan.md",
+        "creative-kit.md",
+        "stack.md",
+        "assets.md",
+        "learnings.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "marketing",
+        "cmo",
+        "what should I do",
+        "marketing plan",
+        "next steps"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "help me with marketing",
+          "where do I start with marketing",
+          "what marketing should I do",
+          "give me a marketing plan",
+          "orchestrate my marketing"
+        ],
+        "requires": [],
+        "unlocks": ["brand-voice", "audience-research", "competitive-intel", "positioning-angles"],
+        "precedence": "foundation-first"
+      }
+    },
+    "mktg-setup": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [],
+      "writes": ["voice-profile.md"],
+      "depends_on": [],
+      "triggers": [
+        "set up marketing",
+        "start marketing",
+        "marketing wizard",
+        "first time using marketing-cli",
+        "I just installed marketing-cli",
+        "onboard me",
+        "marketing setup",
+        "initial setup"
+      ],
+      "review_interval_days": 365,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "I just installed marketing-cli",
+          "set up marketing",
+          "marketing wizard",
+          "first time setup",
+          "onboard me to marketing"
+        ],
+        "requires": [],
+        "unlocks": ["cmo", "mktg-brand-researcher", "mktg-audience-researcher", "mktg-competitive-scanner"],
+        "precedence": "first-run"
+      }
+    },
+    "brand-voice": {
+      "source": "v2",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [
+        "voice-profile.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "brand voice",
+        "voice profile",
+        "tone of voice",
+        "brand personality"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "define our tone of voice",
+          "write down how we sound",
+          "capture the brand personality",
+          "set up the voice profile",
+          "how should we write"
+        ],
+        "requires": [],
+        "unlocks": ["positioning-angles", "direct-response-copy", "seo-content", "email-sequences"],
+        "precedence": "foundation-first"
+      }
+    },
+    "positioning-angles": {
+      "source": "v2",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "competitors.md",
+        "landscape.md"
+      ],
+      "writes": [
+        "positioning.md"
+      ],
+      "depends_on": [
+        "brand-voice",
+        "audience-research"
+      ],
+      "triggers": [
+        "positioning",
+        "angles",
+        "differentiation",
+        "unique selling"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "how should we position against competitors",
+          "what makes us different",
+          "craft our messaging angles",
+          "develop positioning strategy",
+          "find our unique value prop"
+        ],
+        "requires": ["brand-voice", "audience-research"],
+        "unlocks": ["keyword-research", "launch-strategy", "direct-response-copy"],
+        "precedence": "foundation-first"
+      }
+    },
+    "audience-research": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [
+        "audience.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "audience",
+        "buyer persona",
+        "ideal customer",
+        "target market",
+        "watering holes"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "who is our customer",
+          "describe our ideal user",
+          "research our target audience",
+          "build a buyer persona",
+          "where does our audience hang out"
+        ],
+        "requires": [],
+        "unlocks": ["positioning-angles", "keyword-research", "email-sequences", "lead-magnet"],
+        "precedence": "foundation-first"
+      }
+    },
+    "competitive-intel": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md"
+      ],
+      "writes": [
+        "competitors.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "competitors",
+        "competitive analysis",
+        "competitor teardown",
+        "market landscape"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "analyze our competitors",
+          "who are we competing against",
+          "tear down a competitor",
+          "map the competitive landscape",
+          "research what competitors are doing"
+        ],
+        "requires": [],
+        "unlocks": ["positioning-angles", "keyword-research", "competitor-alternatives"],
+        "precedence": "foundation-first"
+      }
+    },
+    "keyword-research": {
+      "source": "v2",
+      "category": "strategy",
+      "layer": "strategy",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "competitors.md",
+        "landscape.md"
+      ],
+      "writes": [
+        "keyword-plan.md"
+      ],
+      "depends_on": [
+        "audience-research",
+        "competitive-intel"
+      ],
+      "triggers": [
+        "keywords",
+        "keyword research",
+        "SEO topics",
+        "content topics",
+        "six circles"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "find keywords for us",
+          "build a keyword strategy",
+          "what topics should we rank for",
+          "research SEO opportunities",
+          "identify content gaps"
+        ],
+        "requires": ["audience-research", "competitive-intel"],
+        "unlocks": ["seo-content", "lead-magnet", "competitor-alternatives"],
+        "precedence": "foundation-first"
+      }
+    },
+    "landscape-scan": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "competitors.md",
+        "positioning.md",
+        "audience.md",
+        "landscape.md"
+      ],
+      "writes": [
+        "landscape.md"
+      ],
+      "depends_on": [
+        "competitive-intel"
+      ],
+      "triggers": [
+        "landscape",
+        "ecosystem",
+        "market snapshot",
+        "ground truth",
+        "what's happening",
+        "refresh landscape",
+        "market trends",
+        "ecosystem scan"
+      ],
+      "review_interval_days": 14,
+      "version": "1.0.0"
+    },
+    "launch-strategy": {
+      "source": "v1",
+      "category": "strategy",
+      "layer": "strategy",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "positioning-angles"
+      ],
+      "triggers": [
+        "launch",
+        "product launch",
+        "go to market",
+        "Product Hunt",
+        "launch plan"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "we're launching soon",
+          "create a launch plan",
+          "help us go to market",
+          "prepare for Product Hunt",
+          "plan the announcement"
+        ],
+        "requires": ["brand-voice", "positioning-angles"],
+        "unlocks": ["content-atomizer", "email-sequences", "social-campaign"],
+        "precedence": "any"
+      }
+    },
+    "pricing-strategy": {
+      "source": "v1",
+      "category": "strategy",
+      "layer": "strategy",
+      "tier": "must-have",
+      "reads": [
+        "audience.md",
+        "competitors.md",
+        "positioning.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "audience-research"
+      ],
+      "triggers": [
+        "pricing",
+        "price",
+        "monetization",
+        "freemium",
+        "Van Westendorp"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "figure out our pricing",
+          "should we charge for this",
+          "design our pricing tiers",
+          "test pricing with customers",
+          "freemium vs paid strategy"
+        ],
+        "requires": ["audience-research"],
+        "unlocks": ["lead-magnet", "email-sequences"],
+        "precedence": "any"
+      }
+    },
+    "direct-response-copy": {
+      "source": "v2",
+      "category": "copy-content",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "copy",
+        "copywriting",
+        "sales copy",
+        "landing page copy",
+        "cold email",
+        "copy editing",
+        "headlines"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "write the landing page copy",
+          "create sales copy",
+          "write cold outreach emails",
+          "improve our headlines",
+          "write high-converting copy"
+        ],
+        "requires": ["brand-voice"],
+        "unlocks": ["content-atomizer", "email-sequences"],
+        "precedence": "any"
+      }
+    },
+    "seo-content": {
+      "source": "v2",
+      "category": "copy-content",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "keyword-plan.md",
+        "audience.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "keyword-research"
+      ],
+      "triggers": [
+        "SEO content",
+        "blog post",
+        "article",
+        "SERP",
+        "programmatic SEO",
+        "content at scale"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "write a blog post for SEO",
+          "create content that ranks",
+          "build a programmatic SEO strategy",
+          "write an article targeting a keyword",
+          "generate content at scale"
+        ],
+        "requires": ["brand-voice", "keyword-research"],
+        "unlocks": ["content-atomizer"],
+        "precedence": "any"
+      }
+    },
+    "lead-magnet": {
+      "source": "v2",
+      "category": "copy-content",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "keyword-plan.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "audience-research"
+      ],
+      "triggers": [
+        "lead magnet",
+        "ebook",
+        "checklist",
+        "template",
+        "free resource",
+        "opt-in"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "create a lead magnet",
+          "build a free resource to grow our list",
+          "design an opt-in freebie",
+          "create a checklist or template",
+          "build an ebook to capture emails"
+        ],
+        "requires": ["brand-voice", "audience-research"],
+        "unlocks": ["email-sequences", "content-atomizer"],
+        "precedence": "any"
+      }
+    },
+    "content-atomizer": {
+      "source": "v2",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "repurpose",
+        "atomize",
+        "social posts",
+        "content distribution",
+        "cross-post"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "turn this into social posts",
+          "repurpose this content for multiple channels",
+          "distribute this across platforms",
+          "create a content calendar from this",
+          "atomize this article into tweets"
+        ],
+        "requires": ["brand-voice"],
+        "unlocks": ["social-campaign"],
+        "precedence": "any"
+      }
+    },
+    "email-sequences": {
+      "source": "v2",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "audience-research"
+      ],
+      "triggers": [
+        "email sequence",
+        "drip campaign",
+        "welcome series",
+        "onboarding emails",
+        "nurture"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "build a welcome email series",
+          "create a drip campaign",
+          "write onboarding emails for new users",
+          "nurture leads via email",
+          "set up a post-signup email sequence"
+        ],
+        "requires": ["brand-voice", "audience-research"],
+        "unlocks": [],
+        "precedence": "any"
+      }
+    },
+    "newsletter": {
+      "source": "v2",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "newsletter",
+        "editorial",
+        "weekly email",
+        "subscriber"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "creative": {
+      "source": "v2",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "positioning.md"
+      ],
+      "writes": [
+        "creative-kit.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "creative",
+        "visual",
+        "image",
+        "graphic",
+        "video",
+        "thumbnail"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "create visual assets for marketing",
+          "design graphics for social media",
+          "generate images for the campaign",
+          "build the creative direction",
+          "make a thumbnail or banner"
+        ],
+        "requires": ["brand-voice"],
+        "unlocks": ["content-atomizer", "tiktok-slideshow", "paper-marketing"],
+        "precedence": "any"
+      }
+    },
+    "seo-audit": {
+      "source": "v1",
+      "category": "seo",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "SEO audit",
+        "technical SEO",
+        "site architecture",
+        "schema markup",
+        "internal linking"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
+    "ai-seo": {
+      "source": "v1",
+      "category": "seo",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "keyword-plan.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "AI SEO",
+        "AI search",
+        "LLM optimization",
+        "ChatGPT ranking"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
+    "competitor-alternatives": {
+      "source": "v1",
+      "category": "seo",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "competitors.md",
+        "positioning.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "competitive-intel"
+      ],
+      "triggers": [
+        "alternatives page",
+        "vs page",
+        "comparison",
+        "competitor alternatives"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "page-cro": {
+      "source": "v1",
+      "category": "conversion",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "CRO",
+        "conversion rate",
+        "landing page audit",
+        "form optimization",
+        "popup"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "conversion-flow-cro": {
+      "source": "new",
+      "category": "conversion",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "signup flow",
+        "onboarding flow",
+        "paywall",
+        "upgrade flow",
+        "activation"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "churn-prevention": {
+      "source": "v1",
+      "category": "growth",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "churn",
+        "retention",
+        "cancel flow",
+        "dunning",
+        "win-back"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "referral-program": {
+      "source": "v1",
+      "category": "growth",
+      "layer": "distribution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "referral",
+        "viral loop",
+        "word of mouth",
+        "invite program"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "free-tool-strategy": {
+      "source": "v1",
+      "category": "growth",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "audience.md",
+        "keyword-plan.md",
+        "positioning.md",
+        "creative-kit.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "free tool",
+        "engineering as marketing",
+        "side project marketing"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "marketing-psychology": {
+      "source": "v1",
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "psychology",
+        "persuasion",
+        "cognitive bias",
+        "behavioral",
+        "cialdini"
+      ],
+      "review_interval_days": 180,
+      "version": "1.0.0"
+    },
+    "brainstorm": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md",
+        "learnings.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "brainstorm",
+        "help me think through",
+        "what should we market",
+        "explore approaches",
+        "I don't know where to start",
+        "what campaign",
+        "how should we position",
+        "what should I do next",
+        "marketing ideas"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "routing": {
+        "triggers": [
+          "I'm not sure where to start with marketing",
+          "explore different approaches for this",
+          "what campaigns could we run",
+          "help me think through marketing options",
+          "what are possible marketing directions"
+        ],
+        "requires": [],
+        "unlocks": ["keyword-research", "positioning-angles", "launch-strategy"],
+        "precedence": "any"
+      }
+    },
+    "create-skill": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "create a skill",
+        "new skill",
+        "add a marketing skill",
+        "skill template",
+        "extend the playbook"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "deepen-plan": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md",
+        "competitors.md",
+        "keyword-plan.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "audience-research",
+        "competitive-intel",
+        "keyword-research"
+      ],
+      "triggers": [
+        "deepen this plan",
+        "strengthen strategy",
+        "research gaps in plan",
+        "enhance this plan",
+        "make this plan stronger"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "document-review": {
+      "source": "new",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "positioning.md",
+        "competitors.md",
+        "landscape.md",
+        "keyword-plan.md",
+        "creative-kit.md",
+        "stack.md",
+        "assets.md",
+        "learnings.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "review brand files",
+        "audit marketing docs",
+        "check brand consistency",
+        "brand health check",
+        "are my brand files complete"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
+    "marketing-demo": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "stack.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "product demo",
+        "demo video",
+        "walkthrough video",
+        "feature showcase",
+        "record demo",
+        "marketing video",
+        "screen recording",
+        "GIF demo",
+        "product tour"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "paper-marketing": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "positioning.md",
+        "assets.md"
+      ],
+      "writes": [
+        "creative-kit.md",
+        "assets.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "paper marketing",
+        "design carousel",
+        "create slides",
+        "visual content",
+        "instagram design",
+        "social graphics",
+        "paper prototype marketing",
+        "design in paper",
+        "create carousel",
+        "slide design",
+        "TikTok design",
+        "slideshow design"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "slideshow-script": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "positioning-angles"
+      ],
+      "triggers": [
+        "slideshow script",
+        "generate scripts",
+        "narrative scripts",
+        "content scripts",
+        "TikTok scripts",
+        "carousel scripts",
+        "storytelling frameworks"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "video-content": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "creative-kit.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "make video",
+        "video from slides",
+        "animate slides",
+        "render video",
+        "video content",
+        "assemble video",
+        "ffmpeg video",
+        "remotion render"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "social-campaign": {
+      "source": "new",
+      "category": "distribution",
+      "layer": "orchestrator",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md",
+        "creative-kit.md",
+        "landscape.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "social campaign",
+        "schedule posts",
+        "pre-launch content",
+        "content calendar",
+        "social content pipeline",
+        "build up content",
+        "schedule tweets",
+        "plan social posts"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "env_vars": [
+        "TYPEFULLY_API_KEY"
+      ]
+    },
+    "tiktok-slideshow": {
+      "source": "new",
+      "category": "creative",
+      "layer": "orchestrator",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "positioning.md",
+        "audience.md",
+        "assets.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [
+        "brand-voice",
+        "positioning-angles"
+      ],
+      "triggers": [
+        "TikTok slideshow",
+        "TikTok video",
+        "make TikTok",
+        "slideshow video",
+        "TikTok content",
+        "end-to-end video"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "frontend-slides": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "slides",
+        "presentation",
+        "pitch deck",
+        "HTML slides",
+        "conference talk",
+        "PPT conversion",
+        "slideshow presentation",
+        "frontend slides"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "app-store-screenshots": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "creative-kit.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "app store screenshots",
+        "App Store",
+        "screenshot generator",
+        "iOS screenshots",
+        "marketing screenshots",
+        "phone mockup",
+        "app store assets",
+        "ASO screenshots"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "typefully": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "audience.md",
+        "stack.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "schedule post",
+        "publish to social",
+        "typefully"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "env_vars": [
+        "TYPEFULLY_API_KEY"
+      ]
+    },
+    "postiz": {
+      "source": "new",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "content-atomizer"
+      ],
+      "triggers": [
+        "post to linkedin",
+        "post to reddit",
+        "post to bluesky",
+        "post to mastodon",
+        "post to threads",
+        "schedule via postiz"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "env_vars": [
+        "POSTIZ_API_KEY",
+        "POSTIZ_API_BASE"
+      ]
+    },
+    "send-email": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "distribution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "send email",
+        "transactional email",
+        "resend"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "RESEND_API_KEY"
+      ]
+    },
+    "resend-inbound": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "inbound email",
+        "receive email"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "env_vars": [
+        "RESEND_API_KEY",
+        "RESEND_WEBHOOK_SECRET"
+      ]
+    },
+    "agent-email-inbox": {
+      "source": "third-party",
+      "category": "distribution",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [
+        "send-email",
+        "resend-inbound"
+      ],
+      "triggers": [
+        "agent inbox",
+        "email bot"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0",
+      "env_vars": [
+        "RESEND_API_KEY",
+        "RESEND_WEBHOOK_SECRET"
+      ]
+    },
+    "startup-launcher": {
+      "source": "new",
+      "category": "growth",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md",
+        "competitors.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "brand-voice",
+        "positioning-angles"
+      ],
+      "triggers": [
+        "startup launcher",
+        "submit to directories",
+        "launch on Product Hunt",
+        "submit to BetaList",
+        "multi-platform launch",
+        "launch campaign",
+        "directory submissions",
+        "AppSumo campaign",
+        "Hacker News launch",
+        "where should I launch",
+        "launch across platforms",
+        "submit everywhere"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
+    "visual-style": {
+      "source": "new",
+      "category": "creative",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "creative-kit.md"
+      ],
+      "writes": [
+        "creative-kit.md"
+      ],
+      "depends_on": [
+        "brand-voice"
+      ],
+      "triggers": [
+        "visual style",
+        "brand aesthetic",
+        "image style",
+        "visual identity",
+        "how should our images look",
+        "build visual brand",
+        "define our look"
+      ],
+      "review_interval_days": 90,
+      "version": "1.0.0"
+    },
+    "image-gen": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md",
+        "positioning.md",
+        "creative-kit.md",
+        "landscape.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [],
+      "env_vars": [
+        "GEMINI_API_KEY"
+      ],
+      "triggers": [
+        "generate image",
+        "create image",
+        "blog header",
+        "social graphic",
+        "product shot",
+        "need an image",
+        "make me an image",
+        "visual for",
+        "hero image",
+        "banner",
+        "thumbnail"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
+    "voice-extraction": {
+      "source": "v2",
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [
+        "voice-profile.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "steal this voice",
+        "analyze this writing",
+        "extract their voice",
+        "make me sound like",
+        "study this writing",
+        "voice extraction"
+      ],
+      "review_interval_days": 180,
+      "version": "1.0.0"
+    },
+    "brand-kit-playground": {
+      "source": "new",
+      "category": "creative",
+      "layer": "execution",
+      "tier": "must-have",
+      "reads": ["creative-kit.md", "voice-profile.md", "positioning.md", "audience.md"],
+      "writes": ["creative-kit.md", "assets.md"],
+      "depends_on": ["visual-style"],
+      "triggers": ["brand playground", "show me my brand", "preview my brand", "what does our brand look like", "visual preview", "brand kit", "see my colors", "how does my brand look", "brand kit playground", "render my brand"],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "firecrawl": {
+      "source": "third-party",
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["firecrawl", "scrape website", "fetch page", "extract from url", "crawl site", "get content from", "download website", "web scrape", "search the web", "find article", "research a topic", "pull content from", "grab content from", "scrape url", "extract data from", "fetch url", "download article", "get the page at"],
+      "review_interval_days": 180,
+      "version": "1.0.0",
+      "env_vars": ["FIRECRAWL_API_KEY"]
+    },
+    "mktg-x": {
+      "source": "first-party",
+      "category": "distribution",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["read this tweet", "read this thread", "grab this X bookmark", "fetch this Twitter article", "read my X bookmarks", "pull this thread", "Twitter API", "X API", "tweet URL", "twitter.com", "x.com", "x thread", "x bookmark", "twitter bookmark", "twitter article", "x article", "unroll thread", "X post"],
+      "review_interval_days": 180,
+      "version": "1.0.0",
+      "env_vars": ["MKTG_X_AUTH_TOKEN", "MKTG_X_CT0"]
+    },
+    "summarize": {
+      "source": "new",
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md"],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["summarize", "TL;DR", "tldr", "summary", "digest", "gist", "condense", "condensed version", "key points", "make it shorter", "too long", "shorten this"],
+      "review_interval_days": 180,
+      "version": "1.0.0"
+    }
+  },
+  "redirects": {
+    "copywriting": "direct-response-copy",
+    "content-strategy": "keyword-research",
+    "social-content": "content-atomizer",
+    "email-sequence": "email-sequences",
+    "form-cro": "page-cro",
+    "popup-cro": "page-cro",
+    "signup-flow-cro": "conversion-flow-cro",
+    "onboarding-cro": "conversion-flow-cro",
+    "paywall-upgrade-cro": "conversion-flow-cro",
+    "site-architecture": "seo-audit",
+    "schema-markup": "seo-audit",
+    "cold-email": "direct-response-copy",
+    "copy-editing": "direct-response-copy",
+    "programmatic-seo": "seo-content",
+    "marketing-ideas": "brainstorm",
+    "analytics-tracking": "cmo",
+    "paper-prototype": "paper-marketing",
+    "tiktok": "tiktok-slideshow",
+    "tiktok-video": "tiktok-slideshow",
+    "slideshow": "tiktok-slideshow",
+    "video-assembly": "video-content",
+    "video-render": "video-content",
+    "content-creator": "tiktok-slideshow",
+    "app-screenshots": "app-store-screenshots",
+    "ios-screenshots": "app-store-screenshots",
+    "aso-screenshots": "app-store-screenshots",
+    "store-screenshots": "app-store-screenshots",
+    "presentation": "frontend-slides",
+    "pitch-deck": "frontend-slides",
+    "html-slides": "frontend-slides",
+    "ppt-conversion": "frontend-slides",
+    "conference-slides": "frontend-slides",
+    "resend": "send-email",
+    "social-post": "typefully",
+    "content-campaign": "social-campaign",
+    "schedule-campaign": "social-campaign",
+    "pre-launch": "social-campaign",
+    "tweet": "typefully",
+    "moltbot": "agent-email-inbox",
+    "inbound-email": "resend-inbound",
+    "launch-playbook": "startup-launcher",
+    "startup-launch": "startup-launcher",
+    "directory-submissions": "startup-launcher",
+    "platform-launch": "startup-launcher",
+    "product-hunt-launch": "startup-launcher",
+    "appsumo-launch": "startup-launcher",
+    "hacker-news-launch": "startup-launcher",
+    "launch-directories": "startup-launcher",
+    "ecosystem-scan": "landscape-scan",
+    "market-snapshot": "landscape-scan",
+    "market-trends": "landscape-scan",
+    "brand-preview": "brand-kit-playground",
+    "show-brand": "brand-kit-playground",
+    "visual-brand-preview": "brand-kit-playground",
+    "brand-workbench": "brand-kit-playground"
+  }
+}

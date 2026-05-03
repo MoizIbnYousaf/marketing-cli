@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+
+# Next.js
+.next
+next-env.d.ts
+
+# Environment — never commit
+.env
+.env.*
+.env.local
+.env*.local
+.env.production
+
+# Secrets / keys — defensive patterns
+*.pem
+*.key
+id_rsa*
+secrets/
+credentials.json
+
+# SQLite — local ephemeral state
+marketing.db
+marketing.db-journal
+marketing.db-shm
+marketing.db-wal
+
+# Studio runtime
+.mktg-studio
+.mktg/native-publish/
+
+# Build artifacts
+dist
+*.log
+tsconfig.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Claude Code state
+.claude/
+
+# Playwright
+playwright-report/
+test-results/
+.playwright-cli/
+
+# Local scratch dir for audit scripts
+.scratch/

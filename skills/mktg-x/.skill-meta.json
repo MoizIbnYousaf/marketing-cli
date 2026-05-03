@@ -1,0 +1,13 @@
+{
+  "sourceType": "first-party",
+  "source": "first-party",
+  "url": "https://github.com/MoizIbnYousaf/marketing-cli",
+  "repo": "MoizIbnYousaf/marketing-cli",
+  "ref": null,
+  "subpath": "skills/mktg-x",
+  "installSource": "mktg/skills/mktg-x",
+  "skillName": "mktg-x",
+  "scope": "global",
+  "installedAt": "2026-04-11T00:00:00.000Z",
+  "updatedAt": "2026-04-12T00:00:00.000Z"
+}

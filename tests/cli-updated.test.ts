@@ -1,0 +1,192 @@
+// Tests for updated CLI integration — 15 commands, schema returns full objects
+// No mocks. Real subprocess execution.
+
+import { describe, test, expect } from "bun:test";
+import pkg from "../package.json" with { type: "json" };
+
+const PKG_VERSION = pkg.version as string;
+
+const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+  const proc = Bun.spawn(["bun", "run", "src/cli.ts", ...args], {
+    cwd: import.meta.dir.replace("/tests", ""),
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, NO_COLOR: "1" },
+  });
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]);
+  return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode: await proc.exited };
+};
+
+// ---------- Help text ----------
+
+describe("CLI help includes all 15 commands", () => {
+  test("--help output contains all 15 command names", async () => {
+    const { stdout, exitCode } = await run(["--help"]);
+    expect(exitCode).toBe(0);
+    const commandNames = ["init", "doctor", "plan", "status", "list", "update", "schema", "skill", "brand", "run", "context", "publish", "compete"];
+    for (const cmd of commandNames) {
+      expect(stdout).toContain(cmd);
+    }
+  });
+
+  test("--help --json commands array has entries for all commands with descriptions", async () => {
+    const { stdout, exitCode } = await run(["--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    const names = parsed.commands.map((c: { name: string }) => c.name);
+    expect(names).toContain("init");
+    expect(names).toContain("doctor");
+    expect(names).toContain("status");
+    expect(names).toContain("list");
+    expect(names).toContain("update");
+    expect(names).toContain("schema");
+    expect(names).toContain("skill");
+    expect(names).toContain("brand");
+    // Every command should have a non-empty description
+    for (const cmd of parsed.commands) {
+      expect(typeof cmd.description).toBe("string");
+      expect(cmd.description.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("--help --json has at least 15 commands", async () => {
+    const { stdout } = await run(["--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    // Don't hardcode the count — new commands may land (e.g., catalog).
+    // CLAUDE.md §Testing Standards: never hardcode skill/command counts.
+    expect(parsed.commands.length).toBeGreaterThanOrEqual(15);
+  });
+});
+
+// ---------- Per-command --help ----------
+
+describe("per-command --help routing", () => {
+  test("mktg skill --help --json returns skill schema (not global help)", async () => {
+    const { stdout, exitCode } = await run(["skill", "--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.name).toBe("skill");
+    expect(typeof parsed.description).toBe("string");
+    expect(parsed.subcommands).toBeDefined();
+  });
+
+  test("mktg init --help shows init-specific help text", async () => {
+    const { stdout, exitCode } = await run(["init", "--help"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("mktg init");
+    expect(stdout).not.toContain("mktg doctor");
+  });
+
+  test("mktg brand --help --json returns brand schema", async () => {
+    const { stdout, exitCode } = await run(["brand", "--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.name).toBe("brand");
+    expect(parsed.subcommands).toBeDefined();
+  });
+
+  test("mktg --version and mktg schema report the same version", async () => {
+    const { stdout: versionOut } = await run(["--version", "--json"]);
+    const { stdout: schemaOut } = await run(["schema", "--json"]);
+    const version = JSON.parse(versionOut).version;
+    const schemaVersion = JSON.parse(schemaOut).version;
+    expect(version).toBe(schemaVersion);
+  });
+});
+
+// ---------- Schema returns full objects, not strings ----------
+
+describe("schema returns full command schemas (not string names)", () => {
+  test("schema command returns CommandSchema objects with name and description", async () => {
+    const { stdout, exitCode } = await run(["schema", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    for (const cmd of parsed.commands) {
+      expect(typeof cmd).toBe("object");
+      expect(typeof cmd.name).toBe("string");
+      expect(typeof cmd.description).toBe("string");
+    }
+  });
+
+  test("schema commands are not just strings", async () => {
+    const { stdout } = await run(["schema", "--json"]);
+    const parsed = JSON.parse(stdout);
+    // Each command entry should be an object, not a string
+    for (const cmd of parsed.commands) {
+      expect(typeof cmd).not.toBe("string");
+    }
+  });
+});
+
+// ---------- Existing commands still work ----------
+
+describe("existing commands still work (smoke tests)", () => {
+  test("mktg status --json returns valid JSON with health", async () => {
+    const { stdout, exitCode } = await run(["status", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.health).toBeDefined();
+  });
+
+  test("mktg list --json returns expected total", async () => {
+    const { stdout, exitCode } = await run(["list", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.total).toBeGreaterThanOrEqual(42);
+  });
+
+  test("mktg doctor --json returns passed boolean", async () => {
+    const { stdout, exitCode } = await run(["doctor", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(typeof parsed.passed).toBe("boolean");
+  });
+
+  test("mktg update --json returns skills object", async () => {
+    const { stdout, exitCode } = await run(["update", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(0);
+    expect(parsed.skills).toBeDefined();
+  });
+
+  test("mktg --version still works", async () => {
+    const { stdout, exitCode } = await run(["--version"]);
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain(PKG_VERSION);
+  });
+
+  test("mktg nonexistent --json still returns UNKNOWN_COMMAND", async () => {
+    const { stdout, exitCode } = await run(["nonexistent", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(exitCode).toBe(2);
+    expect(parsed.error.code).toBe("UNKNOWN_COMMAND");
+  });
+});
+
+// ---------- Display field integration ----------
+
+describe("display field in CLI pipeline", () => {
+  test("list --json does NOT include display in JSON output", async () => {
+    const { stdout } = await run(["list", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.display).toBeUndefined();
+    expect(parsed._display).toBeUndefined();
+  });
+
+  test("status --json does NOT include display in JSON output", async () => {
+    const { stdout } = await run(["status", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.display).toBeUndefined();
+    expect(parsed._display).toBeUndefined();
+  });
+
+  test("update --json does NOT include display in JSON output", async () => {
+    const { stdout } = await run(["update", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.display).toBeUndefined();
+    expect(parsed._display).toBeUndefined();
+  });
+});
