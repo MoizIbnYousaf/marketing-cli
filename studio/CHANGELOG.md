@@ -2,6 +2,10 @@
 
 All notable changes to mktg-studio. Format per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); project adheres to [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-05-03
+
+Version-aligned with `marketing-cli@0.5.4`. Studio surface unchanged. The CLI side ships TypeScript inside the published tarball so Next.js no longer auto-spawns pnpm install on the first `mktg studio` invocation, and `studio/package.json` now declares `pnpm.onlyBuiltDependencies: ["unrs-resolver"]` to silence the "Ignored build scripts" warning on cold boot. First-launch UX is fast and quiet.
+
 ## [0.5.3] - 2026-05-03
 
 Version-aligned with `marketing-cli@0.5.3`. Studio surface unchanged. The CLI side splits the `/mktg-setup` Step 1 identity question into a setup-mode picker (URL vs local vs pre-launch) plus a follow-up that captures the URL or sentence; `brand/cmo-preferences.md` now records `Setup mode` and `URL` under `## Identity`. Studio reads those fields via the existing brand watcher — no new endpoints, no schema migration.

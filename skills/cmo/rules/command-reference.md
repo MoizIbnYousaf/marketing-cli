@@ -122,6 +122,9 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 | `mktg init --yes` | Fresh project. Creates `brand/` + installs 50 skills + 5 agents + 1 catalog. |
 | `mktg init --from <url> --yes` | Zero-to-CMO in 90 seconds. Scrapes URL, auto-populates `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md` with real data. Use when the project has a live website. |
 | `mktg update --json` | Refresh skills/agents/catalogs from the package. Run after `npm update`. |
+| `mktg update --check --json` | Read-only probe: ask the npm registry for the latest `marketing-cli` version and compare to the installed one. Returns `{ current, latest, upgradeAvailable, upgradeCommand }`. Use this before suggesting an upgrade. |
+| `mktg update --upgrade --dry-run --json` | Preview the npm upgrade command without spawning. Returns the planned `upgradeCommand`. |
+| `mktg update --upgrade --json` | Run `npm i -g marketing-cli@latest`. Surfaces EACCES guidance when the npm prefix is root-owned (suggest `sudo` or a user-owned prefix via nvm/fnm/volta). The package's postinstall re-syncs skills/agents automatically. |
 | `mktg transcribe <url\|path> --json` | Audio/video → transcript. Wraps `whisper-cli` (whisper.cpp) + `yt-dlp` + `ffmpeg`. Used before `content-atomizer` for podcast/video source material. |
 | `mktg studio` | Launch the studio dashboard (Bun API + Next.js UI). Prefers sibling `mktg-studio/bin/mktg-studio.ts`, then `MKTG_STUDIO_BIN`, then PATH. |
 | `mktg studio --open` | Same, plus open the dashboard in the default browser. |

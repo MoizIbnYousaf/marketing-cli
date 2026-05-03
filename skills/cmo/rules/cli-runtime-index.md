@@ -47,7 +47,7 @@ Current runtime command set:
 | `doctor` | Check local tools, skills, brand state, and integrations. |
 | `status` | Read the project marketing state and next setup actions. |
 | `list` | Inspect installed skills and routing metadata. |
-| `update` | Reinstall bundled skills, agents, catalogs, and docs. |
+| `update` | Reinstall bundled skills/agents (default), check npm for newer mktg releases (`--check`), or upgrade the installed package (`--upgrade`). |
 | `skill` | Inspect, validate, register, add, log, and analyze skills. |
 | `brand` | Read/write/export/import/diff/reset brand memory. |
 | `run` | Load a skill for agent consumption and record execution. |
@@ -73,6 +73,7 @@ Current runtime command set:
 | `compete` | `scan`, `watch`, `list`, `diff` |
 | `dashboard` | `snapshot`, `action`, `plan`, `outputs`, `publish`, `system`, `compete` |
 | `catalog` | `list`, `info`, `sync`, `status`, `add` |
+| `update` | flags: `--check` (npm version probe, read-only), `--upgrade` (run `npm i -g marketing-cli@latest`, honors `--dry-run`). Default = re-sync skills/agents. |
 
 ## Discovery Discipline
 

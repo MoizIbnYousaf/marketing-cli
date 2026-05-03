@@ -1,6 +1,6 @@
 {
   "name": "@marketing-cli/studio",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -33,5 +33,10 @@
     "eslint-config-next": "16.1.5",
     "typescript": "^5",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver"
+    ]
   }
 }

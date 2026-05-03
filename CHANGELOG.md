@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-05-03
+
+### Added
+
+- `mktg update --check` and `mktg update --upgrade` flags. The first does a read-only
+  comparison of installed vs. npm-latest. The second runs the upgrade with EACCES
+  handling and clear sudo guidance.
+
+### Fixed
+
+- **First-launch cold boot is fast and quiet.** TypeScript now ships in the
+  published tarball, so Next.js no longer auto-spawns pnpm install + ~30 lines of
+  noise on the first `mktg studio` invocation. New users see a friendly banner +
+  go straight to "Ready in Xs."
+- **Sudo installs work correctly.** When users `sudo npm i -g marketing-cli`, the
+  postinstall now detects `SUDO_USER`, resolves the real user's home directory,
+  copies skills + agents there (not `/var/root/.claude/`), and chowns the files
+  back to the user. Silent breakage on sudo paths is gone.
+
+### Internal
+
+- studio/package.json declares `pnpm.onlyBuiltDependencies` so the
+  "Ignored build scripts: unrs-resolver" warning no longer prints on cold boot.
+
 ## [0.5.3] - 2026-05-03
 
 ### Changed

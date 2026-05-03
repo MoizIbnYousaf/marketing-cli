@@ -60,6 +60,7 @@ Environment:
   MKTG_PROJECT_ROOT            target marketing project root (brand/ + marketing.db)
   MKTG_BRAND_DIR               override brand directory directly
   MKTG_STUDIO_DB               override SQLite DB path directly
+  MKTG_STUDIO_DEBUG            set to "1" to bypass the Next.js noise filter and see all output
 
 Reads .env.local if present. Shell env wins ties.
 
@@ -174,6 +175,47 @@ await ensurePortFree(Number(STUDIO_PORT), "server");
 await ensurePortFree(Number(DASHBOARD_PORT), "dashboard");
 
 // ---------------------------------------------------------------------------
+// First-launch banner — set expectations during cold boot.
+//
+// The dashboard's first launch is slow because Next.js compiles on demand
+// (and historically because pnpm fetched studio devDeps the first time the
+// tarball was extracted). Print a friendly banner on the slow paths so the
+// user understands why the prompt is hanging.
+//
+// Banner is written to STDERR so --json-style output paths stay clean.
+// ---------------------------------------------------------------------------
+
+function studioNodeModulesExists(): boolean {
+  return existsSync(resolve(REPO_ROOT, "node_modules"));
+}
+
+function typescriptResolvableFromRoot(): boolean {
+  // marketing-cli root is one directory up from studio/. typescript ships
+  // as a top-level dependency of marketing-cli, so it lives in the root
+  // node_modules even before studio/node_modules is created. Probing here
+  // tells us whether Next.js will need to auto-spawn pnpm to install TS
+  // (it won't, if this returns true).
+  return existsSync(resolve(REPO_ROOT, "..", "node_modules", "typescript", "package.json"));
+}
+
+function printFirstLaunchBanner(): void {
+  if (studioNodeModulesExists()) return; // warm path — silent
+  if (typescriptResolvableFromRoot()) {
+    process.stderr.write(
+      "mktg studio · starting dashboard (first launch, ~15s)\n" +
+        "This only happens once. Subsequent launches are instant.\n",
+    );
+  } else {
+    process.stderr.write(
+      "mktg studio · first launch · setting up the dashboard (~30s)\n" +
+        "This only happens once. Subsequent launches are instant.\n",
+    );
+  }
+}
+
+printFirstLaunchBanner();
+
+// ---------------------------------------------------------------------------
 // Spawn both processes
 // ---------------------------------------------------------------------------
 
@@ -205,6 +247,49 @@ const next = Bun.spawn({
 });
 
 // ---------------------------------------------------------------------------
+// Next.js output filter — suppress known cold-boot noise (pnpm install
+// progress, telemetry notice, build-script warnings, version-drift hints).
+// Lines that don't match the SUPPRESSED list pass through unchanged, so
+// errors, "Ready in Xs", and Local/Network URLs are always visible.
+//
+// Set MKTG_STUDIO_DEBUG=1 to disable filtering and see the raw stream.
+// If a real error ever gets dropped, the user can re-run with the env var
+// flipped on and see the full output.
+// ---------------------------------------------------------------------------
+
+const MKTG_STUDIO_DEBUG = process.env.MKTG_STUDIO_DEBUG === "1";
+
+const NEXT_NOISE_PATTERNS: RegExp[] = [
+  /^\[next\]\s*Progress:/,
+  /^\[next\]\s*Packages: \+/,
+  /^\[next\]\s*\+ @types\//,
+  /^\[next\]\s*\+ eslint(-\S+)?(\s|$)/,
+  /^\[next\]\s*\+ typescript(\s|$)/,
+  /^\[next\]\s*\+ vitest(\s|$)/,
+  /^\[next\]\s*\+ @playwright\/test(\s|$)/,
+  /^\[next\]\s*\+ @axe-core\/react(\s|$)/,
+  /^\[next\]\s*Done in \d+(\.\d+)?s using pnpm/,
+  /^\[next\]\s*Ignored build scripts:/,
+  /^\[next\]\s*Run "pnpm approve-builds"/,
+  /^\[next\]\s*╭ Warning ─/,
+  /^\[next\]\s*╰─/,
+  /^\[next\]\s*│/,
+  /^\[next\]\s*Attention: Next\.js now collects/,
+  /^\[next\]\s*This information is used to shape Next\.js'/,
+  /^\[next\]\s*You can learn more, including how to opt-out/,
+  /^\[next\]\s*https:\/\/nextjs\.org\/telemetry/,
+  /^\[next\]\s*\(\d+(\.\d+)?\.\d+ is available\)/,
+];
+
+function shouldDropNextLine(taggedLine: string): boolean {
+  if (MKTG_STUDIO_DEBUG) return false;
+  for (const pattern of NEXT_NOISE_PATTERNS) {
+    if (pattern.test(taggedLine)) return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // Stream each child's output with a prefix tag
 // ---------------------------------------------------------------------------
 
@@ -212,6 +297,7 @@ async function pipe(
   source: ReadableStream<Uint8Array> | null,
   prefix: string,
   stream: NodeJS.WriteStream,
+  filter?: (taggedLine: string) => boolean,
 ): Promise<void> {
   if (!source) return;
   const decoder = new TextDecoder();
@@ -221,14 +307,20 @@ async function pipe(
     const { value, done } = await reader.read();
     if (value) buffer += decoder.decode(value, { stream: true });
     if (done) {
-      if (buffer) stream.write(`${prefix} ${buffer}\n`);
+      if (buffer) {
+        const tagged = `${prefix} ${buffer}`;
+        if (!filter || !filter(tagged)) stream.write(`${tagged}\n`);
+      }
       return;
     }
     let nl = buffer.indexOf("\n");
     while (nl >= 0) {
       const line = buffer.slice(0, nl);
       buffer = buffer.slice(nl + 1);
-      if (line.length > 0) stream.write(`${prefix} ${line}\n`);
+      if (line.length > 0) {
+        const tagged = `${prefix} ${line}`;
+        if (!filter || !filter(tagged)) stream.write(`${tagged}\n`);
+      }
       nl = buffer.indexOf("\n");
     }
   }
@@ -236,8 +328,8 @@ async function pipe(
 
 pipe(server.stdout, "[server]", process.stdout);
 pipe(server.stderr, "[server]", process.stderr);
-pipe(next.stdout, "[next]  ", process.stdout);
-pipe(next.stderr, "[next]  ", process.stderr);
+pipe(next.stdout, "[next]  ", process.stdout, shouldDropNextLine);
+pipe(next.stderr, "[next]  ", process.stderr, shouldDropNextLine);
 
 // ---------------------------------------------------------------------------
 // Wait until both surfaces respond

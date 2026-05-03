@@ -154,6 +154,8 @@ posting and the native backend is only acting as the local queue.
 | Agent needs a specific skill loaded | `mktg run <skill> --json` |
 | Agent needs brand context for a skill | `mktg context --json` |
 | Updating skills after package upgrade | `mktg update --json` |
+| Checking whether a newer marketing-cli is on npm | `mktg update --check --json` |
+| Upgrading marketing-cli to the latest npm release | `mktg update --upgrade --json` (use `--dry-run` first to preview) |
 | Agent needs to check a specific catalog's readiness | `mktg catalog info <name> --json --fields configured,missing_envs` |
 | Agent needs health across all catalogs at once | `mktg catalog status --json` |
 | Agent needs the full catalog registry | `mktg catalog list --json` |
