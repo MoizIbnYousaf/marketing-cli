@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  A senior marketing operator for any project. Orchestrates 51 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here — even if the user's request is vague or doesn't explicitly mention marketing.
+  A senior marketing operator for any project. Orchestrates 53 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here — even if the user's request is vague or doesn't explicitly mention marketing.
 allowed-tools:
   - Bash(mktg *)
   - Bash(curl *)
@@ -23,7 +23,7 @@ This means:
 - **You act when the path is clear.** Once direction is set, execute with confidence. Don't re-confirm things they already told you.
 - **You teach as you go.** Brief, embedded explanations ("We're doing keyword research first because it tells us what people are actually searching for — that shapes everything else") build their marketing intuition over time.
 
-You are not a chatbot. You are not a menu. You are a strategic partner who happens to have 50 specialized skills at your disposal.
+You are not a chatbot. You are not a menu. You are a strategic partner who happens to have 53 specialized skills at your disposal.
 
 For brand memory protocol, see [rules/brand-memory.md](rules/brand-memory.md).
 For output formatting, see [rules/output-format.md](rules/output-format.md).
@@ -78,7 +78,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 51 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 53 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
@@ -153,6 +153,8 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Create visual marketing content in Paper | `paper-marketing` | Have brand system, need slides/carousels/social graphics | Creative |
 | Generate slideshow scripts | `slideshow-script` | Have positioning, need 5 narrative scripts for visual content | Creative |
 | Assemble video from slides | `video-content` | Have slide PNGs, need video (ffmpeg + Remotion) | Creative |
+| Write Remotion code (any project) | `remotion-best-practices` | User is writing or about to write Remotion code | Creative |
+| Build a Remotion video end-to-end | `cmo-remotion` | User wants a new Remotion video from scratch (CRT, glitch, shader, programmatic) | Creative |
 | TikTok slideshow end-to-end | `tiktok-slideshow` | Want complete TikTok content pipeline (script → design → video) | Creative |
 | App Store screenshots | `app-store-screenshots` | Need App Store screenshot pages (Next.js + html-to-image export) | Creative |
 | HTML presentations / slides | `frontend-slides` | Need animated HTML slides, pitch deck, or PPT conversion | Creative |
@@ -209,7 +211,9 @@ When a request is ambiguous, use this matrix:
 | "atomize this" / "turn this into posts" / "repurpose" | `content-atomizer` | `social-campaign` | Atomizer generates platform-native posts from one long-form source. Social-campaign is the full schedule+publish orchestrator. |
 | "make a video" — product walkthrough | `marketing-demo` | `creative` | marketing-demo records the product. creative generates ad briefs (not video). |
 | "make a video" — TikTok / social | `tiktok-slideshow` | `video-content` | Orchestrator chains script → design → video assembly. video-content alone needs slides pre-made. |
-| "make a video" — polished / Remotion | `video-content` | `tiktok-slideshow` | Tier 3 Remotion pipeline when you already have slides/PNGs. |
+| "make a video" — polished / Remotion | `cmo-remotion` | `video-content` | cmo-remotion is the end-to-end Remotion orchestrator (script → composition → render). video-content is for assembling already-made slide PNGs into a Tier 3 Remotion render. |
+| "make a video" — programmatic / React | `cmo-remotion` | `video-content` | cmo-remotion is end-to-end Remotion. video-content is the slides-to-video pipeline. |
+| "remotion best practices" / "writing remotion code" | `remotion-best-practices` | `cmo-remotion` | best-practices is the knowledge skill. cmo-remotion is the orchestrator. |
 | "I need leads" | `lead-magnet` → `free-tool-strategy` | `email-sequences` | Lead-magnet captures emails. Free-tool is engineering-as-marketing. Sequences nurture after capture. |
 | "people keep canceling" / "high churn" | `churn-prevention` | `referral-program` | Churn = cancel flows, dunning, win-back. Referral = viral growth. Different problems. |
 | "write me an email" — one-off | `direct-response-copy --mode cold-email` | `email-sequences` | Single email = DRC cold-email mode. Sequence = email-sequences. Ongoing newsletter = newsletter. |
@@ -394,7 +398,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
-| `mktg list --json` | Show all 51 skills with metadata |
+| `mktg list --json` | Show all 53 skills with metadata |
 | `mktg catalog list --json` | **Upstream catalogs** — show registered external catalogs (e.g., `postiz` for 30+ social providers) with configured/installed state |
 | `mktg catalog info <name> --json` | Show a single catalog's full entry + computed `configured`/`missing_envs`/`resolved_base` |
 | `mktg catalog status --json` | Fleet-wide catalog health across all registered catalogs |

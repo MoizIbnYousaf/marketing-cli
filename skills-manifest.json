@@ -1436,6 +1436,34 @@
       "triggers": ["summarize", "TL;DR", "tldr", "summary", "digest", "gist", "condense", "condensed version", "key points", "make it shorter", "too long", "shorten this"],
       "review_interval_days": 180,
       "version": "1.0.0"
+    },
+    "remotion-best-practices": {
+      "source": "new",
+      "category": "creative",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "creative-kit.md", "audience.md", "positioning.md"],
+      "writes": [],
+      "depends_on": [],
+      "triggers": ["remotion", "remotion code", "remotion composition", "useCurrentFrame", "interpolate", "spring", "HtmlInCanvas", "html in canvas", "CRT effect", "glitch effect", "video shader", "WebGL video", "react video", "programmatic video", "remotion render", "npx create-video"],
+      "review_interval_days": 30,
+      "version": "1.0.0",
+      "upstream": {
+        "primary": {"repo": "remotion-dev/skills", "path": "skills/remotion"},
+        "secondary": {"repo": "remotion-dev/remotion", "path": ".claude"}
+      }
+    },
+    "cmo-remotion": {
+      "source": "new",
+      "category": "creative",
+      "layer": "orchestrator",
+      "tier": "nice-to-have",
+      "reads": ["voice-profile.md", "creative-kit.md", "audience.md", "positioning.md"],
+      "writes": ["assets.md"],
+      "depends_on": [],
+      "triggers": ["cmo-remotion", "make a remotion video", "build a remotion video", "remotion composition", "glitch video", "programmatic video", "react video", "html in canvas video", "CRT video", "video shader pipeline"],
+      "review_interval_days": 30,
+      "version": "1.0.0"
     }
   },
   "redirects": {

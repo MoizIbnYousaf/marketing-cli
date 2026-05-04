@@ -1,0 +1,320 @@
+{
+  "version": 1,
+  "fetched_at": "2026-05-04T13:44:13Z",
+  "tool": "/mktg-steal",
+  "sources": [
+    {
+      "name": "primary",
+      "repo": "remotion-dev/skills",
+      "branch": "main",
+      "snapshot_sha": "f34abef3e80ca73b3a5337f17e9c7a7ddcf418ea",
+      "snapshot_at": "2026-05-04T11:39:22+02:00",
+      "upstream_root": "skills/remotion",
+      "local_root": "skills/remotion-best-practices",
+      "files": [
+        {
+          "local": "SKILL.md",
+          "upstream": "skills/remotion/SKILL.md",
+          "sha": "c88928e53f319eb1ddc8f33f1926d094701ed21b",
+          "note": "adapted-frontmatter"
+        },
+        {
+          "local": "rules/3d.md",
+          "upstream": "skills/remotion/rules/3d.md",
+          "sha": "c9d254f1209d83fd6f8a313659cfc694ec7b7837"
+        },
+        {
+          "local": "rules/assets/charts-bar-chart.tsx",
+          "upstream": "skills/remotion/rules/assets/charts-bar-chart.tsx",
+          "sha": "1313ebf5980c9c33db23f544018fbdc5772229b1"
+        },
+        {
+          "local": "rules/assets/text-animations-typewriter.tsx",
+          "upstream": "skills/remotion/rules/assets/text-animations-typewriter.tsx",
+          "sha": "89f62ea0e5e7de0529260cbe477495a3a7794a13"
+        },
+        {
+          "local": "rules/assets/text-animations-word-highlight.tsx",
+          "upstream": "skills/remotion/rules/assets/text-animations-word-highlight.tsx",
+          "sha": "0aae3e294b416429e4b17436da2c71c042e6b772"
+        },
+        {
+          "local": "rules/audio-visualization.md",
+          "upstream": "skills/remotion/rules/audio-visualization.md",
+          "sha": "733b0d350db745429d02ddb3e268ddbaa0106b5c"
+        },
+        {
+          "local": "rules/audio.md",
+          "upstream": "skills/remotion/rules/audio.md",
+          "sha": "1097c70e864a1ab88ad853de4cf77ff74232653d"
+        },
+        {
+          "local": "rules/calculate-metadata.md",
+          "upstream": "skills/remotion/rules/calculate-metadata.md",
+          "sha": "54df5ffb21a6aaf5671a61f34739090daeb377b9"
+        },
+        {
+          "local": "rules/compositions.md",
+          "upstream": "skills/remotion/rules/compositions.md",
+          "sha": "4f6b865625eb0e7cf0a36844383edb644b01f85f"
+        },
+        {
+          "local": "rules/display-captions.md",
+          "upstream": "skills/remotion/rules/display-captions.md",
+          "sha": "f9cb0f05d73acd71876d91319b7af2c6f6780551"
+        },
+        {
+          "local": "rules/ffmpeg.md",
+          "upstream": "skills/remotion/rules/ffmpeg.md",
+          "sha": "d3fd100c5814e75378a3223f479bff9a8cef2b5f"
+        },
+        {
+          "local": "rules/get-audio-duration.md",
+          "upstream": "skills/remotion/rules/get-audio-duration.md",
+          "sha": "35ef7471746a2cfc09a8ee76c91433a9e3609b04"
+        },
+        {
+          "local": "rules/get-video-dimensions.md",
+          "upstream": "skills/remotion/rules/get-video-dimensions.md",
+          "sha": "746c09fbec61e9d4b8d70eadd81d3f49f45aa6fe"
+        },
+        {
+          "local": "rules/get-video-duration.md",
+          "upstream": "skills/remotion/rules/get-video-duration.md",
+          "sha": "10ab735d163292c620ceb4d3f0804702ccacff0d"
+        },
+        {
+          "local": "rules/gifs.md",
+          "upstream": "skills/remotion/rules/gifs.md",
+          "sha": "042647f61c9f81fb7c77fb36a0a52f62a48ae66a"
+        },
+        {
+          "local": "rules/google-fonts.md",
+          "upstream": "skills/remotion/rules/google-fonts.md",
+          "sha": "87c07697ecafa6c30c06eade42596d76ef3ea4d1"
+        },
+        {
+          "local": "rules/html-in-canvas.md",
+          "upstream": "skills/remotion/rules/html-in-canvas.md",
+          "sha": "7496800889e3cbf47cce7f09f9a6c7f9b04f5ba2"
+        },
+        {
+          "local": "rules/images.md",
+          "upstream": "skills/remotion/rules/images.md",
+          "sha": "6882b265e2011bfcf9e7fd823289a803f3ed2ad4"
+        },
+        {
+          "local": "rules/import-srt-captions.md",
+          "upstream": "skills/remotion/rules/import-srt-captions.md",
+          "sha": "333c962131230ca60200e1f8732a8f489781f266"
+        },
+        {
+          "local": "rules/light-leaks.md",
+          "upstream": "skills/remotion/rules/light-leaks.md",
+          "sha": "354b95666ae975fea494191dc8042ac6c2aba48f"
+        },
+        {
+          "local": "rules/local-fonts.md",
+          "upstream": "skills/remotion/rules/local-fonts.md",
+          "sha": "30dce5fb10b28ef0da7d737d5e040e2a57a7cc99"
+        },
+        {
+          "local": "rules/lottie.md",
+          "upstream": "skills/remotion/rules/lottie.md",
+          "sha": "4b0c4ee515c8f6818330f9fac12450a1d819c178"
+        },
+        {
+          "local": "rules/mapbox.md",
+          "upstream": "skills/remotion/rules/mapbox.md",
+          "sha": "1e4818cc5b885a331ba89d4f6391f53b48d1b8d3"
+        },
+        {
+          "local": "rules/measuring-dom-nodes.md",
+          "upstream": "skills/remotion/rules/measuring-dom-nodes.md",
+          "sha": "4e63424f3a1fb68969d49cc9854701b24634bd7c"
+        },
+        {
+          "local": "rules/measuring-text.md",
+          "upstream": "skills/remotion/rules/measuring-text.md",
+          "sha": "070a184beafbac791940d068468996227e4178c3"
+        },
+        {
+          "local": "rules/parameters.md",
+          "upstream": "skills/remotion/rules/parameters.md",
+          "sha": "8860800662bff7f3218470b4f5f544cac482a932"
+        },
+        {
+          "local": "rules/sequencing.md",
+          "upstream": "skills/remotion/rules/sequencing.md",
+          "sha": "a2af6690d9ded9fab0e276b20f03174b7a9f470c"
+        },
+        {
+          "local": "rules/sfx.md",
+          "upstream": "skills/remotion/rules/sfx.md",
+          "sha": "41fdc500de701093791c2e96d86bcfab1ca018bf"
+        },
+        {
+          "local": "rules/silence-detection.md",
+          "upstream": "skills/remotion/rules/silence-detection.md",
+          "sha": "33d20988200eab0e2f64917c37aaf5fe25a3b2f2"
+        },
+        {
+          "local": "rules/subtitles.md",
+          "upstream": "skills/remotion/rules/subtitles.md",
+          "sha": "2291eef305b58c4d9a4a1e25e9c8093b246b2ce4"
+        },
+        {
+          "local": "rules/tailwind.md",
+          "upstream": "skills/remotion/rules/tailwind.md",
+          "sha": "928f63312ab3eb1907b349603e5a4a06b6030bc9"
+        },
+        {
+          "local": "rules/text-animations.md",
+          "upstream": "skills/remotion/rules/text-animations.md",
+          "sha": "e38b1c574232a34ccdb69674ea8cad68c755ce7e"
+        },
+        {
+          "local": "rules/timing.md",
+          "upstream": "skills/remotion/rules/timing.md",
+          "sha": "b4a3231251f46fe7f4026f4d28bc79b4cd251b52"
+        },
+        {
+          "local": "rules/transcribe-captions.md",
+          "upstream": "skills/remotion/rules/transcribe-captions.md",
+          "sha": "ba649d57495b12587abdb9d173aa9ef1e61a074e"
+        },
+        {
+          "local": "rules/transitions.md",
+          "upstream": "skills/remotion/rules/transitions.md",
+          "sha": "91ef8bd85920d7d43cbb96176a720892825767c8"
+        },
+        {
+          "local": "rules/transparent-videos.md",
+          "upstream": "skills/remotion/rules/transparent-videos.md",
+          "sha": "dce5de5082e9cd3dadd04126e254ad8b61238234"
+        },
+        {
+          "local": "rules/trimming.md",
+          "upstream": "skills/remotion/rules/trimming.md",
+          "sha": "e7534d1ce617088f335d46e794e2d446f20d5ba0"
+        },
+        {
+          "local": "rules/videos.md",
+          "upstream": "skills/remotion/rules/videos.md",
+          "sha": "4d99b31eab0bf8ba21d692751876a0453d365080"
+        },
+        {
+          "local": "rules/voiceover.md",
+          "upstream": "skills/remotion/rules/voiceover.md",
+          "sha": "d7b23504d0549a87f031ba95472a311798310871"
+        }
+      ]
+    },
+    {
+      "name": "secondary",
+      "repo": "remotion-dev/remotion",
+      "branch": "main",
+      "snapshot_sha": "c81be54c9e7f89204202afef2ff1f9e0b75b7ed7",
+      "snapshot_at": "2026-05-04T13:44:13Z",
+      "upstream_root": ".claude",
+      "local_root": "skills/remotion-best-practices/references/upstream-internal",
+      "files": [
+        {
+          "local": "references/upstream-internal/commands/add-bug.md",
+          "upstream": ".claude/commands/add-bug.md",
+          "sha": "9a27aa171ff0f7ec63b7c1f99cbdb34ce48ac4ea"
+        },
+        {
+          "local": "references/upstream-internal/commands/checkout.md",
+          "upstream": ".claude/commands/checkout.md",
+          "sha": "21e3e9ed5b44f1068c3ce1e6776bffd4a3eb82c0"
+        },
+        {
+          "local": "references/upstream-internal/commands/formatting.md",
+          "upstream": ".claude/commands/formatting.md",
+          "sha": "43214aca281bd8a0a8e5de4e03e7f0f5a94f5db3"
+        },
+        {
+          "local": "references/upstream-internal/commands/release.md",
+          "upstream": ".claude/commands/release.md",
+          "sha": "c4ff22b38e326caebb1dc43c592089d69a053dee"
+        },
+        {
+          "local": "references/upstream-internal/commands/update-chrome-binaries-test-region.md",
+          "upstream": ".claude/commands/update-chrome-binaries-test-region.md",
+          "sha": "989cc52543fe092ec12dbbd72f8533feb8daeeee"
+        },
+        {
+          "local": "references/upstream-internal/commands/update-stars.md",
+          "upstream": ".claude/commands/update-stars.md",
+          "sha": "bf00dc3f2dba00e81a5054765358cb448c452cd7"
+        },
+        {
+          "local": "references/upstream-internal/commands/upgrade-caniuse.md",
+          "upstream": ".claude/commands/upgrade-caniuse.md",
+          "sha": "55107c89c2b1981847b4e5cf2f553e06eddcebbe"
+        },
+        {
+          "local": "references/upstream-internal/commands/upgrade-mediabunny.md",
+          "upstream": ".claude/commands/upgrade-mediabunny.md",
+          "sha": "a88465c8bec52477ffbb3446dc2d3c21522dab9e"
+        },
+        {
+          "local": "references/upstream-internal/skills/add-cli-option/SKILL.md",
+          "upstream": ".claude/skills/add-cli-option/SKILL.md",
+          "sha": "cf649cc87f844b01d7b9c47c735d481107e8fe14"
+        },
+        {
+          "local": "references/upstream-internal/skills/add-expert/SKILL.md",
+          "upstream": ".claude/skills/add-expert/SKILL.md",
+          "sha": "4eca15b1eaf25d103d78e1369b56f5225f6d8ae5"
+        },
+        {
+          "local": "references/upstream-internal/skills/add-new-package/SKILL.md",
+          "upstream": ".claude/skills/add-new-package/SKILL.md",
+          "sha": "40f6f0855440c4e23961a65966a08fca252e1a0b"
+        },
+        {
+          "local": "references/upstream-internal/skills/add-sfx/SKILL.md",
+          "upstream": ".claude/skills/add-sfx/SKILL.md",
+          "sha": "f7bcbfb24f3f4def2b9fcd1ce61f8fe675ff5d2e"
+        },
+        {
+          "local": "references/upstream-internal/skills/docs-demo/SKILL.md",
+          "upstream": ".claude/skills/docs-demo/SKILL.md",
+          "sha": "eaa75236c939838e2c471b5a953c96a62fcf27e9"
+        },
+        {
+          "local": "references/upstream-internal/skills/fix-dependabot/SKILL.md",
+          "upstream": ".claude/skills/fix-dependabot/SKILL.md",
+          "sha": "74364b4b9d6303f071e74f2ca318e30953877b79"
+        },
+        {
+          "local": "references/upstream-internal/skills/pr-name/SKILL.md",
+          "upstream": ".claude/skills/pr-name/SKILL.md",
+          "sha": "aefb2b181656cd2f0817162899fcd41258d57d1d"
+        },
+        {
+          "local": "references/upstream-internal/skills/pr/SKILL.md",
+          "upstream": ".claude/skills/pr/SKILL.md",
+          "sha": "ac46e1cff1206bc8e82951ec0f965c0fd9d0090d"
+        },
+        {
+          "local": "references/upstream-internal/skills/video-report/SKILL.md",
+          "upstream": ".claude/skills/video-report/SKILL.md",
+          "sha": "c313b6f5720ffff7ff5f4eff3912c66a6d9f518a"
+        },
+        {
+          "local": "references/upstream-internal/skills/web-renderer-test/SKILL.md",
+          "upstream": ".claude/skills/web-renderer-test/SKILL.md",
+          "sha": "c493f445ba389b0faf9191cb6d14f752fe596e69"
+        },
+        {
+          "local": "references/upstream-internal/skills/writing-docs/SKILL.md",
+          "upstream": ".claude/skills/writing-docs/SKILL.md",
+          "sha": "99da38ce384c8c113e644f5a902a82e90117551a"
+        }
+      ]
+    }
+  ]
+}

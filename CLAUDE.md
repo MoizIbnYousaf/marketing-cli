@@ -10,14 +10,14 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 51 marketing skills, 5 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 53 marketing skills, 5 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
 | `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
-| Marketing skills | 50 | The playbook, installed to `~/.claude/skills/` |
+| Marketing skills | 52 | The playbook, installed to `~/.claude/skills/` |
 | Marketing agents | 5 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
 | Upstream catalogs | 1 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled) |
 | Studio dashboard | 1 | Next.js + Bun API workspace member at `studio/`, bundled in the tarball, launched via `mktg studio` |
@@ -46,7 +46,7 @@ src/
 │   ├── skill-add.ts    # External skill chaining (mktg skill add)
 │   ├── agents.ts       # Agent registry, install to ~/.claude/agents/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
-skills/                  # 50 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 52 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 5 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
@@ -131,6 +131,18 @@ Every SKILL.md must:
 | Progressive enhancement | Work at L0 (zero context), better at L4 (full brand) |
 | Use `voice-profile.md` | NEVER `voice.md` |
 | Brand file refs use `brand/` prefix | Consistent path resolution in frontmatter reads |
+
+### Upstream-Mirrored Skills
+
+When a skill mirrors content from an upstream OSS source (the firecrawl pattern, now also Remotion), it MUST ship:
+- `upstream.json` provenance manifest (snapshot SHAs, per-file blob SHAs, source list) — the canonical record of which upstream blobs the mirror tracks.
+- `scripts/check-upstream.sh` drift detector (emits `{ok, in_sync, sources[].drift}` JSON envelope; exit 0 in sync / 1 drift / 2 error).
+- Attribution footer in SKILL.md crediting upstream maintainers and linking the source repo.
+- Manifest `source: "new"` plus an `upstream` object recording the source repos and paths (see `remotion-best-practices` for the canonical example). The skill content was curated and mirrored — `"new"` matches the intent (we authored/curated it). The dedicated `upstream` object carries the upstream-mirror semantics: it tracks the source repos, paths, and provenance.
+
+Mirrored content is verbatim. The skill's mktg-adapted SKILL.md is the only file that wraps upstream content with mktg conventions (drop-in frontmatter, brand-ground On Activation section). Drift checks treat adapted files specially via the `note: "adapted-frontmatter"` flag in upstream.json.
+
+See `marketing-cli/skills/remotion-best-practices/` for the canonical example. Phase 2 of /mktg-steal added `mktg skill check-upstream` and `mktg skill upgrade` CLI commands that fan across every skill with an upstream.json.
 
 ## Brand File Standards
 
