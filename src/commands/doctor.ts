@@ -174,6 +174,7 @@ const checkCLIs = async (): Promise<Check[]> => {
     { name: "yt-dlp", required: false },
     { name: "summarize", required: false },
     { name: "gh", required: false },
+    { name: "higgsfield", required: false },
   ] as const;
 
   const CLI_INSTALL_HINTS: Record<string, string> = {
@@ -187,6 +188,7 @@ const checkCLIs = async (): Promise<Check[]> => {
     "yt-dlp": "brew install yt-dlp",
     summarize: "npm i -g @steipete/summarize",
     gh: "brew install gh",
+    higgsfield: "npm i -g @higgsfield/cli && higgsfield auth login",
   };
 
   return tools.map(tool => {

@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  A senior marketing operator for any project. Orchestrates 53 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here — even if the user's request is vague or doesn't explicitly mention marketing.
+  A senior marketing operator for any project. Orchestrates 56 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing — brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here — even if the user's request is vague or doesn't explicitly mention marketing.
 allowed-tools:
   - Bash(mktg *)
   - Bash(curl *)
@@ -23,7 +23,7 @@ This means:
 - **You act when the path is clear.** Once direction is set, execute with confidence. Don't re-confirm things they already told you.
 - **You teach as you go.** Brief, embedded explanations ("We're doing keyword research first because it tells us what people are actually searching for — that shapes everything else") build their marketing intuition over time.
 
-You are not a chatbot. You are not a menu. You are a strategic partner who happens to have 53 specialized skills at your disposal.
+You are not a chatbot. You are not a menu. You are a strategic partner who happens to have 56 specialized skills at your disposal.
 
 For brand memory protocol, see [rules/brand-memory.md](rules/brand-memory.md).
 For output formatting, see [rules/output-format.md](rules/output-format.md).
@@ -78,7 +78,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 53 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 56 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
@@ -155,6 +155,9 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Assemble video from slides | `video-content` | Have slide PNGs, need video (ffmpeg + Remotion) | Creative |
 | Write Remotion code (any project) | `remotion-best-practices` | User is writing or about to write Remotion code | Creative |
 | Build a Remotion video end-to-end | `cmo-remotion` | User wants a new Remotion video from scratch (CRT, glitch, shader, programmatic) | Creative |
+| Generate AI image/video via Higgsfield | `higgsfield-generate` | User wants any of 30+ AI models (Seedance, Kling, Veo, Flux, Nano Banana) or Marketing Studio for branded ads. Optional — requires `@higgsfield/cli` + paid Higgsfield account. Falls back to `image-gen` if user lacks Higgsfield. | Creative |
+| Train Soul Character (face-faithful identity) | `higgsfield-soul-id` | User wants a reusable face/character identity for repeated brand assets. One-time training returns reference_id used by `higgsfield-generate`. Optional — requires Higgsfield Basic plan. | Foundation |
+| Brand product photoshoot (10 modes) | `higgsfield-product-photoshoot` | User wants studio/lifestyle/Pinterest/hero/ad-pack/virtual-try-on product imagery via Higgsfield's mode-specific enhancer. Optional — requires Higgsfield account. | Creative |
 | TikTok slideshow end-to-end | `tiktok-slideshow` | Want complete TikTok content pipeline (script → design → video) | Creative |
 | App Store screenshots | `app-store-screenshots` | Need App Store screenshot pages (Next.js + html-to-image export) | Creative |
 | HTML presentations / slides | `frontend-slides` | Need animated HTML slides, pitch deck, or PPT conversion | Creative |
@@ -228,7 +231,11 @@ When a request is ambiguous, use this matrix:
 | "app store screenshots" | `app-store-screenshots` | `creative` | Screenshots = Next.js generator for App Store. Creative = ad visuals. |
 | "marketing screenshots" | `app-store-screenshots` | `marketing-demo` | Screenshots = static App Store assets. Demo = video recording. |
 | "slides" / "presentation" | `frontend-slides` | `slideshow-script` | frontend-slides = HTML presentation decks. slideshow-script = narrative scripts for social video. |
-| "generate an image" / "make me an image" | `image-gen` | `creative` | image-gen produces pixels via Gemini API. creative produces briefs and copy variants. |
+| "generate an image" / "make me an image" | `image-gen` | `higgsfield-generate` or `creative` | image-gen produces pixels via Gemini Nano Banana 2 (free tier, fast, single-shot). higgsfield-generate covers 30+ models, video, and Marketing Studio (paid Higgsfield account required). creative produces briefs and copy variants. |
+| "make a video" / "generate AI video" | `higgsfield-generate` | `cmo-remotion` or `video-content` | higgsfield-generate covers AI text-to-video / image-to-video (Seedance, Kling, Veo). cmo-remotion = programmatic React/Remotion. video-content = ffmpeg/Remotion assembly from existing slides. |
+| "Marketing Studio" / "branded ad video" / "UGC ad" | `higgsfield-generate` | `creative` | Higgsfield's Marketing Studio mode produces branded ad video/image with avatars + imported products. creative produces briefs but doesn't execute. |
+| "product image" / "product shot" — multi-mode | `higgsfield-product-photoshoot` | `image-gen` | higgsfield-product-photoshoot has 10 modes (studio, lifestyle, Pinterest, hero banner, ad pack, virtual try-on). image-gen is one-off Gemini, no modes. |
+| "train my face" / "Soul Character" / "reusable character" | `higgsfield-soul-id` | N/A | One-time face-faithful identity training. Returns reference_id consumed by higgsfield-generate. No mktg equivalent. |
 | "visual style" / "how should images look" | `visual-style` | `brand-voice` | visual-style builds the visual identity. brand-voice builds the verbal identity. |
 | "show me my brand" / "preview brand" | `brand-kit-playground` | `visual-style` | Playground renders the brand as interactive HTML. visual-style defines it. |
 | "ad creative" / "visual assets brief" | `creative` | `image-gen` | creative produces multi-mode briefs. image-gen produces one image at a time. |
@@ -398,7 +405,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
-| `mktg list --json` | Show all 53 skills with metadata |
+| `mktg list --json` | Show all 56 skills with metadata |
 | `mktg catalog list --json` | **Upstream catalogs** — show registered external catalogs (e.g., `postiz` for 30+ social providers) with configured/installed state |
 | `mktg catalog info <name> --json` | Show a single catalog's full entry + computed `configured`/`missing_envs`/`resolved_base` |
 | `mktg catalog status --json` | Fleet-wide catalog health across all registered catalogs |

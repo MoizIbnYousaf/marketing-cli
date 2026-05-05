@@ -38,7 +38,12 @@
           "orchestrate my marketing"
         ],
         "requires": [],
-        "unlocks": ["brand-voice", "audience-research", "competitive-intel", "positioning-angles"],
+        "unlocks": [
+          "brand-voice",
+          "audience-research",
+          "competitive-intel",
+          "positioning-angles"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -48,7 +53,9 @@
       "layer": "foundation",
       "tier": "must-have",
       "reads": [],
-      "writes": ["voice-profile.md"],
+      "writes": [
+        "voice-profile.md"
+      ],
       "depends_on": [],
       "triggers": [
         "set up marketing",
@@ -71,7 +78,12 @@
           "onboard me to marketing"
         ],
         "requires": [],
-        "unlocks": ["cmo", "mktg-brand-researcher", "mktg-audience-researcher", "mktg-competitive-scanner"],
+        "unlocks": [
+          "cmo",
+          "mktg-brand-researcher",
+          "mktg-audience-researcher",
+          "mktg-competitive-scanner"
+        ],
         "precedence": "first-run"
       }
     },
@@ -104,7 +116,12 @@
           "how should we write"
         ],
         "requires": [],
-        "unlocks": ["positioning-angles", "direct-response-copy", "seo-content", "email-sequences"],
+        "unlocks": [
+          "positioning-angles",
+          "direct-response-copy",
+          "seo-content",
+          "email-sequences"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -142,8 +159,15 @@
           "develop positioning strategy",
           "find our unique value prop"
         ],
-        "requires": ["brand-voice", "audience-research"],
-        "unlocks": ["keyword-research", "launch-strategy", "direct-response-copy"],
+        "requires": [
+          "brand-voice",
+          "audience-research"
+        ],
+        "unlocks": [
+          "keyword-research",
+          "launch-strategy",
+          "direct-response-copy"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -177,7 +201,12 @@
           "where does our audience hang out"
         ],
         "requires": [],
-        "unlocks": ["positioning-angles", "keyword-research", "email-sequences", "lead-magnet"],
+        "unlocks": [
+          "positioning-angles",
+          "keyword-research",
+          "email-sequences",
+          "lead-magnet"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -211,7 +240,11 @@
           "research what competitors are doing"
         ],
         "requires": [],
-        "unlocks": ["positioning-angles", "keyword-research", "competitor-alternatives"],
+        "unlocks": [
+          "positioning-angles",
+          "keyword-research",
+          "competitor-alternatives"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -250,8 +283,15 @@
           "research SEO opportunities",
           "identify content gaps"
         ],
-        "requires": ["audience-research", "competitive-intel"],
-        "unlocks": ["seo-content", "lead-magnet", "competitor-alternatives"],
+        "requires": [
+          "audience-research",
+          "competitive-intel"
+        ],
+        "unlocks": [
+          "seo-content",
+          "lead-magnet",
+          "competitor-alternatives"
+        ],
         "precedence": "foundation-first"
       }
     },
@@ -317,8 +357,15 @@
           "prepare for Product Hunt",
           "plan the announcement"
         ],
-        "requires": ["brand-voice", "positioning-angles"],
-        "unlocks": ["content-atomizer", "email-sequences", "social-campaign"],
+        "requires": [
+          "brand-voice",
+          "positioning-angles"
+        ],
+        "unlocks": [
+          "content-atomizer",
+          "email-sequences",
+          "social-campaign"
+        ],
         "precedence": "any"
       }
     },
@@ -354,8 +401,13 @@
           "test pricing with customers",
           "freemium vs paid strategy"
         ],
-        "requires": ["audience-research"],
-        "unlocks": ["lead-magnet", "email-sequences"],
+        "requires": [
+          "audience-research"
+        ],
+        "unlocks": [
+          "lead-magnet",
+          "email-sequences"
+        ],
         "precedence": "any"
       }
     },
@@ -393,8 +445,13 @@
           "improve our headlines",
           "write high-converting copy"
         ],
-        "requires": ["brand-voice"],
-        "unlocks": ["content-atomizer", "email-sequences"],
+        "requires": [
+          "brand-voice"
+        ],
+        "unlocks": [
+          "content-atomizer",
+          "email-sequences"
+        ],
         "precedence": "any"
       }
     },
@@ -432,8 +489,13 @@
           "write an article targeting a keyword",
           "generate content at scale"
         ],
-        "requires": ["brand-voice", "keyword-research"],
-        "unlocks": ["content-atomizer"],
+        "requires": [
+          "brand-voice",
+          "keyword-research"
+        ],
+        "unlocks": [
+          "content-atomizer"
+        ],
         "precedence": "any"
       }
     },
@@ -471,8 +533,14 @@
           "create a checklist or template",
           "build an ebook to capture emails"
         ],
-        "requires": ["brand-voice", "audience-research"],
-        "unlocks": ["email-sequences", "content-atomizer"],
+        "requires": [
+          "brand-voice",
+          "audience-research"
+        ],
+        "unlocks": [
+          "email-sequences",
+          "content-atomizer"
+        ],
         "precedence": "any"
       }
     },
@@ -507,8 +575,12 @@
           "create a content calendar from this",
           "atomize this article into tweets"
         ],
-        "requires": ["brand-voice"],
-        "unlocks": ["social-campaign"],
+        "requires": [
+          "brand-voice"
+        ],
+        "unlocks": [
+          "social-campaign"
+        ],
         "precedence": "any"
       }
     },
@@ -545,7 +617,10 @@
           "nurture leads via email",
           "set up a post-signup email sequence"
         ],
-        "requires": ["brand-voice", "audience-research"],
+        "requires": [
+          "brand-voice",
+          "audience-research"
+        ],
         "unlocks": [],
         "precedence": "any"
       }
@@ -607,8 +682,14 @@
           "build the creative direction",
           "make a thumbnail or banner"
         ],
-        "requires": ["brand-voice"],
-        "unlocks": ["content-atomizer", "tiktok-slideshow", "paper-marketing"],
+        "requires": [
+          "brand-voice"
+        ],
+        "unlocks": [
+          "content-atomizer",
+          "tiktok-slideshow",
+          "paper-marketing"
+        ],
         "precedence": "any"
       }
     },
@@ -836,7 +917,11 @@
           "what are possible marketing directions"
         ],
         "requires": [],
-        "unlocks": ["keyword-research", "positioning-angles", "launch-strategy"],
+        "unlocks": [
+          "keyword-research",
+          "positioning-angles",
+          "launch-strategy"
+        ],
         "precedence": "any"
       }
     },
@@ -1392,10 +1477,31 @@
       "category": "creative",
       "layer": "execution",
       "tier": "must-have",
-      "reads": ["creative-kit.md", "voice-profile.md", "positioning.md", "audience.md"],
-      "writes": ["creative-kit.md", "assets.md"],
-      "depends_on": ["visual-style"],
-      "triggers": ["brand playground", "show me my brand", "preview my brand", "what does our brand look like", "visual preview", "brand kit", "see my colors", "how does my brand look", "brand kit playground", "render my brand"],
+      "reads": [
+        "creative-kit.md",
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md"
+      ],
+      "writes": [
+        "creative-kit.md",
+        "assets.md"
+      ],
+      "depends_on": [
+        "visual-style"
+      ],
+      "triggers": [
+        "brand playground",
+        "show me my brand",
+        "preview my brand",
+        "what does our brand look like",
+        "visual preview",
+        "brand kit",
+        "see my colors",
+        "how does my brand look",
+        "brand kit playground",
+        "render my brand"
+      ],
       "review_interval_days": 60,
       "version": "1.0.0"
     },
@@ -1407,10 +1513,31 @@
       "reads": [],
       "writes": [],
       "depends_on": [],
-      "triggers": ["firecrawl", "scrape website", "fetch page", "extract from url", "crawl site", "get content from", "download website", "web scrape", "search the web", "find article", "research a topic", "pull content from", "grab content from", "scrape url", "extract data from", "fetch url", "download article", "get the page at"],
+      "triggers": [
+        "firecrawl",
+        "scrape website",
+        "fetch page",
+        "extract from url",
+        "crawl site",
+        "get content from",
+        "download website",
+        "web scrape",
+        "search the web",
+        "find article",
+        "research a topic",
+        "pull content from",
+        "grab content from",
+        "scrape url",
+        "extract data from",
+        "fetch url",
+        "download article",
+        "get the page at"
+      ],
       "review_interval_days": 180,
       "version": "1.0.0",
-      "env_vars": ["FIRECRAWL_API_KEY"]
+      "env_vars": [
+        "FIRECRAWL_API_KEY"
+      ]
     },
     "mktg-x": {
       "source": "first-party",
@@ -1420,20 +1547,57 @@
       "reads": [],
       "writes": [],
       "depends_on": [],
-      "triggers": ["read this tweet", "read this thread", "grab this X bookmark", "fetch this Twitter article", "read my X bookmarks", "pull this thread", "Twitter API", "X API", "tweet URL", "twitter.com", "x.com", "x thread", "x bookmark", "twitter bookmark", "twitter article", "x article", "unroll thread", "X post"],
+      "triggers": [
+        "read this tweet",
+        "read this thread",
+        "grab this X bookmark",
+        "fetch this Twitter article",
+        "read my X bookmarks",
+        "pull this thread",
+        "Twitter API",
+        "X API",
+        "tweet URL",
+        "twitter.com",
+        "x.com",
+        "x thread",
+        "x bookmark",
+        "twitter bookmark",
+        "twitter article",
+        "x article",
+        "unroll thread",
+        "X post"
+      ],
       "review_interval_days": 180,
       "version": "1.0.0",
-      "env_vars": ["MKTG_X_AUTH_TOKEN", "MKTG_X_CT0"]
+      "env_vars": [
+        "MKTG_X_AUTH_TOKEN",
+        "MKTG_X_CT0"
+      ]
     },
     "summarize": {
       "source": "new",
       "category": "knowledge",
       "layer": "foundation",
       "tier": "nice-to-have",
-      "reads": ["voice-profile.md"],
+      "reads": [
+        "voice-profile.md"
+      ],
       "writes": [],
       "depends_on": [],
-      "triggers": ["summarize", "TL;DR", "tldr", "summary", "digest", "gist", "condense", "condensed version", "key points", "make it shorter", "too long", "shorten this"],
+      "triggers": [
+        "summarize",
+        "TL;DR",
+        "tldr",
+        "summary",
+        "digest",
+        "gist",
+        "condense",
+        "condensed version",
+        "key points",
+        "make it shorter",
+        "too long",
+        "shorten this"
+      ],
       "review_interval_days": 180,
       "version": "1.0.0"
     },
@@ -1442,15 +1606,43 @@
       "category": "creative",
       "layer": "foundation",
       "tier": "nice-to-have",
-      "reads": ["voice-profile.md", "creative-kit.md", "audience.md", "positioning.md"],
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "audience.md",
+        "positioning.md"
+      ],
       "writes": [],
       "depends_on": [],
-      "triggers": ["remotion", "remotion code", "remotion composition", "useCurrentFrame", "interpolate", "spring", "HtmlInCanvas", "html in canvas", "CRT effect", "glitch effect", "video shader", "WebGL video", "react video", "programmatic video", "remotion render", "npx create-video"],
+      "triggers": [
+        "remotion",
+        "remotion code",
+        "remotion composition",
+        "useCurrentFrame",
+        "interpolate",
+        "spring",
+        "HtmlInCanvas",
+        "html in canvas",
+        "CRT effect",
+        "glitch effect",
+        "video shader",
+        "WebGL video",
+        "react video",
+        "programmatic video",
+        "remotion render",
+        "npx create-video"
+      ],
       "review_interval_days": 30,
       "version": "1.0.0",
       "upstream": {
-        "primary": {"repo": "remotion-dev/skills", "path": "skills/remotion"},
-        "secondary": {"repo": "remotion-dev/remotion", "path": ".claude"}
+        "primary": {
+          "repo": "remotion-dev/skills",
+          "path": "skills/remotion"
+        },
+        "secondary": {
+          "repo": "remotion-dev/remotion",
+          "path": ".claude"
+        }
       }
     },
     "cmo-remotion": {
@@ -1458,12 +1650,141 @@
       "category": "creative",
       "layer": "orchestrator",
       "tier": "nice-to-have",
-      "reads": ["voice-profile.md", "creative-kit.md", "audience.md", "positioning.md"],
-      "writes": ["assets.md"],
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md",
+        "audience.md",
+        "positioning.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
       "depends_on": [],
-      "triggers": ["cmo-remotion", "make a remotion video", "build a remotion video", "remotion composition", "glitch video", "programmatic video", "react video", "html in canvas video", "CRT video", "video shader pipeline"],
+      "triggers": [
+        "cmo-remotion",
+        "make a remotion video",
+        "build a remotion video",
+        "remotion composition",
+        "glitch video",
+        "programmatic video",
+        "react video",
+        "html in canvas video",
+        "CRT video",
+        "video shader pipeline"
+      ],
       "review_interval_days": 30,
       "version": "1.0.0"
+    },
+    "higgsfield-generate": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "higgsfield-ai/skills",
+          "path": "higgsfield-generate",
+          "snapshot_sha": "1dcfe2687c3a9092232bac55c2b6b9ae3fc717d7",
+          "snapshot_at": "2026-05-04T23:22:11Z"
+        }
+      },
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "higgsfield",
+        "generate an image",
+        "make a video",
+        "image-to-video",
+        "img2vid",
+        "animate this photo",
+        "create an ad",
+        "make a UGC video",
+        "marketing video",
+        "brand video",
+        "Seedance",
+        "Kling",
+        "Veo",
+        "Soul gen",
+        "Nano Banana",
+        "Marketing Studio"
+      ],
+      "review_interval_days": 30,
+      "version": "0.3.0"
+    },
+    "higgsfield-soul-id": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "higgsfield-ai/skills",
+          "path": "higgsfield-soul-id",
+          "snapshot_sha": "1dcfe2687c3a9092232bac55c2b6b9ae3fc717d7",
+          "snapshot_at": "2026-05-04T23:22:11Z"
+        }
+      },
+      "category": "creative",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "creative-kit.md"
+      ],
+      "writes": [
+        "assets.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "train soul character",
+        "create my Soul",
+        "train my face",
+        "make my digital twin",
+        "build me an avatar",
+        "face-faithful character",
+        "reusable character",
+        "brand character training",
+        "soul training",
+        "soul-id create"
+      ],
+      "review_interval_days": 30,
+      "version": "0.3.0"
+    },
+    "higgsfield-product-photoshoot": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "higgsfield-ai/skills",
+          "path": "higgsfield-product-photoshoot",
+          "snapshot_sha": "1dcfe2687c3a9092232bac55c2b6b9ae3fc717d7",
+          "snapshot_at": "2026-05-04T23:22:11Z"
+        }
+      },
+      "category": "creative",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "voice-profile.md",
+        "creative-kit.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "product photoshoot",
+        "lifestyle product shots",
+        "Pinterest pin",
+        "hero banner",
+        "ad pack",
+        "virtual try-on",
+        "studio shot",
+        "Meta ads creative",
+        "social carousel",
+        "ad creative pack",
+        "Shopify image",
+        "brand campaign visual"
+      ],
+      "review_interval_days": 30,
+      "version": "0.3.0"
     }
   },
   "redirects": {
