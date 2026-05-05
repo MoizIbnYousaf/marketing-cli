@@ -449,7 +449,38 @@ export const handler: CommandHandler<PropagateReport> = async (args, flags) => {
 
   if (registryHasChanges) {
     const registryMsg = `chore(skills): sync marketing-cli entries — +${addRN} added, ~${updateRM} updated, -${removeRK} removed`;
-    runCmd("git", ["add", "skills.json"], registryPath);
+
+    // Regenerate Ai-Agent-Skills' generated docs (README.md + WORK_AREAS.md)
+    // when the registry actually has the script. The real registry's CI
+    // validator rejects skills.json changes without matching docs, so we run
+    // `npm run render:docs` after writing skills.json. Test fixtures (temp
+    // dirs) don't have package.json — skip silently in that case. Failure is
+    // non-fatal (warning) so the commit still lands.
+    const hasRenderDocs = await fileExists(join(registryPath, "package.json"));
+    if (hasRenderDocs) {
+      const pkgRaw = await readFile(join(registryPath, "package.json"), "utf-8").catch(() => "");
+      let hasScript = false;
+      try {
+        const pkg = JSON.parse(pkgRaw) as { scripts?: Record<string, unknown> };
+        hasScript = typeof pkg.scripts?.["render:docs"] === "string";
+      } catch {
+        hasScript = false;
+      }
+      if (hasScript) {
+        const renderDocs = runCmd("npm", ["run", "render:docs"], registryPath, 60_000);
+        if (!renderDocs.ok) {
+          warnings.push(`Ai-Agent-Skills render:docs failed: ${renderDocs.stderr.trim() || renderDocs.stdout.trim()}`);
+        }
+      }
+    }
+
+    // Always stage skills.json; stage README/WORK_AREAS only if render:docs
+    // produced changes (the test fixtures don't have those files).
+    const stageList = ["skills.json"];
+    for (const f of ["README.md", "WORK_AREAS.md"]) {
+      if (await fileExists(join(registryPath, f))) stageList.push(f);
+    }
+    runCmd("git", ["add", ...stageList], registryPath);
     const registryCommit = runCmd("git", ["commit", "-m", registryMsg], registryPath, 30_000);
     if (registryCommit.ok) {
       commits.push({ repo: "ai-agent-skills", sha: getHeadSha(registryPath), subject: registryMsg });
