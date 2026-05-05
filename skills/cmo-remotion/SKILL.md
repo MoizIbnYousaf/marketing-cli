@@ -3,7 +3,7 @@ name: cmo-remotion
 description: |
   Brand-grounded Remotion video pipeline. Take a brief, ground it in `brand/` (voice, audience, positioning, creative-kit), write a beat sheet, scaffold a fresh Remotion project, generate any required assets, compose with frame-driven animations, and bake a final MP4. Use this skill whenever the user wants to build a NEW Remotion video from scratch — product films, motion graphics, code-driven shaders, CRT/glitch effects, HTML-in-canvas demos, React video. Triggers on requests like "make a remotion video", CRT/glitch/scanline effects, html-in-canvas demos, video shaders, WebGL video, and frame-driven React video. This is the mktg-native sibling of the personal `/cmo-video` skill: `/cmo-video` recreates the *style* of an existing reference video; `/cmo-remotion` builds something new from a brief. Always load `remotion-best-practices` before stage 5 (compose).
 category: creative
-layer: creative
+layer: orchestrator
 tier: nice-to-have
 reads:
   - brand/creative-kit.md

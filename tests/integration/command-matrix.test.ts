@@ -55,6 +55,7 @@ const SMOKE_CASES: Record<string, SmokeCase> = {
   verify: { args: () => ["verify", "--dry-run", "--json"], key: "suites" },
   "ship-check": { args: () => ["ship-check", "--dry-run", "--json"], key: "checks" },
   cmo: { args: () => ["cmo", "help me market this app", "--dry-run", "--json"], key: "prompt" },
+  release: { args: () => ["release", "patch", "--dry-run", "--json"], key: "version_old" },
 };
 
 describe("mktg full command surface", () => {

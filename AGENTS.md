@@ -164,3 +164,61 @@ Every new command in `src/commands/` must satisfy:
 | Streaming | `--ndjson` for list-like output |
 
 After creating the handler, register it in `src/cli.ts`.
+
+<!-- Track E (frostbyte) — added 2026-05-04 — Upstream-Mirrored Skill Contract -->
+
+## Upstream-Mirrored Skill Contract
+
+Some skills (e.g. `remotion-best-practices`) mirror an external upstream repository. Their bundled SKILL.md and `rules/` content are vendored from upstream and stay in sync via a provenance manifest plus a drift-checker script. **Distinct** from chained-in CLI skills (e.g. `firecrawl`) — those shell out to a separately-installed CLI binary and have no provenance manifest.
+
+| Pattern | Provenance file | Drift checker | mktg integration | Example |
+|---|---|---|---|---|
+| Upstream-mirrored | `upstream.json` | `scripts/check-upstream.sh` | `mktg skill check-upstream`, `mktg skill upgrade`, `mktg doctor` | `remotion-best-practices` |
+| Chained-in CLI | (none) | (n/a) | `mktg doctor` ecosystem table | `firecrawl` |
+
+### upstream.json Schema
+
+| Key | Type | Required | Purpose |
+|---|---|---|---|
+| `version` | number | yes | Schema version (currently `1`) |
+| `fetched_at` | string (ISO 8601 UTC) | yes | When the snapshot was last refreshed. `mktg doctor` warns if > 30 days. |
+| `tool` | string | yes | Tool that produced the snapshot (e.g. `"/mktg-steal"`) |
+| `sources` | array | yes | One or more upstream sources mirrored into this skill |
+| `sources[].name` | string | yes | Logical label, e.g. `"primary"` or `"secondary"` |
+| `sources[].repo` | string | yes | GitHub `owner/repo` slug |
+| `sources[].branch` | string | yes | Upstream branch tracked (typically `main`) |
+| `sources[].snapshot_sha` | string | yes | Upstream commit SHA at last fetch |
+| `sources[].snapshot_at` | string (ISO 8601) | optional | Per-source fetch timestamp (falls back to top-level `fetched_at`) |
+| `sources[].upstream_root` | string | yes | Subtree path inside the upstream repo (e.g. `"skills/remotion"`) |
+| `sources[].local_root` | string | yes | Path inside this repo where the mirror lives (e.g. `"skills/remotion-best-practices"`) |
+| `sources[].files` | array | yes | Manifest of mirrored files (one entry per blob) |
+| `sources[].files[].local` | string | yes | Local path relative to `local_root` |
+| `sources[].files[].upstream` | string | yes | Upstream path including `upstream_root` prefix |
+| `sources[].files[].sha` | string | yes | Upstream blob SHA recorded at snapshot time |
+| `sources[].files[].note` | string | optional | Annotation; `"adapted-frontmatter"` flags files intentionally diverged from upstream — preserved across `mktg skill upgrade` |
+
+The canonical reference is `skills/remotion-best-practices/upstream.json` — point at it when adding a new upstream-mirrored skill.
+
+### Drift-Check Script Contract
+
+Every upstream-mirrored skill ships an executable `scripts/check-upstream.sh`. Invoked from the skill directory (`cwd = skills/<name>/`), it **must**:
+
+| Behavior | Detail |
+|---|---|
+| Read the manifest | `../upstream.json` is the source of truth; reject if missing or invalid JSON. |
+| Fetch live tree | Use `gh api repos/<repo>/git/trees/<branch>:<upstream_root>?recursive=1` per source. |
+| Compute drift | Compare each manifest entry's `sha` to the live blob SHA. Items with `note: "adapted-frontmatter"` surface in `drift.modified` but DO NOT flip `in_sync` to false. |
+| Emit JSON to stdout | Shape: `{ ok, in_sync, checked_at, sources: [{ name, repo, snapshot_sha, current_sha, drift: { added, modified, removed } }] }` |
+| Exit codes | `0` = no real drift; `1` = drift detected (added/removed/modified-without-note); `2` = environment error (missing `gh`/`jq`, manifest missing, network failure) |
+
+### CLI Integration
+
+| Command | Reads | Writes | Behavior |
+|---|---|---|---|
+| `mktg skill check-upstream [<name>] [--all]` | every `<skill>/upstream.json` + `scripts/check-upstream.sh` | nothing | Aggregates per-skill drift into a single envelope. Read-only. |
+| `mktg skill upgrade <name> [--dry-run] [--confirm]` | `upstream.json`, gh API | local skill files; refreshes `upstream.json`; bumps `skills-manifest.json` version | Applies drift. Adapted-frontmatter files surface as `manual_merge_required` instead of auto-overwrite. Validates post-upgrade SKILL.md and rolls back on failure. Removals require `--confirm`. |
+| `mktg doctor [--check-upstream]` | every `<skill>/upstream.json` | nothing | Default mode warns on `fetched_at > 30 days`. With `--check-upstream`, additionally invokes each skill's drift script for a live verdict. |
+
+When porting a new upstream into mktg, the contract is: ship `upstream.json` + `scripts/check-upstream.sh`, and the three CLI commands above start working automatically. No CLI code changes — drop-in by design.
+
+<!-- end Track E section -->

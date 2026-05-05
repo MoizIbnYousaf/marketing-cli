@@ -2,6 +2,10 @@
 // All checks run in parallel. --fix auto-remediates mechanical failures.
 
 import { join } from "node:path";
+// Track E (frostbyte) — added 2026-05-04 — used by checkUpstreamSkills
+import { readdir, readFile, stat } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+// end Track E imports
 import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
 import { invalidArgs } from "../core/errors";
 import { getBrandStatus, isTemplateContent } from "../core/brand";
@@ -18,6 +22,8 @@ export const schema: CommandSchema = {
   flags: [
     { name: "--fix", type: "boolean", required: false, default: false, description: "Auto-remediate failed checks (respects --dry-run)" },
     { name: "--configure", type: "string", required: false, description: "Configure a specific integration (e.g., typefully, resend)" },
+    // Track E (frostbyte) — added 2026-05-04
+    { name: "--check-upstream", type: "boolean", required: false, default: false, description: "Live drift check for upstream-mirrored skills (slower; runs each skill's scripts/check-upstream.sh)" },
   ],
   output: {
     "passed": "boolean — true if no checks failed",
@@ -309,11 +315,60 @@ const checkCatalogs = async (): Promise<Check[]> => {
 };
 
 // Run all checks in parallel
-const runAllChecks = async (cwd: string) => {
-  const [brand, skills, agents, graph, clis, integrations, externalSkills, catalogs] = await Promise.all([
+// --- Track E (frostbyte) — added 2026-05-04 ---
+// Upstream-mirrored skills health check. Default is staleness-only based on
+// `fetched_at`; --check-upstream flag invokes each skill's drift script for a
+// live verdict (slower, network-bound).
+const checkUpstreamSkills = async (cwd: string, liveCheck: boolean): Promise<Check[]> => {
+  const checks: Check[] = [];
+  const skillsDir = join(cwd, "skills");
+  let entries: string[] = [];
+  try {
+    const dirents = await readdir(skillsDir, { withFileTypes: true });
+    entries = dirents.filter((d) => d.isDirectory()).map((d) => d.name);
+  } catch {
+    return checks;
+  }
+  const STALE_DAYS = 30;
+  const now = Date.now();
+  for (const skillName of entries.sort()) {
+    const upstreamJsonPath = join(skillsDir, skillName, "upstream.json");
+    try { await stat(upstreamJsonPath); } catch { continue; }
+    let manifest: { fetched_at?: string };
+    try { manifest = JSON.parse(await readFile(upstreamJsonPath, "utf-8")); }
+    catch {
+      checks.push({ name: `upstream-${skillName}`, status: "warn", detail: `${skillName}: upstream.json is not valid JSON`, fix: `Inspect ${upstreamJsonPath} or restore from git history` });
+      continue;
+    }
+    const fetchedAt = manifest.fetched_at ?? null;
+    const ageMs = fetchedAt ? now - Date.parse(fetchedAt) : Infinity;
+    const stalenessDays = isFinite(ageMs) ? Math.floor(ageMs / (24 * 60 * 60 * 1000)) : null;
+    if (liveCheck) {
+      const scriptPath = join(skillsDir, skillName, "scripts", "check-upstream.sh");
+      try { await stat(scriptPath); } catch {
+        checks.push({ name: `upstream-${skillName}`, status: "warn", detail: `${skillName}: scripts/check-upstream.sh missing — drift cannot be verified live`, fix: `mktg skill check-upstream ${skillName} --json` });
+        continue;
+      }
+      const proc = spawnSync("bash", [scriptPath], { cwd: join(skillsDir, skillName), encoding: "utf-8", timeout: 60_000 });
+      if (proc.status === 0) checks.push({ name: `upstream-${skillName}`, status: "pass", detail: `${skillName}: in sync (last fetched ${stalenessDays ?? "?"}d ago)` });
+      else checks.push({ name: `upstream-${skillName}`, status: "warn", detail: `${skillName}: drift detected (script exit ${proc.status})`, fix: `mktg skill upgrade ${skillName} --dry-run --json to preview, --confirm to apply` });
+      continue;
+    }
+    if (stalenessDays === null) checks.push({ name: `upstream-${skillName}`, status: "warn", detail: `${skillName}: upstream.json missing fetched_at`, fix: `Re-snapshot via /mktg-steal or hand-set fetched_at to current ISO timestamp` });
+    else if (stalenessDays > STALE_DAYS) checks.push({ name: `upstream-${skillName}`, status: "warn", detail: `${skillName}: last fetched ${stalenessDays}d ago (stale > ${STALE_DAYS}d)`, fix: `mktg skill check-upstream ${skillName} --json` });
+    else checks.push({ name: `upstream-${skillName}`, status: "pass", detail: `${skillName}: fetched ${stalenessDays}d ago (fresh)` });
+  }
+  return checks;
+};
+// --- end Track E checkUpstreamSkills ---
+
+const runAllChecks = async (cwd: string, liveUpstream = false) => {
+  const [brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream] = await Promise.all([
     checkBrand(cwd), checkSkills(), checkAgents(), checkGraph(), checkCLIs(), checkIntegrations(), checkExternalSkills(cwd), checkCatalogs(),
+    // Track E — added 2026-05-04
+    checkUpstreamSkills(cwd, liveUpstream),
   ]);
-  return { brand, skills, agents, graph, clis, integrations, externalSkills, catalogs };
+  return { brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream };
 };
 
 // TTY display
@@ -338,6 +393,8 @@ const printChecks = (sections: ReturnType<typeof runAllChecks> extends Promise<i
   if (sections.externalSkills.length > 0) printSection("External Skills", sections.externalSkills);
   if (sections.integrations.length > 0) printSection("Integrations", sections.integrations);
   if (sections.catalogs.length > 0) printSection("Catalogs", sections.catalogs);
+  // Track E (frostbyte) — added 2026-05-04
+  if (sections.upstream.length > 0) printSection("Upstream-Mirrored Skills", sections.upstream);
 
   if (fixes && fixes.length > 0) {
     writeStderr(`  ${dim("Fixes")}`);
@@ -410,10 +467,12 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
   }
 
   const wantsFix = args.includes("--fix");
+  // Track E (frostbyte) — added 2026-05-04
+  const wantsCheckUpstream = args.includes("--check-upstream");
 
   // Initial checks
-  let sections = await runAllChecks(flags.cwd);
-  let allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs];
+  let sections = await runAllChecks(flags.cwd, wantsCheckUpstream);
+  let allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs, ...sections.upstream];
   let fixes: FixEntry[] | undefined;
 
   if (wantsFix) {
@@ -421,8 +480,8 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
 
     // Re-run checks after fixes to show final state
     if (!flags.dryRun && fixes.some(f => f.result === "fixed")) {
-      sections = await runAllChecks(flags.cwd);
-      allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.integrations, ...sections.catalogs];
+      sections = await runAllChecks(flags.cwd, wantsCheckUpstream);
+      allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.integrations, ...sections.catalogs, ...sections.upstream];
     }
   }
 

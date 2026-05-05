@@ -3,9 +3,9 @@ name: remotion-best-practices
 description: |
   Programmatic React video best practices for Remotion. Use this skill whenever the user is writing, debugging, or rendering Remotion code — compositions, useCurrentFrame animations, interpolate, spring, Sequence timing, <Img>/<Video>/<Audio> from @remotion/media, staticFile, calculateMetadata, the Studio preview, `npx remotion render`, captions, subtitles, voiceover, audio visualization, ffmpeg, transitions, light leaks, transparent video, Lottie, 3D scenes, Mapbox flyovers. Triggers especially on HtmlInCanvas / "html in canvas" requests, CRT terminal effects, glitch effects, video shaders, WebGL video, and any request to scaffold a new programmatic React video. Do NOT trigger for finished MP4 ad assembly from existing slides (that is `/video-content`) or for the inspiration-to-MP4 reference-video pipeline (that is `/cmo-video`).
 category: creative
-layer: creative
+layer: foundation
 tier: nice-to-have
-source: upstream
+source: new
 version: 1.0.0
 review_interval_days: 30
 reads:
