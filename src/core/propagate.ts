@@ -91,8 +91,13 @@ const mirrorNeedsUpdate = (
   return false;
 };
 
-// Determine whether a registry entry needs update (tags stale or lastVerified >30d old)
+// Determine whether a registry entry needs update.
+// Compares EVERY field propagate generates so structural drift (workArea,
+// description, branch, sourceUrl, installSource, featured) is detected — not
+// just tags / lastVerified. Without this, a generator-logic fix wouldn't
+// trigger re-sync on existing entries.
 const registryNeedsUpdate = (
+  slug: string,
   canonical: SkillManifestEntry,
   registry: RegistryEntry,
   today: string,
@@ -102,6 +107,25 @@ const registryNeedsUpdate = (
   const registryTagsStr = [...registry.tags].sort().join(",");
   const canonicalTagsStr = [...canonicalTags].sort().join(",");
   if (registryTagsStr !== canonicalTagsStr) {
+    return true;
+  }
+  // Check workArea — should always be "marketing" for marketing-cli sourced.
+  // The registry validator rejects any other value.
+  if (registry.workArea !== "marketing") {
+    return true;
+  }
+  // Check sourceUrl + installSource match the canonical slug
+  const expectedSourceUrl = `https://github.com/MoizIbnYousaf/marketing-cli/tree/main/skills/${slug}`;
+  if (registry.sourceUrl !== expectedSourceUrl) {
+    return true;
+  }
+  const expectedInstallSource = `MoizIbnYousaf/marketing-cli/skills/${slug}`;
+  if (registry.installSource !== expectedInstallSource) {
+    return true;
+  }
+  // Check featured flag tracks tier
+  const expectedFeatured = canonical.tier === "must-have";
+  if (registry.featured !== expectedFeatured) {
     return true;
   }
   // Check if lastVerified > 30 days old
@@ -171,13 +195,13 @@ export const computeDiff = (
     // Check registry
     if (!inRegistry) {
       diff.push({ slug, status: "add-registry" });
-    } else if (registryEntry && registryNeedsUpdate(canonicalEntry, registryEntry, today)) {
+    } else if (registryEntry && registryNeedsUpdate(slug, canonicalEntry, registryEntry, today)) {
       diff.push({ slug, status: "update-registry" });
     }
 
     // If both mirror and registry are up to date, record as in-sync
     const mirrorOk = inMirror && (!mirrorEntry || !mirrorNeedsUpdate(canonicalEntry, mirrorEntry!));
-    const registryOk = inRegistry && (!registryEntry || !registryNeedsUpdate(canonicalEntry, registryEntry!, today));
+    const registryOk = inRegistry && (!registryEntry || !registryNeedsUpdate(slug, canonicalEntry, registryEntry!, today));
     if (mirrorOk && registryOk) {
       diff.push({ slug, status: "in-sync" });
     }
