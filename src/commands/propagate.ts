@@ -162,14 +162,45 @@ export const handler: CommandHandler<PropagateReport> = async (args, flags) => {
   const mirrorPath = resolveSiblingPath("MKTG_SITE_PATH", "../mktg-site", canonicalPath) ?? "";
   const registryPath = resolveSiblingPath("AI_AGENT_SKILLS_PATH", "../../Ai-Agent-Skills", canonicalPath) ?? "";
 
-  // Verify paths exist
+  // Verify paths exist. --check is read-only and may run in environments
+  // without sibling checkouts (CI, fresh clones); a missing sibling there
+  // is "not configured", not an error. --apply and --push hard-fail because
+  // they need real targets to write to.
+  const writeMode = wantsApply || wantsPush;
+  const missingSiblings: Array<{ label: string; path: string; envVar: string }> = [];
+
   for (const [label, p] of [["canonical (marketing-cli)", canonicalPath], ["mirror (mktg-site)", mirrorPath], ["registry (Ai-Agent-Skills)", registryPath]] as const) {
     if (!(await fileExists(p))) {
-      return err("NOT_FOUND", `Repo not found: ${label} at ${p}`, [
-        `Set ${label === "mirror (mktg-site)" ? "MKTG_SITE_PATH" : "AI_AGENT_SKILLS_PATH"} env var to override`,
-        "Expected sibling layout: mktgmono/marketing-cli, mktgmono/mktg-site, Ai-Agent-Skills",
-      ], 1);
+      if (label === "canonical (marketing-cli)") {
+        // Canonical is always our CWD; if it's missing something is very wrong.
+        return err("NOT_FOUND", `Repo not found: ${label} at ${p}`, [
+          "Run from inside a marketing-cli checkout",
+        ], 1);
+      }
+      const envVar = label === "mirror (mktg-site)" ? "MKTG_SITE_PATH" : "AI_AGENT_SKILLS_PATH";
+      missingSiblings.push({ label, path: p, envVar });
+      if (writeMode) {
+        return err("NOT_FOUND", `Repo not found: ${label} at ${p}`, [
+          `Set ${envVar} env var to override`,
+          "Expected sibling layout: mktgmono/marketing-cli, mktgmono/mktg-site, Ai-Agent-Skills",
+        ], 1);
+      }
     }
+  }
+
+  // Read-only mode with missing siblings: return an empty diff with a warning
+  // rather than failing. This keeps `mktg propagate --check` safe to run
+  // anywhere (CI smoke tests, doctor health checks, fresh clones).
+  if (!writeMode && missingSiblings.length > 0) {
+    const report: PropagateReport = {
+      diff: { in_sync: 0, add_mirror: [], add_registry: [], update_mirror: [], update_registry: [], orphan_mirror: [], orphan_registry: [] },
+      applied: false,
+      pushed: false,
+      commits: [],
+      warnings: missingSiblings.map((s) => `${s.label} not found at ${s.path} — set ${s.envVar} to enable diff (skipped in --check mode)`),
+      paths: { canonical: canonicalPath, mirror: mirrorPath, registry: registryPath },
+    };
+    return ok(report);
   }
 
   // ---------------------------------------------------------------------------
@@ -181,6 +212,18 @@ export const handler: CommandHandler<PropagateReport> = async (args, flags) => {
 
   for (const p of [canonicalManifestPath, mirrorManifestPath, registryFilePath]) {
     if (!(await fileExists(p))) {
+      if (!writeMode) {
+        // Read-only: empty diff + warning rather than fail
+        const report: PropagateReport = {
+          diff: { in_sync: 0, add_mirror: [], add_registry: [], update_mirror: [], update_registry: [], orphan_mirror: [], orphan_registry: [] },
+          applied: false,
+          pushed: false,
+          commits: [],
+          warnings: [`Manifest not found: ${p} (skipped in --check mode)`],
+          paths: { canonical: canonicalPath, mirror: mirrorPath, registry: registryPath },
+        };
+        return ok(report);
+      }
       return err("NOT_FOUND", `Manifest not found: ${p}`, [], 1);
     }
   }

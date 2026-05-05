@@ -39,22 +39,12 @@ export type RegistryEntry = {
   readonly labels: readonly string[];
 };
 
-// Map SkillLayer → workArea string (matches live registry convention)
-const layerToWorkArea = (layer: SkillLayer): string => {
-  switch (layer) {
-    case "foundation":
-    case "strategy":
-      return "marketing";
-    case "execution":
-      return "marketing-execution";
-    case "distribution":
-      return "marketing-distribution";
-    case "orchestrator":
-      return "marketing-orchestrator";
-    default:
-      return "marketing";
-  }
-};
+// All marketing-cli sourced skills map to workArea: "marketing".
+// The Ai-Agent-Skills registry's canonical workArea IDs are: frontend, backend,
+// mobile, workflow, agent-engineering, marketing. Sub-categories live in `branch`
+// instead. The registry's validator (lib/catalog-mutations.cjs) rejects any
+// other workArea value. Verified against `.workAreas[]` in skills.json.
+const layerToWorkArea = (_layer: SkillLayer): string => "marketing";
 
 // Map manifest category → branch string (matches live registry convention).
 // Live entries use Title Case of the canonical category name.
