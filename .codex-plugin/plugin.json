@@ -1,6 +1,6 @@
 {
   "name": "marketing-cli",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Agent-native marketing playbook CLI: 51 skills, 5 research/review agents, brand memory, and /cmo orchestration.",
   "author": {
     "name": "Moiz Ibn Yousaf",
@@ -24,7 +24,10 @@
     "longDescription": "Install one CLI and give your agent 51 marketing skills, 5 research/review agents, persistent brand memory, native publishing workflows, and a local marketing studio.",
     "developerName": "Moiz Ibn Yousaf",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://marketing-cli.com"
   }
 }

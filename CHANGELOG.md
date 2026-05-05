@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.6
+
+### feat
+
+- auto-install @higgsfield/cli alongside marketing-cli
+- add 3 Higgsfield skills (generate, soul-id, product-photoshoot) + chain in CLI
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
