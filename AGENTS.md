@@ -221,46 +221,13 @@ Every upstream-mirrored skill ships an executable `scripts/check-upstream.sh`. I
 
 When porting a new upstream into mktg, the contract is: ship `upstream.json` + `scripts/check-upstream.sh`, and the three CLI commands above start working automatically. No CLI code changes — drop-in by design.
 
-## Propagate Contract
-
-`mktg propagate` keeps three repositories in sync whenever a skill is added, updated, or removed in the canonical catalog.
-
-### 3-Way Sync Semantics
-
-| Surface | File | Role |
-|---|---|---|
-| `marketing-cli` | `skills-manifest.json` | **Canonical** — single source of truth. Never edits the other two. |
-| `mktg-site` | `skills-manifest.json` | **Mirror** — exact copy of canonical + `_changed_at`/`_first_seen` ISO timestamps per skill. The website activity page reads these timestamps. |
-| `Ai-Agent-Skills` | `skills.json` | **Registry** — curated entry per skill (rich metadata: `source`, `sourceUrl`, `installSource`, `tags`, etc.). Only manages entries where `source === "MoizIbnYousaf/marketing-cli"`. |
-
-### Diff Status Values
-
-| Status | Condition | Action under --apply |
-|---|---|---|
-| `in-sync` | Present in all 3, fields match | None |
-| `add-mirror` | In canonical, missing in mirror | Generate mirror entry + timestamps, write |
-| `add-registry` | In canonical, missing in registry | Generate registry entry from SKILL.md, write |
-| `update-mirror` | In canonical, in mirror but `version` stale or timestamps missing | Refresh mirror entry |
-| `update-registry` | In canonical, in registry but `lastVerified` >30d or `tags` differ | Refresh registry entry |
-| `orphan-mirror` | In mirror, not in canonical | Remove from mirror |
-| `orphan-registry` | `source: marketing-cli` in registry, not in canonical | Remove from registry — **never touches other sources** |
-
-### Ownership Rule
-
-propagate ONLY manages registry entries with `source === "MoizIbnYousaf/marketing-cli"`. Entries from `anthropics/skills`, `openai/skills`, or any other source are never touched, even if a name collides.
-
-### Path Resolution
-
-1. `MKTG_SITE_PATH` env var → override mirror path
-2. `AI_AGENT_SKILLS_PATH` env var → override registry path
-3. Sibling fallback: `../mktg-site` and `../../Ai-Agent-Skills` relative to `marketing-cli`
-4. Error if neither resolves to an existing directory
-
-### Commit Message Convention
-
-| Repo | Message template |
-|---|---|
-| `mktg-site` | `chore(skills): sync mirror with marketing-cli — +N added, ~M updated, -K orphaned` |
-| `Ai-Agent-Skills` | `chore(skills): sync marketing-cli entries — +N added, ~M updated, -K removed` |
-
 <!-- end Track E section -->
+
+## 3-Way Sync (mktg-site mirror + Ai-Agent-Skills registry)
+
+The canonical `skills-manifest.json` is the single source of truth. Two downstream surfaces stay in lockstep with it:
+
+- `mktg-site/skills-manifest.json` — mirror with embedded `_changed_at` / `_first_seen` ISO timestamps. The website activity page reads these.
+- `Ai-Agent-Skills/skills.json` — registry with curated metadata per skill (source, sourceUrl, tags, etc.).
+
+The sync command (`mktg-propagate`) lives in the **private** `mktg-private` repo, NOT in `marketing-cli` itself, because it's maintainer-only infra and would be useless to public npm users. See `MoizIbnYousaf/mktg-private` for the implementation. From this repo's perspective: just know that `/mktg-add` and `/mktg-steal` invoke it as their final step after committing to `marketing-cli`.

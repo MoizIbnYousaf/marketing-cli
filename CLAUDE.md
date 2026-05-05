@@ -14,7 +14,7 @@ A TypeScript/Bun agent-native marketing playbook CLI. 53 marketing skills, 5 age
 
 | Component | Count | Purpose |
 |---|---|---|
-| `mktg` CLI | 21 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
+| `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
 | Marketing skills | 52 | The playbook, installed to `~/.claude/skills/` |

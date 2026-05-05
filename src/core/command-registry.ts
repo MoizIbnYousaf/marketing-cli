@@ -32,7 +32,6 @@ export const COMMANDS: Record<string, CommandLoader> = {
   cmo: () => import("../commands/cmo"),
   // Track E (frostbyte) — added 2026-05-04
   release: () => import("../commands/release"),
-  propagate: () => import("../commands/propagate"),
 };
 
 export const TOP_LEVEL_COMMANDS = Object.freeze(Object.keys(COMMANDS));
