@@ -212,6 +212,42 @@ try {
   }
 
   log(`mktg postinstall: installed ${skills.installed} skills and ${agents.installed} agents for Claude Code.`);
+
+  // Optional sibling CLIs that pair with bundled skills. These install
+  // automatically alongside marketing-cli so users running
+  // `npm i -g marketing-cli` get a working setup in one shot. Skip with
+  // MKTG_SKIP_OPTIONAL_DEPS=1. Tests skip via MKTG_TEST_REAL_HOME (which
+  // signals a controlled test environment — running real npm i during tests
+  // would hit network timeouts and modify the user's global npm install).
+  // Each install is fail-soft — a network or permission error here must NOT
+  // break the marketing-cli install itself.
+  // Tests set MKTG_POSTINSTALL_QUIET=1 to silence the postinstall — we use
+  // the same signal to skip optional CLI installs because tests run in
+  // sandboxed temp homes where running real `npm i -g` would either modify
+  // the user's global install or hit network timeouts.
+  if (
+    process.env.MKTG_SKIP_OPTIONAL_DEPS !== "1" &&
+    !process.env.MKTG_TEST_REAL_HOME &&
+    process.env.MKTG_POSTINSTALL_QUIET !== "1"
+  ) {
+    const { execSync } = require("node:child_process");
+    const optionalDeps = [
+      {
+        pkg: "@higgsfield/cli",
+        purpose: "AI image + video generation (powers higgsfield-generate / soul-id / product-photoshoot skills)",
+      },
+    ];
+
+    for (const dep of optionalDeps) {
+      try {
+        execSync(`npm i -g ${dep.pkg}`, { stdio: "ignore", timeout: 120_000 });
+        log(`mktg postinstall: installed ${dep.pkg} — ${dep.purpose}.`);
+      } catch (_err) {
+        log(`mktg postinstall: skipped ${dep.pkg} (install failed; run \`npm i -g ${dep.pkg}\` manually).`);
+      }
+    }
+  }
+
   log("mktg postinstall: run `mktg init` inside a project to scaffold brand memory.");
 } catch (error) {
   log(`mktg postinstall: skipped Claude skill install (${error && error.message ? error.message : String(error)}).`);
