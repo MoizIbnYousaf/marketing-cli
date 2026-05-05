@@ -49,6 +49,7 @@ Commands:
   verify     Orchestrated test-suite runner across the mktgmono ecosystem (dry-run planning + live execution)
   ship-check Aggregated go/no-go 🟢/🟡/🔴 verdict across all ecosystem surfaces (wraps verify + git + typecheck + doctor)
   cmo        Invoke /cmo via headless Claude Code subprocess — returns structured CmoResponse for agent consumption
+  propagate  3-way sync: keep mktg-site mirror + Ai-Agent-Skills registry in sync with canonical skills-manifest
 
 Flags:
   --json           Machine-readable JSON output
