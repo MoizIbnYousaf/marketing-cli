@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.5.7
+
+### feat
+
+- chrome cleanup, IA consolidation, Pulse rebuild, primitives unification, perf hardening
+- shared manifest sync, skill count single-source, tarball strip
+- localhost-only studio API with token auth
+
+### fix
+
+- strip em-dashes from launcher banner comments
+- cmo orchestration cleanup, frontmatter normalization, archetype schema
+- kill silent error swallow, fix success screen lie, clean up demo seed
+
+### docs
+
+- bump stale '51 skills' anti-pattern callout to 56
+
+### test
+
+- add lane 7 lighthouse + bundle assertions report
+- real end-to-end coverage across 9 lanes
+
 ## v0.5.6
 
 ### feat
