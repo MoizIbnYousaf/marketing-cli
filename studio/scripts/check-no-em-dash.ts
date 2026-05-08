@@ -14,17 +14,19 @@ import { join, relative } from "node:path";
 
 const REPO_ROOT = new URL("..", import.meta.url).pathname;
 
-// Directories that render to real users via the dashboard.
+// Directories that ship to real users (UI source + library + entry point).
 //
-// Scope is narrow on purpose: this guard locks down the surfaces that were
-// hardened by the G1 audit F03 finding. Other directories (e.g. settings,
-// publish, providers, demo) still contain em-dashes in code comments and
-// toast strings; they can be added to this list as their owners clean them
-// up. The point of this guard is to prevent RE-regression in the paths
-// F03 already fixed, not to force a repo-wide sweep.
+// Wave A (Lane 8) cleared every em-dash from app/, components/, lib/, bin/
+// in one sweep, so the guard now enforces the no-em-dash rule across the
+// full production surface. `scripts/` is intentionally excluded because
+// `seed-demo.ts` is Wave B's domain (rich fixture copy + URLs); add it to
+// this list when Wave B's seed rewrite lands. Tests are excluded by the
+// IGNORED_SEGMENTS list below.
 const WATCHED_DIRS = [
-  "components/onboarding",
-  "components/workspace/brand",
+  "app",
+  "components",
+  "lib",
+  "bin",
 ];
 
 // Extensions worth scanning.
@@ -82,7 +84,7 @@ async function main(): Promise<void> {
   }
 
   if (hits.length === 0) {
-    console.log(`[check-no-em-dash] clean — scanned ${files.length} file(s) across ${WATCHED_DIRS.join(", ")}`);
+    console.log(`[check-no-em-dash] clean: scanned ${files.length} file(s) across ${WATCHED_DIRS.join(", ")}`);
     process.exit(0);
   }
 
@@ -91,9 +93,9 @@ async function main(): Promise<void> {
     console.error(`  ${h.file}:${h.line}: ${h.content}`);
   }
   console.error(
-    `\nStyle rule: em-dashes (U+2014) are not allowed in app/ or components/.\n` +
+    `\nStyle rule: em-dashes (U+2014) are not allowed in ${WATCHED_DIRS.join(", ")}.\n` +
       `Replace with ':', ';', '.', parentheses, or an ASCII '-' glyph as appropriate.\n` +
-      `See commit 24399f2 (2026-04-13 style audit) + G1 F03.`,
+      `See commit 24399f2 (2026-04-13 style audit) + G1 F03 + Lane 8 Wave A sweep.`,
   );
   process.exit(1);
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
+import { studioAuthHeaders } from "@/lib/studio-token"
 
 import { StepProject } from "./step-project"
 import { StepPostiz } from "./step-postiz"
@@ -80,6 +81,16 @@ export function Wizard() {
   // Next until retry succeeds.
   const [projectError, setProjectError] = useState<string | null>(null)
   const [projectErrorFix, setProjectErrorFix] = useState<string | null>(null)
+  // Lane 8 Wave B / neonpulse P1-6: Steps 1+2 used to catch errors and
+  // `// continue anyway`, silently advancing the user past failed key
+  // saves. Foundation agents would then run with no integration. Now the
+  // wizard mirrors the projectError pattern: surface the error inline,
+  // block auto-advance, and offer an explicit "Continue without saving"
+  // skip path so the user knows the integration did not save.
+  const [postizError, setPostizError] = useState<string | null>(null)
+  const [postizErrorFix, setPostizErrorFix] = useState<string | null>(null)
+  const [optionalError, setOptionalError] = useState<string | null>(null)
+  const [optionalErrorFix, setOptionalErrorFix] = useState<string | null>(null)
 
   // Hydrate from localStorage after mount
   useEffect(() => {
@@ -115,7 +126,7 @@ export function Wizard() {
     try {
       const res = await fetch("/api/init", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify({ from: state.url || undefined }),
       })
       // Attempt to parse the envelope even on non-2xx: the studio's
@@ -130,6 +141,17 @@ export function Wizard() {
 
       const envelopeOk = body?.ok === true
       if (!res.ok || !envelopeOk) {
+        // 401 here means SWRProvider's bootstrap fetch failed at first
+        // paint (rare; ironmint's swr-provider:46-49 flips ready=true on
+        // bootstrap error to avoid a blank page). Translate the raw
+        // agent-shaped fix into a human-actionable instruction.
+        if (res.status === 401 || body?.error?.code === "UNAUTHORIZED") {
+          setProjectError("Studio session not ready.")
+          setProjectErrorFix(
+            "Reload the dashboard. The launcher re-issues the bearer token on every fresh nav.",
+          )
+          return
+        }
         const message =
           body?.error?.message ??
           (res.ok
@@ -154,27 +176,90 @@ export function Wizard() {
     }
   }
 
+  // Shared envelope parser. /api/settings/env returns either
+  // {ok:true, written:[...]} on success or {ok:false, error:{...}} on
+  // validation/server failure. We treat anything that is not a typed
+  // success envelope as a failure the user must see.
+  async function saveEnv(payload: Record<string, string>): Promise<
+    | { ok: true }
+    | { ok: false; message: string; fix: string | null }
+  > {
+    try {
+      // ?confirm=true is required by the destructive-write guard ironmint
+      // added at /api/settings/env. Audit log captures key names only.
+      const res = await fetch("/api/settings/env?confirm=true", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify(payload),
+      })
+      const body = (await res.json().catch(() => null)) as
+        | {
+            ok?: boolean
+            error?: { code?: string; message?: string; fix?: string }
+          }
+        | null
+      if (res.ok && body?.ok === true) return { ok: true }
+      // 401 / UNAUTHORIZED reaches the wizard only in the rare branch where
+      // SWRProvider's /api/auth/bootstrap fetch failed at first paint
+      // (ironmint, swr-provider.tsx:46-49 -- ready=true on bootstrap error
+      // to avoid a permanent blank page). The server's fix message in that
+      // case ("Send Authorization: Bearer <token>...") is written for an
+      // agent caller, not a human typing in a wizard. Translate to a
+      // user-actionable instruction.
+      if (res.status === 401 || body?.error?.code === "UNAUTHORIZED") {
+        return {
+          ok: false,
+          message: "Studio session not ready.",
+          fix: "Reload the dashboard. The launcher re-issues the bearer token on every fresh nav.",
+        }
+      }
+      const message =
+        body?.error?.message ??
+        (res.ok
+          ? "The server accepted the request but did not confirm success."
+          : `Server returned HTTP ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`)
+      return { ok: false, message, fix: body?.error?.fix ?? null }
+    } catch (e) {
+      return {
+        ok: false,
+        message: e instanceof Error ? e.message : "Network error reaching /api/settings/env",
+        fix: "Check that the studio server is running on port 3001.",
+      }
+    }
+  }
+
   async function handlePostiz() {
+    // No key entered: nothing to save, advance directly. The "Skip for
+    // now" button calls handlePostizSkip; this path is hit when the user
+    // clicks the primary CTA without filling the input.
     if (!state.postizKey.trim()) {
+      setPostizError(null)
+      setPostizErrorFix(null)
       goTo(2)
       return
     }
     setLoading(true)
-    try {
-      await fetch("/api/settings/env", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          POSTIZ_API_KEY: state.postizKey,
-          POSTIZ_API_BASE: state.postizBase,
-        }),
-      })
-    } catch {
-      // continue anyway
-    } finally {
-      setLoading(false)
-      goTo(2)
+    setPostizError(null)
+    setPostizErrorFix(null)
+    const result = await saveEnv({
+      POSTIZ_API_KEY: state.postizKey,
+      POSTIZ_API_BASE: state.postizBase,
+    })
+    setLoading(false)
+    if (!result.ok) {
+      setPostizError(result.message)
+      setPostizErrorFix(result.fix)
+      // Block advance: user retries, edits the key, or clicks
+      // "Continue without saving" to skip the integration knowingly.
+      return
     }
+    goTo(2)
+  }
+
+  function handlePostizSkip() {
+    setPostizError(null)
+    setPostizErrorFix(null)
+    goTo(2)
   }
 
   async function handleOptional() {
@@ -183,20 +268,28 @@ export function Wizard() {
     if (state.exaKey.trim()) env.EXA_API_KEY = state.exaKey
     if (state.resendKey.trim()) env.RESEND_API_KEY = state.resendKey
 
-    if (Object.keys(env).length > 0) {
-      setLoading(true)
-      try {
-        await fetch("/api/settings/env", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(env),
-        })
-      } catch {
-        // continue anyway
-      } finally {
-        setLoading(false)
-      }
+    setOptionalError(null)
+    setOptionalErrorFix(null)
+
+    if (Object.keys(env).length === 0) {
+      goTo(3)
+      return
     }
+
+    setLoading(true)
+    const result = await saveEnv(env)
+    setLoading(false)
+    if (!result.ok) {
+      setOptionalError(result.message)
+      setOptionalErrorFix(result.fix)
+      return
+    }
+    goTo(3)
+  }
+
+  function handleOptionalSkip() {
+    setOptionalError(null)
+    setOptionalErrorFix(null)
     goTo(3)
   }
 
@@ -256,11 +349,26 @@ export function Wizard() {
                 <StepPostiz
                   apiKey={state.postizKey}
                   apiBase={state.postizBase}
-                  onChangeKey={(postizKey) => update({ postizKey })}
-                  onChangeBase={(postizBase) => update({ postizBase })}
+                  onChangeKey={(postizKey) => {
+                    update({ postizKey })
+                    if (postizError) {
+                      setPostizError(null)
+                      setPostizErrorFix(null)
+                    }
+                  }}
+                  onChangeBase={(postizBase) => {
+                    update({ postizBase })
+                    if (postizError) {
+                      setPostizError(null)
+                      setPostizErrorFix(null)
+                    }
+                  }}
                   onNext={handlePostiz}
+                  onSkip={handlePostizSkip}
                   onBack={() => { setDirection(-1); update({ step: 0 }) }}
                   loading={loading}
+                  error={postizError}
+                  errorFix={postizErrorFix}
                 />
               )}
               {state.step === 2 && (
@@ -268,12 +376,33 @@ export function Wizard() {
                   firecrawlKey={state.firecrawlKey}
                   exaKey={state.exaKey}
                   resendKey={state.resendKey}
-                  onChangeFirecrawl={(firecrawlKey) => update({ firecrawlKey })}
-                  onChangeExa={(exaKey) => update({ exaKey })}
-                  onChangeResend={(resendKey) => update({ resendKey })}
+                  onChangeFirecrawl={(firecrawlKey) => {
+                    update({ firecrawlKey })
+                    if (optionalError) {
+                      setOptionalError(null)
+                      setOptionalErrorFix(null)
+                    }
+                  }}
+                  onChangeExa={(exaKey) => {
+                    update({ exaKey })
+                    if (optionalError) {
+                      setOptionalError(null)
+                      setOptionalErrorFix(null)
+                    }
+                  }}
+                  onChangeResend={(resendKey) => {
+                    update({ resendKey })
+                    if (optionalError) {
+                      setOptionalError(null)
+                      setOptionalErrorFix(null)
+                    }
+                  }}
                   onNext={handleOptional}
+                  onSkip={handleOptionalSkip}
                   onBack={() => { setDirection(-1); update({ step: 1 }) }}
                   loading={loading}
+                  error={optionalError}
+                  errorFix={optionalErrorFix}
                 />
               )}
               {state.step === 3 && (

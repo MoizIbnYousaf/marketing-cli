@@ -77,7 +77,7 @@ export function StepProject({
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-rose-500" aria-hidden />
           <div className="min-w-0 space-y-0.5">
             <p className="font-medium text-rose-700 dark:text-rose-300">
-              Couldn&apos;t initialise the project
+              Couldn&apos;t initialize the project
             </p>
             <p className="text-foreground/85">{error}</p>
             {errorFix ? (
@@ -95,7 +95,7 @@ export function StepProject({
           className="gap-2"
         >
           {loading
-            ? "Initialising…"
+            ? "Initializing…"
             : error
               ? "Retry"
               : url

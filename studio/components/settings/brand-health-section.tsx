@@ -89,8 +89,8 @@ function statusLabel(status: BrandStatus): string {
 }
 
 function ageLabel(stats: BrandFileStats): string {
-  if (stats.status === "missing") return "—"
-  if (stats.ageDays === null) return "—"
+  if (stats.status === "missing") return "--"
+  if (stats.ageDays === null) return "--"
   if (stats.ageDays < 1) return "today"
   if (stats.ageDays < 2) return "yesterday"
   if (stats.ageDays < 30) return `${Math.floor(stats.ageDays)}d ago`
@@ -116,7 +116,7 @@ function renderError(message: string) {
 export async function BrandHealthSection() {
   // Race the fs scan against a short budget. Any failure mode (stall on
   // slow disk, permission error, huge brand/ dir at wider viewports that
-  // delays Next's RSC stream past Playwright's 30s timeout — G1 F25/F43)
+  // delays Next's RSC stream past Playwright's 30s timeout -- G1 F25/F43)
   // falls through to an inline error card instead of blocking or crashing
   // the whole Settings page.
   let stats: BrandFileStats[]
@@ -149,7 +149,7 @@ export async function BrandHealthSection() {
           <p className="text-xs text-muted-foreground">
             Read live from{" "}
             <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">brand/</code>. Stale
-            files still work — /cmo will flag them when a skill needs fresh data.
+            files still work -- /cmo will flag them when a skill needs fresh data.
           </p>
         </div>
         <div className="hidden gap-1 text-[11px] text-muted-foreground md:flex">

@@ -32,7 +32,7 @@ export function DemoSeedButton({ variant = "outline" }: { variant?: "outline" | 
       setCopied(key)
       setTimeout(() => setCopied((v) => (v === key ? null : v)), 1500)
     } catch {
-      // Clipboard can fail in insecure contexts — no-op.
+      // Clipboard can fail in insecure contexts -- no-op.
     }
   }
 
@@ -52,7 +52,7 @@ export function DemoSeedButton({ variant = "outline" }: { variant?: "outline" | 
           </DialogTitle>
           <DialogDescription>
             Populates <code className="rounded bg-muted px-1 font-mono text-[11px]">marketing.db</code>{" "}
-            with ~20 signals, 5 opportunities, 10 activity entries, 3 briefs, and 6 publish-log rows —
+            with ~20 signals, 5 opportunities, 10 activity entries, 3 briefs, and 6 publish-log rows --
             realistic enough for screenshots, demos, and first-run walkthroughs.
           </DialogDescription>
         </DialogHeader>
@@ -111,7 +111,7 @@ export function DemoSeedButton({ variant = "outline" }: { variant?: "outline" | 
           <p className="text-[11px] text-muted-foreground">
             Safe to run repeatedly. Demo rows are tagged with a{" "}
             <code className="rounded bg-muted px-1 font-mono">demo:</code> sentinel so{" "}
-            <code className="rounded bg-muted px-1 font-mono">--reset</code> only clears seeded rows —
+            <code className="rounded bg-muted px-1 font-mono">--reset</code> only clears seeded rows --
             real /cmo data is never touched.
           </p>
         </div>

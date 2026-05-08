@@ -24,3 +24,7 @@ jobs:
 
       - name: Type check
         run: bun x tsc --noEmit
+
+      - name: Studio em-dash lint
+        working-directory: studio
+        run: bun run lint:em-dash

@@ -153,7 +153,7 @@ export function ResetSection() {
         </div>
       </div>
 
-      {/* Typed-DELETE confirmation (H1-109 / A15) — replaces the native
+      {/* Typed-DELETE confirmation (H1-109 / A15) -- replaces the native
           confirm() whose "OK" is a single click. Backup pathway is
           surfaced here too so the user knows recovery is real. */}
       <Dialog
@@ -174,7 +174,7 @@ export function ResetSection() {
             <DialogDescription>
               Every file in <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">brand/</code>{" "}
               will be reset to an empty template. Voice profile, audience, positioning,
-              competitors, landscape, learnings — all replaced.
+              competitors, landscape, learnings -- all replaced.
             </DialogDescription>
           </DialogHeader>
 

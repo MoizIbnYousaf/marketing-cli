@@ -104,12 +104,12 @@ export function PostComposer({
  if (!json.ok) {
  const message = json.error?.message ?? "Publish failed"
  const fix = json.error?.fix
- toast.error(fix ? `${message} — ${fix}` : message)
+ toast.error(fix ? `${message} -- ${fix}` : message)
  return
  }
 
  // A16 / H1-55: toast reads SERVER truth, not the requested `mode`.
- // Postiz v1 silently coerces everything to draft — claiming
+ // Postiz v1 silently coerces everything to draft -- claiming
  // "published" when the user asked for `now` is a trust bug.
  //
  // Precedence:
@@ -168,7 +168,7 @@ export function PostComposer({
  ? "The native backend stored the scheduled post locally in the workspace queue."
  : "The native backend stored this draft locally in the workspace queue."
  : mode === "now"
- ? "Postiz v1 creates drafts only — publish from the Postiz UI when ready."
+ ? "Postiz v1 creates drafts only -- publish from the Postiz UI when ready."
  : mode === "schedule"
  ? "Postiz v1 stores this as a draft with your scheduled-at metadata; confirm in Postiz."
  : undefined
@@ -236,7 +236,7 @@ export function PostComposer({
  overflow ? "text-red-600 dark:text-red-400" : "text-muted-foreground",
  )}
  >
- {content.length} / {minCharLimit === Infinity ? "—" : minCharLimit}
+ {content.length} / {minCharLimit === Infinity ? "--" : minCharLimit}
  {overflow && " · over limit on the strictest provider"}
  </span>
  )}

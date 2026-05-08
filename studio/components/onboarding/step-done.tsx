@@ -30,7 +30,7 @@ export function StepDone() {
           transition={{ delay: 0.08, duration: 0.3 }}
           className="text-2xl font-semibold tracking-tight"
         >
-          Your marketing brain is live.
+          Your brand files are live.
         </m.h1>
         <m.p
           initial={reduceMotion ? { opacity: 1 } : { y: 8, opacity: 0 }}
@@ -38,10 +38,11 @@ export function StepDone() {
           transition={{ delay: 0.16, duration: 0.3 }}
           className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto"
         >
-          Three brand files are written and /cmo has context. HQ shows what
-          changed, Content holds the creative assets, and Publish is
-          where you act. Talk to /cmo in your Claude Code terminal; the
-          Activity panel on the right streams what it does.
+          Voice, audience, and competitors are written to disk. /cmo can
+          read them now. Pulse shows what changed, Signals holds creative
+          assets, Publish is where you ship. Talk to /cmo in your Claude
+          Code terminal; the Activity panel on the right streams what it
+          does.
         </m.p>
       </div>
 
@@ -55,9 +56,15 @@ export function StepDone() {
           }}
           className="grid grid-cols-3 gap-2 text-xs text-muted-foreground"
         >
+          {/* Lane 8 Wave B / goldthread + neonpulse fix: the middle card
+              previously read "Signals", but the file just written by the
+              audience-research agent is brand/audience.md. Signals is a
+              dashboard tab, not a wizard artifact. Match the lane labels
+              defined in step-building.tsx: Brand voice / Audience /
+              Competitors. */}
           {[
             { icon: "🧠", label: "Voice profile" },
-            { icon: "🖼️", label: "Signals" },
+            { icon: "👥", label: "Audience" },
             { icon: "🥊", label: "Competitors" },
           ].map(({ icon, label }) => (
             <m.div
@@ -106,7 +113,8 @@ export function StepDone() {
             router.push("/dashboard?tab=brand")
           }}
         >
-          See your brand docs →
+          See your brand docs
+          <ArrowRight className="size-4" />
         </Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, ArrowRight, ExternalLink, KeyRound } from "lucide-react"
+import { AlertTriangle, ArrowLeft, ArrowRight, ExternalLink, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,8 +11,17 @@ interface Props {
   onChangeKey: (v: string) => void
   onChangeBase: (v: string) => void
   onNext: () => void
+  /** Skip without saving. Distinct from onNext, which attempts a save first. */
+  onSkip: () => void
   onBack: () => void
   loading: boolean
+  /**
+   * Inline error surfaced by the wizard when `/api/settings/env` failed.
+   * Lane 8 Wave B / neonpulse P1-6: previously this was swallowed and the
+   * wizard advanced to the next step thinking the key saved when it had not.
+   */
+  error?: string | null
+  errorFix?: string | null
 }
 
 export function StepPostiz({
@@ -21,8 +30,11 @@ export function StepPostiz({
   onChangeKey,
   onChangeBase,
   onNext,
+  onSkip,
   onBack,
   loading,
+  error,
+  errorFix,
 }: Props) {
   return (
     <div className="space-y-8">
@@ -88,22 +100,55 @@ export function StepPostiz({
         </div>
       </div>
 
+      {error ? (
+        <div
+          id="postiz-save-error"
+          role="alert"
+          className="flex items-start gap-3 rounded-md border border-rose-500/30 bg-rose-500/5 px-3 py-2.5 text-xs"
+        >
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-rose-500" aria-hidden />
+          <div className="min-w-0 space-y-0.5">
+            <p className="font-medium text-rose-700 dark:text-rose-300">
+              Couldn&apos;t save the Postiz key
+            </p>
+            <p className="text-foreground/85">{error}</p>
+            {errorFix ? (
+              <p className="text-[11px] text-muted-foreground">{errorFix}</p>
+            ) : null}
+            <p className="text-[11px] text-muted-foreground">
+              The key was not written to .env.local. Edit and try again, or
+              continue without saving and add it later in Settings.
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} className="gap-2">
           <ArrowLeft className="size-4" />
           Back
         </Button>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={onNext} disabled={loading} className="text-muted-foreground">
-            Skip for now
+          <Button
+            variant="ghost"
+            onClick={onSkip}
+            disabled={loading}
+            className="text-muted-foreground"
+          >
+            {error ? "Continue without saving" : "Skip for now"}
           </Button>
           <Button
             onClick={onNext}
             disabled={loading}
             size="lg"
             className="gap-2"
+            aria-describedby={error ? "postiz-save-error" : undefined}
           >
-            {loading ? "Saving…" : "Save & continue"}
+            {loading
+              ? "Saving…"
+              : error
+                ? "Try again"
+                : "Save & continue"}
             <ArrowRight className="size-4" />
           </Button>
         </div>

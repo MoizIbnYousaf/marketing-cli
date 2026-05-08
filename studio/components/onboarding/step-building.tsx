@@ -368,11 +368,11 @@ export function StepBuilding({ onDone }: Props) {
     <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Building your marketing brain…
+          Writing your brand files…
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Three research agents are running in parallel. Each writes a brand
-          file to disk. This takes 60–90 seconds.
+          file to disk. This takes 60 to 90 seconds.
         </p>
       </div>
 

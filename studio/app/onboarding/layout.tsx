@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Setup — mktg studio",
+  title: "Setup -- mktg studio",
 }
 
 export default function OnboardingLayout({

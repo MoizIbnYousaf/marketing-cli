@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { extractErrorFix, extractErrorMessage } from "@/lib/api-error"
 import { resolveStudioApiBase } from "@/lib/studio-api-base"
+import { studioAuthHeaders } from "@/lib/studio-token"
 
 type KeyStatus = "green" | "amber" | "red"
 
@@ -149,14 +150,16 @@ export function EnvSection() {
       Object.entries(values).filter(([, v]) => v.length > 0),
     )
     if (Object.keys(diff).length === 0) {
-      toast.info("Nothing to save — no keys changed.")
+      toast.info("Nothing to save -- no keys changed.")
       return
     }
     setSaving(true)
     try {
-      const res = await fetch(`${STUDIO_API_BASE}/api/settings/env`, {
+      // ?confirm=true is required by ironmint's destructive-write guard.
+      // Audit log captures key names only (never values).
+      const res = await fetch(`${STUDIO_API_BASE}/api/settings/env?confirm=true`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify(diff),
       })
       const json = await res.json().catch(() => ({}))
@@ -177,7 +180,7 @@ export function EnvSection() {
 
       fetch(`${STUDIO_API_BASE}/api/toast`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify({
           level: "success",
           message: `Saved ${savedKeys.length} key${savedKeys.length === 1 ? "" : "s"} to .env.local`,

@@ -188,7 +188,7 @@ export function IntegrationsSection() {
             <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-4 text-center">
               <p className="text-sm text-muted-foreground">
                 {unavailable
-                  ? "Postiz adapter unavailable — set POSTIZ_API_KEY above."
+                  ? "Postiz adapter unavailable -- set POSTIZ_API_KEY above."
                   : "No providers connected yet."}
               </p>
               {integrationsErrorMsg && (
