@@ -279,7 +279,7 @@ const nextEnv: Record<string, string> = baseChildEnv;
 
 console.log(`[mktg-studio] starting server (:${STUDIO_PORT}) + dashboard (:${DASHBOARD_PORT})`);
 // Cabinet pattern: the token path is invisible to humans by default.
-// Power users get it back via MKTG_STUDIO_DEBUG=1. Zero security delta —
+// Power users get it back via MKTG_STUDIO_DEBUG=1. Zero security delta:
 // the token still lives at STUDIO_TOKEN_PATH with mode 0o600.
 if (process.env.MKTG_STUDIO_DEBUG === "1") {
   console.log(`[mktg-studio] auth token: ${STUDIO_TOKEN_PATH}`);
@@ -431,7 +431,7 @@ const dashWithToken = dashboardUrl(STUDIO_TOKEN);
 const api = `http://localhost:${STUDIO_PORT}`;
 // Hide the token path from the default banner so first-time users see a
 // product-shaped boot, not a security artifact. MKTG_STUDIO_DEBUG=1 exposes
-// the path for power users debugging auth. Auth itself is unchanged — token
+// the path for power users debugging auth. Auth itself is unchanged; token
 // still lives at STUDIO_TOKEN_PATH (mode 0o600), still required for every
 // /api/* request, still injected into the auto-opened dashboard URL.
 const tokenLine =
