@@ -13,7 +13,7 @@ reads:
 writes:
   - marketing/video/*/
   - marketing/handoffs/*-handoff.yaml
-depends_on: []
+depends-on: []
 triggers:
   - remotion video
   - make a remotion video

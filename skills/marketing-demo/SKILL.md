@@ -2,6 +2,27 @@
 name: marketing-demo
 description: |
   Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, landing page video, hero video, product video, app preview video, or wants to show their product in action. Even if they just say 'show what it does', 'make a video of the app', 'I need a demo for my landing page', or 'record the app' — this is the skill. If someone has a working product and needs marketing assets that show it off, start here.
+category: creative
+layer: creative
+tier: nice-to-have
+reads:
+  - brand/creative-kit.md
+  - brand/voice-profile.md
+  - brand/stack.md
+writes:
+  - marketing/demos/
+depends-on:
+  - visual-style
+triggers:
+  - product demo
+  - demo video
+  - walkthrough video
+  - screen recording
+  - GIF demo
+  - product tour
+  - onboarding video
+  - feature showcase
+  - hero video
 allowed-tools:
   - Bash(ply *)
   - Bash(ffmpeg *)

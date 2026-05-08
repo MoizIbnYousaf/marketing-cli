@@ -15,7 +15,7 @@ tier: must-have
 layer: distribution
 reads:
   - brand/voice-profile.md
-depends_on:
+depends-on:
   - content-atomizer
 env_vars:
   - POSTIZ_API_KEY

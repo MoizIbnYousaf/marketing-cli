@@ -15,7 +15,7 @@ reads:
   - brand/positioning.md
 writes:
   - marketing/video/*/
-depends_on: []
+depends-on: []
 triggers:
   - remotion
   - useCurrentFrame

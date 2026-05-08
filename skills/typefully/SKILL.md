@@ -4,6 +4,27 @@ description: >
   Create, schedule, and manage social media posts via Typefully. ALWAYS use this
   skill when asked to draft, schedule, post, or check tweets, posts, threads, or
   social media content for Twitter/X, LinkedIn, Threads, Bluesky, or Mastodon.
+category: distribution
+layer: distribution
+tier: must-have
+reads:
+  - brand/voice-profile.md
+  - brand/audience.md
+writes:
+  - marketing/social/typefully/
+depends-on:
+  - content-atomizer
+triggers:
+  - tweet
+  - thread
+  - X post
+  - Twitter post
+  - schedule a tweet
+  - Typefully
+  - LinkedIn post
+  - Threads post
+  - Bluesky post
+  - social-set
 last-updated: 2026-03-20
 allowed-tools: Bash(./scripts/typefully.js:*)
 ---

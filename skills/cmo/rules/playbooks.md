@@ -26,6 +26,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 | 3 | `landscape-scan` | `brand/landscape.md` (with Claims Blacklist) | ✓ |
 | 4 | `positioning-angles` | `brand/positioning.md` | ✓ |
 | 5 | `visual-style` → `brand-kit-playground` | `brand/creative-kit.md` + HTML preview | ✓ (visual approval) |
+| 5b | (optional) `higgsfield-soul-id` if founder wants their face in launch creative | `brand/assets.md` reference_id | — |
 | 6 | `keyword-research` | `brand/keyword-plan.md` | — |
 | 7 | `seo-content` ×2-3 articles (cornerstone content) | `marketing/content/*.md` | ✓ (per article) |
 | 8 | `content-atomizer` on each article | `marketing/social/<slug>/*.md` | — |
@@ -119,7 +120,8 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 | 1 | `visual-style` | `brand/creative-kit.md` with palette, typography, image aesthetic. |
 | 2 | `brand-kit-playground` (immediately after) | Interactive HTML preview — tweakable palette/type/logo, social card + OG image. |
 | 3 | `creative` (when producing ad/social assets) | Multi-mode creative briefs per asset. |
-| 4 | `image-gen` (for individual images) | Gemini-generated image via creative-kit style anchors. |
+| 4 | Product imagery: `higgsfield-product-photoshoot` (10 modes: studio, lifestyle, Pinterest, hero banner, ad pack, virtual try-on, etc.) when Higgsfield is configured; otherwise `image-gen` (Gemini, free tier). | Brand-grade product visuals or Gemini-generated single images. |
+| 5 | One-off images without a product: `image-gen` | Gemini-generated image via creative-kit style anchors. |
 
 **Stop:** visual approval via `brand-kit-playground`. User copies refined tokens back, then unblocked for any future image work.
 
@@ -135,6 +137,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 |---|---|
 | "Product demo / walkthrough" | `marketing-demo` → `video-content` (ffmpeg or Remotion) |
 | "TikTok slideshow / social video" | `slideshow-script` → `paper-marketing` → `video-content` → (optional) `tiktok-slideshow` orchestrator bundles all three |
+| "AI video / branded ad / Marketing Studio / UGC ad with avatar" | `higgsfield-generate` (Seedance, Kling, Veo, or Marketing Studio mode for branded video with avatars + product) when Higgsfield is configured. No fallback for AI video. |
 | "Pitch deck / HTML slides" | `frontend-slides` (terminal path — not a video pipeline) |
 | "App Store screenshots" | `app-store-screenshots` (Next.js generator, NOT video) |
 

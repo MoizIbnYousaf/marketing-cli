@@ -1,6 +1,25 @@
 ---
 name: send-email
-description: Use when sending transactional emails (welcome messages, order confirmations, password resets, receipts), notifications, or bulk emails via Resend API.
+description: Use when sending transactional emails (welcome messages, order confirmations, password resets, receipts), notifications, or bulk emails via Resend API. Triggers on "send email", "transactional email", "welcome email", "Resend API", "password reset email", "order confirmation", "receipt email", "notification email", "bulk email send".
+category: distribution
+layer: distribution
+tier: must-have
+reads:
+  - brand/voice-profile.md
+writes: []
+depends-on: []
+triggers:
+  - send email
+  - transactional email
+  - welcome email
+  - Resend API
+  - password reset email
+  - receipt email
+  - notification email
+allowed-tools:
+  - Bash
+  - Read
+  - Write
 ---
 
 # Send Email with Resend
@@ -380,7 +399,7 @@ Resend automatically manages a suppression list of addresses that should not rec
 
 **Management:** View and manage suppressed addresses in the Resend dashboard under Suppressions.
 
-## Common Mistakes
+## Anti-Patterns
 
 | Mistake | Fix |
 |---------|-----|

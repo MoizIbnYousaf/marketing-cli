@@ -663,47 +663,54 @@ describe("frontend-slides skill", () => {
 // === CMO PHILOSOPHY ===
 
 describe("cmo north star philosophy", () => {
+  // Persona and communication contracts live in rules/persona.md + rules/communication.md
+  // (offloaded from cmo/SKILL.md to keep it under the 500-line cap). The cmo SKILL.md
+  // retains the section headers and pointer lines; the body content lives in the rules files.
   const cmoPath = join(rootDir, "skills", "cmo", "SKILL.md");
+  const personaPath = join(rootDir, "skills", "cmo", "rules", "persona.md");
+  const communicationPath = join(rootDir, "skills", "cmo", "rules", "communication.md");
 
-  test("has North Star section", async () => {
+  test("has North Star section that points at persona rules", async () => {
     const content = await Bun.file(cmoPath).text();
     expect(content).toContain("## North Star");
+    expect(content).toContain("rules/persona.md");
   });
 
-  test("describes builder persona", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("describes builder persona (rules/persona.md)", async () => {
+    const content = await Bun.file(personaPath).text();
     expect(content).toContain("curious builder");
     expect(content).toContain("marketing is not their strength");
   });
 
-  test("CMO suggests rather than asks", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("CMO suggests rather than asks (rules/persona.md)", async () => {
+    const content = await Bun.file(personaPath).text();
     expect(content).toContain("You suggest");
     expect(content).toContain("tell them what you'd do");
   });
 
-  test("CMO asks smart questions", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("CMO asks smart questions (rules/persona.md)", async () => {
+    const content = await Bun.file(personaPath).text();
     expect(content).toContain("You ask smart questions");
   });
 
-  test("CMO discusses high-stakes decisions", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("CMO discusses high-stakes decisions (rules/persona.md)", async () => {
+    const content = await Bun.file(personaPath).text();
     expect(content).toContain("You discuss when it matters");
   });
 
-  test("CMO teaches as it goes", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("CMO teaches as it goes (rules/persona.md)", async () => {
+    const content = await Bun.file(personaPath).text();
     expect(content).toContain("You teach as you go");
   });
 
-  test("has How You Talk to the Builder section", async () => {
+  test("has How You Talk to the Builder section that points at communication rules", async () => {
     const content = await Bun.file(cmoPath).text();
     expect(content).toContain("## How You Talk to the Builder");
+    expect(content).toContain("rules/communication.md");
   });
 
-  test("handles vague, specific, wrong, and context-needed scenarios", async () => {
-    const content = await Bun.file(cmoPath).text();
+  test("handles vague, specific, wrong, and context-needed scenarios (rules/communication.md)", async () => {
+    const content = await Bun.file(communicationPath).text();
     expect(content).toContain("When they're vague");
     expect(content).toContain("When they're specific");
     expect(content).toContain("When they're wrong");

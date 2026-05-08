@@ -1,6 +1,24 @@
 ---
 name: resend-inbound
-description: Use when receiving emails with Resend - setting up inbound domains, processing email.received webhooks, retrieving email content/attachments, or forwarding received emails.
+description: Use when receiving emails with Resend - setting up inbound domains, processing email.received webhooks, retrieving email content/attachments, or forwarding received emails. Triggers on "inbound email", "receive email", "email webhook", "Resend inbound", "process incoming email", "email forwarding", "email.received", "MX records for email".
+category: distribution
+layer: distribution
+tier: nice-to-have
+reads:
+  - brand/voice-profile.md
+writes: []
+depends-on: []
+triggers:
+  - inbound email
+  - receive email
+  - email webhook
+  - Resend inbound
+  - email.received
+  - email forwarding
+allowed-tools:
+  - Bash
+  - Read
+  - Write
 ---
 
 # Receive Emails with Resend
@@ -257,7 +275,7 @@ if (event.type === 'email.received') {
 | Attachment download times out | Retry with exponential backoff (max 3 attempts). Log failure if all retries exhaust. |
 | Malformed email (missing from/subject) | Log and skip gracefully. Return 200 to prevent Resend retries on bad data. |
 
-## Common Mistakes
+## Anti-Patterns
 
 | Mistake | Fix |
 |---------|-----|

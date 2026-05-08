@@ -230,7 +230,7 @@ Look for:
 
 ## Output format
 
-Write `./brand/audience.md` with this structure:
+Write `./brand/audience.md` with this structure. The `## Archetypes` block at the top is the structured contract consumed by Studio's archetype-pulse-cards and any future skill that needs a card-shaped persona summary. The fuller persona blocks below it carry the long-form context.
 
 ```markdown
 ---
@@ -240,9 +240,29 @@ skill: audience-research
 date: [ISO date]
 personas: [number]
 primary_persona: [name]
+archetypes: [number]
 ---
 
 # Audience Profile — [Product/Project Name]
+
+## Archetypes
+
+Card-shaped summary of every persona. One archetype per persona. Required fields per archetype: `name`, `one_liner`, `demographic`, `top_pain`, `top_desire`, `watering_hole`, `language_quote`. Do not skip fields. If you do not have evidence for one, write "not measured" rather than fabricating.
+
+### Archetype: [Name]
+
+- **one_liner:** [Who they are and what they want, one sentence]
+- **demographic:** [Role, company size, technical level — single line]
+- **top_pain:** [The single biggest pain in their words]
+- **top_desire:** [The single biggest goal in their words]
+- **watering_hole:** [Primary community / channel where they live]
+- **language_quote:** [One actual quote or representative phrase, in quotes]
+
+### Archetype: [Name 2]
+
+[Same six fields. Repeat for each persona.]
+
+---
 
 ## Primary Persona: [Name]
 

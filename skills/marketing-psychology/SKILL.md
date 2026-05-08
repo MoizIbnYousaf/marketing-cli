@@ -2,6 +2,27 @@
 name: marketing-psychology
 description: |
   Knowledge skill that applies behavioral psychology and persuasion principles to any marketing asset. Covers Cialdini's 6 principles, cognitive biases, and ethical persuasion frameworks. This skill is invoked BY other skills to enhance their output. Use it whenever copy needs more psychological weight, when a landing page feels flat, when email sequences lack urgency, or when any marketing asset needs to be more persuasive. Also use when someone says 'make this more convincing', 'add urgency', 'psychological triggers', 'persuasion framework', 'behavioral psychology', 'conversion optimization', 'nudge', 'influence tactics', or 'why isn't this converting'. Make sure to use this whenever ANY marketing copy needs to be more persuasive, even if the user just says 'this feels weak' or 'how do I get more signups', psychology principles likely apply.
+category: knowledge
+layer: knowledge
+tier: must-have
+reads:
+  - brand/positioning.md
+  - brand/audience.md
+  - brand/voice-profile.md
+writes: []
+depends-on: []
+triggers:
+  - marketing psychology
+  - persuasion
+  - Cialdini
+  - scarcity
+  - social proof
+  - cognitive bias
+  - psychological triggers
+  - influence tactics
+  - make this more convincing
+  - add urgency
+allowed-tools: []
 ---
 
 # Marketing Psychology
@@ -327,7 +348,7 @@ When reviewing any marketing asset:
 6. **Prioritize** by expected impact: social proof and loss aversion almost always win
 7. **Warn** about dark patterns: if a suggestion feels manipulative, flag it and offer an ethical alternative
 
-## Common Agent Mistakes
+## Anti-Patterns
 
 | Mistake | Why it fails | Instead |
 |---------|-------------|---------|
