@@ -7,9 +7,15 @@ import { useSWRConfig } from "swr"
 import { useWorkspaceStore, type WorkspaceTab } from "@/lib/stores/workspace"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import type { Activity } from "@/lib/types/activity"
+import { withStudioToken } from "@/lib/studio-token"
+
+// Wire type accepts pre-rename ids ("hq", "content") for one-release compat
+// with /cmo callers that still send the old strings. The handler normalizes
+// them to canonical WorkspaceTab values before dispatching to the store.
+type WireTab = WorkspaceTab | "hq" | "content"
 
 type SSEEvent =
-  | { type: "navigate"; payload: { tab: WorkspaceTab; filter?: Record<string, unknown> | null } }
+  | { type: "navigate"; payload: { tab: WireTab; filter?: Record<string, unknown> | null } }
   | { type: "toast"; payload: { level: "success" | "error" | "info" | "warning" | "warn"; message: string; duration?: number } }
   | { type: "brand-file-changed"; payload: { file: string; url?: string } }
   | { type: "activity-new"; payload: Activity }
@@ -20,7 +26,7 @@ type SSEEvent =
 // Default to same-origin so Next.js rewrites forward /api/* → Bun.
 const STUDIO_API_BASE = process.env.NEXT_PUBLIC_STUDIO_API_BASE?.replace(/\/$/, "") ?? ""
 
-// Reconnect policy — bounded exponential backoff, capped so a long outage
+// Reconnect policy -- bounded exponential backoff, capped so a long outage
 // still gets a recheck every 30s.
 const RECONNECT_MIN_MS = 1_000
 const RECONNECT_MAX_MS = 30_000
@@ -34,7 +40,7 @@ export function SSEBridge() {
   const pushActivity = useActivityLiveStore((s) => s.push)
   const setConnected = useActivityLiveStore((s) => s.setConnected)
 
-  // Stable handler refs — read from latest values without tearing down the
+  // Stable handler refs -- read from latest values without tearing down the
   // EventSource on every render. The channel owns its lifecycle; the
   // handlers update in place via the ref.
   const handlersRef = useRef({ router, mutate, setWorkspaceTab, setSignalFilters, pushActivity, setConnected })
@@ -51,7 +57,7 @@ export function SSEBridge() {
     // persists past a short grace window.
     let lastOpenAt = 0
 
-    // Dedupe across reconnects — server may replay a few events on resubscribe;
+    // Dedupe across reconnects -- server may replay a few events on resubscribe;
     // we keep a small ring of seen activity IDs and skip them.
     const seenActivityIds = new Set<number>()
     const SEEN_CAP = 500
@@ -59,7 +65,7 @@ export function SSEBridge() {
     function rememberActivity(id: number) {
       seenActivityIds.add(id)
       if (seenActivityIds.size > SEEN_CAP) {
-        // Drop oldest by re-creating from a slice — Set has insertion order.
+        // Drop oldest by re-creating from a slice -- Set has insertion order.
         const trimmed = Array.from(seenActivityIds).slice(-Math.floor(SEEN_CAP * 0.8))
         seenActivityIds.clear()
         for (const v of trimmed) seenActivityIds.add(v)
@@ -79,7 +85,9 @@ export function SSEBridge() {
     function connect() {
       if (closed) return
       try {
-        es = new EventSource(`${STUDIO_API_BASE}/api/events`)
+        // EventSource cannot set Authorization headers from JS, so the
+        // bearer travels in the query string. Lane 1 / Wave A.
+        es = new EventSource(withStudioToken(`${STUDIO_API_BASE}/api/events`))
       } catch {
         scheduleReconnect()
         return
@@ -134,7 +142,13 @@ export function SSEBridge() {
           }
           case "navigate": {
             const { tab, filter } = (event as Extract<SSEEvent, { type: "navigate" }>).payload
-            h.setWorkspaceTab(tab)
+            // Normalize legacy ids ("hq", "content") from /cmo callers that
+            // haven't rolled to the post-rename tab names yet.
+            const canonicalTab =
+              tab === "hq" ? "pulse" :
+              tab === "content" ? "signals" :
+              tab
+            h.setWorkspaceTab(canonicalTab)
             const { mode, ...signalFilter } = filter ?? {}
             if (Object.keys(signalFilter).length > 0) {
               h.setSignalFilters(signalFilter as Parameters<typeof h.setSignalFilters>[0])
@@ -142,9 +156,9 @@ export function SSEBridge() {
             // Mirror keyboard-chord URL behavior so bookmarks + Playwright
             // assertions see the same tab.
             h.router.push(
-              tab === "hq"
+              canonicalTab === "pulse"
                 ? "/dashboard"
-                : `/dashboard?tab=${tab}`,
+                : `/dashboard?tab=${canonicalTab}`,
             )
             return
           }
@@ -224,7 +238,7 @@ export function SSEBridge() {
       }
       handlersRef.current.setConnected(false)
     }
-    // Empty deps — the channel lives for the lifetime of the bridge mount.
+    // Empty deps -- the channel lives for the lifetime of the bridge mount.
     // All call-site dependencies are read via handlersRef.current.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

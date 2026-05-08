@@ -4,7 +4,7 @@
 import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
 import { ok } from "../types";
-import { invalidArgs, notFound, DOCS, parseJsonInput } from "../core/errors";
+import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory } from "../core/run-log";
@@ -57,6 +57,20 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
 
   if (!skillName) {
     return invalidArgs("Missing skill name", ["Usage: mktg run <skill-name>", "mktg list --json to see available skills"], DOCS.skills);
+  }
+
+  // Lane 1 / Wave A audit fix: every other resource-name command in the
+  // registry validates its positional via these two checks; `mktg run`
+  // was the lone gap. Reject control chars + cap length at 128 BEFORE
+  // we hit the manifest so a 10 KB skill name cannot be reflected back
+  // in the NOT_FOUND error envelope.
+  const ctrlCheck = rejectControlChars(skillName, "skill");
+  if (!ctrlCheck.ok) {
+    return invalidArgs(ctrlCheck.message, ["mktg list --json to see available skills"], DOCS.skills);
+  }
+  const idCheck = validateResourceId(skillName, "skill");
+  if (!idCheck.ok) {
+    return invalidArgs(idCheck.message, ["mktg list --json to see available skills"], DOCS.skills);
   }
 
   const manifest = await resolveManifest(flags.cwd);

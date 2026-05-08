@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// bin/mktg-studio — single-command launch for the marketing studio.
+// bin/mktg-studio -- single-command launch for the marketing studio.
 //
 // Starts the Bun API server (server.ts on STUDIO_PORT, default 3001) and the
 // Next.js dashboard (DASHBOARD_PORT, default 3000). Streams both processes'
@@ -14,9 +14,11 @@
 //
 // Env precedence: shell env > .env.local > default.
 
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { homedir } from "node:os";
+import { randomBytes } from "node:crypto";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -60,7 +62,7 @@ Environment:
   MKTG_PROJECT_ROOT            target marketing project root (brand/ + marketing.db)
   MKTG_BRAND_DIR               override brand directory directly
   MKTG_STUDIO_DB               override SQLite DB path directly
-  MKTG_STUDIO_DEBUG            set to "1" to bypass the Next.js noise filter and see all output
+  MKTG_STUDIO_DEBUG            set to "1" to bypass the Next.js noise filter, see all output, and surface the auth token path
 
 Reads .env.local if present. Shell env wins ties.
 
@@ -85,18 +87,56 @@ function flagValue(flag: string): string | undefined {
   return undefined;
 }
 
-function dashboardUrl(): string {
+function dashboardUrl(token?: string): string {
   const params = new URLSearchParams();
   const intent = flagValue("--intent");
   const session = flagValue("--session");
   if (intent) params.set("mode", intent);
   if (session) params.set("session", session);
+  // Lane 1 / Wave A: append the bearer token on first nav. The dashboard
+  // strips it from the URL after stashing it in localStorage. Token only
+  // travels in the URL for this single bootstrap hop.
+  if (token) params.set("token", token);
   const query = params.toString();
   return `http://localhost:${DASHBOARD_PORT}/dashboard${query ? `?${query}` : ""}`;
 }
 
 // ---------------------------------------------------------------------------
-// .env.local loader — simple KEY=VALUE, "#" comments, no escapes.
+// Studio bearer token (Lane 1 / Wave A). Mirrors studio/lib/auth.ts so the
+// server and the launcher converge on the same token without an import
+// path. The launcher reads or creates the token, hands it to the server
+// child as MKTG_STUDIO_TOKEN, and appends it to the dashboard URL on first
+// open. The Next.js child does NOT receive the token via env -- the
+// dashboard learns it from the URL once and persists it in localStorage.
+// ---------------------------------------------------------------------------
+
+const STUDIO_TOKEN_DIR = process.env.MKTG_STUDIO_TOKEN_DIR
+  || join(homedir(), ".mktg", ".runtime");
+const STUDIO_TOKEN_PATH = process.env.MKTG_STUDIO_TOKEN_PATH
+  || join(STUDIO_TOKEN_DIR, "studio-token");
+
+function readOrCreateStudioToken(): string {
+  const fromEnv = process.env.MKTG_STUDIO_TOKEN;
+  if (fromEnv && fromEnv.length >= 32) return fromEnv;
+
+  if (existsSync(STUDIO_TOKEN_PATH)) {
+    try {
+      const tok = readFileSync(STUDIO_TOKEN_PATH, "utf-8").trim();
+      if (tok.length >= 32) return tok;
+    } catch {
+      // fall through to regenerate
+    }
+  }
+
+  mkdirSync(STUDIO_TOKEN_DIR, { recursive: true, mode: 0o700 });
+  const token = randomBytes(32).toString("hex");
+  writeFileSync(STUDIO_TOKEN_PATH, token, { mode: 0o600 });
+  try { chmodSync(STUDIO_TOKEN_PATH, 0o600); } catch { /* best effort */ }
+  return token;
+}
+
+// ---------------------------------------------------------------------------
+// .env.local loader -- simple KEY=VALUE, "#" comments, no escapes.
 // Shell env always wins.
 // ---------------------------------------------------------------------------
 
@@ -175,7 +215,7 @@ await ensurePortFree(Number(STUDIO_PORT), "server");
 await ensurePortFree(Number(DASHBOARD_PORT), "dashboard");
 
 // ---------------------------------------------------------------------------
-// First-launch banner — set expectations during cold boot.
+// First-launch banner -- set expectations during cold boot.
 //
 // The dashboard's first launch is slow because Next.js compiles on demand
 // (and historically because pnpm fetched studio devDeps the first time the
@@ -199,7 +239,7 @@ function typescriptResolvableFromRoot(): boolean {
 }
 
 function printFirstLaunchBanner(): void {
-  if (studioNodeModulesExists()) return; // warm path — silent
+  if (studioNodeModulesExists()) return; // warm path -- silent
   if (typescriptResolvableFromRoot()) {
     process.stderr.write(
       "mktg studio · starting dashboard (first launch, ~15s)\n" +
@@ -219,7 +259,7 @@ printFirstLaunchBanner();
 // Spawn both processes
 // ---------------------------------------------------------------------------
 
-const childEnv: Record<string, string> = {
+const baseChildEnv: Record<string, string> = {
   ...env,
   STUDIO_PORT,
   DASHBOARD_PORT,
@@ -228,12 +268,27 @@ const childEnv: Record<string, string> = {
   MKTG_STUDIO_SESSION: STUDIO_SESSION,
 };
 
+// The server child gets the bearer token via env. The Next.js child does
+// NOT -- it would risk accidentally inlining the token via NEXT_PUBLIC_*
+// helpers or surfacing it in error overlays. The dashboard learns the
+// token by reading the `?token=` query string on first nav (see launcher
+// auto-open below) and persists it in localStorage.
+const STUDIO_TOKEN = readOrCreateStudioToken();
+const serverEnv: Record<string, string> = { ...baseChildEnv, MKTG_STUDIO_TOKEN: STUDIO_TOKEN };
+const nextEnv: Record<string, string> = baseChildEnv;
+
 console.log(`[mktg-studio] starting server (:${STUDIO_PORT}) + dashboard (:${DASHBOARD_PORT})`);
+// Cabinet pattern: the token path is invisible to humans by default.
+// Power users get it back via MKTG_STUDIO_DEBUG=1. Zero security delta —
+// the token still lives at STUDIO_TOKEN_PATH with mode 0o600.
+if (process.env.MKTG_STUDIO_DEBUG === "1") {
+  console.log(`[mktg-studio] auth token: ${STUDIO_TOKEN_PATH}`);
+}
 
 const server = Bun.spawn({
   cmd: ["bun", "run", "server.ts"],
   cwd: REPO_ROOT,
-  env: childEnv,
+  env: serverEnv,
   stdout: "pipe",
   stderr: "pipe",
 });
@@ -241,13 +296,13 @@ const server = Bun.spawn({
 const next = Bun.spawn({
   cmd: ["bun", "run", "next", "dev", "-p", DASHBOARD_PORT],
   cwd: REPO_ROOT,
-  env: childEnv,
+  env: nextEnv,
   stdout: "pipe",
   stderr: "pipe",
 });
 
 // ---------------------------------------------------------------------------
-// Next.js output filter — suppress known cold-boot noise (pnpm install
+// Next.js output filter -- suppress known cold-boot noise (pnpm install
 // progress, telemetry notice, build-script warnings, version-drift hints).
 // Lines that don't match the SUPPRESSED list pass through unchanged, so
 // errors, "Ready in Xs", and Local/Network URLs are always visible.
@@ -356,7 +411,7 @@ const [serverReady, nextReady] = await Promise.all([
 
 if (!serverReady || !nextReady) {
   console.error(
-    `\n✗ Startup timeout — server ready: ${serverReady}, dashboard ready: ${nextReady}`,
+    `\n✗ Startup timeout -- server ready: ${serverReady}, dashboard ready: ${nextReady}`,
   );
   server.kill("SIGTERM");
   next.kill("SIGTERM");
@@ -367,21 +422,35 @@ if (!serverReady || !nextReady) {
 // Banner
 // ---------------------------------------------------------------------------
 
+// Banner URL is the bookmarkable form (no token in the URL the user pastes
+// or copies). The auto-open path uses a separate URL that carries the
+// bootstrap token so the dashboard can stash it in localStorage on first
+// nav.
 const dash = dashboardUrl();
+const dashWithToken = dashboardUrl(STUDIO_TOKEN);
 const api = `http://localhost:${STUDIO_PORT}`;
+// Hide the token path from the default banner so first-time users see a
+// product-shaped boot, not a security artifact. MKTG_STUDIO_DEBUG=1 exposes
+// the path for power users debugging auth. Auth itself is unchanged — token
+// still lives at STUDIO_TOKEN_PATH (mode 0o600), still required for every
+// /api/* request, still injected into the auto-opened dashboard URL.
+const tokenLine =
+  process.env.MKTG_STUDIO_DEBUG === "1"
+    ? `\n    → token      ${STUDIO_TOKEN_PATH}`
+    : `\n    → auth       authenticated session ready`;
 console.log(`
   mktg-studio · ready
 
     → dashboard  ${dash}
     → api        ${api}
     → schema     ${api}/api/schema
-    → help       ${api}/api/help
+    → help       ${api}/api/help${tokenLine}
 
   Ctrl+C to stop.
 `);
 
 if (openFlag) {
-  const url = dash;
+  const url = dashWithToken;
   const browserOverride =
     flagValue("--browser") ?? process.env.MKTG_STUDIO_BROWSER ?? process.env.BROWSER;
 
@@ -445,7 +514,7 @@ process.on("SIGTERM", () => void shutdown("SIGTERM"));
 (async () => {
   const exitCode = await server.exited;
   if (!shuttingDown) {
-    console.error(`\n[mktg-studio] server exited (code ${exitCode}) — stopping dashboard.`);
+    console.error(`\n[mktg-studio] server exited (code ${exitCode}) -- stopping dashboard.`);
     next.kill("SIGTERM");
     process.exit(exitCode ?? 1);
   }
@@ -454,7 +523,7 @@ process.on("SIGTERM", () => void shutdown("SIGTERM"));
 (async () => {
   const exitCode = await next.exited;
   if (!shuttingDown) {
-    console.error(`\n[mktg-studio] dashboard exited (code ${exitCode}) — stopping server.`);
+    console.error(`\n[mktg-studio] dashboard exited (code ${exitCode}) -- stopping server.`);
     server.kill("SIGINT");
     process.exit(exitCode ?? 1);
   }

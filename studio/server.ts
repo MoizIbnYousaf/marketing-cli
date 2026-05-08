@@ -29,7 +29,14 @@ import {
   rejectControlChars,
   validateResourceId,
   validatePathInput,
+  parseJsonInput,
 } from "./lib/validators.ts";
+import {
+  checkAuth,
+  getOrCreateStudioToken,
+  studioTokenPath,
+  authIsDisabled,
+} from "./lib/auth.ts";
 import { basename, join } from "node:path";
 import { writeFileSync, existsSync, readFileSync, statSync } from "node:fs";
 import { diagnosePostiz, getScheduledPosts, mapPostizError } from "./lib/postiz.ts";
@@ -48,6 +55,7 @@ import {
   mktgPublish,
 } from "./lib/mktg.ts";
 import type { PublishManifest } from "./lib/types/mktg.ts";
+import { buildPulseSnapshot } from "./lib/pulse-snapshot.ts";
 import {
   errEnv,
   applyFieldsFromUrl,
@@ -134,6 +142,22 @@ const applyProjectEnvIsolation = (): void => {
 };
 
 applyProjectEnvIsolation();
+
+// Studio auth perimeter v1 (Lane 1, Wave A). Generate or load the token
+// before we accept any requests so the very first inbound has a token to
+// compare against. The token PATH is gated behind MKTG_STUDIO_DEBUG=1 to
+// match cabinet's invisible-token UX: default boot does not surface where
+// the token lives. The token VALUE is never printed.
+const STUDIO_TOKEN = getOrCreateStudioToken();
+if (process.env.MKTG_STUDIO_DEBUG === "1") {
+  console.log(`auth token: ${studioTokenPath()}`);
+}
+if (authIsDisabled()) {
+  console.warn(
+    "WARNING: MKTG_STUDIO_AUTH=disabled — every endpoint is open. Test/dev only.",
+  );
+}
+
 // Origins allowed to make cross-origin requests (CORS + EventSource). The
 // dev dashboard runs on :3000; Playwright's scratch dashboard on :4800. Add
 // new entries here when integrating a fresh frontend host.
@@ -150,9 +174,9 @@ const ALLOWED_ORIGINS = new Set([
 // Bootstrap
 // ---------------------------------------------------------------------------
 
-console.log("[server] Initializing database...");
+console.log("Initializing database...");
 getDb();
-console.log("[server] Database ready.");
+console.log("Database ready.");
 
 startBrandWatcher(globalEmitter);
 startContentWatcher(globalEmitter, STUDIO_CWD);
@@ -413,49 +437,88 @@ function err(
 }
 
 async function parseBody<T>(req: Request, schema: z.ZodSchema<T>): Promise<{ ok: true; data: T } | { ok: false; res: Response }> {
+  let raw: string;
   try {
-    const raw = await req.text();
-    // Promote ZodObject schemas to strict mode so unknown fields are rejected
-    // at the wire instead of silently stripped (audit P2-A, mirrors
-    // lib/dx.ts::parseBodyStrict). Keeps the runtime in sync with the
-    // `additionalProperties: false` that GET /api/schema advertises.
-    const maybeStrict = schema as unknown as { strict?: () => z.ZodSchema<T> };
-    const strictSchema =
-      typeof maybeStrict.strict === "function" ? maybeStrict.strict() : schema;
-    const check = strictSchema.safeParse(JSON.parse(raw));
-    if (!check.success) {
-      const issues = check.error.issues;
-      const message = issues.map((e) => e.message).join("; ");
-      const fields = issues
-        .map((e) => (e.path.length > 0 ? e.path.join(".") : "(root)"))
-        .filter((p, i, arr) => arr.indexOf(p) === i)
-        .join(", ");
-      return {
-        ok: false,
-        res: errResponse(
-          "BAD_INPUT",
-          message,
-          400,
-          fields ? `Check field(s): ${fields}` : "Check the request body shape",
-        ),
-      };
-    }
-    return { ok: true, data: check.data };
+    raw = await req.text();
   } catch {
     return {
       ok: false,
       res: errResponse(
         "BAD_INPUT",
-        "Invalid JSON body",
+        "Failed to read request body",
         400,
         "Send a UTF-8 JSON object as the request body",
       ),
     };
   }
+
+  // Lane 1 / Wave A: route through parseJsonInput so inline-handled routes
+  // get the same 64 KB cap and `__proto__`/`constructor` proto-pollution
+  // guard as wrapRoute (lib/dx.ts::parseBodyStrict). The two paths used to
+  // diverge -- inline routes (~12 sites) silently accepted 10 MB JSON and
+  // proto-pollution payloads. They no longer do.
+  const parsed = parseJsonInput<unknown>(raw);
+  if (!parsed.ok) {
+    const status = parsed.message.includes("64KB") ? 413 : 400;
+    return {
+      ok: false,
+      res: errResponse(
+        "BAD_INPUT",
+        parsed.message,
+        status,
+        parsed.message.includes("Unsafe")
+          ? "Remove __proto__ or constructor keys from the payload"
+          : parsed.message.includes("64KB")
+            ? "Keep the JSON body under 64 KB"
+            : "Send a valid JSON object as the request body",
+      ),
+    };
+  }
+
+  // Promote ZodObject schemas to strict mode so unknown fields are rejected
+  // at the wire instead of silently stripped (audit P2-A, mirrors
+  // lib/dx.ts::parseBodyStrict). Keeps the runtime in sync with the
+  // `additionalProperties: false` that GET /api/schema advertises.
+  const maybeStrict = schema as unknown as { strict?: () => z.ZodSchema<T> };
+  const strictSchema =
+    typeof maybeStrict.strict === "function" ? maybeStrict.strict() : schema;
+  const check = strictSchema.safeParse(parsed.data);
+  if (!check.success) {
+    const issues = check.error.issues;
+    const message = issues.map((e) => e.message).join("; ");
+    const fields = issues
+      .map((e) => (e.path.length > 0 ? e.path.join(".") : "(root)"))
+      .filter((p, i, arr) => arr.indexOf(p) === i)
+      .join(", ");
+    return {
+      ok: false,
+      res: errResponse(
+        "BAD_INPUT",
+        message,
+        400,
+        fields ? `Check field(s): ${fields}` : "Check the request body shape",
+      ),
+    };
+  }
+  return { ok: true, data: check.data };
 }
 
 function isDryRun(url: URL): boolean {
   return url.searchParams.get("dryRun") === "true";
+}
+
+// Build a clean env for child processes. Strips the studio bearer token so
+// `MKTG_STUDIO_TOKEN` never leaks into spawned `mktg` subprocesses (visible
+// via `ps eww` and any tool that echoes its env). Lane 1 / Wave A.
+function spawnEnv(extra: Record<string, string> = {}): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v === undefined) continue;
+    if (k === "MKTG_STUDIO_TOKEN") continue;
+    out[k] = v;
+  }
+  for (const [k, v] of Object.entries(extra)) out[k] = v;
+  return out;
 }
 
 function safeJsonParse<T>(raw: string, fallback: T): T {
@@ -589,6 +652,7 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/project/current",         description: "Active local marketing project identity, launch context, and health" },
   { method: "GET",  path: "/api/schema",                  description: "Runtime route schema for agent self-discovery", params: ["route"] },
   { method: "GET",  path: "/api/help",                    description: "Agent cheat-sheet: envelopes, error codes, query params, entry points" },
+  { method: "GET",  path: "/api/auth/bootstrap",           description: "Localhost-only token bootstrap. Returns the studio bearer token so the dashboard can populate localStorage on a direct-nav (no launcher) cold start. Host allowlist + CORS still block remote and cross-origin reads.", errors: [] },
 
   // HQ legacy signal endpoints
   { method: "GET",  path: "/api/pulse/decision-feed",     description: "Decision feed cards (brand status + next action)", params: ["groupId"] },
@@ -598,6 +662,12 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/pulse/social-highlights", description: "Social performance highlights", params: ["groupId"] },
   { method: "GET",  path: "/api/pulse/archetype-cards",   description: "Audience archetype cards", params: ["groupId"] },
   { method: "GET",  path: "/api/pulse/live-proof",        description: "Live social proof feed", params: ["groupId"] },
+
+  // Pulse snapshot (Lane 5): coalesced single-shot read for the rebuilt
+  // Pulse page. Wave A is a stubbed aggregator owned by silverspark; the
+  // route slot ships in Lane 1's auth PR so the dashboard can compile
+  // against the contract. PulseSnapshot type lives at lib/types/pulse.ts.
+  { method: "GET",  path: "/api/pulse/snapshot",          description: "Coalesced Pulse snapshot: funnel + brand health + actions + activity + media + publish", params: ["fields"], errors: [] },
 
   // Signals / Trend radar
   { method: "GET",  path: "/api/trends/hot-context",      description: "Hot market context (landscape + competitors)", params: ["groupId"] },
@@ -1431,7 +1501,7 @@ const OPPORTUNITIES_PUSH_BODY = z.object({
   prerequisites: z.record(z.string(), z.unknown()).optional(),
 });
 
-const PRIMARY_NAV_TABS = ["hq", "content", "publish", "brand"] as const;
+const PRIMARY_NAV_TABS = ["pulse", "signals", "publish", "brand"] as const;
 
 const NAVIGATE_BODY = z.object({
   tab: z.enum(PRIMARY_NAV_TABS),
@@ -1443,13 +1513,16 @@ const NAVIGATE_REQUEST_BODY = z.object({
   filter: z.record(z.string(), z.unknown()).optional(),
 });
 
+// Accepts current canonical ids and pre-rename legacy ids ("hq" -> "pulse",
+// "content" -> "signals", plus collapses for trends/audience/opportunities).
+// One-release window for /cmo and external callers to roll forward.
 function normalizeNavigateTab(tab: string): { tab: (typeof PRIMARY_NAV_TABS)[number] } | null {
   if ((PRIMARY_NAV_TABS as readonly string[]).includes(tab)) {
     return { tab: tab as (typeof PRIMARY_NAV_TABS)[number] };
   }
-  if (tab === "pulse") return { tab: "hq" };
-  if (tab === "trends" || tab === "signals") return { tab: "content" };
-  if (tab === "audience" || tab === "opportunities") return { tab: "hq" };
+  if (tab === "hq") return { tab: "pulse" };
+  if (tab === "content" || tab === "trends") return { tab: "signals" };
+  if (tab === "audience" || tab === "opportunities") return { tab: "pulse" };
   return null;
 }
 
@@ -1556,6 +1629,11 @@ registerRouteSchema("/api/cmo/content/reindex",  { method: "POST", body: CONTENT
 
 const server = Bun.serve({
   port: PORT,
+  // Localhost-only bind. Combined with the Host header allowlist in
+  // lib/auth.ts, this is the studio's network perimeter: agents and
+  // browser tabs cannot reach the server from any other interface, and a
+  // DNS-rebinding tab cannot bypass the bind.
+  hostname: "127.0.0.1",
   // Bun.serve defaults to a 10s idleTimeout which silently closes our SSE
   // streams every ~10s — that's the underlying cause of Bug #8 ("subscribers
   // drops after ~30s"). 255 is the maximum Bun supports; combined with the
@@ -1568,9 +1646,25 @@ const server = Bun.serve({
     const method = req.method;
     const corsHeaders = cors(req);
 
-    // OPTIONS preflight
+    // OPTIONS preflight — browsers cannot send Authorization on preflight,
+    // so this stays open. The actual request that follows still goes
+    // through the auth gate below.
     if (method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    // Auth perimeter v1 (Lane 1, Wave A). Public allowlist (`/api/health`,
+    // `/api/schema`, `/api/help`) bypasses the bearer check; the Host-header
+    // allowlist always applies (DNS rebinding mitigation).
+    const auth = checkAuth(req, url);
+    if (!auth.ok) {
+      return errResponse(
+        auth.reason === "FORBIDDEN_HOST" ? "BAD_INPUT" : "UNAUTHORIZED",
+        auth.message,
+        auth.status,
+        auth.fix,
+        corsHeaders,
+      );
     }
 
     // Rate limit mutations (Agent DX axis 5).
@@ -1737,6 +1831,30 @@ const server = Bun.serve({
     }
 
     // -----------------------------------------------------------------------
+    // GET /api/auth/bootstrap -- localhost-only token handoff for the
+    // dashboard. The launcher (`mktg studio`) opens the dashboard at
+    // `?token=...` for first nav; that path is the production case. Direct
+    // dev nav (`bun run dev:all`) bypasses the launcher, so the dashboard
+    // has no token to inject. This endpoint returns the token if and only
+    // if the Host header allowlist passes (enforced by checkAuth above).
+    // CORS still blocks cross-origin reads. Anyone on localhost who can
+    // hit this URL can already `cat ~/.mktg/.runtime/studio-token`, so
+    // there is no marginal exposure increase.
+    //
+    // SECURITY: this endpoint is safe ONLY because Bun.serve binds
+    // 127.0.0.1 (see `hostname: "127.0.0.1"` in the Bun.serve config
+    // above) and the Host header allowlist runs before the public-path
+    // check (lib/auth.ts::checkAuth). If Studio is ever made
+    // network-accessible (binding to 0.0.0.0, exposed via tunnel, or
+    // running behind a reverse proxy that strips the Host check), this
+    // endpoint MUST be removed from PUBLIC_PATHS and re-gated. Without
+    // those two guarantees, this is a token-disclosure leak.
+    // -----------------------------------------------------------------------
+    if (method === "GET" && url.pathname === "/api/auth/bootstrap") {
+      return json({ ok: true, data: { token: STUDIO_TOKEN } }, 200, corsHeaders);
+    }
+
+    // -----------------------------------------------------------------------
     // GET /api/events — global SSE broadcast
     // -----------------------------------------------------------------------
     if (method === "GET" && url.pathname === "/api/events") {
@@ -1770,6 +1888,30 @@ const server = Bun.serve({
     }
     if (method === "GET" && url.pathname === "/api/pulse/live-proof") {
       return EMPTY_LIST_ROUTE(req, corsHeaders);
+    }
+
+    // GET /api/pulse/snapshot -- Lane 5.
+    //
+    // Single-shot Pulse aggregator owned by silverspark (lib/pulse-snapshot.ts).
+    // Replaces 7 SWR round-trips. Per-section try/catch lives inside the
+    // aggregator; failures push into `staleSections` rather than throw, so
+    // the only failure mode reaching this handler is a wedged SQLite
+    // handle, which the top-level `error` handler in Bun.serve catches.
+    //
+    // recentMedia: passing [] today (Pulse renders EmptyState). Wiring
+    // `buildContentManifest(STUDIO_CWD).assets` mapped to PulseMediaItem
+    // is a follow-up that lives in Lane 5's content-strip work; not
+    // gating Pulse on it.
+    //
+    // Auth: GETs go through the same perimeter as every other private
+    // route -- the auth gate at the top of `fetch()` enforces (1) the
+    // Host header allowlist (DNS rebinding mitigation) and (2) the bearer
+    // token, accepted via `Authorization: Bearer` OR `?token=` (the SSE
+    // fallback that browsers also use when the dashboard reads the
+    // bootstrapped token from localStorage).
+    if (method === "GET" && url.pathname === "/api/pulse/snapshot") {
+      const data = buildPulseSnapshot({ db: getDb(), projectRoot: STUDIO_CWD, recentMedia: [] });
+      return respondObject(url, data, corsHeaders);
     }
 
     if (method === "GET" && url.pathname === "/api/trends/hot-context") {
@@ -2399,6 +2541,10 @@ const server = Bun.serve({
         const proc = Bun.spawn(["mktg", ...args], {
           stdout: "pipe",
           stderr: "pipe",
+          // Strip studio bearer token so it does not leak into mktg's
+          // process env (visible via `ps eww` and any `mktg doctor --json`
+          // that echoes env). Never inherit secrets to subprocesses.
+          env: spawnEnv(),
         });
         const stdout = await new Response(proc.stdout).text();
         const stderr = await new Response(proc.stderr).text();
@@ -2412,7 +2558,15 @@ const server = Bun.serve({
       return json({ ok: true, jobId: job.id }, 202, corsHeaders);
     }
 
-    // POST /api/settings/env — write API keys to .env.local
+    // POST /api/settings/env -- write API keys to .env.local
+    //
+    // Lane 1 / Wave A: this endpoint mutates `.env.local` and `process.env`.
+    // The auth perimeter above already gates it behind a bearer token, but
+    // we additionally:
+    //   - require `?confirm=true` (matches /api/brand/reset's destructive
+    //     posture; secrets-rotation deserves the same friction)
+    //   - emit `activity-new` with key NAMES only so the dashboard's audit
+    //     trail shows when API keys were touched. Values are never logged.
     if (method === "POST" && url.pathname === "/api/settings/env") {
       // Schema: { POSTIZ_API_KEY: "...", POSTIZ_API_BASE: "...", etc. }
       const body = await parseBody(req, z.record(z.string(), z.string().max(512)));
@@ -2429,6 +2583,17 @@ const server = Bun.serve({
       }
 
       if (isDryRun(url)) return json({ ok: true, dryRun: true, keys: Object.keys(body.data) }, 200, corsHeaders);
+
+      const confirm = url.searchParams.get("confirm") === "true";
+      if (!confirm) {
+        return errResponse(
+          "CONFIRM_REQUIRED",
+          "Writing API keys requires explicit confirmation",
+          400,
+          "Add ?confirm=true to the URL. The studio's audit trail will record the key names (never values).",
+          corsHeaders,
+        );
+      }
 
       // Read existing .env.local
       const envPath = join(STUDIO_CWD, ".env.local");
@@ -2450,7 +2615,39 @@ const server = Bun.serve({
 
       writeFileSync(envPath, existing.filter((l) => l !== "").join("\n") + "\n", "utf-8");
 
-      return json({ ok: true, written: Object.keys(body.data) }, 200, corsHeaders);
+      // Audit trail: log the key names (no values) to the activity feed so
+      // the user sees in real time what was rotated. Failure to insert MUST
+      // NOT block the actual env write -- the file is already on disk.
+      const keyNames = Object.keys(body.data).sort();
+      try {
+        const summary = `Env keys updated: ${keyNames.join(", ")}`;
+        const row = execute(
+          `INSERT INTO activity (kind, summary, files_changed, meta)
+           VALUES ('audit', ?, ?, ?)`,
+          [
+            summary,
+            JSON.stringify([".env.local"]),
+            JSON.stringify({ source: "settings/env", keys: keyNames }),
+          ],
+        );
+        globalEmitter.publish("*", {
+          type: "activity-new",
+          payload: {
+            id: Number(row.lastInsertRowid),
+            kind: "audit" as const,
+            skill: null,
+            summary,
+            detail: null,
+            filesChanged: [".env.local"],
+            meta: { source: "settings/env", keys: keyNames },
+            createdAt: new Date().toISOString(),
+          },
+        });
+      } catch {
+        // Audit trail is best-effort; the env write already succeeded.
+      }
+
+      return json({ ok: true, written: keyNames }, 200, corsHeaders);
     }
 
     // POST /api/onboarding/foundation — real parallel runner.
@@ -2535,7 +2732,7 @@ const server = Bun.serve({
       try {
         const proc = Bun.spawn(
           ["mktg", "init", "--yes", "--skip-skills", "--skip-agents", "--json"],
-          { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe" },
+          { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe", env: spawnEnv() },
         );
         const stderr = await new Response(proc.stderr).text();
         const exitCode = await proc.exited;
@@ -2668,7 +2865,21 @@ const server = Bun.serve({
     if (method === "GET" && url.pathname === "/api/publish/native/account") {
       const result = await mktgPublishNativeAccount();
       if (!result.ok) return respondMktgError(result, corsHeaders);
-      return respondObject(url, result.data, corsHeaders);
+      // Redact the full apiKey at the wire. apiKeyPreview is the safe
+      // 6-char tail the dashboard renders; the full secret stays in the
+      // user's `.mktg/native-publish/account.json` and is never returned.
+      // Lane 1 / Wave A.
+      const safe = {
+        ...result.data,
+        account: {
+          ...result.data.account,
+          apiKey: undefined,
+        },
+      };
+      // Drop the undefined key entirely so consumers cannot detect a "redacted"
+      // signal from the JSON shape -- the field simply isn't present.
+      delete (safe.account as { apiKey?: unknown }).apiKey;
+      return respondObject(url, safe, corsHeaders);
     }
 
     if (method === "POST" && url.pathname === "/api/publish/native/providers") {
@@ -2918,7 +3129,7 @@ const server = Bun.serve({
   },
 
   error(error) {
-    console.error("[server] Unhandled error:", error.message);
+    console.error("Unhandled error:", error.message);
     return new Response(
       JSON.stringify(
         errEnv("INTERNAL", "Unhandled server error", "Check the server logs and report at github.com/MoizIbnYousaf/marketing-cli/issues"),
@@ -2931,18 +3142,18 @@ const server = Bun.serve({
   },
 });
 
-console.log(`[server] mktg-studio backend running on http://localhost:${PORT}`);
-console.log(`[server] Routes: ${ROUTE_SCHEMA.length} registered`);
-console.log(`[server] Health: http://localhost:${PORT}/api/health`);
-console.log(`[server] Schema: http://localhost:${PORT}/api/schema`);
-console.log(`[server] Events: http://localhost:${PORT}/api/events (SSE)`);
+console.log(`mktg-studio backend running on http://localhost:${PORT}`);
+console.log(`Routes: ${ROUTE_SCHEMA.length} registered`);
+console.log(`Health: http://localhost:${PORT}/api/health`);
+console.log(`Schema: http://localhost:${PORT}/api/schema`);
+console.log(`Events: http://localhost:${PORT}/api/events (SSE)`);
 
 // ---------------------------------------------------------------------------
 // Graceful shutdown
 // ---------------------------------------------------------------------------
 
 process.on("SIGINT", () => {
-  console.log("\n[server] Shutting down...");
+  console.log("\nShutting down...");
   stopBrandWatcher();
   stopContentWatcher();
   closeDb();
