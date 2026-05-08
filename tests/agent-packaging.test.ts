@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { MANIFEST_SPECS, readManifestVersions } from "../src/core/release-manifests";
 
 const root = join(import.meta.dir, "..");
 const pkg = await Bun.file(join(root, "package.json")).json() as {
@@ -30,15 +31,14 @@ describe("agent packaging surfaces", () => {
   });
 
   test("agent plugin versions match package version", async () => {
-    const claude = await readJson<{ version: string }>(".claude-plugin/plugin.json");
-    const codex = await readJson<{ version: string }>(".codex-plugin/plugin.json");
-    const gemini = await readJson<{ version: string }>("gemini-extension.json");
-    const marketplace = await readJson<{ plugins: Array<{ version: string }> }>(".claude-plugin/marketplace.json");
-
-    expect(claude.version).toBe(pkg.version);
-    expect(codex.version).toBe(pkg.version);
-    expect(gemini.version).toBe(pkg.version);
-    expect(marketplace.plugins[0]?.version).toBe(pkg.version);
+    // Reads through the same shared registry that `mktg release` writes
+    // through, so adding a fifth plugin host (e.g., a future Cursor manifest)
+    // is one MANIFEST_SPECS append, not a divergent edit in two surfaces.
+    const versions = await readManifestVersions(root);
+    for (const spec of MANIFEST_SPECS) {
+      const v = versions.get(spec.relativePath);
+      expect(v, `${spec.relativePath} version`).toBe(pkg.version);
+    }
   });
 
   test("codex plugin advertises skills and interface metadata", async () => {

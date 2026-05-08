@@ -1,0 +1,24 @@
+# Tarball exclusions. `package.json:files` is the allowlist; this is the
+# subtractive layer for paths that fall under an allowlisted directory but
+# should not ship.
+#
+# Why we need .npmignore even with `files`: studio/docs is in the allowlist
+# (architecture.md, cmo-api.md, FAQ.md and friends are useful); only the
+# screenshots subdirectory bloats the tarball.
+
+# 9.6 MB of dashboard PNGs that nothing in the install path reads.
+studio/docs/screenshots/
+
+# Local SQLite WAL/SHM that bun:sqlite leaves around when the studio is
+# launched once at the marketing-cli root. Shouldn't ever ship.
+marketing.db
+marketing.db-wal
+marketing.db-shm
+studio/marketing.db
+studio/marketing.db-wal
+studio/marketing.db-shm
+
+# Studio Next.js build/turbopack artifacts in case a dev forgot to clean.
+studio/.next/
+studio/.turbo/
+studio/tsconfig.tsbuildinfo

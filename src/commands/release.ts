@@ -16,6 +16,7 @@ import { spawnSync } from "node:child_process";
 import { readFile, writeFile, stat } from "node:fs/promises";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { invalidArgs, rejectControlChars } from "../core/errors";
+import { applyManifestVersion, MANIFEST_SPECS } from "../core/release-manifests";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -265,9 +266,27 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     });
   }
 
-  // Apply: bump package.json, write CHANGELOG entry, commit, tag.
+  // Apply: bump package.json, sync the 4 plugin manifests, write CHANGELOG
+  // entry, commit, tag. Manifest sync must run in the same commit as the
+  // package.json bump because tests/agent-packaging.test.ts asserts every
+  // manifest version equals pkg.version. Skipping it (the pre-0.5.6 path)
+  // shipped a release commit that failed its own test suite — see
+  // commit 61cf9b2 for the hand-fix that proves the gap.
   pkg.version = versionNew;
   await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
+  try {
+    await applyManifestVersion(flags.cwd, versionNew);
+  } catch (e) {
+    return err(
+      "MANIFEST_SYNC_FAILED",
+      `Failed to sync plugin manifests to v${versionNew}: ${e instanceof Error ? e.message : String(e)}`,
+      [
+        `Verify these files exist and are valid JSON: ${MANIFEST_SPECS.map((s) => s.relativePath).join(", ")}`,
+        `Run 'git checkout package.json' to roll back the version bump if needed`,
+      ],
+      2,
+    );
+  }
 
   // Append (or create) CHANGELOG.md with the new entry on top of the existing
   // contents — idempotent re-runs would still prepend a new section, but
@@ -280,6 +299,12 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     : `# Changelog\n\n${changelogBody}\n${existingChangelog}`;
   await writeFile(changelogPath, fullChangelog);
 
+  // `git commit -am` only stages MODIFIED tracked files. The first release
+  // in a fresh repo creates CHANGELOG.md as a new untracked file, so we
+  // explicitly add it before commit. Subsequent releases find it already
+  // tracked and the add is a no-op. Without this, the next `mktg release`
+  // sees the untracked changelog from the previous run as a dirty tree.
+  runCmd("git", ["add", "CHANGELOG.md"], flags.cwd, 10_000);
   const commitRes = runCmd("git", ["commit", "-am", `chore: release v${versionNew}`], flags.cwd, 30_000);
   const committed = commitRes.ok;
   if (!committed) {

@@ -37,6 +37,37 @@ const sh = (cmd: string, args: readonly string[], cwd: string): { ok: boolean; s
 
 const initRepo = async (cwd: string, version = "1.0.0", commits: string[] = ["feat: initial commit"]): Promise<void> => {
   await writeFile(join(cwd, "package.json"), JSON.stringify({ name: "release-test-pkg", version }, null, 2) + "\n");
+  // Seed the 4 plugin manifests so `mktg release` exercises the same
+  // surface area it touches in production. Pre-0.5.6 the temp repo only
+  // had package.json, which gave false confidence: the bump path worked
+  // in the test but the production repo's agent-packaging.test.ts went
+  // red on the next bun test run. See goldthread audit + commit 61cf9b2.
+  await mkdir(join(cwd, ".claude-plugin"), { recursive: true });
+  await mkdir(join(cwd, ".codex-plugin"), { recursive: true });
+  await writeFile(
+    join(cwd, ".claude-plugin/plugin.json"),
+    JSON.stringify({ name: "release-test-pkg", version, description: "test" }, null, 2) + "\n",
+  );
+  await writeFile(
+    join(cwd, ".claude-plugin/marketplace.json"),
+    JSON.stringify(
+      {
+        name: "release-test-pkg",
+        owner: { name: "Test", url: "https://example.com" },
+        plugins: [{ name: "release-test-pkg", version, description: "test", source: "./" }],
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  await writeFile(
+    join(cwd, ".codex-plugin/plugin.json"),
+    JSON.stringify({ name: "release-test-pkg", version, description: "test", skills: "./skills/" }, null, 2) + "\n",
+  );
+  await writeFile(
+    join(cwd, "gemini-extension.json"),
+    JSON.stringify({ name: "release-test-pkg", version, description: "test" }, null, 2) + "\n",
+  );
   sh("git", ["init", "-b", "main"], cwd);
   sh("git", ["config", "user.email", "test@example.com"], cwd);
   sh("git", ["config", "user.name", "Test"], cwd);
@@ -184,6 +215,40 @@ describe("--skip-publish stops before bun publish", () => {
     expect(changelogExists).toBe(true);
     const changelog = await readFile(join(scratch, "CHANGELOG.md"), "utf-8");
     expect(changelog).toContain("0.2.0");
+  });
+
+  test("plugin manifests are bumped in lockstep with package.json", async () => {
+    // Regression guard for the pre-0.5.6 gap: `mktg release` only touched
+    // package.json, leaving the 4 plugin manifest versions stale. The next
+    // `bun test` run would then fail agent-packaging.test.ts. Catch that
+    // here so future contributors can't reintroduce the gap.
+    await initRepo(scratch, "0.4.2", ["feat: ok"]);
+    const { exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+    expect(exitCode).toBe(0);
+
+    const pkg = JSON.parse(await readFile(join(scratch, "package.json"), "utf-8"));
+    expect(pkg.version).toBe("0.4.3");
+
+    const claude = JSON.parse(await readFile(join(scratch, ".claude-plugin/plugin.json"), "utf-8"));
+    expect(claude.version).toBe("0.4.3");
+
+    const marketplace = JSON.parse(await readFile(join(scratch, ".claude-plugin/marketplace.json"), "utf-8"));
+    expect(marketplace.plugins[0].version).toBe("0.4.3");
+
+    const codex = JSON.parse(await readFile(join(scratch, ".codex-plugin/plugin.json"), "utf-8"));
+    expect(codex.version).toBe("0.4.3");
+
+    const gemini = JSON.parse(await readFile(join(scratch, "gemini-extension.json"), "utf-8"));
+    expect(gemini.version).toBe("0.4.3");
+
+    // The single commit should carry all 5 file changes — no separate
+    // hand-fix follow-up commit allowed.
+    const lastCommit = sh("git", ["show", "--name-only", "--pretty=", "HEAD"], scratch);
+    expect(lastCommit.stdout).toContain("package.json");
+    expect(lastCommit.stdout).toContain(".claude-plugin/plugin.json");
+    expect(lastCommit.stdout).toContain(".claude-plugin/marketplace.json");
+    expect(lastCommit.stdout).toContain(".codex-plugin/plugin.json");
+    expect(lastCommit.stdout).toContain("gemini-extension.json");
   });
 });
 

@@ -1,7 +1,7 @@
 {
   "name": "marketing-cli",
   "version": "0.5.6",
-  "description": "Agent-native marketing playbook: 51 skills, 5 research agents, brand memory that compounds, plus a local Studio dashboard (beta). One install, then /cmo in Claude Code walks you through a 4-question setup wizard. CLI for the agent, Studio for the human.",
+  "description": "Agent-native marketing playbook: 56 skills, 5 research agents, brand memory that compounds, plus a local Studio dashboard (beta). One install, then /cmo in Claude Code walks you through a 4-question setup wizard. CLI for the agent, Studio for the human.",
   "type": "module",
   "workspaces": [
     "studio"
@@ -26,7 +26,7 @@
     "studio/components",
     "studio/components.json",
     "studio/db",
-    "studio/docs",
+    "studio/docs/*.md",
     "studio/hooks",
     "studio/lib",
     "studio/next.config.ts",
@@ -58,7 +58,7 @@
     "typecheck": "bun x tsc --noEmit",
     "doctor": "bun run src/cli.ts doctor",
     "postinstall": "node ./scripts/postinstall.cjs",
-    "prepack": "node ./scripts/prepack-strip-workspaces.cjs",
+    "prepack": "node ./scripts/derive-counts.cjs && node ./scripts/prepack-strip-workspaces.cjs",
     "postpack": "node ./scripts/postpack-restore.cjs",
     "prepublishOnly": "bun run build"
   },
