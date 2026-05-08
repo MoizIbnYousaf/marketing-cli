@@ -11,7 +11,7 @@
     {
       "name": "marketing-cli",
       "description": "Agent-native marketing playbook CLI: 56 skills, 5 research/review agents, brand memory, and /cmo orchestration.",
-      "version": "0.5.6",
+      "version": "0.5.7",
       "source": "./",
       "homepage": "https://github.com/MoizIbnYousaf/marketing-cli",
       "repository": "https://github.com/MoizIbnYousaf/marketing-cli",
