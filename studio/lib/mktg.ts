@@ -83,7 +83,7 @@ export function loadEnvLocal(cwd: string): Record<string, string> {
 /**
  * Spawn `mktg [...args, "--json"]` and parse stdout as CommandResult<T>.
  * If `opts.input` is provided it is written to stdin (for pipe-in manifests).
- * Returns a typed CommandResult — never throws.
+ * Returns a typed CommandResult -- never throws.
  */
 export async function run<T>(
   args: string[],
@@ -132,7 +132,7 @@ export async function run<T>(
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (isCommandResult<T>(parsed)) return parsed;
-    // Parsed JSON but not a CommandResult shape — treat as data payload
+    // Parsed JSON but not a CommandResult shape -- treat as data payload
     if (exitCode === 0) {
       return { ok: true, data: parsed as T, exitCode: 0 };
     }
@@ -141,7 +141,7 @@ export async function run<T>(
   }
 
   if (exitCode === 0) {
-    // Command exited cleanly but stdout wasn't JSON — shouldn't happen with --json
+    // Command exited cleanly but stdout wasn't JSON -- shouldn't happen with --json
     return {
       ok: false,
       error: buildError("PARSE_ERROR", `mktg ${args[0]} returned non-JSON output`, [
@@ -152,7 +152,7 @@ export async function run<T>(
     };
   }
 
-  // Non-zero exit — try to extract error from stdout
+  // Non-zero exit -- try to extract error from stdout
   try {
     const parsed = JSON.parse(raw) as { ok?: boolean; error?: MktgError; exitCode?: number };
     if (parsed.ok === false && parsed.error) {

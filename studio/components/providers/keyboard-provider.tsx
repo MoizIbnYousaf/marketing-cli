@@ -8,9 +8,9 @@ import { useWorkspaceStore, type WorkspaceTab } from "@/lib/stores/workspace"
 import { CHORD_WINDOW_MS, isTypingContext } from "@/lib/keybindings"
 
 const TAB_BY_CHORD: Record<string, WorkspaceTab> = {
-  p: "hq",
-  h: "hq",
-  c: "content",
+  p: "pulse",
+  h: "pulse",
+  c: "signals",
   u: "publish",
   b: "brand",
 }
@@ -28,7 +28,7 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
       const tab = TAB_BY_CHORD[follow]
       if (tab) {
         setWorkspaceTab(tab)
-        router.push(`/dashboard${tab === "hq" ? "" : `?tab=${tab}`}`)
+        router.push(`/dashboard${tab === "pulse" ? "" : `?tab=${tab}`}`)
         return true
       }
       if (follow === ",") {
@@ -77,7 +77,7 @@ export function KeyboardProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Chord handling — only single-character lowercase keys participate
+      // Chord handling -- only single-character lowercase keys participate
       const now = Date.now()
       const last = chordRef.current
 

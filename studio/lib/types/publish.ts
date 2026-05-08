@@ -1,6 +1,6 @@
 // lib/types/publish.ts
 // All types for the Publish tab.
-// No @postiz/* imports — AGPL firewall.
+// No @postiz/* imports -- AGPL firewall.
 
 // ─── Integration (connected provider) ─────────────────────────────────────
 
@@ -40,7 +40,7 @@ export type PublishAdapter = {
 export type CreateDraftRequest = {
   content: string
   integrationIds: string[]   // postiz integration DB IDs to post to
-  scheduledAt?: string       // ISO 8601 — if omitted, creates draft
+  scheduledAt?: string       // ISO 8601 -- if omitted, creates draft
   dryRun?: boolean
 }
 
@@ -130,5 +130,5 @@ export function getProviderMeta(identifier: string): ProviderMeta {
 export type RateLimitState = {
   used: number      // posts created this hour
   limit: number     // always 30
-  resetsAt?: string // ISO 8601 — when the window resets
+  resetsAt?: string // ISO 8601 -- when the window resets
 }

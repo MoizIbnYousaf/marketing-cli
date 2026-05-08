@@ -93,10 +93,11 @@ export function StudioStatus() {
     return undefined
   }, [connected, health])
 
-  const { data: activityFrame } = useSWR<ActivityResponse>(
+  const { data: activityFrame, error: activityError } = useSWR<ActivityResponse>(
     studioApiBase ? `${studioApiBase}/api/activity?limit=1` : null,
     async (url: string) => {
       const res = await fetch(url)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       return res.json() as Promise<ActivityResponse>
     },
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
@@ -104,7 +105,11 @@ export function StudioStatus() {
 
   const latestActivity = activityFrame?.data?.[0]
   const cmoAgo = relativeAgo(latestActivity?.createdAt)
-  const cmoDotColor = cmoAgo
+  // Distinguish errored-to-undefined from idle: a fetch failure flips the
+  // /cmo dot to a muted rose so the user sees the chrome is stale.
+  const cmoDotColor = activityError
+    ? "bg-rose-500/70"
+    : cmoAgo
     ? latestActivity && ["skill-run", "brand-write", "publish"].includes(latestActivity.kind)
       ? "bg-violet-500"
       : "bg-muted-foreground/40"

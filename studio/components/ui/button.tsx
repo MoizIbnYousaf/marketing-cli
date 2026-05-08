@@ -27,6 +27,11 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        // Apple HIG / WCAG 2.5.5 minimum 44x44 hit area. Visual size is
+        // controlled by padding; min-h/min-w only enforce the touch target.
+        // Replaces the 4 inline min-h-11 enforcements at refresh-chip:24,
+        // mobile-tab-dock:39, external-reload-dialog:112, post-composer:327.
+        touch: "min-h-11 min-w-11 rounded-md gap-1.5 px-3 py-1 has-[>svg]:px-2.5",
         icon: "size-9",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",

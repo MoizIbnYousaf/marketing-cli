@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Activity as ActivityIcon } from "lucide-react"
 import {
   Sheet,
@@ -18,36 +19,72 @@ import {
   type WorkspaceStreamFilter,
   type WorkspaceTimeWindow,
 } from "@/lib/stores/workspace"
-import { PulsePage } from "./pulse/pulse-page"
-import { ContentTab } from "./content/content-tab"
-import { PublishTab } from "./publish/publish-tab"
-import { BrandTab } from "./brand/brand-tab"
 import { ActivityPanel } from "./activity-panel/activity-panel"
 import { PageTitle } from "@/components/ui/page-title"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useIsMobile } from "@/hooks/use-mobile"
 
+// Each tab carries 100-300 kB of its own client JS (charts, swr fan-out,
+// tab-specific composer/editor primitives). Eagerly importing all four
+// forces every dashboard load to ship the union. Lazy via next/dynamic
+// makes the active tab the only one in the first paint; switching tabs
+// pays the next chunk's download once. Suspense fallback uses the shared
+// Skeleton primitive so the flash is on-brand instead of empty.
+function TabSkeleton() {
+  return (
+    <div className="flex h-full flex-col gap-4 p-6">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+      <Skeleton className="h-48 w-full" />
+    </div>
+  )
+}
+
+const PulsePage = dynamic(
+  () => import("./pulse/pulse-page").then((m) => ({ default: m.PulsePage })),
+  { loading: () => <TabSkeleton /> },
+)
+const ContentTab = dynamic(
+  () => import("./content/content-tab").then((m) => ({ default: m.ContentTab })),
+  { loading: () => <TabSkeleton /> },
+)
+const PublishTab = dynamic(
+  () => import("./publish/publish-tab").then((m) => ({ default: m.PublishTab })),
+  { loading: () => <TabSkeleton /> },
+)
+const BrandTab = dynamic(
+  () => import("./brand/brand-tab").then((m) => ({ default: m.BrandTab })),
+  { loading: () => <TabSkeleton /> },
+)
+
 // Accessible names for the <h1> we render per tab. These are screen-reader
-// targets — the visible tab headings are in WorkspaceTabs / MobileTabDock,
+// targets -- the visible tab headings are in WorkspaceTabs / MobileTabDock,
 // which carry their own labels. Keeping this as the canonical source so
 // `<PageTitle srOnly>` + the browser's page title ladder stay in sync.
 const TAB_TITLES: Record<WorkspaceTab, string> = {
-  hq: "Pulse",
-  content: "Signals",
+  pulse: "Pulse",
+  signals: "Signals",
   publish: "Publish",
   brand: "Brand files",
 }
 
-const VALID_TABS: Set<string> = new Set(["hq", "pulse", "content", "trends", "signals", "audience", "opportunities", "publish", "brand"])
+const VALID_TABS: Set<string> = new Set(["pulse", "signals", "publish", "brand"])
 const VALID_PLATFORM_FILTERS: Set<string> = new Set(["all", "news", "instagram", "tiktok", "google_trends"])
 const VALID_STREAM_FILTERS: Set<string> = new Set(["all", "hashtag", "trending", "explore"])
 const VALID_TIME_WINDOWS: Set<string> = new Set(["live_2h", "rising_8h", "context_24h", "all"])
 
+// Tiny defensive guard for unknown values. The dashboard route handler in
+// app/(dashboard)/dashboard/page.tsx server-redirects every legacy alias
+// (hq, content, trends, audience, opportunities) before the page renders,
+// so this only catches unexpected input from random URL bar typing.
 function normalizeTab(value: string | null): WorkspaceTab {
-  if (!value || !VALID_TABS.has(value)) return "hq"
-  if (value === "pulse") return "hq"
-  if (value === "trends" || value === "signals") return "content"
-  if (value === "audience" || value === "opportunities") return "hq"
-  return value as WorkspaceTab
+  if (value && VALID_TABS.has(value)) return value as WorkspaceTab
+  return "pulse"
 }
 
 function normalizePlatform(value: string | null): WorkspacePlatformFilter {
@@ -77,7 +114,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
 
   const signalStats = useSignalStats()
 
-  // Use a stable string dep — useSearchParams() can return new object refs per
+  // Use a stable string dep -- useSearchParams() can return new object refs per
   // render in dev/Turbopack, which would re-fire these effects every paint.
   const search = searchParams.toString()
   const rawTab = searchParams.get("tab")
@@ -113,7 +150,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
         : nextStreamRaw
     const nextTimeWindow = update.timeWindow ?? routeTimeWindow
 
-    if (nextTab === "hq") nextParams.delete("tab")
+    if (nextTab === "pulse") nextParams.delete("tab")
     else nextParams.set("tab", nextTab)
 
     nextParams.delete("mode")
@@ -188,12 +225,12 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
               >
                 <div className="grid h-full min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
                   <div className="h-full min-h-0 overflow-hidden">
-                    {activeTab === "hq" && (
+                    {activeTab === "pulse" && (
                       <div className="h-full min-h-0 overflow-auto">
                         <PulsePage groupId={groupId} />
                       </div>
                     )}
-                    {activeTab === "content" && <ContentTab groupId={groupId} />}
+                    {activeTab === "signals" && <ContentTab groupId={groupId} />}
                     {activeTab === "publish" && <PublishTab groupId={groupId} />}
                     {activeTab === "brand" && <BrandTab />}
                   </div>
@@ -206,8 +243,8 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
             </div>
           ) : (
             <div className="h-full overflow-auto pb-28">
-              {activeTab === "hq" && <PulsePage groupId={groupId} />}
-              {activeTab === "content" && <ContentTab groupId={groupId} />}
+              {activeTab === "pulse" && <PulsePage groupId={groupId} />}
+              {activeTab === "signals" && <ContentTab groupId={groupId} />}
               {activeTab === "publish" && <PublishTab groupId={groupId} />}
               {activeTab === "brand" && <BrandTab />}
             </div>
@@ -215,7 +252,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
         </div>
       </div>
 
-      {/* Mobile activity FAB — above MobileTabDock */}
+      {/* Mobile activity FAB -- above MobileTabDock */}
       <button
         onClick={() => setActivityOpen(true)}
         className="fixed bottom-20 right-4 z-40 flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg md:hidden"

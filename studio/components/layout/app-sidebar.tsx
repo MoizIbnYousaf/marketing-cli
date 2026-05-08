@@ -32,9 +32,15 @@ export const NAV_GROUPS = [
     label: "Marketing Ops",
     items: [
       { title: "Pulse", href: "/dashboard", icon: Activity },
-      { title: "Signals", href: "/dashboard?tab=content", icon: Images },
+      { title: "Signals", href: "/dashboard?tab=signals", icon: Images },
       { title: "Publish", href: "/dashboard?tab=publish", icon: Send },
       { title: "Brand", href: "/dashboard?tab=brand", icon: BookOpen },
+    ],
+  },
+  {
+    label: "Library",
+    items: [
+      { title: "Skills", href: "/skills", icon: Sparkles },
     ],
   },
   {
@@ -62,7 +68,7 @@ export function AppSidebar() {
 
     if (href === "/dashboard") {
       const tab = searchParams.get("tab")
-      return pathname === "/dashboard" && (!tab || tab === "" || tab === "hq" || tab === "pulse")
+      return pathname === "/dashboard" && (!tab || tab === "" || tab === "pulse")
     }
 
     return pathname.startsWith(href)
@@ -71,20 +77,16 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="border-r border-white/10 bg-[#0d1215]"
+      className="border-r border-sidebar-border bg-sidebar"
     >
       <SidebarHeader className="px-3 py-5 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5">
         <ProjectIdentityCard />
-        <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.035] px-2 py-1 text-[10px] uppercase tracking-widest text-[#9da09a] group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0">
-          <Sparkles className="size-3" />
-          <span className="group-data-[collapsible=icon]:sr-only">powered by /cmo</span>
-        </div>
       </SidebarHeader>
 
       <SidebarContent className="px-1">
         {NAV_GROUPS.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="uppercase tracking-widest text-[11px] text-[#9da09a]">
+            <SidebarGroupLabel className="uppercase tracking-widest text-[11px] text-muted-foreground">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -98,9 +100,9 @@ export function AppSidebar() {
                         isActive={active}
                         tooltip={item.title}
                         className={cn(
-                          "rounded-xl border border-transparent text-[#d9d3c8] transition-all duration-150 hover:bg-white/[0.045] hover:text-[#f5f0e6]",
+                          "rounded-xl border border-transparent text-sidebar-foreground transition-colors duration-150 hover:bg-surface-1 hover:text-foreground",
                           active &&
-                            "!border-lime/30 !bg-white/[0.075] !text-lime shadow-sm"
+                            "border-lime/30 bg-surface-3 text-lime data-[active=true]:bg-surface-3 data-[active=true]:text-lime shadow-sm"
                         )}
                       >
                         <Link href={item.href}>
@@ -109,7 +111,7 @@ export function AppSidebar() {
                               "size-4",
                               active
                                 ? "text-lime"
-                                : "text-[#9da09a]"
+                                : "text-muted-foreground"
                             )}
                           />
                           <span>{item.title}</span>
@@ -125,15 +127,10 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="px-3 pb-4 pt-1 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-1.5">
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] p-2.5 shadow-sm group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0">
-          {/* Clerk UserButton stripped — local-first has no auth */}
-          <div className="flex size-7 items-center justify-center rounded-full bg-lime/20 font-mono text-[10px] text-lime">
-            CMO
-          </div>
-          <div className="group-data-[collapsible=icon]:sr-only">
-            <div className="text-xs font-medium text-[#f5f0e6]">Chief Marketing Officer</div>
-            <div className="font-mono text-[10px] text-[#9da09a]">local workspace</div>
-          </div>
+        <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground group-data-[collapsible=icon]:hidden">
+          <span>mktg</span>
+          <span aria-hidden="true">·</span>
+          <span>local</span>
         </div>
       </SidebarFooter>
 

@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { PulseEmptyState } from "@/components/workspace/pulse/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 import {
   getProviderMeta,
   type PublishIntegration,
@@ -141,13 +142,14 @@ export function ConnectedProviders({
             ))}
           </div>
         ) : error ? (
-          <PulseEmptyState
-            icon={ShieldAlert}
+          <ErrorState
+            level="section"
+            error={error}
+            onRetry={() => mutate()}
             title="Couldn't load providers"
-            description="Check that the studio server is running."
           />
         ) : data?.degraded ? (
-          <PulseEmptyState
+          <EmptyState
             icon={ShieldAlert}
             title={`${backendName} unavailable`}
             description={data.degradedReason ?? `Configure ${backendName} to connect accounts.`}
@@ -163,7 +165,7 @@ export function ConnectedProviders({
             ) : undefined}
           />
         ) : integrations.length === 0 ? (
-          <PulseEmptyState
+          <EmptyState
             icon={PlugZap}
             title="No accounts connected"
             description={emptyDescription}

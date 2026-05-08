@@ -7,7 +7,8 @@ import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { PulseEmptyState } from "@/components/workspace/pulse/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { publishErrorCopy } from "@/lib/publish-error"
 import { getProviderMeta } from "@/lib/types/publish"
 
 type ScheduledPost = {
@@ -104,13 +105,27 @@ export function ScheduledQueue({
             ))}
           </div>
         ) : error ? (
-          <PulseEmptyState
-            icon={ShieldAlert}
-            title="Couldn't load queue"
-            description="The studio server may be down."
-          />
+          (() => {
+            const copy = publishErrorCopy(error, "queue")
+            return (
+              <EmptyState
+                icon={ShieldAlert}
+                title={copy.title}
+                description={copy.description}
+                action={
+                  copy.hint ? (
+                    <p className="text-[11px] text-muted-foreground/80">{copy.hint}</p>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => mutate()}>
+                      Retry
+                    </Button>
+                  )
+                }
+              />
+            )
+          })()
         ) : data?.degraded ? (
-          <PulseEmptyState
+          <EmptyState
             icon={ShieldAlert}
             title={adapter === "mktg-native" ? "Native backend unavailable" : "Postiz unavailable"}
             description={
@@ -121,7 +136,7 @@ export function ScheduledQueue({
             }
           />
         ) : posts.length === 0 ? (
-          <PulseEmptyState
+          <EmptyState
             icon={CalendarClock}
             title="No posts scheduled"
             description="Compose a post to add it to the queue."

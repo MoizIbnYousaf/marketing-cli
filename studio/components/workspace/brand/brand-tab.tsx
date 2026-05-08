@@ -267,6 +267,7 @@ export function BrandTab() {
         )}
         {!currentFile ? (
           <EmptyState
+            variant="centered"
             icon={FileText}
             title="Pick a brand doc to edit"
             description="Your brand memory lives in `brand/*.md`. /cmo writes these when it runs foundation research. You can read, edit, and regenerate any of them right here."

@@ -1,4 +1,4 @@
-// lib/schema-export.ts — JSON Schema enrichment for ROUTE_SCHEMA (Agent DX axis 3)
+// lib/schema-export.ts -- JSON Schema enrichment for ROUTE_SCHEMA (Agent DX axis 3)
 //
 // Today each ROUTE_SCHEMA entry can carry a `body: { id: "number", ... }`
 // hand-authored description. That works as a fallback (passes axis 3) but
@@ -8,7 +8,7 @@
 // body has its Zod schema registered here, and `GET /api/schema` emits the
 // converted JSON Schema as a sibling `inputSchema` field on each entry.
 //
-// Uses Zod 4's built-in `z.toJSONSchema()` — zero third-party deps.
+// Uses Zod 4's built-in `z.toJSONSchema()` -- zero third-party deps.
 
 import { z, type ZodType } from "zod";
 
@@ -19,7 +19,7 @@ import { z, type ZodType } from "zod";
 // pattern as-declared in ROUTE_SCHEMA.
 //
 // The handler's Zod schema MUST be the same instance/shape as what's
-// registered here — both the wire validator and the schema export resolve
+// registered here -- both the wire validator and the schema export resolve
 // off this single declaration.
 
 export interface RouteSchemaSource {
@@ -60,7 +60,7 @@ function safeToJsonSchema(schema: ZodType<unknown>): unknown {
   try {
     return z.toJSONSchema(schema);
   } catch (err) {
-    // toJSONSchema can throw on cycles or unsupported types — fall back to
+    // toJSONSchema can throw on cycles or unsupported types -- fall back to
     // a placeholder rather than crashing /api/schema.
     return {
       $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -73,7 +73,7 @@ function safeToJsonSchema(schema: ZodType<unknown>): unknown {
 
 /**
  * Generic shape of a ROUTE_SCHEMA entry. We don't import the concrete type
- * from server.ts to avoid a cycle — the entry shape is stable and small.
+ * from server.ts to avoid a cycle -- the entry shape is stable and small.
  */
 export interface RouteEntryLike {
   readonly method: string;
@@ -85,7 +85,7 @@ export interface RouteEntryLike {
 
 /**
  * Take a ROUTE_SCHEMA entry and add `inputSchema` (JSON Schema) when the
- * Zod registry has a match. Original entry is preserved — `body` (the
+ * Zod registry has a match. Original entry is preserved -- `body` (the
  * stringly-typed description) still ships for backward compat.
  */
 export function enrichRouteEntry<T extends RouteEntryLike>(

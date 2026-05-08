@@ -1,6 +1,6 @@
-// lib/validators.ts — Input hardening for mktg-studio
+// lib/validators.ts -- Input hardening for mktg-studio
 // Ported from ~/projects/mktgmono/marketing-cli/src/core/errors.ts
-// "The agent is not a trusted operator." — 6 validators, pure TypeScript, no side effects.
+// "The agent is not a trusted operator." -- 6 validators, pure TypeScript, no side effects.
 
 import { resolve, relative, isAbsolute } from "node:path";
 import { lstatSync } from "node:fs";
@@ -19,7 +19,7 @@ export const rejectControlChars = (
   if (CONTROL_CHAR_RE.test(input)) {
     return {
       ok: false,
-      message: `${fieldName} contains control characters — these are never valid`,
+      message: `${fieldName} contains control characters -- these are never valid`,
     };
   }
   return { ok: true };
@@ -45,7 +45,7 @@ export const validateResourceId = (
   if (!VALID_RESOURCE_ID_RE.test(id)) {
     return {
       ok: false,
-      message: `${resourceType} name '${id}' contains invalid characters — use lowercase letters, numbers, hyphens, and dots only`,
+      message: `${resourceType} name '${id}' contains invalid characters -- use lowercase letters, numbers, hyphens, and dots only`,
     };
   }
   return { ok: true };
@@ -66,14 +66,14 @@ export const detectDoubleEncoding = (
   if (/%25[0-9a-f]{2}/.test(normalized)) {
     return {
       ok: false,
-      message: "Double-encoded input detected — this is never valid in path contexts",
+      message: "Double-encoded input detected -- this is never valid in path contexts",
     };
   }
 
   if (/%(2e|2f|5c|00|09|0a|0d)/.test(normalized)) {
     return {
       ok: false,
-      message: "URL-encoded path components detected — use plain paths, not URL-encoded ones",
+      message: "URL-encoded path components detected -- use plain paths, not URL-encoded ones",
     };
   }
 
@@ -110,7 +110,7 @@ export const sandboxPath = (
       return { ok: false, message: "Symlinks are not allowed" };
     }
   } catch {
-    // File doesn't exist yet — that's fine for writes
+    // File doesn't exist yet -- that's fine for writes
   }
 
   return { ok: true, path: resolved };

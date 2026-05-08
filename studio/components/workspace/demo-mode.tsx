@@ -50,7 +50,7 @@ type DemoRect = {
 
 export const WORKSPACE_DEMO_STEPS: DemoStep[] = [
   {
-    id: "hq",
+    id: "pulse",
     eyebrow: "Start here",
     title: "See what changed first",
     body:
@@ -60,7 +60,7 @@ export const WORKSPACE_DEMO_STEPS: DemoStep[] = [
     outcome:
       "By the end of this screen, you should know whether there is a moment worth chasing today.",
     targetId: "pulse-overview",
-    tab: "hq",
+    tab: "pulse",
   },
   {
     id: "content-library",
@@ -73,7 +73,7 @@ export const WORKSPACE_DEMO_STEPS: DemoStep[] = [
     outcome:
       "The CMO loop becomes concrete: idea, asset, draft, publish.",
     targetId: "content-tab",
-    tab: "content",
+    tab: "signals",
   },
   {
     id: "publish",
@@ -93,7 +93,7 @@ export const WORKSPACE_DEMO_STEPS: DemoStep[] = [
     eyebrow: "/cmo Activity",
     title: "Watch /cmo work in real time",
     body:
-      "The Activity panel streams every skill run, brand-file write, publish, and nav event that /cmo fires from your Claude Code terminal. No chat widget — the studio just mirrors what your CMO is doing.",
+      "The Activity panel streams every skill run, brand-file write, publish, and nav event that /cmo fires from your Claude Code terminal. No chat widget -- the studio just mirrors what your CMO is doing.",
     guide:
       "Keep this panel open while you talk to /cmo in your terminal. Each action shows up live, with files changed and timestamps.",
     outcome:

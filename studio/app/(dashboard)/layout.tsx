@@ -3,6 +3,14 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import { AppHeader } from "@/components/layout/app-header"
 import { KeyboardProvider } from "@/components/providers/keyboard-provider"
 
+// Dashboard routes share a tree of client components that read live state
+// (SWR queries, useSearchParams tab/panel state, brand-file watchers, SSE).
+// Static generation does not match that contract; useSearchParams without a
+// Suspense boundary throws at build time. Force per-request rendering for
+// every dashboard route. The root layout intentionally does NOT carry this
+// directive so /onboarding can statically generate.
+export const dynamic = "force-dynamic"
+
 export default function DashboardLayout({
   children,
 }: {

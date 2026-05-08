@@ -1,4 +1,4 @@
-// lib/dx.ts — Agent DX 21/21 route wrapper
+// lib/dx.ts -- Agent DX 21/21 route wrapper
 //
 // `wrapRoute()` handles the cross-cutting concerns every studio endpoint
 // needs: strict JSON error envelope, dry-run + confirm rails, field-mask
@@ -18,7 +18,7 @@ import { parseJsonInput } from "./validators.ts";
 import { wantsNdjson, streamNdjson } from "./ndjson.ts";
 
 // ---------------------------------------------------------------------------
-// Error vocabulary — every code documented with a deterministic fix hint.
+// Error vocabulary -- every code documented with a deterministic fix hint.
 // ---------------------------------------------------------------------------
 
 // All ErrorCode values are also valid `StudioErrorCode` consumers (the wider
@@ -59,7 +59,7 @@ export const ERROR_FIX_HINTS: Record<ErrorCode, string> = {
   CONTROL_CHARS_REJECTED:
     "Strip control characters from the value (tabs and newlines are the only ones allowed)",
   DOUBLE_ENCODING: "Send plain paths, not URL-encoded ones",
-  PATH_TRAVERSAL: "Drop `..` segments — paths must stay inside the project root",
+  PATH_TRAVERSAL: "Drop `..` segments -- paths must stay inside the project root",
   PATH_ABSOLUTE: "Use a project-relative path, not an absolute one",
   SYMLINK_REJECTED: "Replace the symlink with a regular file",
   INVALID_RESOURCE_ID:
@@ -67,15 +67,15 @@ export const ERROR_FIX_HINTS: Record<ErrorCode, string> = {
   NOT_FOUND: "Check GET /api/schema for valid routes and GET /api/jobs/:id for valid job ids",
   METHOD_NOT_ALLOWED: "Check the method column in GET /api/schema",
   CONFIRM_REQUIRED: "Add ?confirm=true to the URL to confirm this destructive action",
-  CONFLICT: "Reload the resource and merge — your expected version is stale",
-  RATE_LIMITED: "Back off — this client exceeded 60 requests/minute",
-  UPSTREAM_FAILED: "Upstream service failed — retry; if persistent, check the upstream health",
+  CONFLICT: "Reload the resource and merge -- your expected version is stale",
+  RATE_LIMITED: "Back off -- this client exceeded 60 requests/minute",
+  UPSTREAM_FAILED: "Upstream service failed -- retry; if persistent, check the upstream health",
   MKTG_CLI_FAILED:
     "Check that mktg is installed (npm i -g marketing-cli) and `mktg doctor` passes",
   POSTIZ_UNREACHABLE:
     "Check POSTIZ_API_KEY + POSTIZ_API_BASE; verify with `mktg doctor`",
-  SCHEMA_MISMATCH: "The upstream response didn't match the expected shape — file a bug",
-  INTERNAL_ERROR: "Check the server logs. This is a bug — please report.",
+  SCHEMA_MISMATCH: "The upstream response didn't match the expected shape -- file a bug",
+  INTERNAL_ERROR: "Check the server logs. This is a bug -- please report.",
 };
 
 export interface ApiErrorBody {
@@ -119,7 +119,7 @@ export function apiError(
 }
 
 // ---------------------------------------------------------------------------
-// Field mask — dot-path filtering for Agent DX axis 4.
+// Field mask -- dot-path filtering for Agent DX axis 4.
 // Works on arrays (masks every element) and nested objects.
 // ---------------------------------------------------------------------------
 
@@ -305,7 +305,7 @@ export function applyFieldMask(data: unknown, fieldsParam: string | null): unkno
 }
 
 // ---------------------------------------------------------------------------
-// Body parsing — wraps zod + parseJsonInput (64KB + prototype-pollution guard).
+// Body parsing -- wraps zod + parseJsonInput (64KB + prototype-pollution guard).
 // ---------------------------------------------------------------------------
 
 export async function parseBodyStrict<T>(
@@ -368,7 +368,7 @@ export async function parseBodyStrict<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Rate limiter — sliding window, pluggable backend, per IP+method.
+// Rate limiter -- sliding window, pluggable backend, per IP+method.
 // 60 req/min default. Mutating methods only; GET is assumed idempotent.
 //
 // Backend is selected at startup via the `RATE_LIMIT_STORE` env var
@@ -405,7 +405,7 @@ export function checkRateLimit(req: Request): RateCheckOk | RateCheckBlocked {
   const { count, oldestHitMs } = store.incr(key, RATE_WINDOW_MS, now);
 
   // If the store is degraded (e.g. SQLite write failed), the count we got is
-  // best-effort — fail open with the header so callers can surface it.
+  // best-effort -- fail open with the header so callers can surface it.
   if (store.isDegraded()) {
     return { ok: true, degraded: true };
   }
@@ -423,7 +423,7 @@ export function resetRateLimits(): void {
 }
 
 // ---------------------------------------------------------------------------
-// wrapRoute — the route-handler wrapper.
+// wrapRoute -- the route-handler wrapper.
 // ---------------------------------------------------------------------------
 
 export interface DXContext {
@@ -459,9 +459,9 @@ export interface WrapRouteOptions<I, O> {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Zod schema for POST/PUT/PATCH body. Omit for GET. */
   inputSchema?: ZodType<I>;
-  /** True = this is a mutation — supports `?dryRun=true`. */
+  /** True = this is a mutation -- supports `?dryRun=true`. */
   dryRun?: boolean;
-  /** True = destructive — requires `?confirm=true`. */
+  /** True = destructive -- requires `?confirm=true`. */
   destructive?: boolean;
   /** True = response is a list and should support NDJSON + field-mask element-wise. */
   listResponse?: boolean;
@@ -508,7 +508,7 @@ export function wrapRoute<I = undefined, O = unknown>(
         if (!rate.ok) {
           response = apiError(
             "RATE_LIMITED",
-            `Rate limit exceeded — retry in ${rate.retryAfterSec}s`,
+            `Rate limit exceeded -- retry in ${rate.retryAfterSec}s`,
             429,
             { ...corsHeaders, "Retry-After": String(rate.retryAfterSec) },
           );

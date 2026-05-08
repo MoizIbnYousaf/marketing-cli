@@ -24,7 +24,7 @@
   --color-accent-foreground: #0b0b0f;
   --color-accent-dark: #bce223;
 
-  /* Primary / secondary — drive shadcn Button + Badge default variants
+  /* Primary / secondary -- drive shadcn Button + Badge default variants
      and the onboarding progress dots. Primary aligns with the brand
      accent so default CTAs are brand-colored; secondary is a subtle
      neutral pulled from the muted palette. */
@@ -33,7 +33,7 @@
   --color-secondary: #171d21;
   --color-secondary-foreground: #f5f0e6;
 
-  /* Relevance Radar tile — intentionally always-dark TikTok-branded
+  /* Relevance Radar tile -- intentionally always-dark TikTok-branded
      surface (same tokens in light + dark themes; not overridden in
      .dark). G6-03: replaces hardcoded hex literals so the audit
      passes, without sacrificing the deliberate "neon on obsidian"
@@ -53,7 +53,21 @@
   --color-destructive: #DC2626;
   --color-success: #16A34A;
 
-  /* Shadows — light */
+  /* Surfaces -- shadcn-required tokens (card/popover/input) + a 3-step
+     elevation ramp. Card is one step above background; popover floats
+     above card; input borrows the border-subtle tone so input borders
+     read as recessed. Without these, bg-card / bg-popover / border-input
+     emit no CSS in Tailwind v4 and primitives render transparent. */
+  --color-card: #171d21;
+  --color-card-foreground: #f5f0e6;
+  --color-popover: #1d2429;
+  --color-popover-foreground: #f5f0e6;
+  --color-input: #1d252b;
+  --color-surface-1: #171d21;
+  --color-surface-2: #1d2429;
+  --color-surface-3: #232a30;
+
+  /* Shadows -- light */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
@@ -69,6 +83,13 @@
   --radius-2xl: 0.75rem;
   --radius-3xl: 1rem;
   --radius-full: 9999px;
+
+  /* Semantic radii (silverspark / Lane 5 hierarchy). panel = top-level
+     surface, card = interior cards, chip = inline icon containers. The
+     Pulse hero at pulse-page.tsx:249 keeps its rounded-[2rem] one-off. */
+  --radius-panel: 1.6rem;
+  --radius-card: 1rem;
+  --radius-chip: 0.75rem;
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -93,18 +114,19 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(circle at 4% 1%, rgba(11, 11, 15, 0.2) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 96% 96%, rgba(11, 11, 15, 0.16) 0 1px, transparent 1.5px),
-    #f5f0e6;
-  background-size: 7px 7px, 7px 7px, auto;
+  /* Studio is locked dark (Wave A). The body background is the canonical
+     `--color-background` token so `bg-background` on the body in
+     app/layout.tsx isn't overridden. The previous cream `#f5f0e6` paint
+     was a leftover from the abandoned light theme and was rendering on
+     top of the dark-locked html.dark class. */
+  background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
   line-height: 1.6;
   letter-spacing: -0.01em;
 }
 
-/* Display headlines — shared typography.
+/* Display headlines -- shared typography.
  *
  * Uppercase is opt-in via `.heading-display` (or equivalent utility). The
  * global `h1 { text-transform: uppercase }` used to spoil route titles
@@ -128,7 +150,7 @@ h1 {
   text-wrap: balance;
 }
 
-/* Section headlines — Archivo */
+/* Section headlines -- Archivo */
 h2, .heading-serif {
   font-family: var(--font-serif);
   letter-spacing: -0.01em;
@@ -137,7 +159,7 @@ h2, .heading-serif {
   text-wrap: balance;
 }
 
-/* Sub-section headings — Archivo for h3, Inter Tight for h4+ */
+/* Sub-section headings -- Archivo for h3, Inter Tight for h4+ */
 h3, .heading {
   font-family: var(--font-serif);
   letter-spacing: -0.01em;
@@ -690,7 +712,7 @@ a, button, [role="button"] {
 }
 
 :root {
-  /* Sidebar — graphite app rail */
+  /* Sidebar -- graphite app rail */
   --sidebar: #0d1215;
   --sidebar-foreground: #d9d3c8;
   --sidebar-primary: #d8ff3c;
@@ -724,7 +746,7 @@ a, button, [role="button"] {
   --color-accent-foreground: #0b0b0f;
   --color-accent-dark: #bce223;
 
-  /* Primary / secondary — same brand-gold primary as light (reads well
+  /* Primary / secondary -- same brand-gold primary as light (reads well
      on dark bg); secondary pulls from the dark muted surface. */
   --color-primary: #d8ff3c;
   --color-primary-foreground: #0b0b0f;
@@ -745,7 +767,7 @@ a, button, [role="button"] {
   --shadow-xl: 0 20px 48px -8px rgb(0 0 0 / 0.6), 0 8px 16px -4px rgb(0 0 0 / 0.3);
   --shadow-glow: 0 0 40px -8px rgb(216 255 60 / 0.3);
 
-  /* Sidebar — graphite app rail */
+  /* Sidebar -- graphite app rail */
   --sidebar: #0d1215;
   --sidebar-foreground: #d9d3c8;
   --sidebar-primary: #d8ff3c;

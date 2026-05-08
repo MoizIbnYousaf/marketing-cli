@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
-// PageTitle — the canonical h1 for every route.
+// PageTitle -- the canonical h1 for every route.
 //
 // Three purposes:
 //   1. Satisfies WCAG page-has-heading-one (G5-01): every rendered route
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 //   <PageTitle title="Pulse" description="What /cmo sees right now." />
 //
 // The caller decides which landmark wraps it (<main>, <section
-// aria-labelledby>, etc.) — PageTitle itself is just the heading.
+// aria-labelledby>, etc.) -- PageTitle itself is just the heading.
 
 type Props = {
   /** Visible title text. Renders inside <h1>. */
@@ -27,13 +27,13 @@ type Props = {
   description?: ReactNode
   /** Optional actions (buttons, menus) rendered aligned right on wider viewports. */
   actions?: ReactNode
-  /** Escape hatch — any wrapper-level classes the caller needs. */
+  /** Escape hatch -- any wrapper-level classes the caller needs. */
   className?: string
   /** Optional id so a surrounding `<section aria-labelledby>` can reference the h1. */
   id?: string
   /**
    * Visually hide the title but keep it in the accessibility tree.
-   * Use sparingly — for pages where a branded banner or graphic is the
+   * Use sparingly -- for pages where a branded banner or graphic is the
    * visible title, we still need an h1 for screen readers + the audit.
    */
   srOnly?: boolean

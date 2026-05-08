@@ -1,12 +1,12 @@
-// lib/sse.ts — Server-Sent Events system for mktg-studio
+// lib/sse.ts -- Server-Sent Events system for mktg-studio
 //
-// Server side:  SSEEmitter — manages subscriber streams, publishes typed events.
-// Client side:  useSSE<T>  — React hook that subscribes to an SSE URL.
+// Server side:  SSEEmitter -- manages subscriber streams, publishes typed events.
+// Client side:  useSSE<T>  -- React hook that subscribes to an SSE URL.
 
 import { useEffect, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
-// Shared event shape — all SSE events use this envelope.
+// Shared event shape -- all SSE events use this envelope.
 // ---------------------------------------------------------------------------
 export interface SSEEvent<T = unknown> {
   type: string;
@@ -46,7 +46,7 @@ export class SSEEmitter {
         const heartbeat = `data: ${JSON.stringify({ type: "connected", payload: { channel }, ts: Date.now() })}\n\n`;
         controller.enqueue(heartbeat);
 
-        // SSE comment-line ping every 15s — Bun.serve and most proxies will
+        // SSE comment-line ping every 15s -- Bun.serve and most proxies will
         // close idle streams within 30-60s. Comment frames (`: ping`) keep
         // the socket alive without triggering EventSource.onmessage on the
         // client. This is the root-cause fix for the "subscribers go to 0
@@ -97,7 +97,7 @@ export class SSEEmitter {
       try {
         sub.controller.enqueue(data);
       } catch {
-        // Stream closed — mark for removal
+        // Stream closed -- mark for removal
         dead.push(sub);
       }
     }
@@ -114,7 +114,7 @@ export class SSEEmitter {
 }
 
 // ---------------------------------------------------------------------------
-// Global singleton emitters — import these in route handlers
+// Global singleton emitters -- import these in route handlers
 // ---------------------------------------------------------------------------
 
 /** Global broadcast channel: brand-file-changed, skill-completed, etc. */

@@ -22,7 +22,7 @@ export type BrandFreshness = "fresh" | "stale" | "empty" | "missing" | "template
 export interface BrandFile {
   /** Basename, e.g. `voice-profile.md`. */
   name: string
-  /** Relative path from project root. Optional — server may omit. */
+  /** Relative path from project root. Optional -- server may omit. */
   path?: string
   /** File size in bytes, 0 if missing. */
   bytes: number
@@ -66,14 +66,14 @@ export const BRAND_FILE_SPEC: Record<
 > = {
   "voice-profile.md": {
     label: "Voice profile",
-    description: "How the brand sounds — personality, vocabulary, sentence patterns.",
+    description: "How the brand sounds -- personality, vocabulary, sentence patterns.",
     freshnessDays: 30,
     writer: "brand-voice",
     order: 1,
   },
   "positioning.md": {
     label: "Positioning",
-    description: "Why the brand is different — angle, proof points, differentiation.",
+    description: "Why the brand is different -- angle, proof points, differentiation.",
     freshnessDays: 30,
     writer: "positioning-angles",
     order: 2,
@@ -108,7 +108,7 @@ export const BRAND_FILE_SPEC: Record<
   },
   "creative-kit.md": {
     label: "Creative kit",
-    description: "Visual identity — colors, typography, style anchors.",
+    description: "Visual identity -- colors, typography, style anchors.",
     freshnessDays: 180,
     writer: "visual-style",
     order: 7,
@@ -213,7 +213,7 @@ export async function regenerateBrandFile(file: string): Promise<BrandRegenerate
 
 /** Age helper used by the file-list freshness badge. */
 export function relativeAge(iso: string | undefined): string {
-  if (!iso) return "—"
+  if (!iso) return "--"
   const diff = Date.now() - new Date(iso).getTime()
   if (!Number.isFinite(diff) || diff < 0) return "just now"
   const s = Math.floor(diff / 1000)

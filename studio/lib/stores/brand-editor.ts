@@ -13,7 +13,7 @@ interface BrandEditorState {
   saveStatus: SaveStatus
   /** Error details when saveStatus === "error" or "conflict". */
   saveError: { message: string; fix?: string } | null
-  /** If true, an external write landed while the user was editing — merge prompt. */
+  /** If true, an external write landed while the user was editing -- merge prompt. */
   externalChange: boolean
   openFile: (args: { name: string; content: string; mtime: string }) => void
   closeFile: () => void

@@ -1,4 +1,4 @@
-// lib/brand-files.ts — brand/ filesystem helpers shared by /api/brand/*
+// lib/brand-files.ts -- brand/ filesystem helpers shared by /api/brand/*
 //
 // Single source of truth for:
 //   - the canonical 10 brand files + their freshness windows + owning skills
@@ -20,7 +20,7 @@ import { resolveProjectRoot } from "./project-root.ts";
 
 export interface BrandFileSpec {
   name: string;
-  /** Owning skill — `null` for manually-maintained files. */
+  /** Owning skill -- `null` for manually-maintained files. */
   skill: string | null;
   /** Days after `mtime` at which the file is considered stale. `null` = never. */
   freshnessDays: number | null;
@@ -55,7 +55,7 @@ export function getSpec(name: string): BrandFileSpec | null {
 //
 // The mktg init seed templates are short scaffolds (typically <600 chars after
 // the title block). Real research blows past that quickly. A char-count
-// heuristic is the cheapest accurate signal — we cache the seeded template
+// heuristic is the cheapest accurate signal -- we cache the seeded template
 // content the first time we see it, so a user editing a template into real
 // content flips off the chip the next refresh.
 
@@ -84,9 +84,9 @@ function parentDirs(start: string): string[] {
  * Resolve the marketing-cli seed template directory.
  *
  * Precedence:
- *   1. `MKTG_BRAND_TEMPLATE_DIR` or `MARKETING_CLI_BRAND_DIR` — direct path
+ *   1. `MKTG_BRAND_TEMPLATE_DIR` or `MARKETING_CLI_BRAND_DIR` -- direct path
  *      to the CLI's `brand/` templates.
- *   2. `MKTG_CLI_ROOT` or `MARKETING_CLI_ROOT` — path to the CLI repo root.
+ *   2. `MKTG_CLI_ROOT` or `MARKETING_CLI_ROOT` -- path to the CLI repo root.
  *   3. Walk up from the active project and this module looking for the local
  *      umbrella layout `<ancestor>/marketing-cli/brand`.
  */
@@ -140,7 +140,7 @@ export function looksLikeTemplate(file: string, content: string): boolean {
 }
 
 function simpleHash(s: string): string {
-  // FNV-1a 32-bit — collision-tolerant for our small set of templates.
+  // FNV-1a 32-bit -- collision-tolerant for our small set of templates.
   let h = 0x811c_9dc5;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -182,17 +182,17 @@ export function computeFreshness(
 //
 // Every `file` parameter comes from the wire, so we resolve and verify it
 // stays under `./brand/`. Validators in lib/validators.ts already catch
-// control chars / double-encoding / `..` segments — this layer applies on
+// control chars / double-encoding / `..` segments -- this layer applies on
 // top by combining them and checking the resolved path stays in-tree.
 
 /**
  * Resolves the brand/ directory.
  *
  * Precedence:
- *   1. `MKTG_BRAND_DIR` env var (absolute path) — used by the E1 test
+ *   1. `MKTG_BRAND_DIR` env var (absolute path) -- used by the E1 test
  *      harness to point the server at a tmp dir so suites don't write
  *      into the developer's real brand/. See A30 / tests/e2e/real-pipeline.
- *   2. `projectRoot + '/brand'` — the production default.
+ *   2. `projectRoot + '/brand'` -- the production default.
  *
  * Every `/api/brand/*` route resolves through here, so one knob
  * redirects reads + writes + lists + reset atomically.
@@ -279,7 +279,7 @@ export function listBrandFiles(projectRoot: string = process.cwd()): BrandFileLi
     onDisk.delete(spec.name);
   }
 
-  // Extras (e.g. brand/SCHEMA.md, user-added files) — alphabetical.
+  // Extras (e.g. brand/SCHEMA.md, user-added files) -- alphabetical.
   for (const name of Array.from(onDisk).sort()) {
     result.push(buildListing(name, projectRoot));
   }
@@ -355,7 +355,7 @@ export type WriteResult =
 /**
  * Atomic write: stages to a sibling .tmp then rename(), so a partial write
  * never replaces the original. If `expectedMtime` is provided and disagrees
- * with the on-disk mtime, returns a CONFLICT — UI loops the user through
+ * with the on-disk mtime, returns a CONFLICT -- UI loops the user through
  * "reload and merge".
  */
 export function writeBrandFile(

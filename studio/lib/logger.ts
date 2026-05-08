@@ -1,7 +1,7 @@
-// lib/logger.ts — structured access logger
+// lib/logger.ts -- structured access logger
 //
 // One JSON line per request, written to stderr. Consumed by
-// log shippers, tail -f, or a test spy. Deliberately tiny — no deps,
+// log shippers, tail -f, or a test spy. Deliberately tiny -- no deps,
 // no colors, no formatting.
 
 export interface AccessLogLine {
@@ -16,7 +16,7 @@ export interface AccessLogLine {
 
 /**
  * Emit one structured access log line to stderr.
- * Safe for parallel writes — each line is a self-contained JSON object.
+ * Safe for parallel writes -- each line is a self-contained JSON object.
  */
 export function logAccess(req: Request, status: number, durationMs: number): void {
   const url = new URL(req.url);

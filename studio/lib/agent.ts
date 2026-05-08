@@ -2,7 +2,7 @@
 //
 // INVERSION: The studio does NOT call /cmo. The user's Claude Code (running /cmo)
 // calls THIS server's API endpoints via HTTP. This file was previously a streaming
-// bridge TO /cmo — no longer needed.
+// bridge TO /cmo -- no longer needed.
 //
 // What replaced it:
 //   - /cmo runs in the user's Claude Code session.

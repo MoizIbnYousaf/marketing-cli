@@ -5,6 +5,7 @@ import { BrandHealthSection } from "./brand-health-section"
 import { DoctorSection } from "./doctor-section"
 import { ResetSection } from "./reset-section"
 import { SettingsSidebar } from "./settings-sidebar"
+import { SettingsPanelScroll } from "./settings-panel-scroll"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 
 function BrandHealthSkeleton() {
@@ -26,9 +27,13 @@ function BrandHealthSkeleton() {
   )
 }
 
+// Server component. The ?panel= scroll behavior lives in a sibling client
+// leaf (SettingsPanelScroll) so this tree can keep importing server-only
+// modules like BrandHealthSection (node:fs).
 export function SettingsPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <SettingsPanelScroll />
       <div className="border-b border-border/60 bg-background/85 px-6 py-5 backdrop-blur">
         <h1 className="font-display text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">

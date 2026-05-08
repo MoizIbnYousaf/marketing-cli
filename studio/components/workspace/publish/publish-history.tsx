@@ -6,7 +6,8 @@ import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { PulseEmptyState } from "@/components/workspace/pulse/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { publishErrorCopy } from "@/lib/publish-error"
 import { getProviderMeta, type PublishHistoryRow } from "@/lib/types/publish"
 
 type ApiResponse = {
@@ -48,13 +49,27 @@ export function PublishHistory({ className }: { className?: string }) {
             ))}
           </div>
         ) : error ? (
-          <PulseEmptyState
-            icon={ShieldAlert}
-            title="History unavailable"
-            description="The studio server may be down."
-          />
+          (() => {
+            const copy = publishErrorCopy(error, "history")
+            return (
+              <EmptyState
+                icon={ShieldAlert}
+                title={copy.title}
+                description={copy.description}
+                action={
+                  copy.hint ? (
+                    <p className="text-[11px] text-muted-foreground/80">{copy.hint}</p>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => mutate()}>
+                      Retry
+                    </Button>
+                  )
+                }
+              />
+            )
+          })()
         ) : rows.length === 0 ? (
-          <PulseEmptyState
+          <EmptyState
             icon={History}
             title="No posts published yet"
             description="History fills as you publish."

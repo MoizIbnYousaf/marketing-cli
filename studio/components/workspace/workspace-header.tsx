@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import { m } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { fadeIn } from "@/lib/animation/variants"
+import { useAsyncAction } from "@/lib/hooks/use-async-action"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -78,28 +79,46 @@ export function WorkspaceHeader({
   platforms?: string[]
 }) {
   const router = useRouter()
-  const [isRunning, setIsRunning] = useState(false)
   const runTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Keeps the spinner visible for ~2s after a successful run kick-off so the
+  // pipeline state has time to catch up via SSE. Independent of the inflight
+  // pending flag, which flips false the moment the fetch resolves.
+  const [postRunSpinner, setPostRunSpinner] = useState(false)
 
-  const pauseAgent = async (args: { agentId: string }) => {
-    const res = await fetch("/api/agents/pause", { method: "POST", body: JSON.stringify(args) })
-    return res.json()
-  }
+  // Each agent control is wrapped so failures surface as a toast instead of
+  // disappearing into console.error, and the triggering button stays disabled
+  // while the request is inflight (prevents toast stacking on rapid clicks).
+  const runAction = useAsyncAction(
+    async () => {
+      const res = await fetch("/api/agents/run", { method: "POST", body: JSON.stringify({ agentId }) })
+      return res.json()
+    },
+    { errorLabel: "Run failed" },
+  )
 
-  const resumeAgent = async (args: { agentId: string }) => {
-    const res = await fetch("/api/agents/resume", { method: "POST", body: JSON.stringify(args) })
-    return res.json()
-  }
+  const pauseAction = useAsyncAction(
+    async () => {
+      const res = await fetch("/api/agents/pause", { method: "POST", body: JSON.stringify({ agentId }) })
+      return res.json()
+    },
+    { errorLabel: "Pause failed", successMessage: "Agent paused" },
+  )
 
-  const deleteAgent = async (args: { agentId: string }) => {
-    const res = await fetch("/api/agents/delete", { method: "POST", body: JSON.stringify(args) })
-    return res.json()
-  }
+  const resumeAction = useAsyncAction(
+    async () => {
+      const res = await fetch("/api/agents/resume", { method: "POST", body: JSON.stringify({ agentId }) })
+      return res.json()
+    },
+    { errorLabel: "Resume failed", successMessage: "Agent resumed" },
+  )
 
-  const triggerAgentRun = async (args: { agentId: string }) => {
-    const res = await fetch("/api/agents/run", { method: "POST", body: JSON.stringify(args) })
-    return res.json()
-  }
+  const deleteAction = useAsyncAction(
+    async () => {
+      const res = await fetch("/api/agents/delete", { method: "POST", body: JSON.stringify({ agentId }) })
+      return res.json()
+    },
+    { errorLabel: "Delete failed" },
+  )
 
   useEffect(() => {
     return () => {
@@ -108,31 +127,31 @@ export function WorkspaceHeader({
   }, [])
 
   const handleRunNow = async () => {
-    setIsRunning(true)
-    try {
-      await triggerAgentRun({ agentId })
-    } catch (err) {
-      console.error("Run failed:", err)
-    } finally {
-      // Keep spinner for 2s to let pipeline start
-      runTimerRef.current = setTimeout(() => setIsRunning(false), 2000)
-    }
+    const result = await runAction.run()
+    if (result === undefined) return
+    setPostRunSpinner(true)
+    runTimerRef.current = setTimeout(() => setPostRunSpinner(false), 2000)
   }
 
+  const isRunning = runAction.pending || postRunSpinner
   const runDisabled = status !== "active" || isRunning || !!isPipelineRunning
 
   const config = STATUS_CONFIG[status]
 
   const handleToggleStatus = async () => {
     if (status === "active") {
-      await pauseAgent({ agentId })
+      await pauseAction.run()
     } else if (status === "paused") {
-      await resumeAgent({ agentId })
+      await resumeAction.run()
     }
   }
 
+  const togglePending = pauseAction.pending || resumeAction.pending
+  const deletePending = deleteAction.pending
+
   const handleDelete = async () => {
-    await deleteAgent({ agentId })
+    const result = await deleteAction.run()
+    if (result === undefined) return
     router.push("/dashboard/agents")
   }
 
@@ -236,7 +255,7 @@ export function WorkspaceHeader({
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem
               onClick={handleToggleStatus}
-              disabled={status !== "active" && status !== "paused"}
+              disabled={(status !== "active" && status !== "paused") || togglePending}
             >
               {status === "active" ? (
                 <>
@@ -261,6 +280,7 @@ export function WorkspaceHeader({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleDelete}
+              disabled={deletePending}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="size-4 mr-2" />

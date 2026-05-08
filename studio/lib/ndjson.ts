@@ -1,4 +1,4 @@
-// lib/ndjson.ts — NDJSON streaming helper for list endpoints (Agent DX axis 4)
+// lib/ndjson.ts -- NDJSON streaming helper for list endpoints (Agent DX axis 4)
 //
 // Each item becomes one JSON line + "\n". Supports both sync iterables and
 // async iterables so callers can stream from a SQLite cursor, an HTTP read,

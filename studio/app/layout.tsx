@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import {
   Archivo,
-  Inter_Tight,
   Geist_Mono,
 } from "next/font/google"
 import { Toaster } from "sonner"
@@ -13,19 +12,15 @@ import { AxeA11y } from "@/components/providers/axe-a11y"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import "./globals.css"
 
-export const dynamic = "force-dynamic"
-
 const archivo = Archivo({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
-})
-
-const interTight = Inter_Tight({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
+  // Metric-matched fallback so dropping Inter_Tight (the previous --font-sans
+  // body family) does not introduce CLS during the font swap. system-ui
+  // covers macOS / iOS / Windows / Android default UI fonts.
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 })
 
 const geistMono = Geist_Mono({
@@ -40,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s | mktg studio",
   },
   description:
-    "Local-first marketing studio powered by /cmo — 50 skills, brand intelligence, and social distribution in one dashboard.",
+    "Local-first marketing studio powered by /cmo -- 56 skills, brand intelligence, and social distribution in one dashboard.",
 }
 
 export default function RootLayout({
@@ -49,21 +44,22 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    // Studio is locked dark: ThemeToggle was removed in Wave A. The .dark class
+    // is server-rendered so token overrides at globals.css :.dark take effect on
+    // first paint without a pre-hydration script. Stale `mktg-studio-theme`
+    // localStorage entries from prior builds are harmless: nothing reads them.
+    <html
+      lang="en"
+      className="dark"
+      style={{ colorScheme: "dark" }}
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+    >
       <head>
-        <meta name="theme-color" content="#11161a" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#11161a" media="(prefers-color-scheme: dark)" />
-        {/* Pre-hydration theme init — runs before React paints anything so
-            OS-dark-mode users never see a light FOUC (G6-02). Must stay in
-            sync with <ThemeToggle /> in components/layout/theme-toggle.tsx. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('mktg-studio-theme');if(t!=='dark'&&t!=='light'&&t!=='system')t='system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}else{document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light'}}catch(e){}})()`,
-          }}
-        />
+        <meta name="theme-color" content="#11161a" />
       </head>
       <body
-        className={`${interTight.variable} ${archivo.variable} ${geistMono.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
+        className={`${archivo.variable} ${geistMono.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
       >
         <SWRProvider>
           <MotionProvider>

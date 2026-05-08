@@ -39,11 +39,11 @@ function kindLabel(kind: ActivityKind): string {
 }
 
 function relativeTime(iso: string): string {
-  // Server may return naïve "YYYY-MM-DD HH:MM:SS" (no Z) — treat those as UTC
+  // Server may return naïve "YYYY-MM-DD HH:MM:SS" (no Z) -- treat those as UTC
   // so client clock-skew can't yield negative diffs (-14244s ago bug).
   const normalized = iso.includes("T") ? iso : `${iso.replace(" ", "T")}Z`
   const ts = new Date(normalized).getTime()
-  if (Number.isNaN(ts)) return "—"
+  if (Number.isNaN(ts)) return "--"
   const diff = Math.max(0, Date.now() - ts)
   const s = Math.floor(diff / 1000)
   if (s < 5)   return "just now"

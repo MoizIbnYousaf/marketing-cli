@@ -18,6 +18,7 @@ import {
   Terminal,
   Sparkles,
 } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -38,9 +39,10 @@ interface SkillsResponse {
 
 const NAV_ITEMS = [
   { label: "Pulse", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Signals", href: "/dashboard?tab=content", icon: Images },
+  { label: "Signals", href: "/dashboard?tab=signals", icon: Images },
   { label: "Publish", href: "/dashboard?tab=publish", icon: Send },
   { label: "Brand", href: "/dashboard?tab=brand", icon: BookOpen },
+  { label: "Skills", href: "/skills", icon: Sparkles },
   { label: "Settings", href: "/settings", icon: Settings },
 ]
 
@@ -76,7 +78,7 @@ export function Palette({ open, onClose }: PaletteProps) {
   const [runningSkill, setRunningSkill] = useState<string | null>(null)
   const [runningPlaybook, setRunningPlaybook] = useState<string | null>(null)
 
-  const { data: skillsData } = useSWR<SkillsResponse>(
+  const { data: skillsData, error: skillsError } = useSWR<SkillsResponse>(
     open ? "/api/skills" : null,
     fetcher,
     { revalidateOnFocus: false }
@@ -299,8 +301,22 @@ export function Palette({ open, onClose }: PaletteProps) {
                 value="seed demo data sample fixtures"
                 onSelect={() => {
                   onClose()
-                  navigator.clipboard?.writeText("bun run scripts/seed-demo.ts").catch(() => {})
-                  router.push("/settings?panel=demo")
+                  // Seeding the demo dataset requires a terminal, not a route.
+                  // The user has to run the script themselves; we copy the
+                  // command to their clipboard and confirm with a toast.
+                  // Previously this also navigated to /settings?panel=demo,
+                  // a settings panel that does not exist.
+                  const cmd = "bun run scripts/seed-demo.ts"
+                  navigator.clipboard
+                    ?.writeText(cmd)
+                    .then(() => {
+                      toast.success("Copied seed command", {
+                        description: cmd + " (paste in your terminal)",
+                      })
+                    })
+                    .catch(() => {
+                      toast.info("Run this in your terminal", { description: cmd })
+                    })
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none",
@@ -341,7 +357,11 @@ export function Palette({ open, onClose }: PaletteProps) {
               <kbd className="font-mono">Esc</kbd> close
             </span>
             <span className="ml-auto">
-              {skills.length > 0 ? `${skills.length} skills loaded` : "loading skills…"}
+              {skillsError
+                ? "skills unavailable"
+                : skills.length > 0
+                  ? `${skills.length} skills loaded`
+                  : "loading skills…"}
             </span>
           </div>
         </Command>

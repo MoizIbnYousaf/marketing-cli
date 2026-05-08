@@ -1,4 +1,4 @@
-// lib/sqlite.ts — SQLite connection + typed query helpers
+// lib/sqlite.ts -- SQLite connection + typed query helpers
 // Uses bun:sqlite (built-in, no extra dep).
 // Runs migrations from db/schema.sql and db/migrations/*.sql on startup.
 
@@ -37,9 +37,9 @@ export function getDb(): Database {
   return _db;
 }
 
-// Convenience singleton — call after server init.
+// Convenience singleton -- call after server init.
 export const db: Database = (() => {
-  // Lazily resolved when first accessed — modules importing `db` directly
+  // Lazily resolved when first accessed -- modules importing `db` directly
   // get a Proxy that forwards to the real db once initialized.
   const handler: ProxyHandler<object> = {
     get(_target, prop) {

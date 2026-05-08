@@ -1,10 +1,10 @@
-// lib/rate-limit-store.ts — pluggable rate-limit backends
+// lib/rate-limit-store.ts -- pluggable rate-limit backends
 //
 // `lib/dx.ts → checkRateLimit` calls `incr(key, windowMs)` here and decides
 // whether the request is over the configured ceiling. The store implementation
 // is selectable at startup via `RATE_LIMIT_STORE`:
 //
-//   RATE_LIMIT_STORE=memory   (default — current behavior; per-process)
+//   RATE_LIMIT_STORE=memory   (default -- current behavior; per-process)
 //   RATE_LIMIT_STORE=sqlite   (shared across processes that share the SQLite file)
 //
 // Both backends implement the same sliding-window semantics so the wire
@@ -20,7 +20,7 @@ import { execute, queryOne } from "./sqlite.ts";
 export interface IncrResult {
   /** Total hits inside the current sliding window, INCLUDING this hit. */
   count: number;
-  /** Epoch ms of the oldest hit still inside the window — used for Retry-After. */
+  /** Epoch ms of the oldest hit still inside the window -- used for Retry-After. */
   oldestHitMs: number;
 }
 
@@ -28,7 +28,7 @@ export interface RateLimitStore {
   readonly kind: "memory" | "sqlite";
   /**
    * Record a hit for `key` at `now` and return the live window stats.
-   * Pruning of expired hits is the store's responsibility — callers don't
+   * Pruning of expired hits is the store's responsibility -- callers don't
    * need to clean up anything.
    */
   incr(key: string, windowMs: number, now?: number): IncrResult;
@@ -76,7 +76,7 @@ export class SqliteStore implements RateLimitStore {
 
     try {
       // Sliding window in three statements, run sequentially. SQLite serializes
-      // writes per-connection so concurrent calls land in a defined order — no
+      // writes per-connection so concurrent calls land in a defined order -- no
       // explicit transaction needed for correctness on a single connection.
       execute("DELETE FROM rate_limits WHERE key = ? AND hit_at_ms <= ?", [
         key,
@@ -99,7 +99,7 @@ export class SqliteStore implements RateLimitStore {
       // DB write failed (e.g. disk full, locked, schema drift). Mark degraded
       // and let the caller decide whether to deny or attach the
       // X-Rate-Limit-Degraded header. We return count=1 so the request goes
-      // through — fail-open is the right call for local dev where a strict
+      // through -- fail-open is the right call for local dev where a strict
       // fail-closed would brick the studio after one hiccup.
       this.degraded = true;
       console.warn("[rate-limit] SQLite store degraded:", err instanceof Error ? err.message : String(err));
@@ -125,7 +125,7 @@ export class SqliteStore implements RateLimitStore {
 
 let _store: RateLimitStore | null = null;
 
-/** Lazy singleton — picks the implementation per `RATE_LIMIT_STORE` env. */
+/** Lazy singleton -- picks the implementation per `RATE_LIMIT_STORE` env. */
 export function getRateLimitStore(): RateLimitStore {
   if (_store) return _store;
   const choice = (process.env.RATE_LIMIT_STORE ?? "memory").toLowerCase();

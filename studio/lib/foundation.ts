@@ -1,4 +1,4 @@
-// lib/foundation.ts — Onboarding foundation runner
+// lib/foundation.ts -- Onboarding foundation runner
 //
 // Spawns the 3 research agents (brand, audience, competitive) in parallel
 // when onboarding kicks off. Each agent has its own job ID + SSE channel so
@@ -7,7 +7,7 @@
 // Best-available execution model:
 //   - If a `from` URL is provided, uses `mktg init --from <url>` once for
 //     all 3 (the CLI's scrape mode populates voice-profile + audience +
-//     competitors in a single pass — it's actually the fastest path).
+//     competitors in a single pass -- it's actually the fastest path).
 //   - Else, falls back to seeding the templates (`mktg init --skip-skills
 //     --skip-agents --yes`) so the brand/ files exist for the dashboard to
 //     render; the user is told to invoke /cmo for real research.
@@ -77,7 +77,7 @@ function newJobId(): string {
 }
 
 // SSE emitter design (lib/sse.ts) routes any wildcard `"*"` publish to ALL
-// subscribers — including those on named channels like "onboarding". So one
+// subscribers -- including those on named channels like "onboarding". So one
 // publish per event is enough; publishing to multiple channels causes
 // duplicate delivery.
 function emitProgress(payload: FoundationProgressPayload): void {
@@ -96,7 +96,7 @@ function emitComplete(durationMs: number, results: FoundationProgressPayload[]):
 /**
  * Insert into the `activity` table AND fire the `activity-new` SSE event so
  * the Activity panel updates in real time. The DB write alone is invisible
- * to the dashboard until a refresh — both writes are required for the
+ * to the dashboard until a refresh -- both writes are required for the
  * agent-native UX contract (every action shows up in Activity).
  */
 function logActivity(
@@ -211,8 +211,8 @@ export function startFoundation(
       agent,
       status: "queued",
       note: from
-        ? "Queued — scraping from project URL"
-        : "Queued — using brand templates; run /cmo for full research",
+        ? "Queued -- scraping from project URL"
+        : "Queued -- using brand templates; run /cmo for full research",
     });
     logActivity(agent, "queued", from ? `from=${from}` : "no URL provided");
   }
@@ -271,7 +271,7 @@ async function runFoundationAsync(opts: {
     return;
   }
 
-  // Per-agent finalize — check whether each brand file landed; if not and
+  // Per-agent finalize -- check whether each brand file landed; if not and
   // seed mode is on, drop the template.
   for (const agent of FOUNDATION_AGENTS) {
     const file = AGENT_TO_FILE[agent];
@@ -292,7 +292,7 @@ async function runFoundationAsync(opts: {
           agent,
           status: "complete",
           filesChanged: [file],
-          note: "Seeded from template — run /cmo to populate with research",
+          note: "Seeded from template -- run /cmo to populate with research",
           durationMs: Date.now() - start,
         };
       } else {

@@ -1,4 +1,4 @@
-// lib/output.ts — Agent DX 21/21 helpers for server.ts
+// lib/output.ts -- Agent DX 21/21 helpers for server.ts
 //
 // Mirrors the mktg CLI's output contract:
 //   - errEnv: structured error envelope `{ok:false, error:{code, message, fix?}}`
@@ -20,7 +20,7 @@ export type StudioErrorCode =
   | "INTERNAL"           // Unhandled server error
   | "CONFIRM_REQUIRED"   // Destructive route called without ?confirm=true
   | "CONFLICT"           // Optimistic-lock failure (e.g. mtime mismatch)
-  | "DRY_RUN_ONLY";      // Marker — not actually returned, used by safety rails
+  | "DRY_RUN_ONLY";      // Marker -- not actually returned, used by safety rails
 
 export interface StudioErrorEnvelope {
   readonly code: StudioErrorCode;
@@ -166,9 +166,9 @@ const filterArrayItems = (
 /**
  * Apply a `?fields=` mask to response data.
  * Supports three shapes (matches mktg CLI):
- *   - primitive — fields don't apply, pass through
- *   - array — filter each object item
- *   - object — top-level pick, with smart pivot into the first array-valued
+ *   - primitive -- fields don't apply, pass through
+ *   - array -- filter each object item
+ *   - object -- top-level pick, with smart pivot into the first array-valued
  *              key when every requested field is an item-level field
  *
  * On unresolved fields, returns a structured failure listing what's available.

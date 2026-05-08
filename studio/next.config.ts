@@ -28,12 +28,23 @@ const STUDIO_API_BASE =
   "http://localhost:3001"
 
 const nextConfig: NextConfig = {
+  // Lets the E2E perf suite build into an isolated .next-perf dir so a
+  // concurrently running `next dev` (from another team-mate's lane) does
+  // not wipe production server-app artifacts mid-test. Default is ".next".
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   turbopack: {
     root: PACKAGE_ROOT,
   },
   outputFileTracingRoot: PACKAGE_ROOT,
   experimental: {
-    optimizePackageImports: ["framer-motion"],
+    optimizePackageImports: [
+      "framer-motion",
+      "lucide-react",
+      "recharts",
+      "react-markdown",
+      "cmdk",
+      "radix-ui",
+    ],
   },
   async rewrites() {
     return [

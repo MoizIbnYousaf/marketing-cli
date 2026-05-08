@@ -7,7 +7,8 @@ import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { PulseEmptyState } from "@/components/workspace/pulse/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { publishErrorCopy } from "@/lib/publish-error"
 import { getProviderMeta } from "@/lib/types/publish"
 
 type ScheduledPost = {
@@ -40,7 +41,7 @@ export function CalendarView({
   const startDate = weekStart.toISOString()
   const endDate = weekEnd.toISOString()
 
-  const { data, error, isLoading } = useSWR<ApiResponse>(
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse>(
     `/api/publish/scheduled?adapter=${encodeURIComponent(adapter)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
     fetcher,
     { refreshInterval: 120_000 },
@@ -99,13 +100,27 @@ export function CalendarView({
 
       <div className="px-4">
         {error ? (
-          <PulseEmptyState
-            icon={ShieldAlert}
-            title="Couldn't load calendar"
-            description="The studio server may be down."
-          />
+          (() => {
+            const copy = publishErrorCopy(error, "calendar")
+            return (
+              <EmptyState
+                icon={ShieldAlert}
+                title={copy.title}
+                description={copy.description}
+                action={
+                  copy.hint ? (
+                    <p className="text-[11px] text-muted-foreground/80">{copy.hint}</p>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => mutate()}>
+                      Retry
+                    </Button>
+                  )
+                }
+              />
+            )
+          })()
         ) : data?.degraded ? (
-          <PulseEmptyState
+          <EmptyState
             icon={ShieldAlert}
             title={adapter === "mktg-native" ? "Native backend unavailable" : "Postiz unavailable"}
             description={
@@ -163,7 +178,7 @@ function DayCell({
           <div className="h-3 w-2/3 animate-pulse rounded bg-muted/40" />
         </div>
       ) : posts.length === 0 ? (
-        <p className="text-[10px] text-muted-foreground/60">—</p>
+        <p className="text-[10px] text-muted-foreground/60">--</p>
       ) : (
         <ul className="space-y-1">
           {posts.slice(0, 3).map((post) => {

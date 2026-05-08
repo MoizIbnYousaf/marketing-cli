@@ -7,6 +7,7 @@ import { ActivityItem } from "./activity-item"
 import { ActivityFilters } from "./activity-filters"
 import type { Activity, ActivityKind } from "@/lib/types/activity"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
+import { ErrorState } from "@/components/ui/error-state"
 
 async function fetcher(url: string): Promise<Activity[]> {
   const res = await fetch(url)
@@ -45,7 +46,7 @@ export function ActivityPanel(_props: ActivityPanelProps = {}) {
 
   const apiUrl = buildUrl(`${STUDIO_API_BASE}/api/activity`, kind, skill, timeWindow)
 
-  const { data: fetched, mutate, isLoading } = useSWR<Activity[]>(apiUrl, fetcher, {
+  const { data: fetched, error, mutate, isLoading } = useSWR<Activity[]>(apiUrl, fetcher, {
     refreshInterval: 30_000,
     revalidateOnFocus: false,
   })
@@ -113,7 +114,16 @@ export function ActivityPanel(_props: ActivityPanelProps = {}) {
         aria-label="/cmo activity feed"
         className="flex-1 overflow-y-auto overflow-x-hidden"
       >
-        {isLoading && visible.length === 0 ? (
+        {error && visible.length === 0 ? (
+          <div className="px-3 py-3">
+            <ErrorState
+              level="section"
+              error={error}
+              onRetry={() => mutate()}
+              title="Couldn't load activity"
+            />
+          </div>
+        ) : isLoading && visible.length === 0 ? (
           <div className="flex items-center justify-center h-24 text-xs text-muted-foreground">
             Loading…
           </div>

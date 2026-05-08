@@ -17,7 +17,8 @@ import { fetcher } from "@/lib/fetcher"
 import type { ContentAsset, ContentManifest } from "@/lib/content-manifest"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
-import { PulseEmptyState } from "@/components/workspace/pulse/empty-state"
+import { EmptyState } from "@/components/ui/empty-state"
+import { ErrorState } from "@/components/ui/error-state"
 
 type ContentManifestResponse = {
   ok: true
@@ -100,16 +101,21 @@ export function ContentLibrary(_props: { adapter?: string } = {}) {
               </div>
               {selectedAsset ? (
                 <MediaStage asset={selectedAsset} onExpand={() => setIsLightboxOpen(true)} />
+              ) : manifestError ? (
+                <div className="relative z-10 w-full max-w-xl">
+                  <ErrorState
+                    level="section"
+                    error={manifestError}
+                    onRetry={() => mutateManifest()}
+                    title="Couldn't build content manifest"
+                  />
+                </div>
               ) : (
                 <div className="relative z-10 w-full max-w-xl">
-                  <PulseEmptyState
+                  <EmptyState
                     icon={manifestLoading ? Sparkles : FileImage}
                     title={manifestLoading ? "Loading media" : "No images or videos yet"}
-                    description={
-                      manifestError
-                        ? "Could not build the local content manifest."
-                        : "When /cmo creates images or videos in this project, they will appear here as reviewable assets."
-                    }
+                    description="When /cmo creates images or videos in this project, they will appear here as reviewable assets."
                   />
                 </div>
               )}

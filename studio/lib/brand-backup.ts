@@ -1,4 +1,4 @@
-// lib/brand-backup.ts — pre-reset safety net for brand/ files.
+// lib/brand-backup.ts -- pre-reset safety net for brand/ files.
 //
 // H1-110 / A15 ship blocker: `POST /api/brand/reset?confirm=true` wiped
 // every file in brand/ with no export, no undo window. Months of
@@ -10,10 +10,10 @@
 //   * Uses the system `zip` binary (macOS ships it; Linux too; Windows
 //     via Git Bash / WSL). Bun has no built-in zip and pulling in a
 //     deflate dep for one backup path is overkill.
-//   * Writes under `.mktg/brand-backups/` — already .gitignored via
+//   * Writes under `.mktg/brand-backups/` -- already .gitignored via
 //     the `.mktg/` entry.
 //   * If brand/ is missing or empty, returns `{ skipped: true, ... }`
-//     rather than erroring — a first-time-user reset shouldn't fail
+//     rather than erroring -- a first-time-user reset shouldn't fail
 //     because there's nothing to back up yet.
 //   * ISO timestamp uses a filename-safe format (no colons). Easy to
 //     sort lexicographically in a directory listing.
@@ -52,7 +52,7 @@ function backupTimestamp(now = new Date()): string {
 export async function backupBrandDir(
   projectRoot: string = process.cwd(),
 ): Promise<BrandBackupResult> {
-  // Go through brandRoot() so MKTG_BRAND_DIR (test harness) is honored —
+  // Go through brandRoot() so MKTG_BRAND_DIR (test harness) is honored --
   // a reset during an E1 suite zips the TEMP brand/, not the dev's real
   // one (A30).
   const brandDir = brandRoot(projectRoot);
@@ -86,7 +86,7 @@ export async function backupBrandDir(
   const absPath = join(backupDir, filename);
   const relPath = join(BACKUP_ROOT, filename);
 
-  // `zip -r -q <out> <name>` — the -q silences stdout; we only want the
+  // `zip -r -q <out> <name>` -- the -q silences stdout; we only want the
   // exit code. Run from the brand dir's PARENT so the archive uses the
   // brand dir's basename as the entry prefix (`brand/<name>` typically,
   // or whatever the tail of MKTG_BRAND_DIR is when the test harness

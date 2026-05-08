@@ -25,7 +25,7 @@ export function AxeA11y() {
         const axe = (axeMod as { default: (r: unknown, rd: unknown, ms: number) => void }).default
         axe(ReactMod, ReactDOMMod, 1000)
       } catch {
-        // swallow — dev-only probe, never block the app
+        // swallow -- dev-only probe, never block the app
       }
     })()
     return () => {

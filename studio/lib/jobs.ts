@@ -1,4 +1,4 @@
-// lib/jobs.ts — In-memory job queue
+// lib/jobs.ts -- In-memory job queue
 //
 // Jobs are ephemeral (process-lifecycle). On completion, results are written
 // to the skill_runs SQLite table for persistence across restarts.
@@ -25,7 +25,7 @@ export interface Job {
   completedAt: Date | null;
   result: unknown;
   error: string | null;
-  /** SSE progress log — one entry per publish call */
+  /** SSE progress log -- one entry per publish call */
   log: Array<{ ts: number; message: string }>;
 }
 
@@ -81,7 +81,7 @@ export function createJob(kind: string, args: Record<string, unknown> = {}): Job
  * Emits SSE progress events on the job's own emitter.
  * Writes result to skill_runs table on completion.
  *
- * Does NOT await — fire-and-forget; callers poll via getJob(id).
+ * Does NOT await -- fire-and-forget; callers poll via getJob(id).
  */
 export function runJob(id: string, worker: WorkerFn): void {
   const job = jobs.get(id);
@@ -207,7 +207,7 @@ function _persistSkillRun(job: Job, durationMs: number): void {
       ],
     );
   } catch (err) {
-    // DB might not be initialized in test env — swallow
+    // DB might not be initialized in test env -- swallow
     console.warn("[jobs] Failed to persist skill_run:", err);
   }
 }

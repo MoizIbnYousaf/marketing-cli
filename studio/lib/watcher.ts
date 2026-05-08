@@ -1,4 +1,4 @@
-// lib/watcher.ts — brand/ directory watcher
+// lib/watcher.ts -- brand/ directory watcher
 // Uses fs.watch (Bun-compatible) to detect file changes.
 // On any change → publishes SSE event to the global emitter.
 
@@ -9,7 +9,7 @@ import type { SSEEmitter } from "./sse.ts";
 import { resolveProjectRoot } from "./project-root.ts";
 import { classifyContentAssetKind } from "./content-manifest.ts";
 
-// Brand files we care about — exact filenames in brand/
+// Brand files we care about -- exact filenames in brand/
 export const BRAND_FILES = [
   "voice-profile.md",
   "audience.md",
@@ -81,7 +81,7 @@ export function startBrandWatcher(
     // Only react to markdown files
     if (!filename.endsWith(".md")) return;
 
-    // Debounce per-file — 150ms window
+    // Debounce per-file -- 150ms window
     const existing = debounceMap.get(filename);
     if (existing) clearTimeout(existing);
 

@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware"
 
 // Dimension tab type
 export type Dimension = "trend" | "brand" | "audience"
-export type WorkspaceTab = "hq" | "content" | "publish" | "brand"
+export type WorkspaceTab = "pulse" | "signals" | "publish" | "brand"
 export type WorkspacePlatformFilter = "all" | "news" | "instagram" | "tiktok" | "google_trends"
 export type WorkspaceStreamFilter = "all" | "hashtag" | "trending" | "explore"
 export type WorkspaceTimeWindow = "live_2h" | "rising_8h" | "context_24h" | "all"
@@ -22,7 +22,7 @@ interface WorkspaceRobotCommand {
   signalId?: string
 }
 
-// UI-only state — all domain data comes from local SQLite + mktg CLI
+// UI-only state -- all domain data comes from local SQLite + mktg CLI
 interface DemoWalkthrough {
   hasSeenAnnotations: boolean
   hasDismissedSuggestions: boolean
@@ -45,11 +45,16 @@ const DEFAULT_SIGNAL_FILTERS: WorkspaceSignalFilters = {
   timeWindow: "rising_8h",
 }
 
+// Accepts current canonical ids ("pulse", "signals", "publish", "brand") and
+// the pre-rename legacy ids ("hq" -> "pulse", "content" -> "signals", plus
+// trends collapse). Persisted state from before the rename is migrated via
+// the version-bump migrate() below; this is the runtime guard for any
+// in-flight values from /cmo or other callers.
 function normalizeWorkspaceTab(tab: unknown): WorkspaceTab {
-  if (tab === "hq" || tab === "pulse") return "hq"
-  if (tab === "content" || tab === "publish" || tab === "brand") return tab
-  if (tab === "signals" || tab === "trends") return "content"
-  return "hq"
+  if (tab === "pulse" || tab === "signals" || tab === "publish" || tab === "brand") return tab
+  if (tab === "hq") return "pulse"
+  if (tab === "content" || tab === "trends") return "signals"
+  return "pulse"
 }
 
 interface WorkspaceState {
@@ -86,7 +91,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       hasSeenWelcome: false,
       demoWalkthrough: DEFAULT_WALKTHROUGH,
       activeDimension: "trend" as Dimension,
-      workspaceTab: "hq" as WorkspaceTab,
+      workspaceTab: "pulse" as WorkspaceTab,
       signalFilters: DEFAULT_SIGNAL_FILTERS,
       selectedSignalId: null,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
@@ -144,7 +149,11 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     }),
     {
       name: "mktg-studio-workspace",
-      version: 1,
+      // v2 (Lane 4 rename): hq -> pulse, content -> signals. The migrate
+      // function below funnels every persisted workspaceTab through
+      // normalizeWorkspaceTab(), so any v1 user with workspaceTab: "hq"
+      // gets upgraded to "pulse" on first read.
+      version: 2,
       migrate: (persisted: unknown) => {
         const state = persisted as Record<string, unknown>
         const ps = state?.panelSizes as { chat?: number; preview?: number } | undefined
@@ -153,7 +162,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             ...state,
             panelSizes: { chat: 35, preview: 65, status: 30 },
             demoWalkthrough: DEFAULT_WALKTHROUGH,
-            workspaceTab: "hq",
+            workspaceTab: "pulse",
             signalFilters: DEFAULT_SIGNAL_FILTERS,
             selectedSignalId: null,
           }

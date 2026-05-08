@@ -1,5 +1,5 @@
 // lib/types/mktg.ts
-// Copied from ~/projects/mktgmono/marketing-cli/src/types.ts — DO NOT import cross-project.
+// Copied from ~/projects/mktgmono/marketing-cli/src/types.ts -- DO NOT import cross-project.
 // Sync manually when mktg types change. Last synced: 2026-04-16.
 
 // ─── Core result envelope ───

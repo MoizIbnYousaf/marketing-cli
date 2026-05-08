@@ -9,8 +9,8 @@ import {
 } from "lucide-react"
 
 export const WORKSPACE_TABS = [
-  { id: "hq", label: "Pulse", icon: Activity },
-  { id: "content", label: "Signals", icon: Images },
+  { id: "pulse", label: "Pulse", icon: Activity },
+  { id: "signals", label: "Signals", icon: Images },
   { id: "publish", label: "Publish", icon: Send },
   { id: "brand", label: "Brand", icon: BookOpen },
 ] as const
@@ -38,7 +38,7 @@ export function WorkspaceTabs({
           const Icon = tab.icon
           const isActive = activeTab === tab.id
           const count =
-            tab.id === "hq"
+            tab.id === "pulse"
                 ? spikeCount
                 : undefined
 
@@ -55,7 +55,7 @@ export function WorkspaceTabs({
             >
               <Icon className="size-4" />
               {tab.label}
-              {tab.id === "hq" && isActive && (
+              {tab.id === "pulse" && isActive && (
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
               )}
               {count !== undefined && count > 0 && (

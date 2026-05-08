@@ -1,4 +1,4 @@
-// lib/types/activity.ts — Activity feed types shared between server and UI
+// lib/types/activity.ts -- Activity feed types shared between server and UI
 
 export type ActivityKind =
   | "skill-run"
@@ -35,8 +35,10 @@ export interface ActivityNewEvent {
 
 export interface NavigateEvent {
   type: "navigate";
+  // tab union includes legacy ids ("hq", "content") for one-release wire
+  // compat. Normalize on consume.
   payload: {
-    tab: "hq" | "content" | "publish" | "brand";
+    tab: "pulse" | "signals" | "publish" | "brand" | "hq" | "content";
     filter?: Record<string, unknown>;
   };
 }

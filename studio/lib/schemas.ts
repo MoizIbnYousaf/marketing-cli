@@ -1,15 +1,15 @@
-// lib/schemas.ts — single source of truth for POST body shapes.
+// lib/schemas.ts -- single source of truth for POST body shapes.
 //
 // `server.ts` imports these for zod-validated request parsing. They're also
 // the basis for the JSON Schema fragments published by /api/schema, so /cmo
 // (or any HTTP client) can self-discover the wire contract.
 //
-// Kept deliberately tiny and dependency-free — any change here propagates to
+// Kept deliberately tiny and dependency-free -- any change here propagates to
 // every endpoint's runtime validation and the schema introspection surface.
 
 import { z } from "zod";
 
-// ActivityKind — the canonical set of event types /cmo can log. Keep in sync
+// ActivityKind -- the canonical set of event types /cmo can log. Keep in sync
 // with lib/types/activity.ts and components/workspace/activity-panel/.
 export const ACTIVITY_KIND = z.enum([
   "skill-run",
@@ -38,8 +38,12 @@ export const OPPORTUNITIES_PUSH_BODY = z.object({
   prerequisites: z.record(z.string(), z.unknown()).optional(),
 });
 
+// Tab enum accepts both the canonical post-rename ids (pulse, signals) and
+// the legacy pre-rename ids (hq, content) for one release. /cmo callers may
+// still send the old strings; the consumer normalizes them. After /cmo and
+// any external integrations have rolled forward, drop hq + content here.
 export const NAVIGATE_BODY = z.object({
-  tab: z.enum(["hq", "content", "publish", "brand"]),
+  tab: z.enum(["pulse", "signals", "publish", "brand", "hq", "content"]),
   filter: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -76,7 +80,7 @@ export const PUBLISH_BODY = z.object({
 });
 
 /**
- * `/api/settings/env` accepts a dynamic record of env-var KVs — caller-supplied
+ * `/api/settings/env` accepts a dynamic record of env-var KVs -- caller-supplied
  * keys can't be enumerated up front, so the JSON Schema is a passthrough.
  */
 export const SETTINGS_ENV_BODY = z.record(z.string(), z.string().max(512));
@@ -87,7 +91,7 @@ export const BRAND_RESET_BODY = z.object({}).optional();
 // ─── Brand docs ───────────────────────────────────────────────────────
 //
 // Mirrors `BRAND_FILE_NAME_SCHEMA` in server.ts. Path-checked at
-// the brand-files layer too — this validator is the first wall.
+// the brand-files layer too -- this validator is the first wall.
 
 export const BRAND_FILE_NAME_SCHEMA = z
   .string()
@@ -97,7 +101,7 @@ export const BRAND_FILE_NAME_SCHEMA = z
 
 export const BRAND_WRITE_BODY = z.object({
   file: BRAND_FILE_NAME_SCHEMA,
-  content: z.string().max(2_000_000), // 2MB — markdown rarely exceeds this
+  content: z.string().max(2_000_000), // 2MB -- markdown rarely exceeds this
   expectedMtime: z.string().optional(),
 });
 

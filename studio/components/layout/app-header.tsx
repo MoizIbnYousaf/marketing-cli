@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Bell, Search } from "lucide-react"
+import { Search } from "lucide-react"
 
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -15,31 +15,25 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { DemoMode } from "@/components/workspace/demo-mode"
 import { StudioStatus } from "./studio-status"
 import { ProjectIdentityChip } from "@/components/layout/project-identity"
+import { usePalette } from "@/components/command-palette/palette-provider"
+
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_STUDIO_DEMO === "1"
 
 export const ROUTE_LABELS: Record<string, string> = {
   dashboard: "mktg studio",
   settings: "Settings",
-  brands: "Brands",
-  agents: "Agents",
+  skills: "Skills",
 }
 
-const isOpaqueIdSegment = (segment: string) =>
-  /^[a-z0-9_-]{12,}$/i.test(segment) || /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(segment)
-
-const formatSegmentLabel = (
-  segment: string,
-  prevSegment: string | undefined
-) => {
+// Cleaned up after the (dashboard) route group consolidation: the previous
+// `brands`/`agents` keys plus the opaque-id workspace formatter served a
+// `/brands/[id]` + `/agents/[id]` schema that no longer exists. Every
+// current route is a single static segment.
+const formatSegmentLabel = (segment: string) => {
   if (ROUTE_LABELS[segment]) return ROUTE_LABELS[segment]
-  if (isOpaqueIdSegment(segment)) {
-    if (prevSegment === "brands") return "Brand Workspace"
-    if (prevSegment === "agents") return "Agent Workspace"
-    return "Details"
-  }
   return segment.charAt(0).toUpperCase() + segment.slice(1)
 }
 
@@ -50,8 +44,7 @@ export const buildCrumbs = (pathname?: string | null) => {
 
   segments.forEach((segment, i) => {
     const href = "/" + segments.slice(0, i + 1).join("/")
-    const prevSegment = i > 0 ? segments[i - 1] : undefined
-    const label = formatSegmentLabel(segment, prevSegment)
+    const label = formatSegmentLabel(segment)
     const isLast = i === segments.length - 1
 
     crumbs.push({ label, href, isLast })
@@ -62,6 +55,7 @@ export const buildCrumbs = (pathname?: string | null) => {
 
 export function AppHeader() {
   const pathname = usePathname()
+  const { open: openPalette } = usePalette()
   const [localTime, setLocalTime] = useState("--:--")
   const safePathname = pathname ?? "/dashboard"
   const crumbs = useMemo(() => buildCrumbs(safePathname), [safePathname])
@@ -87,12 +81,12 @@ export function AppHeader() {
   }, [])
 
   return (
-    <header className="relative flex h-18 shrink-0 items-center gap-3 border-b border-white/10 bg-[#11161a]/95 px-4 text-[#f5f0e6] backdrop-blur-xl">
+    <header className="relative flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 text-foreground backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(92deg,rgba(216,255,60,0.06),transparent_35%,transparent_70%,rgba(245,240,230,0.04))]" />
 
       <div className="relative flex items-center gap-2">
-        <SidebarTrigger className="-ml-1 rounded-lg border border-white/10 bg-white/[0.035] p-1.5 text-[#f5f0e6] hover:bg-white/[0.06]" />
-        <Separator orientation="vertical" className="mx-1 h-5 bg-white/10" />
+        <SidebarTrigger className="-ml-1 rounded-lg border border-border bg-surface-1 p-1.5 text-foreground hover:bg-surface-2" />
+        <Separator orientation="vertical" className="mx-1 h-5 bg-border" />
         <ProjectIdentityChip />
         <Breadcrumb className="md:hidden">
           <BreadcrumbList>
@@ -115,28 +109,27 @@ export function AppHeader() {
       </div>
 
       <div className="relative ml-auto flex items-center gap-2">
-        <div className="hidden h-9 w-[min(34vw,320px)] items-center gap-2 rounded-md border border-white/10 bg-[#0d1215] px-3 text-xs text-[#9da09a] lg:flex">
-          <Search className="size-3.5" />
-          <span className="flex-1">Search anything...</span>
-          <span className="rounded border border-white/10 px-1.5 py-0.5 font-mono text-[10px] text-[#9da09a]">
-            ⌘K
-          </span>
-        </div>
-        <StudioStatus />
         <button
           type="button"
-          className="hidden size-9 items-center justify-center rounded-md border border-white/10 bg-white/[0.035] text-[#9da09a] hover:bg-white/[0.06] hover:text-[#f5f0e6] sm:flex"
-          aria-label="Notifications"
+          onClick={openPalette}
+          aria-label="Open command palette"
+          aria-haspopup="dialog"
+          aria-keyshortcuts="Meta+K Control+K"
+          className="hidden h-9 w-[min(34vw,320px)] items-center gap-2 rounded-md border border-border bg-sidebar px-3 text-left text-xs text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 lg:flex"
         >
-          <Bell className="size-4" />
+          <Search className="size-3.5" />
+          <span className="flex-1">Search</span>
+          <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            ⌘K
+          </span>
         </button>
-        <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-2.5 py-1 text-[11px] font-medium text-[#9da09a] sm:flex">
+        <StudioStatus />
+        <div className="hidden items-center gap-2 rounded-full border border-border bg-surface-1 px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:flex">
           <span suppressHydrationWarning className="tabular-nums">
             {localTime}
           </span>
         </div>
-        <DemoMode />
-        <ThemeToggle />
+        {DEMO_ENABLED ? <DemoMode /> : null}
         <div className="text-xs text-muted-foreground">Local</div>
       </div>
     </header>

@@ -1,4 +1,4 @@
-// lib/sweep.ts — periodic zombie-run sweeper for /cmo skill_runs.
+// lib/sweep.ts -- periodic zombie-run sweeper for /cmo skill_runs.
 //
 // Motivation: /cmo in Claude Code can crash mid-skill or be interrupted
 // by the user (Ctrl-C, tab close, Claude Code reload). When that happens
@@ -14,7 +14,7 @@
 // Re-run button (UI lands in the maintainer's follow-up).
 //
 // Companion: /cmo's skill wrapper should emit `skill-complete abandoned`
-// on its own `finally` branch when it catches SIGINT — that's the maintainer's // M4 work. This sweep handles the case where /cmo's process dies outright
+// on its own `finally` branch when it catches SIGINT -- that's the maintainer's // M4 work. This sweep handles the case where /cmo's process dies outright
 // and the finally never runs.
 
 import type { Database } from "bun:sqlite";
@@ -55,7 +55,7 @@ export function sweepAbandonedSkillRuns(
  const now = opts.nowIso ?? new Date().toISOString();
 
  // SELECT first so we can return the rows to the caller; the UPDATE
- // runs on the same predicate. We don't bother with a transaction —
+ // runs on the same predicate. We don't bother with a transaction --
  // a racing concurrent sweep (shouldn't happen: only one interval)
  // would just see fewer rows to flip on its next pass. Idempotent.
  const selectStmt = db.prepare(

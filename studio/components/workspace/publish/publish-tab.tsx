@@ -8,6 +8,7 @@ import { fadeInUp, staggerContainer, staggerItem } from "@/lib/animation/variant
 import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
+import { ErrorState } from "@/components/ui/error-state"
 import { ConnectedProviders } from "./connected-providers"
 import { PostComposer } from "./post-composer"
 import { ProviderPreview } from "./provider-preview"
@@ -56,7 +57,12 @@ export function PublishTab(_props: { groupId: string }) {
   const [previewContent, setPreviewContent] = useState("")
   const [view, setView] = useState<"queue" | "calendar">("queue")
 
-  const { data: integrationsData } = useSWR<IntegrationsResponse>(
+  const {
+    data: integrationsData,
+    error: integrationsError,
+    isLoading: integrationsLoading,
+    mutate: mutateIntegrations,
+  } = useSWR<IntegrationsResponse>(
     `/api/publish/integrations?adapter=${adapter}`,
     fetcher,
     { refreshInterval: 60_000 },
@@ -71,12 +77,16 @@ export function PublishTab(_props: { groupId: string }) {
     connected: !i.disabled,
   }))
 
-  const { data: historyData, mutate: mutateHistory } = useSWR<HistoryResponse>(
+  const {
+    data: historyData,
+    error: historyError,
+    mutate: mutateHistory,
+  } = useSWR<HistoryResponse>(
     "/api/publish/history?limit=50",
     fetcher,
     { refreshInterval: 60_000 },
   )
-  const { data: nativeAccount } = useSWR<NativeAccountResponse>(
+  const { data: nativeAccount, error: nativeAccountError } = useSWR<NativeAccountResponse>(
     adapter === "mktg-native" ? "/api/publish/native/account" : null,
     fetcher,
     { refreshInterval: 60_000 },
@@ -107,6 +117,26 @@ export function PublishTab(_props: { groupId: string }) {
       animate="visible"
       className="p-4 lg:p-5 space-y-4 max-w-6xl mx-auto"
     >
+      {integrationsError && !integrationsLoading ? (
+        <ErrorState
+          error={integrationsError}
+          onRetry={() => mutateIntegrations()}
+          title="Couldn't load connected accounts"
+        />
+      ) : null}
+      {historyError ? (
+        <ErrorState
+          error={historyError}
+          onRetry={() => mutateHistory()}
+          title="Couldn't load publish history"
+        />
+      ) : null}
+      {nativeAccountError && adapter === "mktg-native" ? (
+        <ErrorState
+          error={nativeAccountError}
+          title="Couldn't load native account"
+        />
+      ) : null}
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-lg font-semibold">Publish</h1>
