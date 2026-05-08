@@ -20,7 +20,15 @@ export async function startTestServer(port: number): Promise<ServerHandle> {
   const proc = spawn({
     cmd: ["bun", "run", "server.ts"],
     cwd: REPO_ROOT,
-    env: { ...process.env, STUDIO_PORT: String(port) },
+    env: {
+      ...process.env,
+      STUDIO_PORT: String(port),
+      // Lane 1 / Wave A: bypass the studio auth perimeter for integration
+      // tests so existing fetch() calls without bearer tokens keep working.
+      // Production launches do NOT set this -- bin/mktg-studio.ts emits a
+      // real token. The server logs a loud warning when this is on.
+      MKTG_STUDIO_AUTH: "disabled",
+    },
     stdout: "pipe",
     stderr: "pipe",
   });

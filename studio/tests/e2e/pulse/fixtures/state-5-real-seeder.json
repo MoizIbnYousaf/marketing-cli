@@ -1,0 +1,195 @@
+{
+  "funnel": {
+    "nodes": [
+      {
+        "key": "signals",
+        "label": "Signals",
+        "series": [
+          11,
+          14,
+          13,
+          14,
+          17,
+          15,
+          15
+        ],
+        "total": 99,
+        "deltaPct": 102.04081632653062
+      },
+      {
+        "key": "briefs",
+        "label": "Briefs",
+        "series": [
+          2,
+          3,
+          2,
+          3,
+          3,
+          4,
+          3
+        ],
+        "total": 20,
+        "deltaPct": 100
+      },
+      {
+        "key": "drafts",
+        "label": "Drafts",
+        "series": [
+          4,
+          6,
+          4,
+          5,
+          7,
+          4,
+          6
+        ],
+        "total": 36,
+        "deltaPct": 125
+      },
+      {
+        "key": "publishes",
+        "label": "Publishes",
+        "series": [
+          2,
+          2,
+          2,
+          3,
+          4,
+          1,
+          4
+        ],
+        "total": 18,
+        "deltaPct": 200
+      }
+    ],
+    "windowEnd": "2026-05-08T06:04:08.012Z"
+  },
+  "brandHealth": {
+    "score": 44,
+    "files": [
+      {
+        "name": "voice-profile.md",
+        "path": "brand/voice-profile.md",
+        "bytes": 50,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "positioning.md",
+        "path": "brand/positioning.md",
+        "bytes": 26,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "audience.md",
+        "path": "brand/audience.md",
+        "bytes": 52,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "competitors.md",
+        "path": "brand/competitors.md",
+        "bytes": 26,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "landscape.md",
+        "path": "brand/landscape.md",
+        "bytes": 42,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "keyword-plan.md",
+        "path": "brand/keyword-plan.md",
+        "bytes": 27,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "creative-kit.md",
+        "path": "brand/creative-kit.md",
+        "bytes": 27,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "stack.md",
+        "path": "brand/stack.md",
+        "bytes": 20,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "template"
+      },
+      {
+        "name": "assets.md",
+        "path": "brand/assets.md",
+        "bytes": 10,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "fresh"
+      },
+      {
+        "name": "learnings.md",
+        "path": "brand/learnings.md",
+        "bytes": 13,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "fresh"
+      }
+    ],
+    "readyCount": 2,
+    "totalSlots": 10
+  },
+  "actions": [
+    {
+      "id": "brand-bootstrap",
+      "title": "Refresh brand files",
+      "detail": "8 files need attention.",
+      "href": "/dashboard?tab=brand",
+      "icon": "BookOpen",
+      "tone": "green"
+    }
+  ],
+  "activity": [],
+  "recentMedia": [],
+  "recentPublish": [
+    {
+      "id": 69,
+      "adapter": "postiz",
+      "providers": [
+        "linkedin",
+        "bluesky"
+      ],
+      "contentPreview": "pulse-seed: pulse seed publish #13.3",
+      "itemsPublished": 1,
+      "itemsFailed": 0,
+      "createdAt": "2026-05-09 04:04:07"
+    },
+    {
+      "id": 68,
+      "adapter": "mktg-native",
+      "providers": [
+        "x"
+      ],
+      "contentPreview": "pulse-seed: pulse seed publish #13.2",
+      "itemsPublished": 1,
+      "itemsFailed": 0,
+      "createdAt": "2026-05-09 02:14:07"
+    },
+    {
+      "id": 67,
+      "adapter": "postiz",
+      "providers": [
+        "linkedin",
+        "bluesky"
+      ],
+      "contentPreview": "pulse-seed: pulse seed publish #13.1",
+      "itemsPublished": 1,
+      "itemsFailed": 0,
+      "createdAt": "2026-05-09 00:24:07"
+    }
+  ],
+  "generatedAt": "2026-05-08T06:04:08.013Z",
+  "staleSections": []
+}

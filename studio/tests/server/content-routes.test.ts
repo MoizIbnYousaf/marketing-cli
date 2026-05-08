@@ -37,6 +37,7 @@ beforeAll(async () => {
       ...process.env,
       STUDIO_PORT: String(TEST_PORT),
       MKTG_PROJECT_ROOT: projectRoot,
+      MKTG_STUDIO_AUTH: "disabled",
     },
     stdout: "pipe",
     stderr: "pipe",

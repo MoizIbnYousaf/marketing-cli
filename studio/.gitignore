@@ -3,6 +3,7 @@ node_modules
 
 # Next.js
 .next
+.next-*
 next-env.d.ts
 
 # Environment — never commit
@@ -45,6 +46,9 @@ Thumbs.db
 playwright-report/
 test-results/
 .playwright-cli/
+
+# E2E perf runs — local browser profiles, not shipped
+tests/e2e/perf/runs/
 
 # Local scratch dir for audit scripts
 .scratch/

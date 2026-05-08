@@ -34,7 +34,7 @@ beforeAll(async () => {
   proc = spawn({
     cmd: ["bun", "run", "server.ts"],
     cwd: PROJECT_ROOT,
-    env: { ...process.env, STUDIO_PORT: String(TEST_PORT) },
+    env: { ...process.env, STUDIO_PORT: String(TEST_PORT), MKTG_STUDIO_AUTH: "disabled" },
     stdout: "pipe",
     stderr: "pipe",
   });

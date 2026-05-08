@@ -89,6 +89,10 @@ export default async function globalSetup(): Promise<void> {
     NEXT_PUBLIC_STUDIO_DEMO: "1",
     NEXT_PUBLIC_STUDIO_API_BASE:
       process.env.NEXT_PUBLIC_STUDIO_API_BASE ?? `http://127.0.0.1:${STUDIO_PORT}`,
+    // Lane 1 / Wave A: e2e harness skips auth so existing Playwright specs
+    // do not have to thread a token through every fetch. Real-launch token
+    // flow is exercised by the integration suite in tests/server/.
+    MKTG_STUDIO_AUTH: "disabled",
   };
 
   const server: ChildProcess = spawn("bun", ["run", "server.ts"], {

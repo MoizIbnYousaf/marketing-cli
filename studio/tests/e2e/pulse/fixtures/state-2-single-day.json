@@ -1,0 +1,171 @@
+{
+  "funnel": {
+    "nodes": [
+      {
+        "key": "signals",
+        "label": "Signals",
+        "series": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "total": 1,
+        "deltaPct": null
+      },
+      {
+        "key": "briefs",
+        "label": "Briefs",
+        "series": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "total": 1,
+        "deltaPct": null
+      },
+      {
+        "key": "drafts",
+        "label": "Drafts",
+        "series": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "total": 1,
+        "deltaPct": null
+      },
+      {
+        "key": "publishes",
+        "label": "Publishes",
+        "series": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "total": 1,
+        "deltaPct": null
+      }
+    ],
+    "windowEnd": "2026-05-08T06:04:07.953Z"
+  },
+  "brandHealth": {
+    "score": 44,
+    "files": [
+      {
+        "name": "voice-profile.md",
+        "path": "brand/voice-profile.md",
+        "bytes": 50,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "positioning.md",
+        "path": "brand/positioning.md",
+        "bytes": 26,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "audience.md",
+        "path": "brand/audience.md",
+        "bytes": 52,
+        "mtime": "2026-05-08T06:04:07.793Z",
+        "freshness": "template"
+      },
+      {
+        "name": "competitors.md",
+        "path": "brand/competitors.md",
+        "bytes": 26,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "landscape.md",
+        "path": "brand/landscape.md",
+        "bytes": 42,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "keyword-plan.md",
+        "path": "brand/keyword-plan.md",
+        "bytes": 27,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "creative-kit.md",
+        "path": "brand/creative-kit.md",
+        "bytes": 27,
+        "mtime": "2026-05-08T06:04:07.794Z",
+        "freshness": "template"
+      },
+      {
+        "name": "stack.md",
+        "path": "brand/stack.md",
+        "bytes": 20,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "template"
+      },
+      {
+        "name": "assets.md",
+        "path": "brand/assets.md",
+        "bytes": 10,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "fresh"
+      },
+      {
+        "name": "learnings.md",
+        "path": "brand/learnings.md",
+        "bytes": 13,
+        "mtime": "2026-05-08T06:04:07.795Z",
+        "freshness": "fresh"
+      }
+    ],
+    "readyCount": 2,
+    "totalSlots": 10
+  },
+  "actions": [
+    {
+      "id": "brand-bootstrap",
+      "title": "Refresh brand files",
+      "detail": "8 files need attention.",
+      "href": "/dashboard?tab=brand",
+      "icon": "BookOpen",
+      "tone": "green"
+    }
+  ],
+  "activity": [],
+  "recentMedia": [],
+  "recentPublish": [
+    {
+      "id": 28,
+      "adapter": "mktg-native",
+      "providers": [
+        "x"
+      ],
+      "contentPreview": "snap-e2e publish",
+      "itemsPublished": 1,
+      "itemsFailed": 0,
+      "createdAt": "2026-05-08 15:04:07"
+    }
+  ],
+  "generatedAt": "2026-05-08T06:04:07.954Z",
+  "staleSections": []
+}

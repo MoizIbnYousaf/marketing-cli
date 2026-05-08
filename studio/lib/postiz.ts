@@ -1,6 +1,6 @@
 // lib/postiz.ts
-// AGPL-safe thin Postiz API client — raw fetch only.
-// NEVER import from @postiz/* — AGPL-3.0 firewall.
+// AGPL-safe thin Postiz API client -- raw fetch only.
+// NEVER import from @postiz/* -- AGPL-3.0 firewall.
 // Mirrors mktg CLI's postizFetch at ~/projects/mktgmono/marketing-cli/src/commands/publish.ts:263
 // Auth: bare Authorization header (NO "Bearer " prefix) per
 //   postiz apps/backend/src/services/auth/public.auth.middleware.ts:16-20
@@ -45,7 +45,7 @@ export type PostizResult<T> =
 // Upstream: apps/backend/src/public-api/routes/v1/public.integrations.controller.ts:176-195
 
 export type PostizIntegration = {
-  readonly id: string;           // DB primary key — required for POST /posts
+  readonly id: string;           // DB primary key -- required for POST /posts
   readonly identifier: string;   // provider key: "linkedin", "bluesky", "reddit", "mastodon", "threads", "x", …
   readonly name: string;         // display name
   readonly picture: string;      // URL
@@ -81,7 +81,7 @@ type PostizPostsEnvelope = {
   readonly posts: readonly PostizPost[];
 };
 
-// CreatePostDto — used internally by createDraft helper
+// CreatePostDto -- used internally by createDraft helper
 // Source: libraries/nestjs-libraries/src/dtos/posts/create.post.dto.ts
 export type CreatePostDto = {
   readonly type: "draft" | "schedule" | "now" | "update";
@@ -122,13 +122,13 @@ export async function postizFetch<T>(
 
   const headers: Record<string, string> = {
     ...(init.headers ?? {}),
-    Authorization: apiKey, // bare — NO "Bearer " prefix
+    Authorization: apiKey, // bare -- NO "Bearer " prefix
   };
 
   let body: string | FormData | undefined;
   if (init.body instanceof FormData) {
     body = init.body;
-    // Do NOT set Content-Type — runtime sets multipart/form-data boundary automatically
+    // Do NOT set Content-Type -- runtime sets multipart/form-data boundary automatically
   } else if (init.body !== undefined) {
     body = JSON.stringify(init.body);
     headers["Content-Type"] = "application/json";
@@ -232,7 +232,7 @@ export function mapPostizError(e: PostizError): string {
       return `Hosted Postiz requires an active subscription (${e.msg}). Upgrade at https://postiz.com/pricing or self-host.`;
     case "rate-limited":
       return e.retryAfterSeconds !== null
-        ? `Postiz rate limit (30 posts/hour per org) — retry in ${e.retryAfterSeconds}s.`
+        ? `Postiz rate limit (30 posts/hour per org) -- retry in ${e.retryAfterSeconds}s.`
         : "Postiz rate limit (30 posts/hour per org). Retry later.";
     case "bad-request":
       return `Postiz rejected request (HTTP ${e.status}): ${e.msg}.`;
@@ -287,7 +287,7 @@ export function getScheduledPosts(
 
 /**
  * GET /public/v1/is-connected
- * Heartbeat check — returns {connected: true} if the API key is valid.
+ * Heartbeat check -- returns {connected: true} if the API key is valid.
  */
 export function isConnected(): Promise<PostizResult<{ connected: boolean }>> {
   return postizFetch<{ connected: boolean }>("/public/v1/is-connected", { method: "GET" });

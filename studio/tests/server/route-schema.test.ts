@@ -37,7 +37,7 @@ beforeAll(async () => {
   proc = spawn({
     cmd: ["bun", "run", "server.ts"],
     cwd: ROOT,
-    env: { ...process.env, STUDIO_PORT: String(TEST_PORT) },
+    env: { ...process.env, STUDIO_PORT: String(TEST_PORT), MKTG_STUDIO_AUTH: "disabled" },
     stdout: "pipe",
     stderr: "pipe",
   });
@@ -87,7 +87,7 @@ describe("ROUTE_SCHEMA + registerRouteSchema invariants (regression guard)", () 
       properties?: { tab?: { enum?: string[] } };
     })?.properties?.tab?.enum ?? [];
 
-    expect(enumField).toEqual(["hq", "content", "publish", "brand"]);
+    expect(enumField).toEqual(["pulse", "signals", "publish", "brand"]);
   });
 
   test("/api/navigate remaps legacy tab callers before emit", async () => {
@@ -104,14 +104,18 @@ describe("ROUTE_SCHEMA + registerRouteSchema invariants (regression guard)", () 
     };
     expect(body.ok).toBe(true);
     expect(body.dryRun).toBe(true);
-    expect(body.data).toEqual({ tab: "content", filter: null });
+    // Lane 4 rename: trends/signals/content all collapse to canonical
+    // "signals" (was "content" pre-rename).
+    expect(body.data).toEqual({ tab: "signals", filter: null });
   });
 
-  test("/api/navigate remaps legacy pulse callers to HQ", async () => {
+  test("/api/navigate remaps legacy hq callers to pulse", async () => {
     const res = await fetch(`${BASE}/api/navigate?dryRun=true`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tab: "pulse" }),
+      // Pre-rename callers may still send `tab: "hq"`; the server-side
+      // normalize maps it to the canonical "pulse" id.
+      body: JSON.stringify({ tab: "hq" }),
     });
     expect(res.ok).toBe(true);
     const body = (await res.json()) as {
@@ -120,7 +124,7 @@ describe("ROUTE_SCHEMA + registerRouteSchema invariants (regression guard)", () 
       data: { tab: string; filter: Record<string, unknown> | null };
     };
     expect(body.ok).toBe(true);
-    expect(body.data).toEqual({ tab: "hq", filter: null });
+    expect(body.data).toEqual({ tab: "pulse", filter: null });
   });
 
   test("EVERY POST entry that declares a body{} also serves a real JSON Schema 2020-12 inputSchema", () => {

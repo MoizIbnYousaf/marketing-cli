@@ -1,0 +1,14 @@
+{
+  "background": "rgb(17, 22, 26)",
+  "background95": "oklab(0.196788 -0.00516705 -0.00987627 / 0.95)",
+  "foreground": "rgb(245, 240, 230)",
+  "mutedFg": "rgb(157, 160, 154)",
+  "sidebarFg": "rgb(217, 211, 200)",
+  "border": "rgb(39, 48, 56)",
+  "sidebarBorder": "rgb(37, 45, 51)",
+  "sidebar": "rgb(13, 18, 21)",
+  "surface1": "rgb(23, 29, 33)",
+  "surface3": "rgb(35, 42, 48)",
+  "popover": "rgb(29, 36, 41)",
+  "popoverFg": "rgb(245, 240, 230)"
+}

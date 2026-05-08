@@ -42,13 +42,15 @@ async function hideNextErrorOverlay(page: import("@playwright/test").Page): Prom
  */
 async function seedWorkspaceTab(
   page: import("@playwright/test").Page,
-  tab: "hq" | "content" | "publish" | "brand",
+  tab: "pulse" | "signals" | "publish" | "brand",
 ): Promise<void> {
   const payload = {
     key: "mktg-studio-workspace",
     value: JSON.stringify({
+      // version: 2 (Lane 4 rename). v0/v1 callers are migrated by the store
+      // on first read; tests seed the canonical post-rename version directly.
       state: { workspaceTab: tab, signalFilters: {} },
-      version: 0,
+      version: 2,
     }),
   };
   await page.addInitScript((arg: { key: string; value: string }) => {
@@ -141,8 +143,8 @@ test("2. onboarding — fresh user can walk through every step", async ({ page }
 test(
   "3. dashboard — all tabs + activity panel render",
   async ({ page }) => {
-    await seedWorkspaceTab(page, "content");
-    await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+    await seedWorkspaceTab(page, "signals");
+    await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
     await waitForDashboardChrome(page);
     await hideNextErrorOverlay(page);
 
@@ -165,10 +167,10 @@ test(
 
 test("4. routing — legacy tab URLs canonicalize", async ({ page }) => {
   await page.goto(`${DASHBOARD}/dashboard?tab=trends`);
-  await expect(page).toHaveURL(/[?&]tab=content/, { timeout: 5_000 });
+  await expect(page).toHaveURL(/[?&]tab=signals/, { timeout: 5_000 });
 
   await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
-  await expect(page).toHaveURL(/[?&]tab=content/, { timeout: 5_000 });
+  await expect(page).toHaveURL(/[?&]tab=signals/, { timeout: 5_000 });
 
   await page.goto(`${DASHBOARD}/dashboard?tab=audience`);
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: 5_000 });
@@ -191,7 +193,7 @@ test("5. keyboard — `g c` chord switches to Content", async ({ page }) => {
   // g + c  → Content
   await page.keyboard.press("g");
   await page.keyboard.press("c");
-  await expect(page).toHaveURL(/[?&]tab=content/);
+  await expect(page).toHaveURL(/[?&]tab=signals/);
 
   // g + , → settings
   await page.keyboard.press("g");
@@ -204,8 +206,8 @@ test("5. keyboard — `g c` chord switches to Content", async ({ page }) => {
 // ---------------------------------------------------------------------------
 
 test("6. keyboard — `?` opens the help overlay", async ({ page }) => {
-  await seedWorkspaceTab(page, "content");
-  await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+  await seedWorkspaceTab(page, "signals");
+  await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
   await waitForDashboardChrome(page);
   await hideNextErrorOverlay(page);
   await page.locator("body").click();
@@ -227,8 +229,8 @@ test("6. keyboard — `?` opens the help overlay", async ({ page }) => {
 // ---------------------------------------------------------------------------
 
 test("7. palette — Cmd+K opens and accepts query", async ({ page }) => {
-  await seedWorkspaceTab(page, "content");
-  await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+  await seedWorkspaceTab(page, "signals");
+  await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
   await waitForDashboardChrome(page);
   await hideNextErrorOverlay(page);
   await page.locator("body").click();
@@ -252,7 +254,7 @@ test("7. palette — Cmd+K opens and accepts query", async ({ page }) => {
 // ---------------------------------------------------------------------------
 
 test("8. SSE — POST /api/navigate flips the active tab", async ({ page, request }) => {
-  await seedWorkspaceTab(page, "content");
+  await seedWorkspaceTab(page, "signals");
   // Catch the SSE handshake before issuing the POST. networkidle ignores
   // long-lived EventSource connections, so without this wait we race the
   // bridge's useEffect and lose the navigate event entirely.
@@ -260,7 +262,7 @@ test("8. SSE — POST /api/navigate flips the active tab", async ({ page, reques
     (r) => r.url().includes("/api/events"),
     { timeout: 10_000 },
   );
-  await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+  await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
   await ssePromise;
 
   const res = await request.post(`${STUDIO}/api/navigate`, {
@@ -277,12 +279,12 @@ test("8. SSE — POST /api/navigate flips the active tab", async ({ page, reques
 // ---------------------------------------------------------------------------
 
 test("9. SSE — POST /api/toast renders a toast", async ({ page, request }) => {
-  await seedWorkspaceTab(page, "content");
+  await seedWorkspaceTab(page, "signals");
   const ssePromise = page.waitForResponse(
     (r) => r.url().includes("/api/events"),
     { timeout: 10_000 },
   );
-  await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+  await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
   await ssePromise;
 
   const message = `e2e toast ${Date.now()}`;
@@ -302,12 +304,12 @@ test("10. SSE — POST /api/activity/log streams into the activity panel", async
   page,
   request,
 }) => {
-  await seedWorkspaceTab(page, "content");
+  await seedWorkspaceTab(page, "signals");
   const ssePromise = page.waitForResponse(
     (r) => r.url().includes("/api/events"),
     { timeout: 10_000 },
   );
-  await page.goto(`${DASHBOARD}/dashboard?tab=content`);
+  await page.goto(`${DASHBOARD}/dashboard?tab=signals`);
   await ssePromise;
 
   const summary = `e2e activity ${Date.now()}`;

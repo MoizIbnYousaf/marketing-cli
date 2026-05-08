@@ -101,6 +101,7 @@ export async function createHarness(options: HarnessOptions = {}): Promise<RealP
       STUDIO_PORT: String(studioPort),
       MKTG_STUDIO_DB: join(tempDir, "studio.sqlite"),
       MKTG_BRAND_DIR: brandDir,
+      MKTG_STUDIO_AUTH: "disabled",
     },
     stdout: "pipe",
     stderr: "pipe",

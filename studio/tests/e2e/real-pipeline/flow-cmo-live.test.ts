@@ -96,7 +96,7 @@ const verbs: ReadonlyArray<{ name: string; run: (baseUrl: string, i: number) => 
   {
     name: "navigate",
     run: async (baseUrl, i) => {
-      const tabs = ["hq", "signals", "publish", "brand"];
+      const tabs = ["pulse", "signals", "publish", "brand"];
       const tab = tabs[i % tabs.length]!;
       const res = await fetch(`${baseUrl}/api/navigate`, {
         method: "POST",
