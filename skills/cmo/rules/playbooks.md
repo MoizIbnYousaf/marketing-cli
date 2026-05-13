@@ -166,7 +166,13 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 
 ## 9. SEO Authority Build
 
-**Trigger:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*.
+Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestion`.
+
+**Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"* — short-horizon, one-shot, no roadmap.
+
+**Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"alternatives pages"*, *"comparison pages"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"* — multi-phase, ship dozens of pages, persistent roadmap.
+
+### Path A — Short-horizon authority push
 
 **Steps:**
 
@@ -179,6 +185,59 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 | 5 | `seo-audit` (periodically) | Site architecture + schema markup audit. |
 
 **Stop:** one cornerstone + one AI-SEO piece + one alternatives page shipped. Schedule re-runs quarterly.
+
+### Path B — Programmatic SEO machine (long arc)
+
+When the user wants an *operating system* for organic growth — not one article. Ships dozens of programmatic pages across alternatives, comparisons, use-cases, and playbooks, with a persistent phase tracker (`docs/seo-machine.md`) the user resumes across sessions.
+
+**Steps:**
+
+| # | Skill / Agent | Artifact |
+|---|---|---|
+| 1 | Foundation prerequisites (if missing) | Spawn `mktg-competitive-scanner` + `mktg-audience-researcher` in parallel → `brand/competitors.md`, `brand/audience.md`. Run `keyword-research` → `brand/keyword-plan.md`. |
+| 2 | `seo-machine` (Initialize) | `docs/seo-machine.md` roadmap + `.seo/brand.md` + `.seo/link-inventory.md` + `.seo/config.json`. Stack auto-detected. |
+| 3 | `seo-machine` (Resume — per phase) | Generates the phase's pages (e.g. 12 `/alternatives/<competitor>` pages, or 8 `/for/<persona>` use-case pages) directly into the user's framework (Next.js / Astro / Rails+Inertia / markdown fallback). |
+| 4 | Per-phase quality gate — `mktg-content-reviewer` (voice) + `mktg-seo-analyst` (keyword adherence) | Scored, not rewritten. Spawn both in one message after each phase. |
+| 5 | Off-page checklist + technical audit | Chain into `off-page-seo` skill → spawns `mktg-backlink-prospector` agent to research competitor referring-domains → writes `.seo/backlink-targets.json`. Plus `scripts/link_audit.py` + `scripts/tech_audit.py` run locally; findings appended to `docs/seo-machine.md`. |
+| 6 | `seo-audit` (periodic, post-sprint) | Site-architecture review once pages are live. |
+
+**Resume protocol:** every subsequent /cmo session checks for `docs/seo-machine.md` — if it exists, seo-machine runs in Resume mode and picks the next pending phase. The user does not need to remember where they left off.
+
+**Stop (per phase):** all pages in the phase shipped, off-page checklist appended, quality gates passed. Then hand back: "Phase N complete — Y pages shipped. Phase N+1 is [pattern]. Run /cmo again when ready."
+
+**Picking the path:**
+
+| Signal | Path |
+|---|---|
+| "one article", "this week", "blog post" | A |
+| "machine", "system", "sprint", "dozens of pages", "programmatic", "operating system for SEO" | B |
+| User has 0 brand files | Run Path B Step 1 foundation first regardless |
+| User already has `docs/seo-machine.md` | Path B Resume — no question needed |
+
+**Cost asymmetry — sequence quick wins before long builds:**
+
+| Pattern | Build cost per page | Conversion intent | Sequence order |
+|---|---|---|---|
+| `/alternatives/[competitor]` | ~4 hours | Highest | First |
+| `/compare/[a]-vs-[b]` | ~3 hours | High | Second |
+| `/for/[use-case]` / `/for/[audience]` | ~4-5 hours | Medium-High | Third |
+| Long-form playbook (Pattern E) | ~2-3 days | Medium (AI-citation surface) | Late phases |
+
+When the user asks "what should I do this week?", default to ~4-hour alternatives pages over multi-day playbooks unless they explicitly want the AI-citation play. A user who ships 5 alternatives pages in a week beats one who ships half a playbook.
+
+### Path B sub-playbooks (cadence + situational)
+
+Beyond the linear sprint, /cmo runs these named sub-playbooks when the situation matches:
+
+| Sub-playbook | When | Chain |
+|---|---|---|
+| **B.1 Weekly SEO Maintenance Loop** | Recurring weekly cadence (use `/loop 7d` or schedule) | `seo-machine` striking-distance phase + `mktg compete scan` + reconcile new keyword opportunities into `brand/keyword-plan.md`. Output: weekly diff (pages to refresh, keywords to claim, competitor SERP movement). |
+| **B.2 Post-Launch SEO Ignition** | Immediately after `launch-strategy` completes | Day 1: `seo-machine` Initialize + Phase 0 (tech audit). Day 7: `seo-machine` Pattern A sprint (alternatives). Day 14: `seo-machine` Pattern D sprint (comparisons) + first striking-distance pass. Couples launch momentum to indexing momentum. |
+| **B.3 AI Overview Chase** | User wants Perplexity/ChatGPT/AI Overview citations | `ai-seo` for entity hardening + structured data → `seo-machine` Pattern E (playbook long-form, the AI-citation surface) → `competitor-alternatives` for honest "X vs Y" pages (AI engines preferentially cite honest comparisons over self-serving ones) → striking-distance refresh on already-cited weak rankers. |
+| **B.4 /for/ Persona Discovery Pipeline** | User has audience.md but no /for/ pages yet | `audience-research` (refresh if stale) → `keyword-research` for persona-keyed vocabulary → `seo-machine` Pattern B/C generation → `page-cro` review on the first 3 shipped. Ships persona-targeted landing pages from end to end. |
+| **B.5 Seasonal Sprint Replanner** | Triggered when `landscape.md` is refreshed (new competitors, market shift, category re-frame) | Re-rank pending phases in `docs/seo-machine.md` to chase the new landscape instead of continuing the stale plan. /cmo's learning-loop addition: stale roadmaps cost time, refreshing is cheap. |
+
+Each sub-playbook returns to the main Path B Resume loop afterward — they're situational overlays, not replacements.
 
 ---
 
@@ -259,7 +318,8 @@ See `rules/studio-integration.md` for the full POST contract.
 | "brand visuals", "design my look" | **Visual Identity** |
 | "make a video", "TikTok" | **Video Content** |
 | "email system", "inbound email", "Resend setup" | **Email Infrastructure** |
-| "rank on Google", "AI search", "compete for [topic]" | **SEO Authority Build** |
+| "rank on Google", "AI search", "compete for [topic]", "one article" | **SEO Authority Build — Path A** |
+| "SEO machine", "build organic traffic", "programmatic SEO", "alternatives pages", "we need traffic" | **SEO Authority Build — Path B (seo-machine)** |
 | "start a newsletter", "subscribers" | **Newsletter Launch** |
 | "show me the dashboard", "launch the studio", "visual mode" | **Studio Launch** |
 | "spawn the research team", "parallel research", "do this across agents" | **Agent Team Coordination** |

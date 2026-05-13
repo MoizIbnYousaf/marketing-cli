@@ -64,6 +64,20 @@ If yes, Google will reward it. If no, no amount of optimization saves it.
 5. Determine mode: **Single article** or **Scale mode** (programmatic SEO).
 6. Read `brand/landscape.md` if it exists — check the Claims Blacklist before making ecosystem or competitive claims. If stale (>14 days) or missing, warn that market claims may be outdated.
 
+## Prioritization (defer to seo-machine's publishing order)
+
+When the user asks "what should I write next?" — the answer follows seo-machine's **conversion-intent-first publishing order**, not "whatever has highest volume":
+
+| Order | Pattern | Why |
+|---|---|---|
+| 1 | `/alternatives/[competitor]` | Highest conversion intent — reader is already in market |
+| 2 | `/compare/[a]-vs-[b]` | Be the third option in any two-vendor comparison |
+| 3 | `/for/[use-case]` and `/for/[audience]` | JTBD without competitor name — high TP/volume ratio |
+| 4 | Long-form playbooks (this skill's wheelhouse) | Authority + AI-citation + inbound link draw |
+| 5 | Generic blog posts | Lowest conversion — defer until ~10 indexed pages exist |
+
+If `docs/seo-machine.md` exists at the project root, route the user to that skill's Resume mode instead of writing standalone articles — the roadmap there already encodes the priority order. seo-content is the right tool for **single articles** and **playbook-pattern long-form**; alternatives/compare/use-case pages belong in seo-machine's programmatic sprint.
+
 ---
 
 ## Brand Memory

@@ -8,7 +8,7 @@
 > **For development standards**, read `CLAUDE.md`.
 > This file covers the 5 marketing sub-agents and the drop-in contracts for skills and agents.
 
-5 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
+6 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
 
 ## Agent Registry
 
@@ -88,6 +88,36 @@ reads:
   - keyword-plan.md
 ---
 ```
+
+### Reference-Implementation Traceability Convention
+
+Every pattern claim in a skill's `references/*.md` should cite an actual file path — a real repo, a real component, a real route — not a hypothetical. Pattern docs without traceability rot into vibes; agents stop trusting them after the third "see `src/components/Foo.tsx`" that doesn't exist.
+
+| Rule | Detail |
+|---|---|
+| Cite live paths | When a pattern doc says "do it like this," it should follow with `Reference: <repo>/<path/to/file.ext>` or an inline link. Paths must exist at write time. |
+| Worked examples beat abstract specs | Prefer "see how `skills/seo-machine/references/patterns/alternatives.md` references its template" over a generic explanation. |
+| Update on rename | If the cited path moves, update the reference doc — same commit. A broken citation in references/ is documentation debt that compounds. |
+| Multi-repo OK | Citations may point at sibling repos under `~/projects/mktgmono/` (e.g. `mktg-studio/`) or external open-source repos. Use repo-relative paths for internal, full GitHub URLs for external. |
+
+This convention is borrowed from `skills/seo-machine/`'s `references/patterns/*.md`, which cites exact `marketing_controller.rb`, `AlternativeLayout.tsx`, and route paths in the reference implementation. Pattern docs that follow this discipline feel grounded; pattern docs that don't read like consultantware.
+
+### Long-Arc Sprint Persistence Pattern
+
+Some skills span weeks or months — they ship in N phases, each phase produces a deliverable, and the user resumes the work across sessions (e.g. `seo-machine` ships ~30 programmatic pages over 4-8 weeks). These skills follow the **sprint-persistence pattern**: a single canonical doc in the user's project that survives session interruption, context compaction, and worktree resets.
+
+The canonical example is `docs/seo-machine.md` from the seo-machine skill. Any new long-arc skill should adopt this shape:
+
+| Element | Detail |
+|---|---|
+| Canonical doc | One markdown file at `docs/<skill-name>.md` (or path the user picks during init). Single source of truth across sessions. |
+| Phase Status Tracker | Table with `# | Phase | Pattern | Status | PR/Commit` columns. Status: `pending` → `in_progress` → `completed` (or `skipped` with reason). |
+| Reference data block | Stable contracts: stack info, brand facts, paths to files the skill will edit. Marked "don't modify without explicit user instruction." |
+| Resume protocol | Skill detects the doc on every invocation; if present, runs in Resume mode and picks the next pending phase. User does not need to remember where they left off. |
+| Same-commit tracker update | When a phase ships, the tracker row update lands in the same commit as the phase work. Reviewers see both in one diff. |
+| Config sidecar | Optional `.<skill-name>/config.json` for machine-readable state (chosen stack, project ID, etc.). Per-skill subdirectory under repo root. |
+
+Skills that should use this pattern: any sprint, multi-page generator, or recurring audit loop that the user re-enters more than 3 times. Skills that should NOT use it: one-shot generators, single-artifact skills, anything that completes in one session.
 
 ## Drop-in Agent Contract
 

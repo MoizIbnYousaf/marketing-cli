@@ -10,15 +10,15 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 56 marketing skills, 5 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 58 marketing skills, 5 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
 | `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
-| Marketing skills | 55 | The playbook, installed to `~/.claude/skills/` |
-| Marketing agents | 5 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
+| Marketing skills | 57 | The playbook, installed to `~/.claude/skills/` |
+| Marketing agents | 6 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
 | Upstream catalogs | 1 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled) |
 | Studio dashboard | 1 | Next.js + Bun API workspace member at `studio/`, bundled in the tarball, launched via `mktg studio` |
 

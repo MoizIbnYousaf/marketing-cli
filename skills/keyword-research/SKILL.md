@@ -218,10 +218,9 @@ keywords covering:
 
 ---
 
-## Phase 3: Web Search Validation (NEW in v2)
+## Phase 3: Web Search Validation (Exa-stack canonical)
 
-This is the data-backed research layer. For each pillar-level keyword and the
-top 30-50 expanded keywords, pull live search data.
+Data-backed research layer for each pillar keyword + top 30-50 expansions. Canonical stack (mktg-native, no Ahrefs): Exa MCP (`web_search_advanced_exa`, `deep_search_exa`, `company_research_exa`) + Firecrawl (autocomplete + SERP scrape) + `/last30days` (Reddit/X/HN aggregation) + `gh` CLI (OSS GitHub-stars). For Ahrefs precision see appendix in `seo-machine/references/exa-recipes.md`.
 
 ### If Web Search Is Unavailable
 
@@ -370,6 +369,9 @@ Score each cluster on three dimensions:
 - **Speed to Win** (Fast/Medium/Long): Low competition with unique expertise = Fast (3 months). Moderate competition = Medium (6 months). High competition needing authority = Long (9-12 months).
 
 **Priority:** High Value + High Opportunity + Fast = DO FIRST. High + High + Medium = DO SECOND. Medium + High + Fast = QUICK WIN. High + Low = LONG PLAY. Low value = BACKLOG.
+
+### DR-Cap + Confidence Labels (mandatory filters)
+Apply **DR-cap** (`KD > DR + buffer` → `out_of_reach` → BACKLOG) and tag every keyword with a 3-tier `confidence` label (`high`/`medium`/`estimated`). Table + output schema: `references/dr-cap-and-confidence.md`.
 
 ---
 

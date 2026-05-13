@@ -153,7 +153,7 @@ describe("Phase 4: Status reflects all activity", () => {
     const expectedSkillCount = Object.keys(manifest.skills).length;
     expect(status.data.skills.total).toBe(expectedSkillCount);
     expect(status.data.skills.installed).toBeGreaterThan(0);
-    expect(status.data.agents.total).toBe(5);
+    expect(status.data.agents.total).toBe(6);
     expect(status.data.agents.installed).toBeGreaterThan(0);
     expect(status.data.health).not.toBe("needs-setup");
     expect(Array.isArray(status.data.nextActions)).toBe(true);
@@ -268,7 +268,7 @@ describe("Full pipeline coherence", () => {
     if (!status.ok) return;
     const m = await loadManifest();
     expect(status.data.skills.total).toBe(Object.keys(m.skills).length);
-    expect(status.data.agents.total).toBe(5);
+    expect(status.data.agents.total).toBe(6);
 
     // Step 5: Doctor passes
     const doctor = await doctorHandler([], flags);

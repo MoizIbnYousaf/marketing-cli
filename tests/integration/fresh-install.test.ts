@@ -147,7 +147,7 @@ describe("Fresh install pipeline", () => {
 
     // Agents should be installed
     expect(statusResult.data.agents.installed).toBeGreaterThan(0);
-    expect(statusResult.data.agents.total).toBe(5);
+    expect(statusResult.data.agents.total).toBe(6);
   });
 
   test("list shows correct skill count after init", async () => {

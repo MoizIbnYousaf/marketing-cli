@@ -733,6 +733,64 @@
       "review_interval_days": 30,
       "version": "1.0.0"
     },
+    "off-page-seo": {
+      "source": "new",
+      "category": "seo",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "positioning.md",
+        "competitors.md",
+        "audience.md",
+        "voice-profile.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "competitive-intel"
+      ],
+      "triggers": [
+        "backlinks",
+        "off-page seo",
+        "directory submissions",
+        "guest posts",
+        "outreach targets",
+        "link building",
+        "submit to directories",
+        "get listed in listicles",
+        "domain authority"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0"
+    },
+    "seo-machine": {
+      "source": "new",
+      "category": "seo",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md",
+        "positioning.md",
+        "competitors.md",
+        "audience.md",
+        "stack.md"
+      ],
+      "writes": [],
+      "depends_on": [
+        "keyword-research",
+        "competitive-intel"
+      ],
+      "triggers": [
+
+        "build organic traffic",
+        "rank in google",
+        "alternatives pages",
+        "comparison pages",
+        "programmatic seo playbook",
+        "we need traffic"
+      ],
+      "review_interval_days": 30,
+      "version": "1.0.0"
+    },
     "competitor-alternatives": {
       "source": "v1",
       "category": "seo",
@@ -1842,6 +1900,22 @@
     "brand-preview": "brand-kit-playground",
     "show-brand": "brand-kit-playground",
     "visual-brand-preview": "brand-kit-playground",
-    "brand-workbench": "brand-kit-playground"
+    "brand-workbench": "brand-kit-playground",
+
+    "build organic traffic": "seo-machine",
+    "rank in google": "seo-machine",
+    "programmatic seo playbook": "seo-machine",
+    "/for/ pages": "seo-machine",
+    "we need traffic": "seo-machine",
+    "alternatives-pages": "seo-machine",
+    "comparison-pages": "seo-machine",
+    "backlinks": "off-page-seo",
+    "off-page seo": "off-page-seo",
+    "directory submissions": "off-page-seo",
+    "guest posts": "off-page-seo",
+    "outreach targets": "off-page-seo",
+    "link building": "off-page-seo",
+    "submit to directories": "off-page-seo",
+    "domain authority": "off-page-seo"
   }
 }
