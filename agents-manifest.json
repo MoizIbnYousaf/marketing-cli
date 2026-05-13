@@ -40,6 +40,14 @@
       "reads": ["keyword-plan.md", "audience.md", "competitors.md"],
       "references_skill": "seo-audit",
       "tier": "nice-to-have"
+    },
+    "backlink-prospector": {
+      "category": "research",
+      "file": "research/backlink-prospector.md",
+      "writes": [],
+      "reads": ["competitors.md", "positioning.md", "audience.md"],
+      "references_skill": "off-page-seo",
+      "tier": "nice-to-have"
     }
   }
 }

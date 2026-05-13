@@ -60,7 +60,7 @@ describe("CMO reads status for brand health", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.agents.total).toBe(5);
+    expect(result.data.agents.total).toBe(6);
     expect(result.data.agents.installed).toBeGreaterThan(0);
   });
 
