@@ -60,6 +60,22 @@ AI search: User asks question → AI reads sources → AI synthesizes answer →
 - Structure and clarity matter more than keyword density.
 - Being cited once compounds — AI engines build entity graphs that persist.
 
+## Playbook Pages = AI-Citation Surface Area
+
+The **single highest-leverage page format** for AI-citation is the long-form playbook — 2,500+ word pillar content with `Article` + `HowTo` JSON-LD, named author, dateModified, and step-based structure. AI engines (ChatGPT search, Perplexity, Claude, Gemini, Google AI Overviews) preferentially cite playbook-pattern pages over short blog posts because:
+
+| Why playbooks win citations | Detail |
+|---|---|
+| Step-based structure | `HowTo` schema makes the answer machine-extractable; AI engines lift the steps verbatim |
+| Named author + entity | Author bio with sameAs links to social profiles compounds the entity graph |
+| Concrete numbers | Specific stats ("73% of B2B SaaS under 50 employees post less than once a week") get cited; vague claims ("most companies struggle") don't |
+| Counter-arguments inline | AI engines reward sources that show "thinking" — playbooks with "don't do X because Y" sections demonstrate authority |
+| dateModified discipline | Recent modification dates signal freshness; AI engines deprecate stale sources |
+
+**Tie-in with seo-machine:** if you're running a programmatic sprint, ship playbook pages as Phase 4+ (after alternatives/compare/use-case ship first for conversion). `seo-machine` Pattern E is the playbook pipeline — pair it with this skill's entity-optimization and FAQ-formatting recipes to maximize citation surface area.
+
+**Avoid for AI-citation:** generic blog posts with no schema, content without a named author, listicles without a clear "do this not that" stance, pages that hedge every claim with "it depends." These rank but don't get cited.
+
 ---
 
 ## Brand Integration

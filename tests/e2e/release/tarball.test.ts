@@ -172,18 +172,18 @@ describe("e2e: forbidden paths do not ship", () => {
 // ===========================================================================
 
 describe("e2e: published package.json description carries canonical skill count", () => {
-  test("package.json description references 56 (canonical total)", () => {
+  test("package.json description references 58 (canonical total)", () => {
     // npm pack --json reports the file list but not contents; read the
     // working-tree package.json which the publish would have used.
     const pkg = JSON.parse(readFileSync(join(PROJECT_ROOT, "package.json"), "utf-8")) as {
       description: string;
     };
-    expect(pkg.description).toContain("56");
+    expect(pkg.description).toContain("58");
     expect(pkg.description).not.toContain("51 skills");
     expect(pkg.description).not.toContain("50 skills");
   });
 
-  test("all 4 plugin manifest descriptions reference 56", () => {
+  test("all 4 plugin manifest descriptions reference 58", () => {
     const claude = JSON.parse(readFileSync(join(PROJECT_ROOT, ".claude-plugin/plugin.json"), "utf-8")) as {
       description: string;
     };
@@ -199,10 +199,10 @@ describe("e2e: published package.json description carries canonical skill count"
     };
 
     for (const desc of [claude.description, marketplace.plugins[0]!.description, codex.description, gemini.description]) {
-      expect(desc).toContain("56");
+      expect(desc).toContain("58");
       expect(desc).not.toContain("51 skills");
       expect(desc).not.toContain("50 skills");
     }
-    expect(codex.interface.longDescription).toContain("55 marketing skills");
+    expect(codex.interface.longDescription).toContain("57 marketing skills");
   });
 });

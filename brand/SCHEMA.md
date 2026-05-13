@@ -7,7 +7,7 @@ Source of truth for what `brand/*.md` files must contain. Skills write to these 
 | File | Purpose | Required sections | Freshness | Writers |
 |------|---------|-------------------|-----------|---------|
 | voice-profile.md | How the brand sounds | Personality, Vocabulary, Sentence patterns | 30 days | brand-voice |
-| positioning.md | Why the brand is different | Angle, Proof points, Differentiation | 30 days | positioning-angles |
+| positioning.md | Why the brand is different | Angle, Proof points, Differentiation, Anti-Positioning, Concrete Differentiators | 30 days | positioning-angles |
 | audience.md | Who the brand talks to | Archetypes, Primary Persona, Watering Holes | 30 days | audience-research |
 | competitors.md | Who the brand competes with | Direct, Indirect, Positioning gaps | 30 days | competitive-intel |
 | landscape.md | Market snapshot | Claims, Players, Trends, Claims Blacklist | 14 days (content-grounding) / 90 days (general) | landscape-scan |
@@ -41,6 +41,21 @@ Required output of /landscape-scan. Lists ecosystem claims that the catalog has 
 ### creative-kit.md > `## Visual Brand Style`
 
 Optional but recommended. Free-form description of the visual aesthetic that image-gen and creative use as a style anchor. When present, `mktg brand kit get visual --json` returns it as a typed field.
+
+### positioning.md > `## Anti-Positioning`
+
+3–7 short statements naming who the brand is explicitly NOT for and what it does NOT do. Drives `competitor-alternatives`' honesty sections, `direct-response-copy`'s objection-handling, and `seo-machine`'s alternatives-page templates. A brand without anti-positioning produces blander comparison content because every claim has to hedge.
+
+Format: one statement per line, plain text. Examples:
+- "Not for teams that need ISO 27001 compliance on day one."
+- "We don't replace your CRM; we sit alongside it."
+- "Not the cheapest option in this category."
+
+### positioning.md > `## Concrete Differentiators`
+
+3–5 specific, falsifiable claims (not adjectives). Each must cite a measurable property or feature, not vibes. `competitor-alternatives`, `seo-machine` Pattern A, and `direct-response-copy` consume these for switch-reason sections and headlines.
+
+Format: one differentiator per row with a number or verifiable property. Bad: "Faster than the competition." Good: "p99 latency < 200ms vs typical category average of 800ms (cite source)." If a claim can't be cited, mark it `"unverified — please add evidence"` rather than fabricate.
 
 ## Progressive Enhancement
 

@@ -84,10 +84,10 @@ describe("e2e: drift guard catches real drift across surface types", () => {
 
   test("drift in studio/CLAUDE.md (top-level total) fails the guard with file:line", () => {
     captureAndMutate("studio/CLAUDE.md", (orig) =>
-      // Replace one of the top-level totals (line 184: "skills-manifest.json — 56 skills:")
+      // Replace one of the top-level totals ("skills-manifest.json — 57 skills:")
       // with a wrong number. Stay clear of "(11 skills)" sub-counts which the
       // guard intentionally ignores.
-      orig.replace(/\b56 skills:/, "777 skills:"),
+      orig.replace(/\b58 skills:/, "777 skills:"),
     );
 
     const result = runDriftGuard();
@@ -98,7 +98,7 @@ describe("e2e: drift guard catches real drift across surface types", () => {
 
   test("drift in a plugin manifest description fails the guard", () => {
     captureAndMutate(".codex-plugin/plugin.json", (orig) =>
-      orig.replace(/\b56 skills/, "888 skills"),
+      orig.replace(/\b58 skills/, "888 skills"),
     );
 
     const result = runDriftGuard();

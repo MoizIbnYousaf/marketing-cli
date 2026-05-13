@@ -138,9 +138,12 @@ schema: ComparisonPage
 - [Specific use case 2]
 - [Specific use case 3]
 
-**Choose [Competitor] if:**
-- [Specific use case where they genuinely win]
-- [Another honest scenario]
+**Choose [Competitor] if:** (**REQUIRED — 3 honest tradeoffs minimum**)
+- [Specific use case where they genuinely win — cite the feature, not a vague claim]
+- [Another honest scenario — name the situation concretely]
+- [A third where they're objectively better — pricing tier, integration, niche capability]
+
+> **Honesty section is non-negotiable.** Three concrete, verifiable scenarios where the competitor wins. This is the section that earns the reader's trust — and the section AI Overviews and ChatGPT cite when picking which comparison page to surface. Pages without it underperform measurably on both ranking AND conversion. "We're better at everything" reads as marketing copy; "they're better at X, Y, Z but we're better at A, B, C" reads as a real comparison.
 
 ## Ready to try [Your Product]?
 [CTA — free trial, demo, or signup. Match to the comparison context.]
@@ -281,6 +284,7 @@ schema_article: |
 ## Quality Checks
 
 - [ ] Every competitor strength acknowledged (credibility)
+- [ ] **Honesty section present with ≥3 concrete tradeoffs where the competitor wins** (non-negotiable — pages without this underperform)
 - [ ] Feature claims are specific, not vague ("AI-powered" means nothing)
 - [ ] Pricing is current and includes all tiers
 - [ ] Verdict is genuinely helpful, not just "pick us"
@@ -298,6 +302,7 @@ schema_article: |
 - **Acknowledging competitor strengths builds trust.** Readers know competitors aren't terrible — they're actively considering them. Trying to make competitors look bad makes your content look biased. Honest acknowledgment is what makes your differentiators credible.
 - **Stale pricing erodes trust instantly.** If a reader checks and your pricing is wrong, they'll question everything else on the page. When you can't verify current pricing, say "as of {date}" and note it may have changed — this is more trustworthy than confident-but-wrong numbers.
 - **Thin comparison pages are doorway pages.** A feature table with checkmarks and no analysis doesn't help anyone choose. Each page needs genuine insight about *when* to choose each option — that's what earns the ranking and the conversion.
+- **Skipping the honesty section breaks the trust contract.** Pages that claim "we win on every dimension" read as marketing copy. Readers researching alternatives are already skeptical of vendor-published comparisons — three honest tradeoffs where the competitor wins is the credibility move that lets your differentiators land. AI Overviews and ChatGPT cite honest pages over self-serving ones because they're more useful to the searcher. The honesty section isn't a generosity; it's a positioning lever.
 
 ---
 

@@ -1,5 +1,5 @@
 // CMO Agent Spawning Tests
-// Proves CMO can discover all 5 agents and knows when to spawn research vs review.
+// Proves CMO can discover all 6 agents and knows when to spawn research vs review.
 // Real manifest reads, no mocks.
 
 import { describe, test, expect } from "bun:test";
@@ -19,11 +19,11 @@ const RESEARCH_AGENTS = ["brand-researcher", "audience-researcher", "competitive
 const REVIEW_AGENTS = ["content-reviewer", "seo-analyst"];
 
 describe("CMO Agent Discovery", () => {
-  test("discovers all 5 agents from manifest", async () => {
+  test("discovers all 6 agents from manifest", async () => {
     const manifest = await loadAgentManifest();
     const names = getAgentNames(manifest);
 
-    expect(names.length).toBe(5);
+    expect(names.length).toBe(6);
     for (const expected of EXPECTED_AGENTS) {
       expect(names).toContain(expected);
     }

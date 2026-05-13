@@ -8,20 +8,21 @@
 
 ## The 5 Agents
 
-### Research agents (parallel, spawned on FIRST RUN)
+### Research agents (parallel, spawned on FIRST RUN or on-demand)
 
 | Agent | Writes | Reads | Skill methodology it follows |
 |---|---|---|---|
 | `mktg-brand-researcher` | `brand/voice-profile.md` | project README, website, existing content | `brand-voice` SKILL.md |
 | `mktg-audience-researcher` | `brand/audience.md` | project context, market space | `audience-research` SKILL.md |
 | `mktg-competitive-scanner` | `brand/competitors.md` | project context, known competitors | `competitive-intel` SKILL.md |
+| `mktg-backlink-prospector` | `.seo/backlink-targets.json` (project path, not brand/) | `brand/competitors.md`, `positioning.md`, `audience.md` | `off-page-seo` SKILL.md |
 
 ### Review agents (on-demand, post-content)
 
 | Agent | Purpose | Invoke after | Scores (doesn't write) |
 |---|---|---|---|
 | `mktg-content-reviewer` | Voice-profile consistency gate | any content draft (DRC, SEO, email, social, newsletter, lead-magnet) | Reads `brand/voice-profile.md` |
-| `mktg-seo-analyst` | Keyword-plan adherence gate | any SEO asset (seo-content, landing page, competitor-alternatives, ai-seo output) | Reads `brand/keyword-plan.md` |
+| `mktg-seo-analyst` | Keyword-plan adherence gate | any SEO asset (seo-content, landing page, competitor-alternatives, ai-seo output, every page batch from a `seo-machine` phase) | Reads `brand/keyword-plan.md` |
 
 ---
 
@@ -65,6 +66,35 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 
 ---
 
+## On-Demand Research Invocation
+
+### `mktg-backlink-prospector` — parallel backlink target research
+
+**When /cmo invokes it:**
+- The user invokes `off-page-seo` skill AND `brand/competitors.md` has 3+ competitors → spawn the prospector to fan-out research per competitor in parallel.
+- `seo-machine` reaches an off-page phase in its roadmap → spawn alongside the phase execution.
+- The user asks "where should I get linked from?", "find backlink targets", or "outreach prospects".
+
+**Spawn pattern:**
+
+```
+<Agent tool call>
+  subagent_type: mktg-backlink-prospector
+  description: Backlink target research
+  prompt: [list of top 3-7 competitor names from brand/competitors.md]
+         + "Read brand/competitors.md + positioning.md + audience.md.
+            Run Recipe F from off-page-seo SKILL.md per competitor.
+            Classify referring domains into directories / listicles / guest-posts.
+            Write to .seo/backlink-targets.json. Return a structured summary."
+```
+
+**What /cmo does with the result:**
+- Read the structured summary (top 3 priority targets, total counts per bucket).
+- Surface to the user; ask whether to chain into `direct-response-copy` (cold-email mode) for the first batch of outreach.
+- Don't auto-write outreach emails — that's a separate user decision.
+
+---
+
 ## On-Demand Review Invocation
 
 ### `mktg-content-reviewer` — voice consistency gate
@@ -76,6 +106,7 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 - After `content-atomizer` produces multi-platform posts (one review pass over the batch).
 - After `newsletter` drafts an issue.
 - After `social-campaign` Phase 3 (this agent IS the voice gate of that phase).
+- After **each phase** of a `seo-machine` run — review the page batch as one set (consistent hero structure, voice, CTA across the N pages).
 
 **Spawn pattern:**
 
@@ -100,6 +131,7 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 - After `competitor-alternatives` produces a comparison page.
 - After `ai-seo` produces an AI-search-optimized asset.
 - After `direct-response-copy` produces a landing page (if SEO is a goal).
+- After **each phase** of a `seo-machine` run — score the whole page batch (alternatives, compare, use-case, or playbook set) before merging the phase commit. Spawn alongside `mktg-content-reviewer` in one message.
 
 **Spawn pattern:**
 

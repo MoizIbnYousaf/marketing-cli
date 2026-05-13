@@ -65,6 +65,8 @@ Positioning drives landing pages, launch copy, and competitive framing.
 | `launch-strategy` | Angle selection. |
 | `startup-launcher` | All 56 platform taglines + descriptions. |
 | `competitor-alternatives` | "vs." framing. |
+| `seo-machine` | Drives `/alternatives/<competitor>` + `/compare/<a>-vs-<b>` page angles in Path B. |
+| `off-page-seo` | Anti-positioning + differentiators inform the outreach value-add angle when pitching listicles + guest posts. |
 | `newsletter` | Editorial angle. |
 | `slideshow-script` | Narrative frameworks (AIDA/PAS/BAB) depend on angle. |
 | `creative` | Ad variant themes. |
@@ -84,6 +86,8 @@ Positioning drives landing pages, launch copy, and competitive framing.
 | `positioning-angles` | Gaps shift. |
 | `direct-response-copy` | Objection handling updates. |
 | `seo-content` | Comparison content + "alternatives to" keywords. |
+| `seo-machine` | Re-targets alternatives/compare page batches in the next phase. |
+| `off-page-seo` | Recipe F runs on competitors.md to seed `.seo/backlink-targets.json`. Refresh prompts a re-prospect via `mktg-backlink-prospector`. |
 | `mktg compete scan` | Watchlist sync. |
 
 ---
@@ -121,6 +125,7 @@ Landscape drives the **Claims Blacklist** — any claim not grounded in current 
 | `ai-seo` | Entity optimization vocabulary. |
 | `competitor-alternatives` | Comparison keyword selection. |
 | `seo-audit` | URL structure + schema recommendations. |
+| `seo-machine` | Seeds every phase — striking-distance keywords, pattern grouping (alternatives/compare/use-case/playbooks), per-page targets. |
 | `free-tool-strategy` | Tool naming + SEO anchor. |
 
 ---
@@ -183,8 +188,8 @@ Never regenerates any skill — but every post-skill reflection should append an
 | `audience.md` | 🔴 HIGH | Offer re-calibration for copy, distribution, pricing. |
 | `positioning.md` | 🔴 HIGH | Re-run landing page + launch copy. |
 | `landscape.md` | 🔴 HIGH | Warn: Claims Blacklist changed — every piece of content needs re-check. |
-| `competitors.md` | 🟡 MEDIUM | Refresh comparison/alternatives pages, competitive intel. |
-| `keyword-plan.md` | 🟡 MEDIUM | Flag SEO content + AI SEO for refresh. |
+| `competitors.md` | 🟡 MEDIUM | Refresh comparison/alternatives pages, competitive intel. If `docs/seo-machine.md` exists, prompt next phase of `seo-machine` to re-target. |
+| `keyword-plan.md` | 🟡 MEDIUM | Flag SEO content + AI SEO for refresh. If `docs/seo-machine.md` exists, propose a Resume run to roll new terms into pending phases. |
 | `creative-kit.md` | 🟡 MEDIUM | Visual skills inherit automatically; flag published visual assets. |
 | `stack.md` | 🟢 LOW | Integration alerts only. |
 | `assets.md` | — | No regen; avoids duplication. |

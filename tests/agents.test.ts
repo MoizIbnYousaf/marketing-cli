@@ -42,17 +42,17 @@ describe("loadAgentManifest", () => {
     expect(manifest.version).toBe(1);
   });
 
-  test("has exactly 5 agents", async () => {
+  test("has exactly 6 agents", async () => {
     const manifest = await loadAgentManifest();
-    expect(Object.keys(manifest.agents)).toHaveLength(5);
+    expect(Object.keys(manifest.agents)).toHaveLength(6);
   });
 });
 
 describe("getAgentNames", () => {
-  test("returns all 5 agent names", async () => {
+  test("returns all 6 agent names", async () => {
     const manifest = await loadAgentManifest();
     const names = getAgentNames(manifest);
-    expect(names).toHaveLength(5);
+    expect(names).toHaveLength(6);
 
     for (const expected of EXPECTED_AGENTS) {
       expect(names).toContain(expected);
@@ -61,10 +61,10 @@ describe("getAgentNames", () => {
 });
 
 describe("getAgentInstallStatus", () => {
-  test("returns status for all 5 agents", async () => {
+  test("returns status for all 6 agents", async () => {
     const manifest = await loadAgentManifest();
     const status = await getAgentInstallStatus(manifest);
-    expect(Object.keys(status)).toHaveLength(5);
+    expect(Object.keys(status)).toHaveLength(6);
   });
 
   test("each status has installed boolean and path string", async () => {
@@ -125,7 +125,7 @@ describe("updateAgents", () => {
       result.updated.length +
       result.unchanged.length +
       result.notBundled.length;
-    expect(total).toBe(5);
+    expect(total).toBe(6);
   });
 
   test("dry-run reports without writing", async () => {
@@ -136,7 +136,7 @@ describe("updateAgents", () => {
       result.updated.length +
       result.unchanged.length +
       result.notBundled.length;
-    expect(total).toBe(5);
+    expect(total).toBe(6);
   });
 });
 

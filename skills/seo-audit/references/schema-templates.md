@@ -2,6 +2,35 @@
 
 Complete JSON-LD examples for common schema types. Copy and customize for your site.
 
+## Schema Requirements by Page Type
+
+Use this table to know which schemas a page MUST emit before passing audit. Required = audit fails without it; Recommended = audit warns but doesn't fail.
+
+| Page type | Required | Recommended |
+|---|---|---|
+| Homepage | `SoftwareApplication` (SaaS) or `Product` (ecommerce), `Organization` | `WebSite` with `SearchAction` |
+| `/about` | `Organization`, `BreadcrumbList` | — |
+| `/pricing` | `Product` or `SoftwareApplication` with `offers` (Offer[]), `BreadcrumbList` | `FAQPage` (pricing questions) |
+| `/alternatives/[competitor]` | `SoftwareApplication`, `BreadcrumbList`, `FAQPage` | `Review` (with `reviewBody` for the honesty section) |
+| `/compare/[a]-vs-[b]` | `BreadcrumbList`, `FAQPage` | `Article` (with `author` + `dateModified`) |
+| `/for/[use-case]` or `/for/[audience]` | `SoftwareApplication`, `BreadcrumbList`, `FAQPage` | `Service` (if the use-case maps to a distinct offering) |
+| `/playbooks/[topic]` (long-form 2,500+ words) | `Article`, `BreadcrumbList` | `HowTo` (if step-based), `mentions` (entities) |
+| `/blog/[slug]` | `Article`, `BreadcrumbList` | `author` block with `Person`, `mentions` |
+| `/tools/[slug]` (free utility) | `SoftwareApplication` or `WebApplication`, `BreadcrumbList` | `FAQPage` |
+| `/case-studies/[slug]` | `Article` (or `Review`), `BreadcrumbList` | `Organization` (client) |
+| `/features/[slug]` | `SoftwareApplication`, `BreadcrumbList` | `FAQPage` |
+
+**Common mistakes the audit catches:**
+- Multiple `@type` values when one is required (e.g. `["Article", "BlogPosting"]` — pick one)
+- `FAQPage` without `mainEntity.acceptedAnswer.text` populated
+- `BreadcrumbList` missing `position` on items (Google ignores without it)
+- `SoftwareApplication` without `applicationCategory` (required field, often forgotten)
+- `Product` without `offers.priceCurrency` (price defaults to USD silently if omitted)
+- Future-dated `datePublished` (Google flags as untrustworthy)
+- `Article` `dateModified` < `datePublished` (logically inconsistent)
+
+**Per-page-type implementation** is in the individual sections below.
+
 ---
 
 ## Organization
