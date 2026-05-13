@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.6.0
+
+### feat
+
+- add `seo-machine` skill — end-to-end organic-traffic engine that ships programmatic landing pages (alternatives, comparisons, use-cases, playbooks) on a persistent multi-phase roadmap (`docs/seo-machine.md`). Two modes auto-detected; Initialize / Resume. Stack-native (Next.js, Astro, Rails+Inertia, markdown fallback).
+- add `off-page-seo` skill — backlink + outreach target list generator (directories, listicles, guest-post candidates) with Recipe F referring-domains research. Pairs with the new `mktg-backlink-prospector` agent.
+- add `mktg-backlink-prospector` agent — parallel research sub-agent. 6 agents total now (3 research + 1 backlink prospector + 2 review).
+- Exa-native research stack: 7 recipes in `seo-machine/references/exa-recipes.md` + 4 compound recipes in `api-stack-recipes.md` (pain-point cluster discovery, OSS competitor teardown, outreach prospect discovery, newcomer surveillance). Ahrefs demoted to a paid-precision footnote, not chained in.
+- `/cmo` Playbook #9 (SEO Authority Build) forked into Path A (short-horizon authority push) + Path B (programmatic sprint via seo-machine) with 5 sub-playbooks: weekly maintenance loop, post-launch ignition, AI overview chase, /for/ persona discovery, seasonal replanner.
+- DR-cap heuristic + 3-tier confidence labels (`high|medium|estimated`) added to `keyword-research` output schema.
+
+### update
+
+- `competitor-alternatives`: mandatory honesty section (3 honest tradeoffs where the competitor wins) + Anti-Pattern explaining WHY.
+- `seo-audit/references/schema-templates.md`: per-page-type schema requirements table.
+- `ai-seo`: "Playbook pages = AI-citation surface" section.
+- `seo-content`: prioritization cross-reference to seo-machine's publishing order.
+- `brand-voice`: new `references/honesty-as-positioning.md`.
+- `brand/SCHEMA.md`: `positioning.md` gains Anti-Positioning + Concrete Differentiators required sections.
+- `AGENTS.md`: Long-Arc Phase Persistence pattern + Reference-Implementation Traceability convention.
+
+### counts
+
+- 56 → 58 marketing skills (1 orchestrator + 57 playbook skills).
+- 5 → 6 agents.
+
 ## v0.5.7
 
 ### feat
