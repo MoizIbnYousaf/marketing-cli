@@ -251,4 +251,9 @@ describe("E2E: 12 named playbooks reference real skills only", () => {
     expect(playbooks).toContain("higgsfield-generate");
     expect(playbooks).toContain("higgsfield-soul-id");
   });
+
+  test("playbooks mention Exa research skills for foundation work", async () => {
+    const playbooks = await Bun.file(playbooksPath).text();
+    expect(playbooks).toMatch(/exa-search|company-research/);
+  });
 });

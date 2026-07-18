@@ -146,7 +146,7 @@ Skills that depend on external data must declare their research mode:
   RESEARCH MODE
   ├── Web search      ✗ not available
   ├── Data quality: ESTIMATED
-  └── To upgrade: connect Exa MCP or firecrawl
+  └── To upgrade: connect Exa (`exa-search` / MCP) or firecrawl
 ```
 
 Always show this signal. Never silently fall back to estimated data. Prefix estimates with `~`.

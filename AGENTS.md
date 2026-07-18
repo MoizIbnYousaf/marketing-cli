@@ -284,7 +284,7 @@ Studio auth: bearer token at `~/.mktg/.runtime/studio-token`. Open `http://127.0
 1. **Project root**: Studio must share `brand/` and `.mktg/native-publish/` with the CLI. The launcher now defaults `MKTG_PROJECT_ROOT` to the marketing-cli parent when `studio/` is a workspace member. Still override with `MKTG_PROJECT_ROOT=/path` when pointing at an external project.
 2. **`mktg verify` / `mktg ship-check` suite reachability**: those commands resolve suites as `<mktgmonoRoot>/marketing-cli` and `.../mktg-studio`. In a bare `/workspace` checkout they mark suites unreachable. Symlink `sudo ln -sfn /workspace /marketing-cli` (or check out as `.../mktgmono/marketing-cli`) if you need those orchestration tests green.
 3. **Studio lint**: `bun --cwd studio run lint` expects an ESLint flat config (`eslint.config.*`) that is not present yet — typecheck via `bun --cwd studio run typecheck` instead.
-4. **Optional integrations**: Postiz / Typefully / Resend / Firecrawl / Exa are BYO. `mktg doctor` warns when unset; core CLI + Studio work without them.
+4. **Optional integrations**: Postiz / Typefully / Resend / Firecrawl / Exa are BYO. Exa is first-class via skills `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` + root `.mcp.json`. Set `EXA_API_KEY`; `mktg doctor` surfaces `integration-EXA_API_KEY`.
 5. **Tests**: root `bun test` (CLI); studio `bun run --cwd studio test`. No mocks — real temp-dir I/O.
 
 ### Standard commands

@@ -21,7 +21,7 @@ Every marketing skill gets better when you know your audience. Generic copy
 happens when you write for "everyone." Specific copy that converts happens
 when you write for a real person with real problems.
 
-This skill builds that audience profile. It's the foundation — 8 of 11 content
+This skill builds that audience profile. It's the foundation  -  8 of 11 content
 skills read `audience.md` to shape their output. Running this first makes
 everything downstream sharper.
 
@@ -34,8 +34,8 @@ No SaaS tools needed. Systematic research plus web search.
 
 1. Check if `brand/` directory exists in the project root.
 2. If it does, read available files: `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md`, `creative-kit.md`, `stack.md`, `learnings.md`.
-3. Apply any loaded brand context to enhance output quality — skip questions the user has already answered.
-4. If `brand/` does not exist, proceed without it — this skill works standalone.
+3. Apply any loaded brand context to enhance output quality  -  skip questions the user has already answered.
+4. If `brand/` does not exist, proceed without it  -  this skill works standalone.
 
 ---
 
@@ -96,7 +96,7 @@ skills to parse but human enough to be useful for strategy.
 
 Choose based on what's available:
 
-### Quick Profile (L0 — zero context)
+### Quick Profile (L0  -  zero context)
 
 When no brand files exist and minimal information is provided. Ask 5 key questions:
 
@@ -109,14 +109,14 @@ When no brand files exist and minimal information is provided. Ask 5 key questio
 From these 5 answers, generate a working persona. It won't be perfect but it
 gives every downstream skill something to work with.
 
-### Persona Build (L1-L2 — some context)
+### Persona Build (L1-L2  -  some context)
 
 When you have basic product info or existing brand files. Systematic persona
 construction using demographics, psychographics, and jobs-to-be-done.
 
-### Community Mining (L3-L4 — full research)
+### Community Mining (L3-L4  -  full research)
 
-When Exa MCP or web search is available. Deep research into where the audience
+When `exa-search` / Exa MCP or web search is available. Deep research into where the audience
 lives online, what language they use, what they complain about, and what they
 aspire to.
 
@@ -126,7 +126,7 @@ aspire to.
 
 ### Step 1: Identify the transformation
 
-Same as positioning — start with the outcome, not the product.
+Same as positioning  -  start with the outcome, not the product.
 
 - What does the customer's life look like BEFORE? (the pain state)
 - What does it look like AFTER? (the desired state)
@@ -150,7 +150,7 @@ For each distinct audience segment (usually 1-3), build:
 - Values and beliefs about this category
 - How they make decisions (data-driven, social proof, gut feel)
 
-**Jobs-to-be-done** (why they hire your product — see `references/jtbd-framework.md` for the full framework, Forces of Progress, and job mapping template):
+**Jobs-to-be-done** (why they hire your product  -  see `references/jtbd-framework.md` for the full framework, Forces of Progress, and job mapping template):
 - Functional job: What task are they trying to accomplish?
 - Emotional job: How do they want to feel?
 - Social job: How do they want to be perceived?
@@ -164,7 +164,7 @@ For each distinct audience segment (usually 1-3), build:
 
 Where does this audience already gather? This is where you'll distribute content.
 
-**Search process** (use Exa MCP when available):
+**Search process** (use `exa-search` / Exa MCP when available):
 1. Search for "[problem/topic] + reddit/forum/community"
 2. Search for "[job title/role] + newsletter/podcast/blog"
 3. Search for "[competitor name] + reviews/alternatives"
@@ -180,21 +180,21 @@ Where does this audience already gather? This is where you'll distribute content
 ──────────────────────────────────────────────────
 
   Online Communities
-  ├── r/[subreddit] — [activity level, relevance]
-  ├── [Forum/Discord] — [activity level, relevance]
-  └── [Facebook Group] — [activity level, relevance]
+  ├── r/[subreddit]  -  [activity level, relevance]
+  ├── [Forum/Discord]  -  [activity level, relevance]
+  └── [Facebook Group]  -  [activity level, relevance]
 
   Content They Consume
-  ├── [Newsletter] — [subscriber count if known]
-  ├── [Podcast] — [relevance]
-  └── [Blog/Publication] — [relevance]
+  ├── [Newsletter]  -  [subscriber count if known]
+  ├── [Podcast]  -  [relevance]
+  └── [Blog/Publication]  -  [relevance]
 
   Social Platforms
-  ├── [Platform] — [how they use it]
-  └── [Platform] — [how they use it]
+  ├── [Platform]  -  [how they use it]
+  └── [Platform]  -  [how they use it]
 
   Events & Conferences
-  └── [Event] — [relevance]
+  └── [Event]  -  [relevance]
 
 ──────────────────────────────────────────────────
 ```
@@ -217,7 +217,7 @@ For each persona, identify:
 
 ### Step 5: Identify language mines
 
-Search for actual quotes from the audience — Reddit posts, review sites, forum
+Search for actual quotes from the audience  -  Reddit posts, review sites, forum
 threads, social media. These are gold for copywriting.
 
 Look for:
@@ -243,7 +243,7 @@ primary_persona: [name]
 archetypes: [number]
 ---
 
-# Audience Profile — [Product/Project Name]
+# Audience Profile  -  [Product/Project Name]
 
 ## Archetypes
 
@@ -252,7 +252,7 @@ Card-shaped summary of every persona. One archetype per persona. Required fields
 ### Archetype: [Name]
 
 - **one_liner:** [Who they are and what they want, one sentence]
-- **demographic:** [Role, company size, technical level — single line]
+- **demographic:** [Role, company size, technical level  -  single line]
 - **top_pain:** [The single biggest pain in their words]
 - **top_desire:** [The single biggest goal in their words]
 - **watering_hole:** [Primary community / channel where they live]
@@ -315,10 +315,10 @@ Card-shaped summary of every persona. One archetype per persona. Required fields
 
 | Level | Context Available | Output Quality |
 |-------|------------------|---------------|
-| L0 | Nothing — 5 questions only | Working persona, generic watering holes |
+| L0 | Nothing  -  5 questions only | Working persona, generic watering holes |
 | L1 | Product info + basic brand files | Targeted persona, category-specific insights |
 | L2 | + competitor data from competitors.md | Differentiated personas, competitive gaps |
-| L3 | + web research via Exa MCP | Real quotes, verified watering holes, data-backed |
+| L3 | + web research via `exa-search` | Real quotes, verified watering holes, data-backed |
 | L4 | + existing audience.md (refinement) | Evolved personas with historical learning |
 
 ---
@@ -346,10 +346,10 @@ Card-shaped summary of every persona. One archetype per persona. Required fields
 
 ## What this skill is NOT
 
-- **Not persona fiction** — Every claim must come from research, user input, or web data. Never invent demographics or psychographics to fill gaps.
-- **Not audience.md only** — This skill writes the file, but the real output is strategic understanding of who buys and why.
-- **Not market research** — This focuses on buyer personas and watering holes. For competitive landscape, use /competitive-intel. For market sizing and trends, that's a different analysis.
-- **Not a one-time exercise** — Personas evolve. Run this again when conversion drops, when expanding to new segments, or when feedback contradicts existing personas.
+- **Not persona fiction**  -  Every claim must come from research, user input, or web data. Never invent demographics or psychographics to fill gaps.
+- **Not audience.md only**  -  This skill writes the file, but the real output is strategic understanding of who buys and why.
+- **Not market research**  -  This focuses on buyer personas and watering holes. For competitive landscape, use /competitive-intel. For market sizing and trends, that's a different analysis.
+- **Not a one-time exercise**  -  Personas evolve. Run this again when conversion drops, when expanding to new segments, or when feedback contradicts existing personas.
 
 ---
 
@@ -401,8 +401,8 @@ After delivering the audience profile:
 
 ## Safety rules
 
-- Never fabricate quotes — downstream skills use language mines as real customer voice in copy. Fabricated quotes produce inauthentic messaging that erodes trust. Mark web-sourced language as "representative" if paraphrased.
-- Never assume demographics without evidence — persona decisions drive targeting, pricing, and channel strategy. Wrong demographics cascade into wrong marketing. Ask or research.
-- Never write audience data from one project into another project's brand/ — audience profiles are project-specific. Cross-contamination means one project's strategy infects another.
-- Always check `--cwd` context if provided — the working directory determines which brand/ to read and write.
-- If Exa MCP is unavailable, skip web research steps and note the limitation — the skill still produces useful output at L0-L2, just without verified watering holes and real quotes.
+- Never fabricate quotes  -  downstream skills use language mines as real customer voice in copy. Fabricated quotes produce inauthentic messaging that erodes trust. Mark web-sourced language as "representative" if paraphrased.
+- Never assume demographics without evidence  -  persona decisions drive targeting, pricing, and channel strategy. Wrong demographics cascade into wrong marketing. Ask or research.
+- Never write audience data from one project into another project's brand/  -  audience profiles are project-specific. Cross-contamination means one project's strategy infects another.
+- Always check `--cwd` context if provided  -  the working directory determines which brand/ to read and write.
+- If Exa is unavailable, skip web research steps and note the limitation - the skill still produces useful output at L0-L2, just without verified watering holes and real quotes.

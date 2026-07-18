@@ -15,6 +15,11 @@ import { join } from "node:path";
 
 const PROJECT_ROOT = import.meta.dir.replace(/\/tests\/e2e\/release$/, "");
 
+const skillsManifest = JSON.parse(
+  readFileSync(join(PROJECT_ROOT, "skills-manifest.json"), "utf-8"),
+) as { skills: Record<string, unknown> };
+const totalSkillCount = Object.keys(skillsManifest.skills).length;
+
 const runDriftGuard = (): { exitCode: number; combined: string } => {
   const proc = spawnSync(
     "bun",
@@ -83,22 +88,25 @@ describe("e2e: drift guard catches real drift across surface types", () => {
   });
 
   test("drift in studio/CLAUDE.md (top-level total) fails the guard with file:line", () => {
+    const canonical = `${totalSkillCount} skills:`;
     captureAndMutate("studio/CLAUDE.md", (orig) =>
-      // Replace one of the top-level totals ("skills-manifest.json — 57 skills:")
+      // Replace one of the top-level totals ("skills-manifest.json — N skills:")
       // with a wrong number. Stay clear of "(11 skills)" sub-counts which the
       // guard intentionally ignores.
-      orig.replace(/\b58 skills:/, "777 skills:"),
+      orig.replace(new RegExp(`\\b${totalSkillCount} skills:`), "777 skills:"),
     );
 
     const result = runDriftGuard();
     expect(result.exitCode).not.toBe(0);
     expect(result.combined).toMatch(/studio\/CLAUDE\.md:\d+/);
     expect(result.combined).toContain('saw "777 skills"');
+    // Sanity: mutation targeted the live canonical total.
+    expect(canonical).toMatch(/^\d+ skills:$/);
   });
 
   test("drift in a plugin manifest description fails the guard", () => {
     captureAndMutate(".codex-plugin/plugin.json", (orig) =>
-      orig.replace(/\b58 skills/, "888 skills"),
+      orig.replace(new RegExp(`\\b${totalSkillCount} skills`), "888 skills"),
     );
 
     const result = runDriftGuard();
