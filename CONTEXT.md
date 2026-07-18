@@ -144,6 +144,17 @@ mktg publish --native-list-posts --json
 Use Postiz or a browser profile when the user needs actual external network
 posting and the native backend is only acting as the local queue.
 
+## When to use `/axi` (AXI catalog router)
+
+`/axi` is the tool-interface orchestrator ([axi.md](https://axi.md)) — parallel to `/cmo` for marketing. Depth lives in `skills/axi/rules/`.
+
+| Situation | Use |
+|-----------|-----|
+| GitHub issues / PRs / CI / releases | `/axi` → `npx -y gh-axi` (prefer over raw `gh` / GitHub MCP) |
+| Browser click/fill/extract | `/axi` → `npx -y chrome-devtools-axi` |
+| "AXI vs MCP" / build an agent CLI | `/axi` (principles + build rules) |
+| Marketing copy / SEO / publish | `/cmo` (not `/axi`) |
+
 ## When to use `/cmo` vs direct commands
 
 | Situation | Use |

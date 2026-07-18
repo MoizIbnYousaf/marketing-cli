@@ -85,8 +85,8 @@ const manifest: SkillsManifest = await Bun.file(manifestPath).json();
 const skillNames = Object.keys(manifest.skills);
 
 describe("E2E: catalog totals", () => {
-  test("manifest contains 63 skills (catalog total)", () => {
-    expect(skillNames.length).toBe(63);
+  test("manifest contains 64 skills (catalog total)", () => {
+    expect(skillNames.length).toBe(64);
   });
 
   test("Tier 2 set is the 12 documented external-API skills", () => {

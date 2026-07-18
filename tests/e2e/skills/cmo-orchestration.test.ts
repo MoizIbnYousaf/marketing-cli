@@ -186,6 +186,10 @@ describe("E2E: every routing-table skill name resolves to a real skill in the ma
         "learning-loop", "studio-integration", "recency-grounding",
         "persona", "communication", "ideas-library", "analytics-guide",
         "ai-slop-patterns", "exa", "exa-mcp",
+        // AXI catalog binaries / router leaf names (routed via /axi, not mktg skills)
+        "gh-axi", "chrome-devtools-axi", "lavish-axi", "quota-axi",
+        // Ecosystem CLIs named in prose (doctor-detected tools, not skills)
+        "gh", "playwright-cli", "ffmpeg", "whisper-cli", "yt-dlp",
         // Status field names + setup-preference values + platform identifiers
         // that appear in /cmo's prose but are not skill IDs.
         "integrations", "no", "yes", "configured", "suggestions",

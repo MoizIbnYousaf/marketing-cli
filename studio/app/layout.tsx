@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s | mktg studio",
   },
   description:
-    "Local-first marketing studio powered by /cmo -- 63 skills, brand intelligence, and social distribution in one dashboard.",
+    "Local-first marketing studio powered by /cmo -- 64 skills, brand intelligence, and social distribution in one dashboard.",
 }
 
 export default function RootLayout({

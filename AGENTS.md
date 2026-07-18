@@ -5,6 +5,7 @@
 > **For /cmo runtime indexes**, read `skills/cmo/rules/cli-runtime-index.md`,
 > `skills/cmo/rules/publish-index.md`, and
 > `skills/cmo/rules/studio-api-index.md`.
+> **For /axi (AXI catalog router — gh-axi, chrome-devtools-axi, principles)**, read `skills/axi/SKILL.md`.
 > **For development standards**, read `CLAUDE.md`.
 > This file covers the 5 marketing sub-agents and the drop-in contracts for skills and agents.
 
@@ -287,6 +288,8 @@ Studio auth: bearer token at `~/.mktg/.runtime/studio-token`. Open `http://127.0
 4. **Optional integrations**: Postiz / Typefully / Resend / Firecrawl / Exa are BYO. Exa is first-class via skills `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` + root `.mcp.json`. Set `EXA_API_KEY`; `mktg doctor` surfaces `integration-EXA_API_KEY`.
 5. **Tests**: root `bun test` (CLI); studio `bun run --cwd studio test` (or `bun run test` inside `studio/`). Do **not** run bare `bun test` in `studio/` — that also picks up `tests/e2e/perf` (Lighthouse fixtures) and fails without a prior `bun run tests/e2e/perf/run-lighthouse.ts`. No mocks — real temp-dir I/O.
 6. **Studio UI vs API in cloud VMs**: Bun API on `:3001` is the source of truth. The Next dashboard on `:3000` rewrites `/api/*` → Bun; that proxy can hang (`socket hang up` / HTTP 000) while direct `:3001` curls stay healthy. If the UI stays on skeletons, verify with `curl -H "Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)" http://127.0.0.1:3001/api/skills` and restart via `mktg studio --no-open` with `MKTG_PROJECT_ROOT` set to the checkout root. Do not start `bun run server.ts` alone without that root — native publish / brand paths will miss `/workspace/.mktg`.
+
+5. **`/axi`**: tool-interface orchestrator (parallel to `/cmo` for marketing). Prefer `npx -y gh-axi` / `npx -y chrome-devtools-axi` over eager MCP. See `skills/axi/SKILL.md`.
 
 ### Standard commands
 

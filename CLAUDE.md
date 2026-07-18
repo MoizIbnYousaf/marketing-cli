@@ -5,17 +5,19 @@
 > **For `/cmo` runtime indexes**, read `skills/cmo/rules/cli-runtime-index.md`,
 > `skills/cmo/rules/publish-index.md`, and
 > `skills/cmo/rules/studio-api-index.md`.
+> **For `/axi` (AXI catalog router)**, read `skills/axi/SKILL.md` and `skills/axi/rules/`.
 > **For agent/skill contributor guidance**, read `AGENTS.md`.
 > This file is the project's development contract: architecture, standards, and rules.
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 63 marketing skills (62 playbook + `/cmo`), 6 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 64 marketing skills (62 playbook + `/cmo`), 6 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
 | `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
+| `/axi` skill | 1 orchestrator | Routes agent-tool work to AXI-catalog CLIs (gh-axi, chrome-devtools-axi, …) |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
 | Marketing skills | 62 | The playbook, installed to `~/.claude/skills/` |
 | Marketing agents | 6 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
@@ -46,7 +48,7 @@ src/
 │   ├── skill-add.ts    # External skill chaining (mktg skill add)
 │   ├── agents.ts       # Agent registry, install to ~/.claude/agents/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
-skills/                  # 63 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 64 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 6 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
@@ -219,7 +221,9 @@ mktg orchestrates external tools but does not bundle them. `mktg doctor` detects
 | `ffmpeg` | Video assembly, encoding | `brew install ffmpeg` |
 | `remotion` | Programmatic React video | `npm i -g @remotion/cli` |
 | `playwright-cli` | Browser automation | `npm i -g @playwright/cli` |
-| `gh` | GitHub CLI | `brew install gh` |
+| `gh` | GitHub CLI (prefer `gh-axi` via `/axi`) | `brew install gh` |
+| `gh-axi` | Agent-ergonomic GitHub CLI ([AXI](https://axi.md)) | `npm i -g gh-axi` or `npx -y gh-axi` |
+| `chrome-devtools-axi` | Agent-ergonomic browser CLI (AXI) | `npm i -g chrome-devtools-axi` or `npx -y chrome-devtools-axi` |
 | `whisper-cli` | Speech-to-text | `brew install whisper-cpp` |
 | `yt-dlp` | Media download | `brew install yt-dlp` |
 | [`summarize`](https://github.com/steipete/summarize) | Text compression | `npm i -g @steipete/summarize` |

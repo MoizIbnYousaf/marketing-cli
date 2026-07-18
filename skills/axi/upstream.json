@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "fetched_at": "2026-07-18T08:00:00Z",
+  "tool": "/mktg-steal",
+  "sources": [
+    {
+      "name": "primary",
+      "repo": "kunchenguid/axi",
+      "branch": "main",
+      "snapshot_sha": "fbfe6d23f703ab2542d93bd6122846189950767b",
+      "snapshot_at": "2026-07-18T08:00:00Z",
+      "upstream_root": ".agents/skills/axi",
+      "local_root": "skills/axi",
+      "files": [
+        {
+          "local": "references/upstream-axi-skill.md",
+          "upstream": ".agents/skills/axi/SKILL.md",
+          "sha": "b7c5980346482bbb95e2658c8ab9854fe3e73de3"
+        },
+        {
+          "local": "SKILL.md",
+          "upstream": ".agents/skills/axi/SKILL.md",
+          "sha": "b7c5980346482bbb95e2658c8ab9854fe3e73de3",
+          "note": "adapted-frontmatter"
+        }
+      ]
+    }
+  ]
+}
