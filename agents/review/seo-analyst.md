@@ -138,7 +138,7 @@ TOP 3 FIXES:
 
 ## Tools
 
-- **Exa MCP** — research what currently ranks for target keywords
+- **`exa-search`** - research what currently ranks for target keywords
 - **Read** — analyze local content files and brand context
 - **Bash** — curl pages for meta tag analysis if needed
 

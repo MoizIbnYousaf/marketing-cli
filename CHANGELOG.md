@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- Port [exa-labs/agent-skills](https://github.com/exa-labs/agent-skills) as first-class mktg skills: `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` (with `build-with-exa/references/`).
+- Ship root `.mcp.json` for Exa MCP (search + fetch + advanced + agent tools); `EXA_API_KEY` on skill manifest surfaces via `mktg doctor`.
+- Wire Exa into `/cmo` routing + disambiguation, ecosystem/recency/safety rules, and all research/review agents.
+
+### counts
+
+- 58 → 63 skills (1 orchestrator + 62 playbook skills).
+
 ## v0.6.0
 
 ### feat

@@ -1,6 +1,6 @@
 ---
 name: mktg-backlink-prospector
-description: "Backlink prospecting research agent. Uses Exa MCP (mktg default) or Ahrefs MCP (if connected) to surface directory + listicle + guest-post candidates from competitor referring-domains. Writes the consolidated target list to the project's .seo/backlink-targets.json (project path, NOT a brand file). Spawned by /cmo via the off-page-seo skill or when the user asks for outreach targets."
+description: "Backlink prospecting research agent. Uses `exa-search` / Exa MCP (mktg default) or Ahrefs MCP (if connected) to surface directory + listicle + guest-post candidates from competitor referring-domains. Writes the consolidated target list to the project's .seo/backlink-targets.json (project path, NOT a brand file). Spawned by /cmo via the off-page-seo skill or when the user asks for outreach targets."
 model: opus
 ---
 

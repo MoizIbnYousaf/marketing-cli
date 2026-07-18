@@ -780,7 +780,6 @@
         "competitive-intel"
       ],
       "triggers": [
-
         "build organic traffic",
         "rank in google",
         "alternatives pages",
@@ -1843,6 +1842,183 @@
       ],
       "review_interval_days": 30,
       "version": "0.3.0"
+    },
+    "exa-search": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "exa-labs/agent-skills",
+          "path": "skills/exa-search",
+          "snapshot_sha": "390ffee2d7e1d0dce2ed8efe4994c2b3c1c0173b",
+          "snapshot_at": "2026-07-15T17:11:29Z"
+        }
+      },
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "positioning.md",
+        "competitors.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "exa search",
+        "exa-search",
+        "semantic web search",
+        "search the web with exa",
+        "find sources with exa",
+        "web_search_exa",
+        "open-ended web research",
+        "discover competitors online",
+        "find recent news about"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "env_vars": [
+        "EXA_API_KEY"
+      ]
+    },
+    "exa-contents": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "exa-labs/agent-skills",
+          "path": "skills/exa-contents",
+          "snapshot_sha": "390ffee2d7e1d0dce2ed8efe4994c2b3c1c0173b",
+          "snapshot_at": "2026-07-15T17:11:29Z"
+        }
+      },
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "competitors.md",
+        "landscape.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "exa contents",
+        "exa-contents",
+        "extract url with exa",
+        "web_fetch_exa",
+        "exa crawl url",
+        "fetch page via exa",
+        "exa highlights from url"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "env_vars": [
+        "EXA_API_KEY"
+      ]
+    },
+    "build-with-exa": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "exa-labs/agent-skills",
+          "path": "skills/build-with-exa",
+          "snapshot_sha": "390ffee2d7e1d0dce2ed8efe4994c2b3c1c0173b",
+          "snapshot_at": "2026-07-15T17:11:29Z"
+        }
+      },
+      "category": "knowledge",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "build with exa",
+        "exa api",
+        "exa-js",
+        "exa-py",
+        "integrate exa",
+        "exa agent api",
+        "exa websets",
+        "exa monitors",
+        "exa sdk"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "env_vars": [
+        "EXA_API_KEY"
+      ]
+    },
+    "company-research": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "exa-labs/agent-skills",
+          "path": "skills/company-research",
+          "snapshot_sha": "390ffee2d7e1d0dce2ed8efe4994c2b3c1c0173b",
+          "snapshot_at": "2026-07-15T17:11:29Z"
+        }
+      },
+      "category": "foundation",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "positioning.md",
+        "competitors.md",
+        "audience.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "company research",
+        "research this company",
+        "company deep dive",
+        "funding history",
+        "who are their competitors",
+        "company list",
+        "exa company research",
+        "lookup company"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "env_vars": [
+        "EXA_API_KEY"
+      ]
+    },
+    "lead-generation": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "exa-labs/agent-skills",
+          "path": "skills/lead-generation",
+          "snapshot_sha": "390ffee2d7e1d0dce2ed8efe4994c2b3c1c0173b",
+          "snapshot_at": "2026-07-15T17:11:29Z"
+        }
+      },
+      "category": "growth",
+      "layer": "execution",
+      "tier": "nice-to-have",
+      "reads": [
+        "audience.md",
+        "positioning.md",
+        "competitors.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "lead generation",
+        "lead gen",
+        "prospect list",
+        "find companies to sell to",
+        "ICP list",
+        "outbound list",
+        "enriched leads",
+        "build a lead list",
+        "generate leads"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "env_vars": [
+        "EXA_API_KEY"
+      ]
     }
   },
   "redirects": {
@@ -1901,7 +2077,6 @@
     "show-brand": "brand-kit-playground",
     "visual-brand-preview": "brand-kit-playground",
     "brand-workbench": "brand-kit-playground",
-
     "build organic traffic": "seo-machine",
     "rank in google": "seo-machine",
     "programmatic seo playbook": "seo-machine",
@@ -1916,6 +2091,18 @@
     "outreach targets": "off-page-seo",
     "link building": "off-page-seo",
     "submit to directories": "off-page-seo",
-    "domain authority": "off-page-seo"
+    "domain authority": "off-page-seo",
+    "exa": "exa-search",
+    "exa-web-search": "exa-search",
+    "web-search-exa": "exa-search",
+    "exa-fetch": "exa-contents",
+    "exa-crawl": "exa-contents",
+    "exa-company-research": "company-research",
+    "research-company": "company-research",
+    "exa-lead-gen": "lead-generation",
+    "lead-gen": "lead-generation",
+    "prospect-list": "lead-generation",
+    "exa-sdk": "build-with-exa",
+    "exa-api": "build-with-exa"
   }
 }

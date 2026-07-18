@@ -1,6 +1,6 @@
 ---
 name: mktg-competitive-scanner
-description: "Competitive intelligence agent. Uses Exa MCP to research competitors, analyze positioning, and find market gaps. Writes brand/competitors.md. Spawned by /cmo during parallel foundation building."
+description: "Competitive intelligence agent. Uses `company-research` / `exa-search` (Exa MCP) to research competitors, analyze positioning, and find market gaps. Writes brand/competitors.md. Spawned by /cmo during parallel foundation building."
 model: opus
 ---
 
@@ -27,7 +27,7 @@ Run in **Deep Teardown** mode — the spawning agent needs comprehensive competi
 
 ## Research Process
 
-1. **Identify competitors using Exa MCP:**
+1. **Identify competitors using `exa-search` / `company-research` (Exa MCP):**
    - Search "[product category] alternatives" and "[product name] alternatives"
    - Search "[product type] vs" to find comparison content
    - Search product category on Product Hunt, G2, and Reddit
@@ -111,7 +111,7 @@ primary_gap: "{one-line summary of biggest opportunity}"
 
 ## Tools
 
-- **Exa MCP** — web search for competitor websites, pricing pages, reviews, social presence
+- **`exa-search` / `company-research`** - web search for competitor websites, pricing pages, reviews, social presence
 - **Read** — analyze local project files for context
 - **Write** — write brand/competitors.md
 - **Glob/Grep** — find relevant content in the project
@@ -119,7 +119,7 @@ primary_gap: "{one-line summary of biggest opportunity}"
 ## Edge Cases
 
 - **No direct competitors found:** The product may be genuinely novel. Search for adjacent categories and indirect competitors (different solution, same problem). Note that the competitive landscape is emerging rather than established.
-- **Exa MCP unavailable:** Work with whatever local context is available (README, existing brand files, package.json). Produce a skeleton competitors.md with what you can infer, and clearly mark all entries as "needs verification with web research."
+- **Exa unavailable (`EXA_API_KEY` / MCP):** Work with whatever local context is available (README, existing brand files, package.json). Produce a skeleton competitors.md with what you can infer, and clearly mark all entries as "needs verification with web research."
 - **Very thin results:** If search returns minimal data for a competitor (no pricing page, no clear positioning), note what's unknown rather than guessing. Partial data with honest gaps is more useful than fabricated completeness.
 - **Competitor has pivoted or shut down:** Note the status change. A competitor shutting down can signal market problems or opportunity.
 
