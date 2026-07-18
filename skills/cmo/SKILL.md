@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  A senior marketing operator for any project. Orchestrates 63 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
+  A senior marketing operator for any project. Orchestrates 64 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
 allowed-tools:
   - Bash(mktg *)
   - Bash(curl *)
@@ -11,7 +11,6 @@ allowed-tools:
 # /cmo  -  Chief Marketing Officer
 
 ## North Star
-
 For the persona contract  -  who the builder is, what /cmo's job is, and the suggest/ask/discuss/act/teach disciplines  -  see [rules/persona.md](rules/persona.md).
 
 For brand memory protocol, see [rules/brand-memory.md](rules/brand-memory.md).
@@ -55,7 +54,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 63 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 64 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
@@ -234,6 +233,7 @@ When a request is ambiguous, use this matrix:
 | "summarize this" / "TL;DR" / "make it shorter" | `summarize` | Direct LLM summary | The `summarize` CLI handles token budgets, length presets, and structured output. Don't reimplement. |
 | "scrape this page" / "fetch this URL" / "crawl this site" | `firecrawl` | `exa-contents` | Firecrawl = deep crawl/browser on known URLs. `exa-contents` = Exa extraction. Open-ended search → `exa-search`. |
 | "search the web for X" / "research a topic" | `exa-search` | `firecrawl` | Open-ended search via Exa. Firecrawl only fetches known URLs. Chain: exa-search → firecrawl/exa-contents. |
+| "GitHub PR/CI" / "browse+click" / "AXI vs MCP" | `/axi` (`gh-axi` / `chrome-devtools-axi`) | raw `gh` / eager MCP / `playwright-cli` alone | `/axi` owns tool-interface routing; static URL fetch still uses firecrawl. |
 | "check if this claim is still true" | `/last30days` | `firecrawl` | last30days aggregates social + community signal with recency guarantees. Firecrawl can't verify a claim on its own  -  it just returns a single page's content. |
 | "research this company" / "company deep dive" | `company-research` | `competitive-intel` | Exa engine for a company/list. competitive-intel owns brand/competitors.md and should call this. |
 | "generate leads" / "prospect list" / "ICP list" | `lead-generation` | `lead-magnet` | Outbound company lists via Exa Agent. lead-magnet = content asset that captures emails. |

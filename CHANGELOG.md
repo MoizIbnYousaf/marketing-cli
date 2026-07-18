@@ -4,13 +4,16 @@
 
 ### feat
 
+- add `/axi` skill — main AXI ([axi.md](https://axi.md)) catalog router (same role as `/cmo` for marketing). Routes GitHub → `gh-axi`, browser → `chrome-devtools-axi`, plus community AXIs; ships the 10 principles, prefer-AXI vs MCP decision tree, build/review checklist, and benchmark snapshot. Upstream provenance from `kunchenguid/axi`.
+- `mktg doctor` optional CLI checks for `gh-axi` and `chrome-devtools-axi`.
+- `/cmo` ecosystem + disambiguation hand off GitHub/browser/tool-interface questions to `/axi`.
 - Port [exa-labs/agent-skills](https://github.com/exa-labs/agent-skills) as first-class mktg skills: `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` (with `build-with-exa/references/`).
 - Ship root `.mcp.json` for Exa MCP (search + fetch + advanced + agent tools); `EXA_API_KEY` on skill manifest surfaces via `mktg doctor`.
 - Wire Exa into `/cmo` routing + disambiguation, ecosystem/recency/safety rules, and all research/review agents.
 
 ### counts
 
-- 58 → 63 skills (1 orchestrator + 62 playbook skills).
+- 58 → 64 skills (2 orchestrators `/cmo` + `/axi`, plus Exa quintet and playbook skills).
 
 ## v0.6.0
 

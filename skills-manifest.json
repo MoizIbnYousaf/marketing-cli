@@ -47,6 +47,50 @@
         "precedence": "foundation-first"
       }
     },
+    "axi": {
+      "source": "new",
+      "upstream": {
+        "primary": {
+          "repo": "kunchenguid/axi",
+          "path": ".agents/skills/axi",
+          "snapshot_sha": "fbfe6d23f703ab2542d93bd6122846189950767b",
+          "snapshot_at": "2026-07-18T08:00:00Z"
+        }
+      },
+      "category": "knowledge",
+      "layer": "foundation",
+      "tier": "must-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "axi",
+        "gh-axi",
+        "chrome-devtools-axi",
+        "agent ergonomics",
+        "TOON output",
+        "prefer AXI",
+        "agent-facing CLI",
+        "AXI catalog",
+        "quota-axi",
+        "lavish-axi"
+      ],
+      "review_interval_days": 30,
+      "version": "0.1.0",
+      "routing": {
+        "triggers": [
+          "use axi",
+          "which AXI should I use",
+          "prefer axi over mcp",
+          "agent ergonomic cli",
+          "route to gh-axi",
+          "browser automation with axi"
+        ],
+        "requires": [],
+        "unlocks": [],
+        "precedence": "tool-first"
+      }
+    },
     "mktg-setup": {
       "source": "new",
       "category": "foundation",
@@ -2103,6 +2147,15 @@
     "lead-gen": "lead-generation",
     "prospect-list": "lead-generation",
     "exa-sdk": "build-with-exa",
-    "exa-api": "build-with-exa"
+    "exa-api": "build-with-exa",
+    "agent-experience": "axi",
+    "agent ergonomics": "axi",
+    "gh axi": "axi",
+    "chrome axi": "axi",
+    "chrome-devtools-axi": "axi",
+    "gh-axi": "axi",
+    "toon cli": "axi",
+    "axi catalog": "axi",
+    "prefer mcp": "axi"
   }
 }

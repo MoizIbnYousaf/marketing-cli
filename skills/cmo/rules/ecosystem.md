@@ -15,9 +15,23 @@
 | `remotion` | Programmatic React video compositions | Polished animated video with precise timing, typography, and brand-calibrated visual system. | `video-content` (tier 3) |
 | `whisper-cli` (whisper.cpp) | Speech-to-text | Transcribe audio/video for atomization. Source for `content-atomizer` on podcasts, videos, voicemails. | `mktg transcribe` |
 | `yt-dlp` | Media download | Pull YouTube/TikTok/podcast sources for transcription. | `mktg transcribe` |
-| `gh` | GitHub CLI | Release notes, launch announcements, open-source project metadata for launch submissions. | `startup-launcher`, `app-store-changelog` |
+| `gh` | GitHub CLI | Fallback when `gh-axi` is unavailable. Prefer AXI for agent GitHub work. | `startup-launcher`, `app-store-changelog` |
+| `gh-axi` | Agent-ergonomic GitHub CLI (AXI) | Issues, PRs, CI runs, releases — prefer over raw `gh` / GitHub MCP. | `/axi` router |
+| `chrome-devtools-axi` | Agent-ergonomic browser CLI (AXI) | Navigate/click/fill/extract with combined ops + `--query`. Prefer over eager chrome-devtools-mcp. | `/axi` router |
 | `summarize` (steipete/summarize) | Token-bounded text compression | Compress long pasted content before passing to downstream skills. | `/summarize` skill directly |
-| `playwright-cli` | Browser automation backend | Whenever a configured browser profile is the distribution path. | Browser profile skills |
+| `playwright-cli` | Browser automation backend | Logged-in marketing distribution profiles. For general browsing/extraction prefer `chrome-devtools-axi` via `/axi`. | Browser profile skills |
+
+### AXI catalog router (`/axi`)
+
+**What it is:** [AXI](https://axi.md) — 10 principles for agent-ergonomic CLIs + an official/community catalog (`gh-axi`, `chrome-devtools-axi`, `lavish-axi`, `quota-axi`, plus Slack/Notion/AWS/… community AXIs).
+
+**CMO routes to `/axi` when:**
+- The request is GitHub ops (PR/CI/issues/releases) — `/axi` → `gh-axi`.
+- The request needs interactive browser automation (not static URL fetch) — `/axi` → `chrome-devtools-axi`.
+- The user asks about AXI, TOON, or "AXI vs MCP".
+- Building/reviewing an agent-facing CLI.
+
+**CMO does NOT route to `/axi` when:** marketing copy/SEO/publish (stay in `/cmo`), known-URL scrape (`firecrawl` / `exa-contents`), or open-ended web search (`exa-search`).
 
 ---
 

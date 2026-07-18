@@ -174,6 +174,8 @@ const checkCLIs = async (): Promise<Check[]> => {
     { name: "yt-dlp", required: false },
     { name: "summarize", required: false },
     { name: "gh", required: false },
+    { name: "gh-axi", required: false },
+    { name: "chrome-devtools-axi", required: false },
     { name: "higgsfield", required: false },
   ] as const;
 
@@ -188,6 +190,8 @@ const checkCLIs = async (): Promise<Check[]> => {
     "yt-dlp": "brew install yt-dlp",
     summarize: "npm i -g @steipete/summarize",
     gh: "brew install gh",
+    "gh-axi": "npm i -g gh-axi   # or: npx -y gh-axi  (see /axi)",
+    "chrome-devtools-axi": "npm i -g chrome-devtools-axi   # or: npx -y chrome-devtools-axi  (see /axi)",
     higgsfield: "npm i -g @higgsfield/cli && higgsfield auth login",
   };
 
