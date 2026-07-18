@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import type React from "react"
 import { Calendar, ImageIcon, Loader2, MessageCircle, Repeat2, Send, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
+import { studioJsonPost } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -74,10 +75,10 @@ export function XFormatBoard({
         scheduledAt,
       })
 
-      const res = await fetch("/api/publish", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ adapter, manifest, confirm: true }),
+      const res = await studioJsonPost("/api/publish", {
+        adapter,
+        manifest,
+        confirm: true,
       })
       const json = (await res.json()) as
         | { ok: true; data: { published?: number; failed?: number } }

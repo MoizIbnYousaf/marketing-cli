@@ -2814,7 +2814,7 @@ const server = Bun.serve({
     // The `error` envelope (axis 7) is reserved for true `ok:false` failures.
 
     if (method === "GET" && url.pathname === "/api/publish/adapters") {
-      const result = await mktgPublishListAdapters();
+      const result = await mktgPublishListAdapters(STUDIO_CWD);
       if (!result.ok) {
         return json(
           {
@@ -2837,7 +2837,7 @@ const server = Bun.serve({
         return err(idCheck.message, 400, corsHeaders, "Use [a-z0-9._-] only");
       }
 
-      const result = await mktgPublishListIntegrations(adapter);
+      const result = await mktgPublishListIntegrations(adapter, STUDIO_CWD);
       if (!result.ok) {
         return json(
           {
@@ -2863,7 +2863,7 @@ const server = Bun.serve({
     }
 
     if (method === "GET" && url.pathname === "/api/publish/native/account") {
-      const result = await mktgPublishNativeAccount();
+      const result = await mktgPublishNativeAccount(STUDIO_CWD);
       if (!result.ok) return respondMktgError(result, corsHeaders);
       // Redact the full apiKey at the wire. apiKeyPreview is the safe
       // 6-char tail the dashboard renders; the full secret stays in the
@@ -2903,12 +2903,12 @@ const server = Bun.serve({
         return json({ ok: true, dryRun: true, adapter: "mktg-native", input: parsed.data }, 200, corsHeaders);
       }
 
-      const result = await mktgPublishNativeUpsertProvider(parsed.data);
+      const result = await mktgPublishNativeUpsertProvider(parsed.data, STUDIO_CWD);
       if (!result.ok) return respondMktgError(result, corsHeaders);
       return respondObject(url, result.data, corsHeaders);
     }
 
-    // GET /api/publish/scheduled — Postiz-side queue (read-through)
+    // GET /api/publish/scheduled — adapter queue (mktg-native or Postiz read-through)
     if (method === "GET" && url.pathname === "/api/publish/scheduled") {
       const adapter = url.searchParams.get("adapter") ?? "postiz";
       const adapterCheck = validateResourceId(adapter, "adapter");
@@ -2936,8 +2936,10 @@ const server = Bun.serve({
         }
       }
 
+      // Explicit cwd: matches brand/status routes. Launcher also sets
+      // MKTG_PROJECT_ROOT so `run()` would resolve the same root by default.
       if (adapter === "mktg-native") {
-        const result = await mktgPublishNativeListPosts();
+        const result = await mktgPublishNativeListPosts(STUDIO_CWD);
         if (!result.ok) return respondMktgError(result, corsHeaders);
 
         const filtered = result.data.posts.filter((post) =>
@@ -3035,6 +3037,7 @@ const server = Bun.serve({
       const result = await mktgPublish(manifest, {
         adapter: body.data.adapter,
         confirm: body.data.confirm ?? false,
+        cwd: STUDIO_CWD,
       });
 
       if (!result.ok) {

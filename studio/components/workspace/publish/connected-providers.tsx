@@ -5,6 +5,8 @@ import useSWR from "swr"
 import { ExternalLink, PlugZap, RefreshCw, ShieldAlert } from "lucide-react"
 import { toast } from "sonner"
 import { fetcher } from "@/lib/fetcher"
+import { postizOptionalEmpty } from "@/lib/postiz-empty"
+import { studioJsonPost } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -83,14 +85,10 @@ export function ConnectedProviders({
     }
     setCreating(true)
     try {
-      const res = await fetch("/api/publish/native/providers", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          identifier: identifier.trim().toLowerCase(),
-          name: name.trim(),
-          profile: profile.trim().replace(/^@/, ""),
-        }),
+      const res = await studioJsonPost("/api/publish/native/providers", {
+        identifier: identifier.trim().toLowerCase(),
+        name: name.trim(),
+        profile: profile.trim().replace(/^@/, ""),
       })
       const json = await res.json()
       if (!json.ok) {
@@ -151,24 +149,41 @@ export function ConnectedProviders({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={`${backendName} unavailable`}
-            description={data.degradedReason ?? `Configure ${backendName} to connect accounts.`}
+            {...(adapter === "postiz"
+              ? postizOptionalEmpty("providers", data.degradedReason)
+              : {
+                  title: `${backendName} unavailable`,
+                  description:
+                    data.degradedReason ?? `Configure ${backendName} to connect accounts.`,
+                })}
             action={adapter === "postiz" ? (
-              <a
-                href={`${POSTIZ_BASE}/launches`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-              >
-                Set up Postiz <ExternalLink className="size-3" />
-              </a>
+              <div className="flex flex-col items-start gap-2">
+                <a
+                  href="/settings?panel=api-keys"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  Open Settings → API keys
+                </a>
+                <a
+                  href={`${POSTIZ_BASE}/launches`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
+                >
+                  Get a Postiz key <ExternalLink className="size-3" />
+                </a>
+              </div>
             ) : undefined}
           />
         ) : integrations.length === 0 ? (
           <EmptyState
             icon={PlugZap}
             title="No accounts connected"
-            description={emptyDescription}
+            description={
+              adapter === "postiz"
+                ? "Connect LinkedIn, X, Reddit, and other providers in Postiz after you save POSTIZ_API_KEY."
+                : emptyDescription
+            }
             action={adapter === "postiz" ? (
               <a
                 href={`${POSTIZ_BASE}/launches`}

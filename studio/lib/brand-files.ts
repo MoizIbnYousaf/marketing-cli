@@ -7,9 +7,11 @@
 //   - template detection (so the UI can render a "template" chip instead of
 //     pretending an empty seed file is real research)
 
-import { existsSync, statSync, readFileSync, writeFileSync, renameSync, readdirSync, mkdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, statSync, readFileSync, writeFileSync, renameSync, readdirSync, mkdirSync, realpathSync } from "node:fs";
 import { dirname, join, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CLI_BRAND_TEMPLATE_SHA256 } from "./brand-template-hashes.ts";
 import { resolveProjectRoot } from "./project-root.ts";
 
 // ─── Canonical brand files ──────────────────────────────────────────────────
@@ -53,15 +55,10 @@ export function getSpec(name: string): BrandFileSpec | null {
 
 // ─── Template detection ─────────────────────────────────────────────────────
 //
-// The mktg init seed templates are short scaffolds (typically <600 chars after
-// the title block). Real research blows past that quickly. A char-count
-// heuristic is the cheapest accurate signal -- we cache the seeded template
-// content the first time we see it, so a user editing a template into real
-// content flips off the chip the next refresh.
+// Exact SHA-256 match against the CLI's `BRAND_TEMPLATES` digests
+// (`CLI_BRAND_TEMPLATE_SHA256`). Same contract as `isTemplateContent()` in
+// `src/core/brand.ts`: no char-count heuristics, no HTML-comment scans.
 
-const TEMPLATE_CHAR_THRESHOLD = 600;
-
-const TEMPLATE_HASHES = new Set<string>();
 const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function hasBrandTemplateFile(dir: string): boolean {
@@ -80,26 +77,40 @@ function parentDirs(start: string): string[] {
   return dirs;
 }
 
+function samePath(a: string, b: string): boolean {
+  try {
+    return realpathSync(a) === realpathSync(b);
+  } catch {
+    return resolve(a) === resolve(b);
+  }
+}
+
 /**
- * Resolve the marketing-cli seed template directory.
+ * Resolve a marketing-cli package root that may hold seed brand scaffolds.
+ * Used by foundation / regenerate paths; not by `looksLikeTemplate`
+ * (which uses `CLI_BRAND_TEMPLATE_SHA256` instead).
  *
- * Precedence:
- *   1. `MKTG_BRAND_TEMPLATE_DIR` or `MARKETING_CLI_BRAND_DIR` -- direct path
- *      to the CLI's `brand/` templates.
- *   2. `MKTG_CLI_ROOT` or `MARKETING_CLI_ROOT` -- path to the CLI repo root.
- *   3. Walk up from the active project and this module looking for the local
- *      umbrella layout `<ancestor>/marketing-cli/brand`.
+ * Never returns the *project's* own `brand/` directory (self-compare would
+ * mark every customized file as a template when the checkout IS marketing-cli).
  */
 export function resolveBrandTemplateRoot(projectRoot: string = process.cwd()): string | null {
+  const projectBrand = resolve(resolveProjectRoot(projectRoot), "brand");
+
+  const accept = (candidate: string): boolean => {
+    if (!hasBrandTemplateFile(candidate)) return false;
+    if (samePath(candidate, projectBrand)) return false;
+    return true;
+  };
+
   const envTemplateDir = process.env.MKTG_BRAND_TEMPLATE_DIR ?? process.env.MARKETING_CLI_BRAND_DIR;
-  if (envTemplateDir && hasBrandTemplateFile(envTemplateDir)) {
+  if (envTemplateDir && accept(envTemplateDir)) {
     return envTemplateDir;
   }
 
   const envCliRoot = process.env.MKTG_CLI_ROOT ?? process.env.MARKETING_CLI_ROOT;
   if (envCliRoot) {
     const candidate = join(envCliRoot, "brand");
-    if (hasBrandTemplateFile(candidate)) return candidate;
+    if (accept(candidate)) return candidate;
   }
 
   const seen = new Set<string>();
@@ -108,45 +119,18 @@ export function resolveBrandTemplateRoot(projectRoot: string = process.cwd()): s
       const candidate = join(dir, "marketing-cli", "brand");
       if (seen.has(candidate)) continue;
       seen.add(candidate);
-      if (hasBrandTemplateFile(candidate)) return candidate;
+      if (accept(candidate)) return candidate;
     }
   }
 
   return null;
 }
 
-/**
- * True when the file's content looks like an unmodified seed template.
- * Two signals (either is enough): byte-length below threshold, OR exact
- * content match against the mktg-CLI seed shipped at TEMPLATE_DIR.
- */
+/** True iff content is byte-identical to the CLI seed template for `file`. */
 export function looksLikeTemplate(file: string, content: string): boolean {
-  if (content.length < TEMPLATE_CHAR_THRESHOLD) return true;
-  const hash = simpleHash(content);
-  if (TEMPLATE_HASHES.has(hash)) return true;
-  // Lazy: load the seed once per file and cache its hash.
-  const templateRoot = resolveBrandTemplateRoot();
-  const seedPath = templateRoot ? join(templateRoot, file) : null;
-  if (seedPath && existsSync(seedPath)) {
-    try {
-      const seed = readFileSync(seedPath, "utf-8");
-      TEMPLATE_HASHES.add(simpleHash(seed));
-      if (simpleHash(content) === simpleHash(seed)) return true;
-    } catch {
-      // missing/permissions issues fall through to the size heuristic
-    }
-  }
-  return false;
-}
-
-function simpleHash(s: string): string {
-  // FNV-1a 32-bit -- collision-tolerant for our small set of templates.
-  let h = 0x811c_9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x0100_0193);
-  }
-  return (h >>> 0).toString(16);
+  const expected = CLI_BRAND_TEMPLATE_SHA256[file];
+  if (!expected) return false;
+  return createHash("sha256").update(content).digest("hex") === expected;
 }
 
 // ─── Freshness derivation ───────────────────────────────────────────────────

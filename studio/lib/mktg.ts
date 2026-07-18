@@ -364,16 +364,19 @@ export function mktgPublish(
  * mktg publish --list-adapters --json
  * Lists available publish adapters with env var requirements and configured status.
  */
-export function mktgPublishListAdapters(): Promise<CommandResult<{ adapters: PublishAdapter[] }>> {
-  return run<{ adapters: PublishAdapter[] }>(["publish", "--list-adapters"]);
+export function mktgPublishListAdapters(cwd?: string): Promise<CommandResult<{ adapters: PublishAdapter[] }>> {
+  return run<{ adapters: PublishAdapter[] }>(["publish", "--list-adapters"], { cwd });
 }
 
 /**
  * mktg publish --adapter <name> --list-integrations --json
  * Lists connected provider integrations for an adapter (postiz only for now).
  */
-export function mktgPublishListIntegrations(adapter: string): Promise<CommandResult<IntegrationsData>> {
-  return run<IntegrationsData>(["publish", "--adapter", adapter, "--list-integrations"]);
+export function mktgPublishListIntegrations(
+  adapter: string,
+  cwd?: string,
+): Promise<CommandResult<IntegrationsData>> {
+  return run<IntegrationsData>(["publish", "--adapter", adapter, "--list-integrations"], { cwd });
 }
 
 /**

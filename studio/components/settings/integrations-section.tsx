@@ -4,6 +4,7 @@ import useSWR from "swr"
 import { CheckCircle2, Plug, RefreshCw, ExternalLink, TriangleAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { extractErrorMessage } from "@/lib/api-error"
+import { fetcher } from "@/lib/fetcher"
 import { resolveStudioApiBase } from "@/lib/studio-api-base"
 
 interface PostizIntegration {
@@ -50,11 +51,6 @@ interface PostizDiagnosticsResponse {
     }>
     providers: PostizIntegration[]
   }
-}
-
-async function fetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url)
-  return res.json()
 }
 
 export function IntegrationsSection() {

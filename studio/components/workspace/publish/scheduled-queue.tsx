@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { CalendarClock, ImageIcon, RefreshCw, ShieldAlert } from "lucide-react"
+import { publishCalendarRange, type PublishRangeId } from "@/lib/calendar-range"
 import { fetcher } from "@/lib/fetcher"
+import { postizOptionalEmpty } from "@/lib/postiz-empty"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -30,13 +32,11 @@ type ApiResponse = {
   postizErrorKind?: string
 }
 
-const RANGE_OPTIONS = [
-  { id: "today", label: "Today", days: 1 },
-  { id: "week", label: "This week", days: 7 },
-  { id: "month", label: "This month", days: 30 },
-] as const
-
-type RangeId = (typeof RANGE_OPTIONS)[number]["id"]
+const RANGE_OPTIONS: { id: PublishRangeId; label: string }[] = [
+  { id: "today", label: "Today" },
+  { id: "week", label: "This week" },
+  { id: "month", label: "This month" },
+]
 
 export function ScheduledQueue({
   adapter = "postiz",
@@ -45,16 +45,9 @@ export function ScheduledQueue({
   adapter?: string
   className?: string
 }) {
-  const [range, setRange] = useState<RangeId>("week")
+  const [range, setRange] = useState<PublishRangeId>("week")
 
-  const { startDate, endDate } = useMemo(() => {
-    const days = RANGE_OPTIONS.find((o) => o.id === range)?.days ?? 7
-    const now = new Date()
-    return {
-      startDate: new Date(now.getTime() - 7 * 86_400_000).toISOString(),
-      endDate: new Date(now.getTime() + days * 86_400_000).toISOString(),
-    }
-  }, [range])
+  const { startDate, endDate } = useMemo(() => publishCalendarRange(range), [range])
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse>(
     `/api/publish/scheduled?adapter=${encodeURIComponent(adapter)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
@@ -127,13 +120,14 @@ export function ScheduledQueue({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={adapter === "mktg-native" ? "Native backend unavailable" : "Postiz unavailable"}
-            description={
-              data.degradedReason ??
-              (adapter === "mktg-native"
-                ? "Create a native account or provider to read the scheduled queue."
-                : "Set POSTIZ_API_KEY to read the scheduled queue.")
-            }
+            {...(adapter === "mktg-native"
+              ? {
+                  title: "Native backend unavailable",
+                  description:
+                    data.degradedReason ??
+                    "Create a native account or provider to read the scheduled queue.",
+                }
+              : postizOptionalEmpty("queue", data.degradedReason))}
           />
         ) : posts.length === 0 ? (
           <EmptyState

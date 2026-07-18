@@ -17,6 +17,7 @@ import { m } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { fadeIn } from "@/lib/animation/variants"
 import { useAsyncAction } from "@/lib/hooks/use-async-action"
+import { studioJsonPost } from "@/lib/studio-token"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -88,37 +89,26 @@ export function WorkspaceHeader({
   // Each agent control is wrapped so failures surface as a toast instead of
   // disappearing into console.error, and the triggering button stays disabled
   // while the request is inflight (prevents toast stacking on rapid clicks).
-  const runAction = useAsyncAction(
-    async () => {
-      const res = await fetch("/api/agents/run", { method: "POST", body: JSON.stringify({ agentId }) })
-      return res.json()
-    },
-    { errorLabel: "Run failed" },
-  )
+  const postAgent = (path: string) =>
+    studioJsonPost(path, { agentId }).then((res) => res.json())
 
-  const pauseAction = useAsyncAction(
-    async () => {
-      const res = await fetch("/api/agents/pause", { method: "POST", body: JSON.stringify({ agentId }) })
-      return res.json()
-    },
-    { errorLabel: "Pause failed", successMessage: "Agent paused" },
-  )
+  const runAction = useAsyncAction(async () => postAgent("/api/agents/run"), {
+    errorLabel: "Run failed",
+  })
 
-  const resumeAction = useAsyncAction(
-    async () => {
-      const res = await fetch("/api/agents/resume", { method: "POST", body: JSON.stringify({ agentId }) })
-      return res.json()
-    },
-    { errorLabel: "Resume failed", successMessage: "Agent resumed" },
-  )
+  const pauseAction = useAsyncAction(async () => postAgent("/api/agents/pause"), {
+    errorLabel: "Pause failed",
+    successMessage: "Agent paused",
+  })
 
-  const deleteAction = useAsyncAction(
-    async () => {
-      const res = await fetch("/api/agents/delete", { method: "POST", body: JSON.stringify({ agentId }) })
-      return res.json()
-    },
-    { errorLabel: "Delete failed" },
-  )
+  const resumeAction = useAsyncAction(async () => postAgent("/api/agents/resume"), {
+    errorLabel: "Resume failed",
+    successMessage: "Agent resumed",
+  })
+
+  const deleteAction = useAsyncAction(async () => postAgent("/api/agents/delete"), {
+    errorLabel: "Delete failed",
+  })
 
   useEffect(() => {
     return () => {

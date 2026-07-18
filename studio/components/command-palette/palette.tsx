@@ -19,6 +19,8 @@ import {
   Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
+import { fetcher } from "@/lib/fetcher"
+import { studioJsonPost } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -60,11 +62,6 @@ const PLAYBOOKS = [
   "SEO Authority Build",
   "Newsletter Launch",
 ]
-
-// ── Fetcher ───────────────────────────────────────────────────────────────────
-
-const fetcher = (url: string) =>
-  fetch(url).then((r) => r.json()) as Promise<SkillsResponse>
 
 // ── Main Palette ──────────────────────────────────────────────────────────────
 
@@ -108,11 +105,7 @@ export function Palette({ open, onClose }: PaletteProps) {
     setRunningSkill(slug)
     onClose()
     try {
-      await fetch("/api/skill/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: slug }),
-      })
+      await studioJsonPost("/api/skill/run", { name: slug })
     } finally {
       setRunningSkill(null)
     }
@@ -122,11 +115,7 @@ export function Palette({ open, onClose }: PaletteProps) {
     setRunningPlaybook(name)
     onClose()
     try {
-      await fetch("/api/cmo/playbook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      })
+      await studioJsonPost("/api/cmo/playbook", { name })
     } finally {
       setRunningPlaybook(null)
     }
@@ -259,7 +248,7 @@ export function Palette({ open, onClose }: PaletteProps) {
                 value="refresh brand brand files"
                 onSelect={async () => {
                   onClose()
-                  await fetch("/api/brand/refresh", { method: "POST" })
+                  await studioJsonPost("/api/brand/refresh")
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none",
@@ -286,7 +275,7 @@ export function Palette({ open, onClose }: PaletteProps) {
                 value="open env local settings"
                 onSelect={async () => {
                   onClose()
-                  await fetch("/api/settings/open-env", { method: "POST" })
+                  await studioJsonPost("/api/settings/open-env")
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none",
@@ -333,7 +322,7 @@ export function Palette({ open, onClose }: PaletteProps) {
                 onSelect={async () => {
                   if (!confirm("Reset all brand files? This cannot be undone.")) return
                   onClose()
-                  await fetch("/api/brand/reset?confirm=true", { method: "POST" })
+                  await studioJsonPost("/api/brand/reset?confirm=true")
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none text-destructive",
