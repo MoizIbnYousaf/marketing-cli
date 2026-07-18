@@ -27,6 +27,8 @@ type PackResult = {
 let packReport: PackResult;
 let backupExists: boolean;
 
+// npm pack + prepack hooks can exceed bun's default 5s hook budget on CI
+// runners once the skills tree grows (Exa references/, Studio assets, etc.).
 beforeAll(async () => {
   const before = readFileSync(join(PROJECT_ROOT, "package.json"), "utf-8");
 
@@ -55,7 +57,7 @@ beforeAll(async () => {
     // Fail the test by leaving `backupExists` true OR by throwing — the
     // assertion in the first test surfaces it. Don't auto-repair silently.
   }
-});
+}, 120_000);
 
 // ===========================================================================
 // Size + entry-count regression guards
