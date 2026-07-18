@@ -127,6 +127,24 @@ describe("E2E: routing table in cmo/SKILL.md routes the three input shapes corre
     expect(cmo).toMatch(/`higgsfield-soul-id`.*Creative/);
   });
 
+  test("Exa quintet is fully wired: routing table + disambiguation", async () => {
+    const cmo = await Bun.file(cmoPath).text();
+    for (const skill of [
+      "exa-search",
+      "exa-contents",
+      "company-research",
+      "lead-generation",
+      "build-with-exa",
+    ]) {
+      expect(cmo).toContain("`" + skill + "`");
+    }
+    // Disambiguation: open-ended search routes to exa-search, not firecrawl.
+    expect(cmo).toMatch(/"search the web for X"[\s\S]*?`exa-search`/);
+    expect(cmo).toMatch(/"generate leads"[\s\S]*?`lead-generation`/);
+    expect(cmo).toMatch(/"research this company"[\s\S]*?`company-research`/);
+  });
+
+
   test("Wave A removed the inline-vs-route image-gen contradiction", async () => {
     const cmo = await Bun.file(cmoPath).text();
     // The old guardrail at line 427 said "generate inline, don't route" which
@@ -232,5 +250,10 @@ describe("E2E: 12 named playbooks reference real skills only", () => {
     expect(playbooks).toContain("higgsfield-product-photoshoot");
     expect(playbooks).toContain("higgsfield-generate");
     expect(playbooks).toContain("higgsfield-soul-id");
+  });
+
+  test("playbooks mention Exa research skills for foundation work", async () => {
+    const playbooks = await Bun.file(playbooksPath).text();
+    expect(playbooks).toMatch(/exa-search|company-research/);
   });
 });

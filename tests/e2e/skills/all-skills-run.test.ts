@@ -8,7 +8,7 @@
 // - SKILL.md content has the required structural elements per CLAUDE.md
 //   (frontmatter with name+description, Anti-Patterns or equivalent section)
 //
-// Tier 2 skills (image-gen, higgsfield-trio, postiz, send-email, resend-inbound) are
+// Tier 2 skills (image-gen, higgsfield-trio, postiz, send-email, resend-inbound, exa quintet) are
 // flagged in REPORT.md as "blocked: Tier 2 pending" for the actual execution test.
 // We still validate their SKILL.md structure here because `mktg run --dry-run` is
 // API-free (it loads + validates the markdown, doesn't invoke the LLM body).
@@ -32,6 +32,11 @@ const TIER_2_SKILLS = new Set([
   "postiz",
   "send-email",
   "resend-inbound",
+  "exa-search",
+  "exa-contents",
+  "build-with-exa",
+  "company-research",
+  "lead-generation",
 ]);
 
 interface RunResult {
@@ -80,12 +85,12 @@ const manifest: SkillsManifest = await Bun.file(manifestPath).json();
 const skillNames = Object.keys(manifest.skills);
 
 describe("E2E: catalog totals", () => {
-  test("manifest contains 58 skills (catalog total)", () => {
-    expect(skillNames.length).toBe(58);
+  test("manifest contains 63 skills (catalog total)", () => {
+    expect(skillNames.length).toBe(63);
   });
 
-  test("Tier 2 set is the 7 documented external-API skills", () => {
-    expect(TIER_2_SKILLS.size).toBe(7);
+  test("Tier 2 set is the 12 documented external-API skills", () => {
+    expect(TIER_2_SKILLS.size).toBe(12);
     for (const t2 of TIER_2_SKILLS) {
       expect(skillNames).toContain(t2);
     }

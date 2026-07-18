@@ -28,13 +28,13 @@ Before researching, check for existing brand context that should inform the voic
 ## Research Process
 
 1. **Read project context** — README.md, package.json, any existing docs/, marketing/, or content files. Use Glob to find relevant files.
-2. **If a URL was provided** — use Exa MCP to search for and analyze the website:
+2. **If a URL was provided** — use `exa-search` / Exa MCP to search for and analyze the website:
    - Homepage copy, about page, social bios
    - Blog posts, landing pages, email signup copy
    - Social media presence and tone
    - Podcast appearances, interviews, guest posts
-3. **If no URL** — use Exa MCP to search for the project/brand name online
-4. **If Exa MCP unavailable** — work with local files only. Note the limitation in the profile but still produce a complete profile from whatever is available.
+3. **If no URL** — use `exa-search` / Exa MCP to search for the project/brand name online
+4. **If Exa unavailable** — work with local files only. Note the limitation in the profile but still produce a complete profile from whatever is available.
 5. **Analyze all content for voice patterns across 6 dimensions:**
    - Tone patterns (formal↔casual, serious↔playful, reserved↔bold, distant↔intimate)
    - Vocabulary patterns (jargon level, signature words, words to avoid)

@@ -156,7 +156,7 @@ and web sources for the last 30 days of activity.
 
 **Fallback if /last30days is unavailable:**
 1. Use WebSearch tool directly with the research query.
-2. If WebSearch is unavailable, use Exa MCP for web research.
+2. Never use Claude native WebSearch. Use `exa-search` / Exa MCP for web research (and `/last30days` for social signal).
 3. If no web research is available at all, proceed with user knowledge only
    and mark every finding as `source: user-reported` in the output.
 4. Note the limitation: "Landscape based on provided information, not live

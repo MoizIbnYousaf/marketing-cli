@@ -5,11 +5,11 @@ description: |
   /last30days + landscape.md are the corrective lenses for recency.
 ---
 
-# Recency Grounding — You Are Blind Past Your Training Cutoff
+# Recency Grounding  -  You Are Blind Past Your Training Cutoff
 
 ## The Core Problem
 
-You are an LLM. Your knowledge has a cutoff date. Everything after that date is a black hole — you don't know what happened, what changed, what launched, what died, what got acquired, what pivoted. You will confidently state things about the market that were true 6 months ago and are wrong today. You won't know they're wrong because you can't see the gap.
+You are an LLM. Your knowledge has a cutoff date. Everything after that date is a black hole  -  you don't know what happened, what changed, what launched, what died, what got acquired, what pivoted. You will confidently state things about the market that were true 6 months ago and are wrong today. You won't know they're wrong because you can't see the gap.
 
 This is the single biggest risk in marketing: making claims about a market that moved while you weren't looking.
 
@@ -17,24 +17,24 @@ This is the single biggest risk in marketing: making claims about a market that 
 
 Two tools bridge the gap:
 
-### 1. `/last30days` — Live Research
+### 1. `/last30days`  -  Live Research
 
-The `/last30days` skill searches Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, Bluesky, and the web for the last 30 days of real discussion. It returns what people are *actually saying right now* — not what your training data says they said months ago.
+The `/last30days` skill searches Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, Bluesky, and the web for the last 30 days of real discussion. It returns what people are *actually saying right now*  -  not what your training data says they said months ago.
 
 **Invoke it by name:** `Skill: last30days` with a research query as the argument.
 
-### 2. `brand/landscape.md` — Cached Ground Truth
+### 2. `brand/landscape.md`  -  Cached Ground Truth
 
-`/landscape-scan` chains `/last30days` to produce a structured ecosystem snapshot with a Claims Blacklist. This file is the cached version of recent reality — good for 14 days before it goes stale.
+`/landscape-scan` chains `/last30days` to produce a structured ecosystem snapshot with a Claims Blacklist. This file is the cached version of recent reality  -  good for 14 days before it goes stale.
 
 ## When to Ground
 
 ### Before making ecosystem claims
 
-Any time you're about to state something about competitors, market trends, pricing benchmarks, adoption rates, or industry shifts — ask yourself: "Do I know this from my training data, or from verified recent research?"
+Any time you're about to state something about competitors, market trends, pricing benchmarks, adoption rates, or industry shifts  -  ask yourself: "Do I know this from my training data, or from verified recent research?"
 
 If the answer is training data:
-1. Check `brand/landscape.md` — is it fresh (< 14 days)?
+1. Check `brand/landscape.md`  -  is it fresh (< 14 days)?
 2. If fresh: use it. The Claims Blacklist is the hard gate.
 3. If stale or missing: tell the user. "My knowledge of the market may be outdated. Want me to run `/landscape-scan` to get a current snapshot before we proceed?"
 
@@ -64,11 +64,11 @@ When you need to look something up, use the right tool for the job:
 | Need | Tool | Why |
 |------|------|-----|
 | Social + community signal (Reddit, X, YouTube, TikTok, HN) | `/last30days` (chains Parallel AI for web) | Engagement signals, real people talking |
-| Company research, competitor lookup, finding specific sites | Exa MCP (`company-research`, `get-code-context-exa`) | Best discovery engine — finds things other search misses |
-| General web queries the CMO needs answered | Exa MCP | Higher quality discovery than native WebSearch |
+| Company research, competitor lookup, finding specific sites | `company-research` / `exa-search` (Exa MCP) | Best discovery engine - finds things other search misses |
+| General web queries the CMO needs answered | `exa-search` (Exa MCP) | Higher quality discovery than native WebSearch |
 | Full ecosystem snapshot with Claims Blacklist | `/landscape-scan` (chains `/last30days`) | Structured ground truth for 14 days |
 
-**Never use Claude's native WebSearch tool.** Always use Exa MCP for web queries. Exa finds things native search misses — including direct competitors, niche tools, and specific companies that generic search buries.
+**Never use Claude's native WebSearch tool.** Always use `exa-search` / Exa MCP for web queries. Exa finds things native search misses - including direct competitors, niche tools, and specific companies that generic search buries.
 
 ## How to Use /last30days Directly
 
@@ -86,18 +86,21 @@ Examples:
 - "Is [claim from our copy] still accurate as of this month?"
 - "What's the current sentiment around [technology/trend]?"
 
-## How to Use Exa MCP Directly
+## How to Use Exa Skills / MCP
 
 For company research, competitor discovery, or any web query the CMO needs:
 
-- `company-research` skill — finds company info, competitors, news, financials
-- `get-code-context-exa` skill — finds code examples, API docs, GitHub repos
-- Exa MCP tools directly — for custom search queries with domain filtering
+- `company-research` - company info, competitors, news, financials, company lists (Exa Agent)
+- `exa-search` - open-ended semantic web search (`web_search_exa` / `web_search_advanced_exa`)
+- `exa-contents` - extract known URLs (`web_fetch_exa`)
+- `lead-generation` - ICP prospect lists + CSV
+- `build-with-exa` - API/SDK cookbook when integrating Exa into a product
+- Exa MCP tools directly when the skill is already loaded - custom filters / agent_run
 
 Examples:
 - "Find competitors to [product] in the [space] market"
 - "What does [company]'s pricing page say?"
-- "Find GitHub repos similar to [project]"
+- "Build a list of 50 ICP companies"
 
 ## The Decision Framework
 
@@ -115,9 +118,9 @@ Am I stating something about the world outside this project?
 
 **Bad CMO behavior:** "Your competitors are [list from training data]. The market is moving toward [trend from training data]. Let's position you as [angle based on stale competitive assumptions]."
 
-**Good CMO behavior:** "I see your landscape.md is 3 days old — good. Based on the current ecosystem snapshot, your competitors are [list from landscape.md]. The Claims Blacklist flags [specific wrong claims]. Let's position around [angle grounded in verified data]."
+**Good CMO behavior:** "I see your landscape.md is 3 days old  -  good. Based on the current ecosystem snapshot, your competitors are [list from landscape.md]. The Claims Blacklist flags [specific wrong claims]. Let's position around [angle grounded in verified data]."
 
-**Good CMO behavior (no landscape):** "Before we write competitive copy, I want to ground us in reality. My knowledge of the market may not reflect the last few months. Let me run `/landscape-scan` — it takes 2-3 minutes and will give us verified competitive data, recent market shifts, and a Claims Blacklist. Worth it?"
+**Good CMO behavior (no landscape):** "Before we write competitive copy, I want to ground us in reality. My knowledge of the market may not reflect the last few months. Let me run `/landscape-scan`  -  it takes 2-3 minutes and will give us verified competitive data, recent market shifts, and a Claims Blacklist. Worth it?"
 
 ## The Rule
 

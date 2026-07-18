@@ -248,6 +248,7 @@ try {
     }
   }
 
+  log("mktg postinstall: for Exa web research skills, set EXA_API_KEY (https://dashboard.exa.ai/api-keys); repo ships `.mcp.json`.");
   log("mktg postinstall: run `mktg init` inside a project to scaffold brand memory.");
 } catch (error) {
   log(`mktg postinstall: skipped Claude skill install (${error && error.message ? error.message : String(error)}).`);

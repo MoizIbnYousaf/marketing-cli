@@ -149,6 +149,7 @@ Not `mktg` subcommands, but /cmo knows when to suggest them (see `CLAUDE.md` §E
 | `/last30days` | Quick claim verification — "is this still true?" Ground truth before a content piece. |
 | `/landscape-scan` (chained skill) | Full ecosystem snapshot when brand/landscape.md is missing or stale. |
 | `firecrawl` CLI | Single-page scrape (invoked through `/firecrawl` skill). |
+| Exa MCP / `EXA_API_KEY` | Semantic search + Agent research via `/exa-search`, `/company-research`, `/lead-generation`. |
 | `summarize` CLI | Compress long text. Invoked through `/summarize` skill. |
 | `gh` | GitHub operations when publishing to GitHub (releases, READMEs). |
 

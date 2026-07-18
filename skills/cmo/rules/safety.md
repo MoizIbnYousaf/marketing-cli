@@ -54,7 +54,7 @@ Do not reference or depend on SaaS dashboard tools. The system uses CLI-native t
 | Send email | `gws` | Mailchimp, ConvertKit, HubSpot |
 | Post to social | `ply`, `playwright-cli` | Buffer, Hootsuite, Later |
 | Generate video | `remotion`, `ffmpeg` | Loom, Canva Video |
-| Web research | Exa MCP (primary), `firecrawl` (scraping) | Ahrefs, SEMrush, Moz, Claude native WebSearch |
+| Web research | `exa-search` / Exa MCP (primary), `firecrawl` (scraping) | Ahrefs, SEMrush, Moz, Claude native WebSearch |
 | Analytics | PostHog, GA4 API | Dashboard-only tools |
 
 If a user mentions a SaaS tool they already use, that's fine — integrate with their existing stack. But never suggest or require a new SaaS signup.

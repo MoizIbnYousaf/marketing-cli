@@ -5,7 +5,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 **How to use:**
 - If the builder's request matches a named trigger phrase, start the playbook.
 - Announce the plan before step 1: *"Here's what I'll run: step 1 → step 2 → step 3. Ready?"*
-- Pause between phases when a **Gate** is marked — the user approves the artifact before the next step.
+- Pause between phases when a **Gate** is marked  -  the user approves the artifact before the next step.
 - Every playbook ends with a **Stop** condition. Don't run past it.
 
 ---
@@ -20,20 +20,20 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 
 | # | Skill | Artifact produced | Gate? |
 |---|---|---|---|
-| 0 | `brainstorm` (skip if direction is clear) | direction summary | — |
+| 0 | `brainstorm` (skip if direction is clear) | direction summary |  -  |
 | 1 | `brand-voice` | `brand/voice-profile.md` | ✓ |
 | 2 | `audience-research` + `competitive-intel` (parallel via agents) | `brand/audience.md`, `brand/competitors.md` | ✓ |
 | 3 | `landscape-scan` | `brand/landscape.md` (with Claims Blacklist) | ✓ |
 | 4 | `positioning-angles` | `brand/positioning.md` | ✓ |
 | 5 | `visual-style` → `brand-kit-playground` | `brand/creative-kit.md` + HTML preview | ✓ (visual approval) |
-| 5b | (optional) `higgsfield-soul-id` if founder wants their face in launch creative | `brand/assets.md` reference_id | — |
-| 6 | `keyword-research` | `brand/keyword-plan.md` | — |
+| 5b | (optional) `higgsfield-soul-id` if founder wants their face in launch creative | `brand/assets.md` reference_id |  -  |
+| 6 | `keyword-research` | `brand/keyword-plan.md` |  -  |
 | 7 | `seo-content` ×2-3 articles (cornerstone content) | `marketing/content/*.md` | ✓ (per article) |
-| 8 | `content-atomizer` on each article | `marketing/social/<slug>/*.md` | — |
+| 8 | `content-atomizer` on each article | `marketing/social/<slug>/*.md` |  -  |
 | 9 | `launch-strategy` | `marketing/launch/plan.md` | ✓ |
 | 10 | `startup-launcher` (brief + 56-platform tracker) | `marketing/launch/product-brief.md`, `launch-tracker.md` | ✓ |
-| 11 | Schedule social: `typefully` for X/threads, `postiz` for everything else | drafts in platform UIs | — |
-| 12 | Log the campaign: `mktg brand append-learning` | `brand/learnings.md` | — |
+| 11 | Schedule social: `typefully` for X/threads, `postiz` for everything else | drafts in platform UIs |  -  |
+| 12 | Log the campaign: `mktg brand append-learning` | `brand/learnings.md` |  -  |
 
 **Stop:** launch day executed, drafts scheduled, learnings captured. Hand back with "next moves" list (monitor competitors, run conversion audits, plan next content batch).
 
@@ -70,7 +70,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 |---|---|---|---|
 | 1 | `voice-extraction` | structured voice pattern analysis | Spawns 10 parallel sub-agents, reverse-engineers patterns from real content. |
 | 2 | `brand-voice` (Extract mode) using extraction output | new `brand/voice-profile.md` | Overwrites the generic voice with the founder-calibrated one. |
-| 3 | **Mass regen trigger** — if there's existing copy in `marketing/`, flag for rewrite: run `direct-response-copy --mode edit` on each landing page, `seo-content --mode edit` on each article, `content-atomizer` re-runs on source content | updated files | Per plan:rules/brand-file-map.md, voice changes cascade to every downstream copy skill. |
+| 3 | **Mass regen trigger**  -  if there's existing copy in `marketing/`, flag for rewrite: run `direct-response-copy --mode edit` on each landing page, `seo-content --mode edit` on each article, `content-atomizer` re-runs on source content | updated files | Per plan:rules/brand-file-map.md, voice changes cascade to every downstream copy skill. |
 
 **Stop:** new `voice-profile.md` written + downstream rewrite plan surfaced. Don't auto-regenerate; the user decides which assets are worth rewriting.
 
@@ -118,7 +118,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 | # | Skill | Artifact |
 |---|---|---|
 | 1 | `visual-style` | `brand/creative-kit.md` with palette, typography, image aesthetic. |
-| 2 | `brand-kit-playground` (immediately after) | Interactive HTML preview — tweakable palette/type/logo, social card + OG image. |
+| 2 | `brand-kit-playground` (immediately after) | Interactive HTML preview  -  tweakable palette/type/logo, social card + OG image. |
 | 3 | `creative` (when producing ad/social assets) | Multi-mode creative briefs per asset. |
 | 4 | Product imagery: `higgsfield-product-photoshoot` (10 modes: studio, lifestyle, Pinterest, hero banner, ad pack, virtual try-on, etc.) when Higgsfield is configured; otherwise `image-gen` (Gemini, free tier). | Brand-grade product visuals or Gemini-generated single images. |
 | 5 | One-off images without a product: `image-gen` | Gemini-generated image via creative-kit style anchors. |
@@ -138,7 +138,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 | "Product demo / walkthrough" | `marketing-demo` → `video-content` (ffmpeg or Remotion) |
 | "TikTok slideshow / social video" | `slideshow-script` → `paper-marketing` → `video-content` → (optional) `tiktok-slideshow` orchestrator bundles all three |
 | "AI video / branded ad / Marketing Studio / UGC ad with avatar" | `higgsfield-generate` (Seedance, Kling, Veo, or Marketing Studio mode for branded video with avatars + product) when Higgsfield is configured. No fallback for AI video. |
-| "Pitch deck / HTML slides" | `frontend-slides` (terminal path — not a video pipeline) |
+| "Pitch deck / HTML slides" | `frontend-slides` (terminal path  -  not a video pipeline) |
 | "App Store screenshots" | `app-store-screenshots` (Next.js generator, NOT video) |
 
 **Distribution:** any resulting video → `postiz` for TikTok/IG/YouTube/Threads; `typefully` for X.
@@ -168,42 +168,42 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 
 Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestion`.
 
-**Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"* — short-horizon, one-shot, no roadmap.
+**Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"*  -  short-horizon, one-shot, no roadmap.
 
-**Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"alternatives pages"*, *"comparison pages"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"* — multi-phase, ship dozens of pages, persistent roadmap.
+**Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"alternatives pages"*, *"comparison pages"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"*  -  multi-phase, ship dozens of pages, persistent roadmap.
 
-### Path A — Short-horizon authority push
+### Path A  -  Short-horizon authority push
 
 **Steps:**
 
 | # | Skill | Artifact |
 |---|---|---|
 | 1 | `keyword-research` | `brand/keyword-plan.md` with primary, secondary, long-tail terms + search intent notes. |
-| 2 | `seo-content` (ongoing) | `marketing/content/*.md` — rankable, anti-AI-slop articles with schema. |
+| 2 | `seo-content` (ongoing) | `marketing/content/*.md`  -  rankable, anti-AI-slop articles with schema. |
 | 3 | `ai-seo` | Entity optimization, structured data, citation-worthy formatting for ChatGPT/Perplexity/Claude/Gemini/AI Overviews. |
-| 4 | `competitor-alternatives` | `marketing/alternatives/<competitor>-vs-us.md` — high-intent comparison pages. |
+| 4 | `competitor-alternatives` | `marketing/alternatives/<competitor>-vs-us.md`  -  high-intent comparison pages. |
 | 5 | `seo-audit` (periodically) | Site architecture + schema markup audit. |
 
 **Stop:** one cornerstone + one AI-SEO piece + one alternatives page shipped. Schedule re-runs quarterly.
 
-### Path B — Programmatic SEO machine (long arc)
+### Path B  -  Programmatic SEO machine (long arc)
 
-When the user wants an *operating system* for organic growth — not one article. Ships dozens of programmatic pages across alternatives, comparisons, use-cases, and playbooks, with a persistent phase tracker (`docs/seo-machine.md`) the user resumes across sessions.
+When the user wants an *operating system* for organic growth  -  not one article. Ships dozens of programmatic pages across alternatives, comparisons, use-cases, and playbooks, with a persistent phase tracker (`docs/seo-machine.md`) the user resumes across sessions.
 
 **Steps:**
 
 | # | Skill / Agent | Artifact |
 |---|---|---|
-| 1 | Foundation prerequisites (if missing) | Spawn `mktg-competitive-scanner` + `mktg-audience-researcher` in parallel → `brand/competitors.md`, `brand/audience.md`. Run `keyword-research` → `brand/keyword-plan.md`. |
+| 1 | Foundation prerequisites (if missing) | Spawn `mktg-competitive-scanner` + `mktg-audience-researcher` in parallel (Exa via `company-research` / `exa-search`) → `brand/competitors.md`, `brand/audience.md`. Run `keyword-research` → `brand/keyword-plan.md`. |
 | 2 | `seo-machine` (Initialize) | `docs/seo-machine.md` roadmap + `.seo/brand.md` + `.seo/link-inventory.md` + `.seo/config.json`. Stack auto-detected. |
-| 3 | `seo-machine` (Resume — per phase) | Generates the phase's pages (e.g. 12 `/alternatives/<competitor>` pages, or 8 `/for/<persona>` use-case pages) directly into the user's framework (Next.js / Astro / Rails+Inertia / markdown fallback). |
-| 4 | Per-phase quality gate — `mktg-content-reviewer` (voice) + `mktg-seo-analyst` (keyword adherence) | Scored, not rewritten. Spawn both in one message after each phase. |
+| 3 | `seo-machine` (Resume  -  per phase) | Generates the phase's pages (e.g. 12 `/alternatives/<competitor>` pages, or 8 `/for/<persona>` use-case pages) directly into the user's framework (Next.js / Astro / Rails+Inertia / markdown fallback). |
+| 4 | Per-phase quality gate  -  `mktg-content-reviewer` (voice) + `mktg-seo-analyst` (keyword adherence) | Scored, not rewritten. Spawn both in one message after each phase. |
 | 5 | Off-page checklist + technical audit | Chain into `off-page-seo` skill → spawns `mktg-backlink-prospector` agent to research competitor referring-domains → writes `.seo/backlink-targets.json`. Plus `scripts/link_audit.py` + `scripts/tech_audit.py` run locally; findings appended to `docs/seo-machine.md`. |
 | 6 | `seo-audit` (periodic, post-sprint) | Site-architecture review once pages are live. |
 
-**Resume protocol:** every subsequent /cmo session checks for `docs/seo-machine.md` — if it exists, seo-machine runs in Resume mode and picks the next pending phase. The user does not need to remember where they left off.
+**Resume protocol:** every subsequent /cmo session checks for `docs/seo-machine.md`  -  if it exists, seo-machine runs in Resume mode and picks the next pending phase. The user does not need to remember where they left off.
 
-**Stop (per phase):** all pages in the phase shipped, off-page checklist appended, quality gates passed. Then hand back: "Phase N complete — Y pages shipped. Phase N+1 is [pattern]. Run /cmo again when ready."
+**Stop (per phase):** all pages in the phase shipped, off-page checklist appended, quality gates passed. Then hand back: "Phase N complete  -  Y pages shipped. Phase N+1 is [pattern]. Run /cmo again when ready."
 
 **Picking the path:**
 
@@ -212,9 +212,9 @@ When the user wants an *operating system* for organic growth — not one article
 | "one article", "this week", "blog post" | A |
 | "machine", "system", "sprint", "dozens of pages", "programmatic", "operating system for SEO" | B |
 | User has 0 brand files | Run Path B Step 1 foundation first regardless |
-| User already has `docs/seo-machine.md` | Path B Resume — no question needed |
+| User already has `docs/seo-machine.md` | Path B Resume  -  no question needed |
 
-**Cost asymmetry — sequence quick wins before long builds:**
+**Cost asymmetry  -  sequence quick wins before long builds:**
 
 | Pattern | Build cost per page | Conversion intent | Sequence order |
 |---|---|---|---|
@@ -237,7 +237,7 @@ Beyond the linear sprint, /cmo runs these named sub-playbooks when the situation
 | **B.4 /for/ Persona Discovery Pipeline** | User has audience.md but no /for/ pages yet | `audience-research` (refresh if stale) → `keyword-research` for persona-keyed vocabulary → `seo-machine` Pattern B/C generation → `page-cro` review on the first 3 shipped. Ships persona-targeted landing pages from end to end. |
 | **B.5 Seasonal Sprint Replanner** | Triggered when `landscape.md` is refreshed (new competitors, market shift, category re-frame) | Re-rank pending phases in `docs/seo-machine.md` to chase the new landscape instead of continuing the stale plan. /cmo's learning-loop addition: stale roadmaps cost time, refreshing is cheap. |
 
-Each sub-playbook returns to the main Path B Resume loop afterward — they're situational overlays, not replacements.
+Each sub-playbook returns to the main Path B Resume loop afterward  -  they're situational overlays, not replacements.
 
 ---
 
@@ -249,7 +249,7 @@ Each sub-playbook returns to the main Path B Resume loop afterward — they're s
 
 | # | Skill | Artifact |
 |---|---|---|
-| 1 | `audience-research` (refresh if stale) | `brand/audience.md` — who reads this newsletter. |
+| 1 | `audience-research` (refresh if stale) | `brand/audience.md`  -  who reads this newsletter. |
 | 2 | `newsletter` | Newsletter strategy, template, cadence, growth playbook. |
 | 3 | `lead-magnet` | Free resource that captures emails (ebook, template, toolkit). |
 | 4 | `email-sequences` (welcome + nurture) | Automated onboarding for new subscribers. |
@@ -269,12 +269,12 @@ Each sub-playbook returns to the main Path B Resume loop afterward — they're s
 |---|---|---|
 | 0 | `mktg studio --dry-run --json --intent cmo --session <id>` | Preview. Resolves sibling `mktg-studio/bin/mktg-studio.ts`, `MKTG_STUDIO_BIN`, or PATH, confirms ports + exact CMO dashboard URL, and never spawns. |
 | 1 | `mktg studio --open --intent cmo --session <id>` | Spawn server (port 3001) + dashboard (port 3000). Studio opens at `http://localhost:3000/dashboard?mode=cmo&session=<id>`. |
-| 2 | Foundation research (if first run) | Spawn `mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner` in parallel per the standard first-run protocol. Each agent writes a brand file. |
+| 2 | Foundation research (if first run) | Spawn `mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner` in parallel. Agents use `exa-search` / `company-research` for live web research. Each writes a brand file. |
 | 3 | `POST /api/brand/refresh` after each agent | Tabs light up one by one as each brand file lands. User watches the dashboard populate in real time. |
 | 4 | `POST /api/navigate {tab: "pulse"}` | Bring the user to Pulse for the "do this next" card once foundation is complete. |
 | 5 | `POST /api/toast "Marketing brain ready"` | Confirmation. User now has a live dashboard + a populated brand. |
 
-**Stop:** Dashboard rendering the current primary surfaces (Pulse, Signals, Publish, Brand, Settings) with real data, Activity panel streaming /cmo events, Pulse has a prioritized next-action card. Hand back with: "Open `http://localhost:3000` — your marketing department is live. Want me to run the first recommended action?"
+**Stop:** Dashboard rendering the current primary surfaces (Pulse, Signals, Publish, Brand, Settings) with real data, Activity panel streaming /cmo events, Pulse has a prioritized next-action card. Hand back with: "Open `http://localhost:3000`  -  your marketing department is live. Want me to run the first recommended action?"
 
 See `rules/studio-integration.md` for the full POST contract.
 
@@ -282,17 +282,17 @@ See `rules/studio-integration.md` for the full POST contract.
 
 ## 12. Agent Team Coordination
 
-**When:** A multi-agent workflow needs to spawn several sub-agents in parallel and synthesize their outputs — most often on first run (3 research agents) or a content batch (content-reviewer + seo-analyst on the same draft).
+**When:** A multi-agent workflow needs to spawn several sub-agents in parallel and synthesize their outputs  -  most often on first run (3 research agents) or a content batch (content-reviewer + seo-analyst on the same draft).
 
 **Goal:** Parallelism without crossed wires, clean handoff from sub-agents back to /cmo, compounding written to `brand/learnings.md`.
 
 | Phase | Action | Why |
 |---|---|---|
 | 0 | Plan the split | Identify which sub-agents run in parallel vs sequentially. Research agents (3) are parallel; review agents (content-reviewer, seo-analyst) run after content lands. |
-| 1 | Spawn in ONE message | Use the Agent tool with N parallel `type: "tool_use"` blocks in a single message. Sequential spawns serialize — that defeats the purpose. |
+| 1 | Spawn in ONE message | Use the Agent tool with N parallel `type: "tool_use"` blocks in a single message. Sequential spawns serialize  -  that defeats the purpose. |
 | 2 | Wait on all | Do not proceed until every spawned agent returns. Partial results produce incoherent positioning. |
 | 3 | Synthesize | /cmo reads each agent's output, resolves contradictions explicitly (not silently), writes the unified view. |
-| 4 | `POST /api/activity/log` per agent | The Activity panel shows N rows — one per sub-agent — so the user can see the parallel work. |
+| 4 | `POST /api/activity/log` per agent | The Activity panel shows N rows  -  one per sub-agent  -  so the user can see the parallel work. |
 | 5 | Record cross-agent learnings | If an agent surfaced an insight the others missed, append to `brand/learnings.md` with a `--learning` flag so future runs start ahead. |
 
 **Sub-agent roster (current):**
@@ -306,7 +306,7 @@ See `rules/studio-integration.md` for the full POST contract.
 
 ---
 
-## Playbook selection — quick reference
+## Playbook selection  -  quick reference
 
 | Builder says… | Playbook |
 |---|---|
@@ -318,8 +318,8 @@ See `rules/studio-integration.md` for the full POST contract.
 | "brand visuals", "design my look" | **Visual Identity** |
 | "make a video", "TikTok" | **Video Content** |
 | "email system", "inbound email", "Resend setup" | **Email Infrastructure** |
-| "rank on Google", "AI search", "compete for [topic]", "one article" | **SEO Authority Build — Path A** |
-| "SEO machine", "build organic traffic", "programmatic SEO", "alternatives pages", "we need traffic" | **SEO Authority Build — Path B (seo-machine)** |
+| "rank on Google", "AI search", "compete for [topic]", "one article" | **SEO Authority Build  -  Path A** |
+| "SEO machine", "build organic traffic", "programmatic SEO", "alternatives pages", "we need traffic" | **SEO Authority Build  -  Path B (seo-machine)** |
 | "start a newsletter", "subscribers" | **Newsletter Launch** |
 | "show me the dashboard", "launch the studio", "visual mode" | **Studio Launch** |
 | "spawn the research team", "parallel research", "do this across agents" | **Agent Team Coordination** |

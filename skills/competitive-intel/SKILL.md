@@ -21,7 +21,7 @@ Most founders either ignore competitors entirely ("we have no competition") or
 obsess over features without understanding messaging.
 
 This skill maps the competitive landscape at the messaging level. Not feature
-comparison tables — positioning, angles, language, channels, and gaps. The
+comparison tables  -  positioning, angles, language, channels, and gaps. The
 output feeds directly into positioning-angles and keyword-research to find
 white space.
 
@@ -34,9 +34,9 @@ No SaaS tools needed. Systematic web research.
 
 1. Check if `brand/` directory exists in the project root.
 2. If it does, read available files: `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md`, `creative-kit.md`, `stack.md`, `learnings.md`.
-3. Apply any loaded brand context to enhance research quality — use existing audience and positioning data to focus the competitive scan.
-4. If `brand/` does not exist, proceed without it — this skill works standalone.
-5. Read `brand/landscape.md` if it exists — check the Claims Blacklist before making ecosystem or competitive claims. If stale (>14 days) or missing, warn that market claims may be outdated.
+3. Apply any loaded brand context to enhance research quality  -  use existing audience and positioning data to focus the competitive scan.
+4. If `brand/` does not exist, proceed without it  -  this skill works standalone.
+5. Read `brand/landscape.md` if it exists  -  check the Claims Blacklist before making ecosystem or competitive claims. If stale (>14 days) or missing, warn that market claims may be outdated.
 
 ---
 
@@ -119,22 +119,22 @@ territory. Use after a Deep Teardown or when competitors.md already exists.
 
 Three categories:
 
-**Direct competitors** — solve the same problem for the same audience
+**Direct competitors**  -  solve the same problem for the same audience
 - Same product category, same target market
 - The ones your customers would name if asked "what else did you consider?"
 
-**Indirect competitors** — solve the same problem differently
+**Indirect competitors**  -  solve the same problem differently
 - Different approach, same outcome
 - Includes DIY, hiring a person, using a different category of tool
 
-**Aspirational competitors** — where you want to be
+**Aspirational competitors**  -  where you want to be
 - Larger companies in adjacent spaces
 - Brands whose positioning or execution you admire
 - Not necessarily competitive, but instructive
 
 **How to find them:**
 1. Ask the user: "Who do you consider your top 3 competitors?"
-2. If Exa MCP available: search for "[product category] + [target market]"
+2. If Exa available (`exa-search` / `company-research` / Exa MCP): search for "[product category] + [target market]"
 3. Search for "[product type] alternatives" and "[product type] vs"
 4. Check Product Hunt, G2, Capterra for the product category
 5. Look at who ranks for the target keywords
@@ -144,10 +144,10 @@ Three categories:
 For each key competitor (3-5), analyze the following (see `references/competitive-frameworks.md` for the full messaging teardown checklist, 2x2 map templates, and gap taxonomy):
 
 **Positioning & Messaging:**
-- Homepage headline — what's the primary claim?
-- Tagline — how do they summarize their value?
-- Hero copy — what transformation do they promise?
-- Key differentiator — what makes them "the one that [X]"?
+- Homepage headline  -  what's the primary claim?
+- Tagline  -  how do they summarize their value?
+- Hero copy  -  what transformation do they promise?
+- Key differentiator  -  what makes them "the one that [X]"?
 
 **Pricing & Packaging:**
 - Pricing model (free, freemium, subscription, one-time)
@@ -194,8 +194,8 @@ For each key competitor (3-5), analyze the following (see `references/competitiv
       └── Weakness: [where they fall short]
 
   Indirect Competitors
-  ├── [Alternative 1] — [how they solve it differently]
-  └── [Alternative 2] — [how they solve it differently]
+  ├── [Alternative 1]  -  [how they solve it differently]
+  └── [Alternative 2]  -  [how they solve it differently]
 
 ──────────────────────────────────────────────────
 ```
@@ -204,32 +204,32 @@ For each key competitor (3-5), analyze the following (see `references/competitiv
 
 This is the payoff. Cross-reference all competitor messaging to find:
 
-**Messaging gaps** — what nobody is saying:
+**Messaging gaps**  -  what nobody is saying:
 - Claims that are true for your product but no competitor makes
 - Audiences that nobody specifically targets
 - Pain points that nobody directly addresses
 - Angles that are conspicuously absent
 
-**Positioning gaps** — where nobody lives:
+**Positioning gaps**  -  where nobody lives:
 - Map competitors on 2x2 matrices (e.g., simple↔complex × cheap↔expensive)
 - Find the quadrant with no competitor
-- Identify the "anti-positioning" — what would be the opposite of every competitor?
+- Identify the "anti-positioning"  -  what would be the opposite of every competitor?
 
-**Channel gaps** — where nobody shows up:
+**Channel gaps**  -  where nobody shows up:
 - Platforms where the audience exists but competitors don't post
 - Content formats nobody uses (video, podcast, interactive tools)
 - Communities nobody engages with
 
-**Pricing gaps** — where nobody charges:
+**Pricing gaps**  -  where nobody charges:
 - Price points between existing tiers
 - Packaging models nobody offers (lifetime, usage-based, free tier)
 
 ### Step 5: Synthesize differentiation opportunities
 
 Rank the gaps by:
-1. **Relevance** — does this gap matter to our audience?
-2. **Defensibility** — can we own this position long-term?
-3. **Clarity** — can we explain this in one sentence?
+1. **Relevance**  -  does this gap matter to our audience?
+2. **Defensibility**  -  can we own this position long-term?
+3. **Clarity**  -  can we explain this in one sentence?
 
 Present top 3-5 differentiation opportunities with a starred recommendation.
 
@@ -249,7 +249,7 @@ competitors_analyzed: [number]
 primary_gap: [one-line summary of biggest opportunity]
 ---
 
-# Competitive Intelligence — [Product/Project Name]
+# Competitive Intelligence  -  [Product/Project Name]
 
 ## Competitor Teardowns
 
@@ -274,7 +274,7 @@ primary_gap: [one-line summary of biggest opportunity]
 - "[Claim]"
 
 ### Partially Claimed (1-2 competitors)
-- "[Claim]" — used by [Competitor]
+- "[Claim]"  -  used by [Competitor]
 
 ### Underexploited Territory
 - [Gap 1]
@@ -285,9 +285,9 @@ primary_gap: [one-line summary of biggest opportunity]
 
 ## Differentiation Opportunities
 
-1. ★ **[Top opportunity]** — [why this is the best gap to own]
-2. **[Second opportunity]** — [reasoning]
-3. **[Third opportunity]** — [reasoning]
+1. ★ **[Top opportunity]**  -  [why this is the best gap to own]
+2. **[Second opportunity]**  -  [reasoning]
+3. **[Third opportunity]**  -  [reasoning]
 
 ---
 
@@ -310,7 +310,7 @@ primary_gap: [one-line summary of biggest opportunity]
 | L0 | Product name only | Basic competitor list, surface-level analysis |
 | L1 | + product description, target market | Focused competitor search, relevant comparisons |
 | L2 | + audience.md, voice-profile.md | Audience-aware analysis, positioning-aware gaps |
-| L3 | + web research via Exa MCP | Live data, real messaging, verified claims |
+| L3 | + web research via `exa-search` / `company-research` | Live data, real messaging, verified claims |
 | L4 | + existing competitors.md (update) | Evolved intel with trend tracking over time |
 
 ---
@@ -331,10 +331,10 @@ primary_gap: [one-line summary of biggest opportunity]
 
 ## What this skill is NOT
 
-- **Not a feature comparison** — Feature matrices are commodity analysis. This skill maps messaging, positioning, and strategic gaps — the layer that actually drives differentiation decisions.
-- **Not market research** — This focuses on competitive messaging and positioning. For audience research, use /audience-research. For market sizing and trend analysis, that's a different skill.
-- **Not a one-time snapshot** — Competitors evolve their messaging. Run this again before major launches, after competitor funding rounds, or when your positioning feels stale.
-- **Not a strategy document** — The output is intelligence, not a plan. Use /positioning-angles to act on the gaps this skill finds.
+- **Not a feature comparison**  -  Feature matrices are commodity analysis. This skill maps messaging, positioning, and strategic gaps  -  the layer that actually drives differentiation decisions.
+- **Not market research**  -  This focuses on competitive messaging and positioning. For audience research, use /audience-research. For market sizing and trend analysis, that's a different skill.
+- **Not a one-time snapshot**  -  Competitors evolve their messaging. Run this again before major launches, after competitor funding rounds, or when your positioning feels stale.
+- **Not a strategy document**  -  The output is intelligence, not a plan. Use /positioning-angles to act on the gaps this skill finds.
 
 ---
 
@@ -386,7 +386,7 @@ primary_gap: [one-line summary of biggest opportunity]
 
 ## Web search fallback
 
-If web search / Exa MCP is unavailable:
+If web search / Exa (`EXA_API_KEY` / MCP) is unavailable:
 
 1. Ask the user for competitor names and URLs directly.
 2. If the user provides URLs, attempt to fetch and analyze them.
@@ -419,10 +419,10 @@ After delivering the competitive intel:
 
 ## Safety rules
 
-- Never fabricate competitor data — positioning decisions built on false competitive intel lead to differentiation claims that collapse on contact with the market. If you can't verify a claim, say so.
-- Never present assumptions as facts — the user may make pricing, positioning, or launch decisions based on this analysis. Mark unverified information clearly so they know what to double-check.
-- Never copy competitor content verbatim beyond short quotes — this is analysis, not plagiarism. Short quotes for messaging analysis are fair use; copying blocks of content is not.
-- Never write competitive data from one project into another project's brand/ — competitive landscapes are project-specific. Cross-contamination corrupts strategy.
-- Always check `--cwd` context if provided — the working directory determines which brand/ to read and write.
-- If Exa MCP is unavailable, follow the web search fallback section above — the skill still produces useful output from user knowledge and brand files.
-- Focus on messaging and positioning, not feature-by-feature comparisons — feature tables are commodity analysis anyone can build. Messaging-level competitive intel is what drives differentiation and is much harder to find elsewhere.
+- Never fabricate competitor data  -  positioning decisions built on false competitive intel lead to differentiation claims that collapse on contact with the market. If you can't verify a claim, say so.
+- Never present assumptions as facts  -  the user may make pricing, positioning, or launch decisions based on this analysis. Mark unverified information clearly so they know what to double-check.
+- Never copy competitor content verbatim beyond short quotes  -  this is analysis, not plagiarism. Short quotes for messaging analysis are fair use; copying blocks of content is not.
+- Never write competitive data from one project into another project's brand/  -  competitive landscapes are project-specific. Cross-contamination corrupts strategy.
+- Always check `--cwd` context if provided  -  the working directory determines which brand/ to read and write.
+- If Exa is unavailable, follow the web search fallback section above - the skill still produces useful output from user knowledge and brand files.
+- Focus on messaging and positioning, not feature-by-feature comparisons  -  feature tables are commodity analysis anyone can build. Messaging-level competitive intel is what drives differentiation and is much harder to find elsewhere.

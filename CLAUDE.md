@@ -10,14 +10,14 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 58 marketing skills, 5 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 63 marketing skills (62 playbook + `/cmo`), 6 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
 | `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
-| Marketing skills | 57 | The playbook, installed to `~/.claude/skills/` |
+| Marketing skills | 62 | The playbook, installed to `~/.claude/skills/` |
 | Marketing agents | 6 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
 | Upstream catalogs | 1 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled) |
 | Studio dashboard | 1 | Next.js + Bun API workspace member at `studio/`, bundled in the tarball, launched via `mktg studio` |
@@ -46,9 +46,9 @@ src/
 │   ├── skill-add.ts    # External skill chaining (mktg skill add)
 │   ├── agents.ts       # Agent registry, install to ~/.claude/agents/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
-skills/                  # 52 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 63 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
-agents/                  # 5 agent .md files installed to ~/.claude/agents/
+agents/                  # 6 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
 catalogs-manifest.json   # Upstream catalog registry (postiz v1; parallel to skills/agents)
 studio/                  # Studio dashboard workspace member (ships inside the tarball)
@@ -225,7 +225,7 @@ mktg orchestrates external tools but does not bundle them. `mktg doctor` detects
 | [`summarize`](https://github.com/steipete/summarize) | Text compression | `npm i -g @steipete/summarize` |
 | [`higgsfield`](https://higgsfield.ai/cli) | AI image + video generation (30+ models, Marketing Studio, Soul Characters) | `npm i -g @higgsfield/cli && higgsfield auth login` (paid platform — optional) |
 
-**MCP:** Exa MCP for parallel deep web research (wired via `.mcp.json`).
+**MCP + Exa skills:** Exa MCP for deep web research (wired via `.mcp.json`) plus first-class skills ported from [exa-labs/agent-skills](https://github.com/exa-labs/agent-skills): `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa`. Requires `EXA_API_KEY` (surfaced by `mktg doctor`).
 
 ### Adding a new chained tool
 
