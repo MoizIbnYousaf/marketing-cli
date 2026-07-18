@@ -122,12 +122,16 @@ export function CalendarView({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={adapter === "mktg-native" ? "Native backend unavailable" : "Postiz unavailable"}
+            title={
+              adapter === "mktg-native"
+                ? "Native backend unavailable"
+                : "Postiz not configured (optional)"
+            }
             description={
               data.degradedReason ??
               (adapter === "mktg-native"
                 ? "Create a native provider to view scheduled posts."
-                : "Set POSTIZ_API_KEY to view scheduled posts.")
+                : "Switch to mktg-native for the local calendar, or add POSTIZ_API_KEY in Settings to use Postiz.")
             }
           />
         ) : (
