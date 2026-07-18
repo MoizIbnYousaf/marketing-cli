@@ -79,6 +79,21 @@ export function studioAuthHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/** JSON POST with bearer auth — canonical helper for dashboard mutations. */
+export async function studioJsonPost(
+  url: string,
+  body?: unknown,
+): Promise<Response> {
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...studioAuthHeaders(),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
 /** Drop the cached token (test / re-auth flow). */
 export function clearStudioToken(): void {
   cached = null;

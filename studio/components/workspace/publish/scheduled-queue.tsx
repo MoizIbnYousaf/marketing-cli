@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { CalendarClock, ImageIcon, RefreshCw, ShieldAlert } from "lucide-react"
+import { publishCalendarRange, type PublishRangeId } from "@/lib/calendar-range"
 import { fetcher } from "@/lib/fetcher"
+import { postizOptionalEmpty } from "@/lib/postiz-empty"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -30,13 +32,11 @@ type ApiResponse = {
   postizErrorKind?: string
 }
 
-const RANGE_OPTIONS = [
-  { id: "today", label: "Today", days: 1 },
-  { id: "week", label: "This week", days: 7 },
-  { id: "month", label: "This month", days: 30 },
-] as const
-
-type RangeId = (typeof RANGE_OPTIONS)[number]["id"]
+const RANGE_OPTIONS: { id: PublishRangeId; label: string }[] = [
+  { id: "today", label: "Today" },
+  { id: "week", label: "This week" },
+  { id: "month", label: "This month" },
+]
 
 export function ScheduledQueue({
   adapter = "postiz",
@@ -45,38 +45,9 @@ export function ScheduledQueue({
   adapter?: string
   className?: string
 }) {
-  const [range, setRange] = useState<RangeId>("week")
+  const [range, setRange] = useState<PublishRangeId>("week")
 
-  const { startDate, endDate } = useMemo(() => {
-    const now = new Date()
-    // Calendar-day bounds so "Today" includes a post scheduled later today
-    // (e.g. 10:00Z when "now" is 03:00Z). The old now±N rolling window
-    // dropped same-calendar-day posts that sat past `now + 1d`.
-    const start = new Date(now)
-    start.setHours(0, 0, 0, 0)
-    if (range === "week") {
-      // Start of this ISO week (Monday)
-      const day = (start.getDay() + 6) % 7
-      start.setDate(start.getDate() - day)
-    } else if (range === "month") {
-      start.setDate(1)
-    }
-    const end = new Date(start)
-    if (range === "today") {
-      end.setHours(23, 59, 59, 999)
-    } else if (range === "week") {
-      end.setDate(end.getDate() + 6)
-      end.setHours(23, 59, 59, 999)
-    } else {
-      // month: last ms of the current calendar month
-      end.setMonth(end.getMonth() + 1, 0)
-      end.setHours(23, 59, 59, 999)
-    }
-    return {
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
-    }
-  }, [range])
+  const { startDate, endDate } = useMemo(() => publishCalendarRange(range), [range])
 
   const { data, error, isLoading, mutate } = useSWR<ApiResponse>(
     `/api/publish/scheduled?adapter=${encodeURIComponent(adapter)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`,
@@ -149,17 +120,14 @@ export function ScheduledQueue({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={
-              adapter === "mktg-native"
-                ? "Native backend unavailable"
-                : "Postiz not configured (optional)"
-            }
-            description={
-              data.degradedReason ??
-              (adapter === "mktg-native"
-                ? "Create a native account or provider to read the scheduled queue."
-                : "Switch to mktg-native for the local queue, or add POSTIZ_API_KEY in Settings to use Postiz.")
-            }
+            {...(adapter === "mktg-native"
+              ? {
+                  title: "Native backend unavailable",
+                  description:
+                    data.degradedReason ??
+                    "Create a native account or provider to read the scheduled queue.",
+                }
+              : postizOptionalEmpty("queue", data.degradedReason))}
           />
         ) : posts.length === 0 ? (
           <EmptyState

@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react"
 import useSWR from "swr"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, ShieldAlert } from "lucide-react"
+import { startOfLocalWeek } from "@/lib/calendar-range"
 import { fetcher } from "@/lib/fetcher"
+import { postizOptionalEmpty } from "@/lib/postiz-empty"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -35,7 +37,7 @@ export function CalendarView({
   adapter?: string
   className?: string
 }) {
-  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()))
+  const [weekStart, setWeekStart] = useState<Date>(() => startOfLocalWeek(new Date()))
   const weekEnd = useMemo(() => new Date(weekStart.getTime() + 7 * DAY_MS), [weekStart])
 
   const startDate = weekStart.toISOString()
@@ -122,17 +124,13 @@ export function CalendarView({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={
-              adapter === "mktg-native"
-                ? "Native backend unavailable"
-                : "Postiz not configured (optional)"
-            }
-            description={
-              data.degradedReason ??
-              (adapter === "mktg-native"
-                ? "Create a native provider to view scheduled posts."
-                : "Switch to mktg-native for the local calendar, or add POSTIZ_API_KEY in Settings to use Postiz.")
-            }
+            {...(adapter === "mktg-native"
+              ? {
+                  title: "Native backend unavailable",
+                  description:
+                    data.degradedReason ?? "Create a native provider to view scheduled posts.",
+                }
+              : postizOptionalEmpty("calendar", data.degradedReason))}
           />
         ) : (
           <div className="grid grid-cols-7 gap-1.5">
@@ -211,13 +209,6 @@ function DayCell({
       )}
     </div>
   )
-}
-
-function startOfWeek(d: Date): Date {
-  const day = d.getDay()
-  const diff = (day + 6) % 7
-  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - diff)
-  return monday
 }
 
 function isSameDay(a: Date, b: Date): boolean {

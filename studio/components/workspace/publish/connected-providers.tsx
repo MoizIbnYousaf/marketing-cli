@@ -4,8 +4,9 @@ import { useState } from "react"
 import useSWR from "swr"
 import { ExternalLink, PlugZap, RefreshCw, ShieldAlert } from "lucide-react"
 import { toast } from "sonner"
-import { studioAuthHeaders } from "@/lib/studio-token"
 import { fetcher } from "@/lib/fetcher"
+import { postizOptionalEmpty } from "@/lib/postiz-empty"
+import { studioJsonPost } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -84,14 +85,10 @@ export function ConnectedProviders({
     }
     setCreating(true)
     try {
-      const res = await fetch("/api/publish/native/providers", {
-        method: "POST",
-        headers: { "content-type": "application/json", ...studioAuthHeaders() },
-        body: JSON.stringify({
-          identifier: identifier.trim().toLowerCase(),
-          name: name.trim(),
-          profile: profile.trim().replace(/^@/, ""),
-        }),
+      const res = await studioJsonPost("/api/publish/native/providers", {
+        identifier: identifier.trim().toLowerCase(),
+        name: name.trim(),
+        profile: profile.trim().replace(/^@/, ""),
       })
       const json = await res.json()
       if (!json.ok) {
@@ -152,17 +149,13 @@ export function ConnectedProviders({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={
-              adapter === "postiz"
-                ? "Postiz not configured (optional)"
-                : `${backendName} unavailable`
-            }
-            description={
-              data.degradedReason ??
-              (adapter === "postiz"
-                ? "Add POSTIZ_API_KEY in Settings to connect 30+ social providers. Until then, use the mktg-native adapter for local queue/history."
-                : `Configure ${backendName} to connect accounts.`)
-            }
+            {...(adapter === "postiz"
+              ? postizOptionalEmpty("providers", data.degradedReason)
+              : {
+                  title: `${backendName} unavailable`,
+                  description:
+                    data.degradedReason ?? `Configure ${backendName} to connect accounts.`,
+                })}
             action={adapter === "postiz" ? (
               <div className="flex flex-col items-start gap-2">
                 <a

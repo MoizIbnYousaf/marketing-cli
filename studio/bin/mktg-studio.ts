@@ -173,12 +173,19 @@ function defaultProjectRoot(): string {
     return resolve(process.env.MKTG_PROJECT_ROOT);
   }
   const parent = resolve(REPO_ROOT, "..");
-  if (
-    existsSync(resolve(parent, "skills-manifest.json")) &&
-    existsSync(resolve(parent, "package.json")) &&
-    existsSync(resolve(parent, "brand"))
-  ) {
-    return parent;
+  try {
+    const pkg = JSON.parse(readFileSync(resolve(parent, "package.json"), "utf-8")) as {
+      name?: string;
+      bin?: Record<string, string>;
+    };
+    if (
+      (pkg.name === "marketing-cli" || pkg.bin?.mktg) &&
+      existsSync(resolve(parent, "skills-manifest.json"))
+    ) {
+      return parent;
+    }
+  } catch {
+    // not a marketing-cli parent
   }
   return REPO_ROOT;
 }

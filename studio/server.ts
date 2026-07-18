@@ -2936,6 +2936,8 @@ const server = Bun.serve({
         }
       }
 
+      // Explicit cwd: matches brand/status routes. Launcher also sets
+      // MKTG_PROJECT_ROOT so `run()` would resolve the same root by default.
       if (adapter === "mktg-native") {
         const result = await mktgPublishNativeListPosts(STUDIO_CWD);
         if (!result.ok) return respondMktgError(result, corsHeaders);
