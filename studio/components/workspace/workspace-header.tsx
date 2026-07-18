@@ -17,6 +17,7 @@ import { m } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { fadeIn } from "@/lib/animation/variants"
 import { useAsyncAction } from "@/lib/hooks/use-async-action"
+import { studioAuthHeaders } from "@/lib/studio-token"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -90,7 +91,11 @@ export function WorkspaceHeader({
   // while the request is inflight (prevents toast stacking on rapid clicks).
   const runAction = useAsyncAction(
     async () => {
-      const res = await fetch("/api/agents/run", { method: "POST", body: JSON.stringify({ agentId }) })
+      const res = await fetch("/api/agents/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify({ agentId }),
+      })
       return res.json()
     },
     { errorLabel: "Run failed" },
@@ -98,7 +103,11 @@ export function WorkspaceHeader({
 
   const pauseAction = useAsyncAction(
     async () => {
-      const res = await fetch("/api/agents/pause", { method: "POST", body: JSON.stringify({ agentId }) })
+      const res = await fetch("/api/agents/pause", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify({ agentId }),
+      })
       return res.json()
     },
     { errorLabel: "Pause failed", successMessage: "Agent paused" },
@@ -106,7 +115,11 @@ export function WorkspaceHeader({
 
   const resumeAction = useAsyncAction(
     async () => {
-      const res = await fetch("/api/agents/resume", { method: "POST", body: JSON.stringify({ agentId }) })
+      const res = await fetch("/api/agents/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify({ agentId }),
+      })
       return res.json()
     },
     { errorLabel: "Resume failed", successMessage: "Agent resumed" },
@@ -114,7 +127,11 @@ export function WorkspaceHeader({
 
   const deleteAction = useAsyncAction(
     async () => {
-      const res = await fetch("/api/agents/delete", { method: "POST", body: JSON.stringify({ agentId }) })
+      const res = await fetch("/api/agents/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify({ agentId }),
+      })
       return res.json()
     },
     { errorLabel: "Delete failed" },

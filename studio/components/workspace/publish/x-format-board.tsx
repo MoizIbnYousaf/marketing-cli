@@ -4,6 +4,7 @@ import { useMemo, useState } from "react"
 import type React from "react"
 import { Calendar, ImageIcon, Loader2, MessageCircle, Repeat2, Send, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
+import { studioAuthHeaders } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -76,7 +77,7 @@ export function XFormatBoard({
 
       const res = await fetch("/api/publish", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify({ adapter, manifest, confirm: true }),
       })
       const json = (await res.json()) as

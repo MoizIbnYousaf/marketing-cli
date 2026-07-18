@@ -164,7 +164,26 @@ function loadEnvLocal(root: string): Record<string, string> {
   return out;
 }
 
-const projectRoot = process.env.MKTG_PROJECT_ROOT ? resolve(process.env.MKTG_PROJECT_ROOT) : REPO_ROOT;
+// When Studio ships as the `studio/` workspace member inside marketing-cli,
+// default the project root to the CLI repo (parent) so `brand/` and
+// `.mktg/native-publish/` stay shared with the `mktg` CLI. Override anytime
+// with MKTG_PROJECT_ROOT. Standalone studio checkouts keep REPO_ROOT.
+function defaultProjectRoot(): string {
+  if (process.env.MKTG_PROJECT_ROOT && process.env.MKTG_PROJECT_ROOT.trim()) {
+    return resolve(process.env.MKTG_PROJECT_ROOT);
+  }
+  const parent = resolve(REPO_ROOT, "..");
+  if (
+    existsSync(resolve(parent, "skills-manifest.json")) &&
+    existsSync(resolve(parent, "package.json")) &&
+    existsSync(resolve(parent, "brand"))
+  ) {
+    return parent;
+  }
+  return REPO_ROOT;
+}
+
+const projectRoot = defaultProjectRoot();
 const repoEnvFromFile = loadEnvLocal(REPO_ROOT);
 const projectEnvFromFile = loadEnvLocal(projectRoot);
 const inheritedEnv = { ...(process.env as Record<string, string>) };
@@ -266,6 +285,10 @@ const baseChildEnv: Record<string, string> = {
   STUDIO_API_BASE: env.STUDIO_API_BASE ?? `http://localhost:${STUDIO_PORT}`,
   MKTG_STUDIO_INTENT: STUDIO_INTENT,
   MKTG_STUDIO_SESSION: STUDIO_SESSION,
+  // Always propagate the resolved project root so the Bun API server and
+  // mktg bridge share brand/ + .mktg/ with the CLI even when the launcher
+  // was started without MKTG_PROJECT_ROOT in the parent shell.
+  MKTG_PROJECT_ROOT: projectRoot,
 };
 
 // The server child gets the bearer token via env. The Next.js child does

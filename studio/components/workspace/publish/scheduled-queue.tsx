@@ -48,11 +48,33 @@ export function ScheduledQueue({
   const [range, setRange] = useState<RangeId>("week")
 
   const { startDate, endDate } = useMemo(() => {
-    const days = RANGE_OPTIONS.find((o) => o.id === range)?.days ?? 7
     const now = new Date()
+    // Calendar-day bounds so "Today" includes a post scheduled later today
+    // (e.g. 10:00Z when "now" is 03:00Z). The old now±N rolling window
+    // dropped same-calendar-day posts that sat past `now + 1d`.
+    const start = new Date(now)
+    start.setHours(0, 0, 0, 0)
+    if (range === "week") {
+      // Start of this ISO week (Monday)
+      const day = (start.getDay() + 6) % 7
+      start.setDate(start.getDate() - day)
+    } else if (range === "month") {
+      start.setDate(1)
+    }
+    const end = new Date(start)
+    if (range === "today") {
+      end.setHours(23, 59, 59, 999)
+    } else if (range === "week") {
+      end.setDate(end.getDate() + 6)
+      end.setHours(23, 59, 59, 999)
+    } else {
+      // month: last ms of the current calendar month
+      end.setMonth(end.getMonth() + 1, 0)
+      end.setHours(23, 59, 59, 999)
+    }
     return {
-      startDate: new Date(now.getTime() - 7 * 86_400_000).toISOString(),
-      endDate: new Date(now.getTime() + days * 86_400_000).toISOString(),
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
     }
   }, [range])
 

@@ -261,3 +261,41 @@ The canonical `skills-manifest.json` is the single source of truth. Two downstre
 - `Ai-Agent-Skills/skills.json` — registry with curated metadata per skill (source, sourceUrl, tags, etc.).
 
 The sync command (`mktg-propagate`) lives in the **private** `mktg-private` repo, NOT in `marketing-cli` itself, because it's maintainer-only infra and would be useless to public npm users. See `MoizIbnYousaf/mktg-private` for the implementation. From this repo's perspective: just know that `/mktg-add` and `/mktg-steal` invoke it as their final step after committing to `marketing-cli`.
+
+## Cursor Cloud specific instructions
+
+### Runtime
+
+- Package manager is **Bun** (`>=1.1.0`). Put `~/.bun/bin` and `~/.local/bin` on `PATH`.
+- Local CLI wrapper: `~/.local/bin/mktg` → `node /workspace/dist/cli.js` (fallback `bun src/cli.ts`). Rebuild after CLI changes: `bun run build`.
+- Install deps: `bun install` at repo root (hoisted linker via `bunfig.toml`). Skills/agents install via `mktg init` / `mktg update` into `~/.claude/skills` and `~/.claude/agents`.
+
+### Services
+
+| Surface | Command | Ports |
+|---|---|---|
+| CLI (dev) | `bun run dev -- <cmd> --json` or `mktg <cmd> --json` | n/a |
+| Studio API + Next | `mktg studio --no-open` (or `bun --cwd studio run start:studio`) | API `:3001`, dashboard `:3000` |
+
+Studio auth: bearer token at `~/.mktg/.runtime/studio-token`. Open `http://127.0.0.1:3000/dashboard?token=<token>` once so the dashboard stores it in `localStorage`. Public routes only: `/api/health`, `/api/schema`, `/api/help`.
+
+### Gotchas discovered in cloud VMs
+
+1. **Project root**: Studio must share `brand/` and `.mktg/native-publish/` with the CLI. The launcher now defaults `MKTG_PROJECT_ROOT` to the marketing-cli parent when `studio/` is a workspace member. Still override with `MKTG_PROJECT_ROOT=/path` when pointing at an external project.
+2. **`mktg verify` / `mktg ship-check` suite reachability**: those commands resolve suites as `<mktgmonoRoot>/marketing-cli` and `.../mktg-studio`. In a bare `/workspace` checkout they mark suites unreachable. Symlink `sudo ln -sfn /workspace /marketing-cli` (or check out as `.../mktgmono/marketing-cli`) if you need those orchestration tests green.
+3. **Studio lint**: `bun --cwd studio run lint` expects an ESLint flat config (`eslint.config.*`) that is not present yet — typecheck via `bun --cwd studio run typecheck` instead.
+4. **Optional integrations**: Postiz / Typefully / Resend / Firecrawl / Exa are BYO. `mktg doctor` warns when unset; core CLI + Studio work without them.
+5. **Tests**: root `bun test` (CLI); studio `bun run --cwd studio test`. No mocks — real temp-dir I/O.
+
+### Standard commands
+
+See `CONTRIBUTING.md` and `CONTEXT.md` for the full command surface. Quick loop:
+
+```bash
+bun install
+bun run build
+bun test
+bun x tsc --noEmit
+mktg init --json          # skills + brand scaffold
+mktg studio --no-open     # dashboard + API
+```

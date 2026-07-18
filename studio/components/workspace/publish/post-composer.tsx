@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { Calendar, Loader2, Send, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+import { studioAuthHeaders } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -71,7 +72,7 @@ export function PostComposer({
 
  const res = await fetch("/api/publish", {
  method: "POST",
- headers: { "content-type": "application/json" },
+ headers: { "content-type": "application/json", ...studioAuthHeaders() },
  body: JSON.stringify({
  adapter,
  manifest,

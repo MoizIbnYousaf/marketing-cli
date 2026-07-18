@@ -8,9 +8,10 @@ import { ActivityFilters } from "./activity-filters"
 import type { Activity, ActivityKind } from "@/lib/types/activity"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import { ErrorState } from "@/components/ui/error-state"
+import { studioAuthHeaders } from "@/lib/studio-token"
 
 async function fetcher(url: string): Promise<Activity[]> {
-  const res = await fetch(url)
+  const res = await fetch(url, { headers: { ...studioAuthHeaders() } })
   if (!res.ok) throw new Error("Failed to fetch activity")
   const json = await res.json()
   return json.data ?? []

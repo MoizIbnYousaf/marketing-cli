@@ -4,6 +4,7 @@ import { useState } from "react"
 import useSWR from "swr"
 import { ExternalLink, PlugZap, RefreshCw, ShieldAlert } from "lucide-react"
 import { toast } from "sonner"
+import { studioAuthHeaders } from "@/lib/studio-token"
 import { fetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -85,7 +86,7 @@ export function ConnectedProviders({
     try {
       const res = await fetch("/api/publish/native/providers", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify({
           identifier: identifier.trim().toLowerCase(),
           name: name.trim(),
