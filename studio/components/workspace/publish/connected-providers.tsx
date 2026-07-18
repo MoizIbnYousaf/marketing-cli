@@ -152,24 +152,45 @@ export function ConnectedProviders({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={`${backendName} unavailable`}
-            description={data.degradedReason ?? `Configure ${backendName} to connect accounts.`}
+            title={
+              adapter === "postiz"
+                ? "Postiz not configured (optional)"
+                : `${backendName} unavailable`
+            }
+            description={
+              data.degradedReason ??
+              (adapter === "postiz"
+                ? "Add POSTIZ_API_KEY in Settings to connect 30+ social providers. Until then, use the mktg-native adapter for local queue/history."
+                : `Configure ${backendName} to connect accounts.`)
+            }
             action={adapter === "postiz" ? (
-              <a
-                href={`${POSTIZ_BASE}/launches`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
-              >
-                Set up Postiz <ExternalLink className="size-3" />
-              </a>
+              <div className="flex flex-col items-start gap-2">
+                <a
+                  href="/settings?panel=api-keys"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  Open Settings → API keys
+                </a>
+                <a
+                  href={`${POSTIZ_BASE}/launches`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:underline"
+                >
+                  Get a Postiz key <ExternalLink className="size-3" />
+                </a>
+              </div>
             ) : undefined}
           />
         ) : integrations.length === 0 ? (
           <EmptyState
             icon={PlugZap}
             title="No accounts connected"
-            description={emptyDescription}
+            description={
+              adapter === "postiz"
+                ? "Connect LinkedIn, X, Reddit, and other providers in Postiz after you save POSTIZ_API_KEY."
+                : emptyDescription
+            }
             action={adapter === "postiz" ? (
               <a
                 href={`${POSTIZ_BASE}/launches`}

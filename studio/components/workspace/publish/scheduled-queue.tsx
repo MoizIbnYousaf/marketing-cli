@@ -149,12 +149,16 @@ export function ScheduledQueue({
         ) : data?.degraded ? (
           <EmptyState
             icon={ShieldAlert}
-            title={adapter === "mktg-native" ? "Native backend unavailable" : "Postiz unavailable"}
+            title={
+              adapter === "mktg-native"
+                ? "Native backend unavailable"
+                : "Postiz not configured (optional)"
+            }
             description={
               data.degradedReason ??
               (adapter === "mktg-native"
                 ? "Create a native account or provider to read the scheduled queue."
-                : "Set POSTIZ_API_KEY to read the scheduled queue.")
+                : "Switch to mktg-native for the local queue, or add POSTIZ_API_KEY in Settings to use Postiz.")
             }
           />
         ) : posts.length === 0 ? (

@@ -5,6 +5,7 @@ import { CheckCircle2, Plug, RefreshCw, ExternalLink, TriangleAlert } from "luci
 import { Button } from "@/components/ui/button"
 import { extractErrorMessage } from "@/lib/api-error"
 import { resolveStudioApiBase } from "@/lib/studio-api-base"
+import { studioAuthHeaders } from "@/lib/studio-token"
 
 interface PostizIntegration {
   id?: string
@@ -53,7 +54,7 @@ interface PostizDiagnosticsResponse {
 }
 
 async function fetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url)
+  const res = await fetch(url, { headers: { ...studioAuthHeaders() } })
   return res.json()
 }
 
