@@ -1,12 +1,6 @@
-# Marketing Learnings
+# Learnings
 
-<!-- Append-only. Agent records what worked and what didn't. -->
-
-<!-- AGENT INSTRUCTIONS:
-After each marketing action, log what you learned.
-Format: | date | action | result | learning | next-step |
-Be specific about metrics when available (CTR, views, signups).
--->
-
-| Date | Action | Result | Learning | Next Step |
-|------|--------|--------|----------|-----------|
+| Date | Learning | Source |
+|---|---|---|
+| 2026-07-18 | Dogfood: 64/64 skills install cleanly after Exa + AXI merges; brand templates still block skill prereqs until populated | cloud agent |
+| 2026-07-18 | Drafted Show HN + LinkedIn atoms for mktg dogfood | Artifacts in marketing/dogfood-2026-07-18 + 2 native scheduled posts | Lead with compounding brand memory and skill count proof; avoid AI-CMO framing | Ship Show HN when ready; keep native queue as staging |
