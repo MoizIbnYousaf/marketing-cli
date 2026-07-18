@@ -97,7 +97,7 @@ mktg orchestrates; it doesn't reimplement. When a good tool already exists, we c
 npm i -g marketing-cli
 ```
 
-That's it. The global npm install copies the 63 skills into `~/.claude/skills/` and the 5 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
+That's it. The global npm install copies the 63 skills into `~/.claude/skills/` and the 6 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
 
 Then open Claude Code in your project and run:
 
@@ -324,7 +324,7 @@ Organized by marketing layer. Foundation builds up to distribution.
 
 ---
 
-## Agents (5)
+## Agents (6)
 
 Parallel sub-agents for research and review. `/cmo` spawns them during foundation building:
 
@@ -411,7 +411,7 @@ skills/                 # 63 SKILL.md files installed via ai-agent-skills or dir
 ├── direct-response-copy/
 └── ...
 
-agents/                 # 5 agent .md files installed to ~/.claude/agents/
+agents/                 # 6 agent .md files installed to ~/.claude/agents/
 ├── research/           # brand-researcher, audience-researcher, competitive-scanner
 └── review/             # content-reviewer, seo-analyst
 
@@ -446,7 +446,7 @@ bun run build         # Build
 
 - `src/`: CLI source (TypeScript, ~15,500 lines)
 - `skills/`: 63 SKILL.md files (manifest-backed)
-- `agents/`: 5 agent definitions
+- `agents/`: 6 agent definitions
 - `tests/`: 2,599 tests across 96 files (real file I/O, no mocks)
 - `docs/`: Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
 

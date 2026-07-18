@@ -1,12 +1,12 @@
 # mktg-studio
 
-> Build the visual studio layer for the mktg marketing CLI. The studio is a local-first Next.js dashboard **driven by /cmo running in the user's Claude Code session**. /cmo invokes studio HTTP endpoints to log activity, navigate tabs, refresh data, and fire toasts. The studio itself has no chat UI and no LLM integration — it's a dashboard + HTTP API. There is no Vercel AI SDK (`ai`, `@ai-sdk/react`), no in-app chat panel, and the studio never calls the Anthropic API directly.
+> Build the visual studio layer for the mktg marketing CLI. The studio is a local-first Next.js dashboard **driven by /cmo running in the user's Claude Code session**. /cmo invokes studio HTTP endpoints to log activity, navigate tabs, refresh data, and fire toasts. The studio itself has no chat UI and no LLM integration  -  it's a dashboard + HTTP API. There is no Vercel AI SDK (`ai`, `@ai-sdk/react`), no in-app chat panel, and the studio never calls the Anthropic API directly.
 
 ## Driver/Dashboard Contract
 
 - **Driver:** /cmo (Claude Code) runs in the user's terminal. It reads brand/ files, executes the 62 marketing skills, and calls the studio's HTTP API (POST `/api/activity/log`, `/api/navigate`, `/api/toast`, `/api/brand/refresh`, etc.) to keep the dashboard in sync.
 - **Dashboard:** Next.js + Bun server. Subscribes to `/api/events` (SSE) for live updates. Renders primary surfaces (Pulse, Signals, Publish, Brand, Settings) + a right-hand Activity panel that shows the /cmo activity stream. Trend radar is a Signals mode; Audience summary and next actions live on Pulse.
-- **Activity panel:** Replaces the old chat slot. Lists skill runs, brand writes, publishes, navigates, and toasts — a live log of what /cmo is doing.
+- **Activity panel:** Replaces the old chat slot. Lists skill runs, brand writes, publishes, navigates, and toasts  -  a live log of what /cmo is doing.
 - **AGPL firewall:** Never import `@postiz/*`. Raw fetch only over the network boundary.
 - **Auth invisible by default:** The launcher banner does not surface the token path. Set `MKTG_STUDIO_DEBUG=1 mktg studio` to see it (cabinet-style invisible-auth pattern).
 
@@ -14,10 +14,10 @@
 
 **One day, someone runs `/cmo` in a fresh project and /cmo says: "Let me spin up your marketing dashboard." It launches the studio dashboard, creates native publish providers, connects Postiz when external posting is needed, reads the brand/ files, and the user sees their entire marketing operation live on screen. No setup guide. No manual config. The agent builds the marketing department AND gives you the dashboard to see it working.**
 
-This is the visual layer for `marketing-cli`. It's what turns a CLI-only experience into a full marketing studio that anyone — not just developers — can use. Easy API key setup. One-click skill execution. Real-time brand intelligence. A live Activity panel where you watch /cmo work.
+This is the visual layer for `marketing-cli`. It's what turns a CLI-only experience into a full marketing studio that anyone  -  not just developers  -  can use. Easy API key setup. One-click skill execution. Real-time brand intelligence. A live Activity panel where you watch /cmo work.
 
 **The merge:** The studio eventually ships AS PART of the mktg ecosystem. Either:
-- `mktg studio` command that launches the dashboard (preferred — keeps mktg as the single entry point)
+- `mktg studio` command that launches the dashboard (preferred  -  keeps mktg as the single entry point)
 - Or a companion package (`mktg-studio`) that mktg references
 
 Either way, /cmo is the brain and the studio is the eyes. They're one system.
@@ -30,11 +30,11 @@ Either way, /cmo is the brain and the studio is the eyes. They're one system.
 5. /cmo runs foundation skills in parallel → surfaces light up one by one
 6. User sees Pulse (brand health + audience summary + what to do next), Signals (intel inbox + Trend radar), Publish (social queue), Brand, Settings, and a live Activity panel that streams what /cmo is doing in Claude Code
 7. Everything persists locally. Close the laptop, reopen, everything's still there.
-8. The user never needs to understand CLI commands — the studio IS the interface.
+8. The user never needs to understand CLI commands  -  the studio IS the interface.
 
 ## API Key Onboarding (Easy Setup)
 
-The studio MUST have a dead-simple settings/onboarding screen. When a user first opens the studio, they see a wizard — not an empty dashboard.
+The studio MUST have a dead-simple settings/onboarding screen. When a user first opens the studio, they see a wizard  -  not an empty dashboard.
 
 **Onboarding flow:**
 ```
@@ -49,7 +49,7 @@ Step 2: "Connect your social accounts"
 
 Step 3: "Optional integrations"
  → FIRECRAWL_API_KEY (for web scraping in landscape-scan)
- → EXA_API_KEY (for deep web research — most skills benefit)
+ → EXA_API_KEY (for deep web research  -  most skills benefit)
  → RESEND_API_KEY (for email sequences)
 
 Step 4: "Building your marketing brain..."
@@ -74,7 +74,7 @@ Step 4: "Building your marketing brain..."
 - The mktg CLI reads its own env vars (POSTIZ_API_KEY etc.) from the shell environment
 - The studio's settings panel writes to .env.local AND exports to shell for mktg CLI
 
-## Agent DX 21/21 — The Non-Negotiable Quality Bar
+## Agent DX 21/21  -  The Non-Negotiable Quality Bar
 
 mktg CLI scores 21/21 on the Agent DX Scale. The studio MUST maintain this score. Every server endpoint, every data contract, every API surface the studio exposes is evaluated against these 7 axes:
 
@@ -88,7 +88,7 @@ mktg CLI scores 21/21 on the Agent DX Scale. The studio MUST maintain this score
 | **6. Safety Rails** | `--dry-run` for all mutations, response sanitization | Every mutating endpoint supports `?dryRun=true`. Destructive actions (reset brand, delete signals) require `?confirm=true`. |
 | **7. Agent Knowledge Packaging** | Comprehensive skill library, versioned, discoverable | This CLAUDE.md IS the agent knowledge. Plus: `mktg schema`, `mktg list --routing`, and `/api/schema` for runtime discovery. |
 
-**Why this matters for the studio:** The studio isn't just a human dashboard — it's also an API surface that agents consume. /cmo talks to the studio's server. Future agents will talk to the studio's API. If the server doesn't follow the same DX contract as the CLI, agent integration breaks.
+**Why this matters for the studio:** The studio isn't just a human dashboard  -  it's also an API surface that agents consume. /cmo talks to the studio's server. Future agents will talk to the studio's API. If the server doesn't follow the same DX contract as the CLI, agent integration breaks.
 
 **Test it:** After Phase 2, run the Agent DX Scale evaluation against the studio's `/api/*` surface. Must score 21/21 or fix before proceeding.
 
@@ -126,16 +126,16 @@ This project follows the same agent-native contract as mktg itself:
  └─────────────┘ └─────────────────┘
 ```
 
-**Execution split — memorize this:**
+**Execution split  -  memorize this:**
 - **Needs intelligence** (skill execution, recommendations, conversation) → happens in **Claude Code** where the user runs /cmo directly. /cmo then POSTs results/activity to the studio.
-- **Needs data** (status, publish, catalog, doctor, list, schema) → **mktg CLI** (--json, no LLM) — invoked by /cmo or by the studio server.
+- **Needs data** (status, publish, catalog, doctor, list, schema) → **mktg CLI** (--json, no LLM)  -  invoked by /cmo or by the studio server.
 - **Needs display** (tab rendering, brand file content) → **SQLite queries + file reads + SSE push from /cmo**
 
 **The studio never initiates LLM calls.** /cmo pushes state to the dashboard; the dashboard pulls state from SQLite and brand/ files.
 
 ## The Two Source Repos
 
-### 1. mktg CLI — the skill engine
+### 1. mktg CLI  -  the skill engine
 
 ```
 Repo: ~/projects/mktgmono/marketing-cli/
@@ -149,49 +149,49 @@ Tests: 2599 pass / 0 fail / 96 files
 ```
 ~/projects/mktgmono/marketing-cli/
 ├── src/
-│ ├── cli.ts — entry point, command router, global flag parsing
-│ ├── types.ts — ALL shared types: CommandResult<T>, CatalogEntry, CatalogsManifest, etc.
+│ ├── cli.ts  -  entry point, command router, global flag parsing
+│ ├── types.ts  -  ALL shared types: CommandResult<T>, CatalogEntry, CatalogsManifest, etc.
 │ ├── commands/
-│ │ ├── catalog.ts — mktg catalog list/info/sync/status/add (upstream catalogs)
-│ │ ├── publish.ts — mktg publish (4 adapters: typefully, resend, file, postiz)
+│ │ ├── catalog.ts  -  mktg catalog list/info/sync/status/add (upstream catalogs)
+│ │ ├── publish.ts  -  mktg publish (4 adapters: typefully, resend, file, postiz)
 │ │ │ Lines 263-620: postizFetch + publishPostiz + sent-markers
 │ │ │ Line 617: BUILTIN_PUBLISH_ADAPTERS export
 │ │ │ Line 623: postiz entry in ADAPTERS registry
-│ │ ├── doctor.ts — mktg doctor (health checks, tool detection, catalog health)
-│ │ ├── schema.ts — mktg schema (agent self-discovery, line 42: catalog import)
-│ │ ├── init.ts — mktg init (project bootstrap, installs skills + agents)
-│ │ ├── status.ts — mktg status (brand health, integration status, skill count)
-│ │ ├── list.ts — mktg list (all skills + agents with install status, --routing flag)
-│ │ ├── brand.ts — mktg brand (read/write/delete/reset/import brand files)
-│ │ ├── run.ts — mktg run (skill execution logging)
-│ │ ├── plan.ts — mktg plan (task tracking, plan next, --learning flag)
-│ │ ├── context.ts — mktg context (project context for skills)
-│ │ ├── compete.ts — mktg compete (competitor monitoring loop)
-│ │ ├── update.ts — mktg update (re-sync bundled skills + agents from package)
-│ │ ├── transcribe.ts — mktg transcribe (whisper-cli + yt-dlp + ffmpeg pipeline)
-│ │ └── dashboard.ts — mktg dashboard (brand overview)
+│ │ ├── doctor.ts  -  mktg doctor (health checks, tool detection, catalog health)
+│ │ ├── schema.ts  -  mktg schema (agent self-discovery, line 42: catalog import)
+│ │ ├── init.ts  -  mktg init (project bootstrap, installs skills + agents)
+│ │ ├── status.ts  -  mktg status (brand health, integration status, skill count)
+│ │ ├── list.ts  -  mktg list (all skills + agents with install status, --routing flag)
+│ │ ├── brand.ts  -  mktg brand (read/write/delete/reset/import brand files)
+│ │ ├── run.ts  -  mktg run (skill execution logging)
+│ │ ├── plan.ts  -  mktg plan (task tracking, plan next, --learning flag)
+│ │ ├── context.ts  -  mktg context (project context for skills)
+│ │ ├── compete.ts  -  mktg compete (competitor monitoring loop)
+│ │ ├── update.ts  -  mktg update (re-sync bundled skills + agents from package)
+│ │ ├── transcribe.ts  -  mktg transcribe (whisper-cli + yt-dlp + ffmpeg pipeline)
+│ │ └── dashboard.ts  -  mktg dashboard (brand overview)
 │ └── core/
-│ ├── catalogs.ts — loadCatalogManifest + license allowlist + collision detection
-│ ├── output.ts — JSON/TTY formatting, --fields filtering, getNestedValue (walks arrays)
-│ ├── errors.ts — 6 validators: rejectControlChars, validateResourceId, detectDoubleEncoding,
+│ ├── catalogs.ts  -  loadCatalogManifest + license allowlist + collision detection
+│ ├── output.ts  -  JSON/TTY formatting, --fields filtering, getNestedValue (walks arrays)
+│ ├── errors.ts  -  6 validators: rejectControlChars, validateResourceId, detectDoubleEncoding,
 │ │ validatePathInput, sandboxPath, parseJsonInput
-│ ├── brand.ts — brand dir management, freshness assessment, template detection
-│ ├── skills.ts — skill registry, install to ~/.claude/skills/, integrity verification
-│ ├── skill-add.ts — external skill chaining (mktg skill add)
-│ ├── agents.ts — agent registry, install to ~/.claude/agents/
-│ └── transcribe.ts — whisper.cpp + yt-dlp + ffmpeg orchestration
-├── skills/ — 50 SKILL.md files (see §Skills below)
-├── agents/ — 5 agent .md files (see §Agents below)
-├── skills-manifest.json — 63 skills: triggers, categories, layers, reads, writes, env_vars
-├── agents-manifest.json — 5 agents: categories, files, reads, writes, tier
-├── catalogs-manifest.json — 1 catalog (postiz): capabilities, auth, transport, license
-├── brand/SCHEMA.md — schema for all 10 brand files
-├── CLAUDE.md — 198 lines: development contract
-├── AGENTS.md — 163 lines: drop-in skill/agent/catalog contracts
-├── CONTEXT.md — 121 lines: command reference
-├── docs/integration/ — postiz design specs (from the integration session):
-│ └── postiz-api-reference.md — 857 lines: every endpoint, DTO, auth, rate limits
-└── docs/audits/ — DX 21/21 audit reports (3 files, one per axis group)
+│ ├── brand.ts  -  brand dir management, freshness assessment, template detection
+│ ├── skills.ts  -  skill registry, install to ~/.claude/skills/, integrity verification
+│ ├── skill-add.ts  -  external skill chaining (mktg skill add)
+│ ├── agents.ts  -  agent registry, install to ~/.claude/agents/
+│ └── transcribe.ts  -  whisper.cpp + yt-dlp + ffmpeg orchestration
+├── skills/  -  50 SKILL.md files (see §Skills below)
+├── agents/ - 6 agent .md files (see §Agents below)
+├── skills-manifest.json  -  63 skills: triggers, categories, layers, reads, writes, env_vars
+├── agents-manifest.json - 6 agents: categories, files, reads, writes, tier
+├── catalogs-manifest.json  -  1 catalog (postiz): capabilities, auth, transport, license
+├── brand/SCHEMA.md  -  schema for all 10 brand files
+├── CLAUDE.md  -  198 lines: development contract
+├── AGENTS.md  -  163 lines: drop-in skill/agent/catalog contracts
+├── CONTEXT.md  -  121 lines: command reference
+├── docs/integration/  -  postiz design specs (from the integration session):
+│ └── postiz-api-reference.md  -  857 lines: every endpoint, DTO, auth, rate limits
+└── docs/audits/  -  DX 21/21 audit reports (3 files, one per axis group)
 ```
 
 **mktg CLI commands the studio calls:**
@@ -217,11 +217,11 @@ type CommandResult<T> =
  | { ok: false; error: MktgError; exitCode: 1|2|3|4|5|6 }
 ```
 
-### 2. postiz — social distribution (external, AGPL-firewalled)
+### 2. postiz  -  social distribution (external, AGPL-firewalled)
 
 ```
 Repo: github.com/gitroomhq/postiz-app (NEVER fork or clone into this repo)
-License: AGPL-3.0 — API-only. Network boundary = license boundary.
+License: AGPL-3.0  -  API-only. Network boundary = license boundary.
 Hosted: https://api.postiz.com (Stripe-gated)
 Self-host: Docker (6 containers: Postgres + Redis + Temporal + Elasticsearch + app + worker)
 API base: ${POSTIZ_API_BASE}/public/v1/
@@ -247,9 +247,9 @@ Rate limit: 30 POST /public/v1/posts per hour per org
 
 **Full API reference:** `~/projects/mktgmono/marketing-cli/docs/integration/postiz-api-reference.md` (857 lines)
 
-## /cmo — The Brain (2,400 lines of orchestration knowledge)
+## /cmo  -  The Brain (2,400 lines of orchestration knowledge)
 
-/cmo is the single most important skill. The studio is a visual dashboard that /cmo drives. The user talks to /cmo in their Claude Code terminal (not inside the studio). /cmo then calls the studio's HTTP API to log activity, switch tabs, refresh brand-backed queries, or show toasts. Every "run a skill" / "what should I do next" still happens in /cmo — the studio just reflects the state.
+/cmo is the single most important skill. The studio is a visual dashboard that /cmo drives. The user talks to /cmo in their Claude Code terminal (not inside the studio). /cmo then calls the studio's HTTP API to log activity, switch tabs, refresh brand-backed queries, or show toasts. Every "run a skill" / "what should I do next" still happens in /cmo  -  the studio just reflects the state.
 
 ```
 Source: ~/projects/mktgmono/marketing-cli/skills/cmo/SKILL.md (478 lines)
@@ -294,15 +294,15 @@ Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
 | Skill | Triggers (from manifest) | Reads | Writes |
 |---|---|---|---|
 | `cmo` | "help me market", "what should I do next", any marketing request | all brand/ files | routes to other skills |
-| `brand-voice` | "define brand voice", "extract voice" | — | brand/voice-profile.md |
+| `brand-voice` | "define brand voice", "extract voice" |  -  | brand/voice-profile.md |
 | `positioning-angles` | "positioning", "unique selling proposition", "how do I stand out" | voice-profile, audience | brand/positioning.md |
-| `audience-research` | "target audience", "buyer persona", "ICP" | — | brand/audience.md |
-| `competitive-intel` | "competitors", "competitive analysis" | — | brand/competitors.md |
-| `landscape-scan` | "market landscape", "ecosystem snapshot" | — | brand/landscape.md |
-| `brainstorm` | "brainstorm", "I don't know", vague marketing ask | all brand/ files | — |
-| `create-skill` | "create a skill", "new skill", "extend playbook" | — | skills/<name>/SKILL.md |
+| `audience-research` | "target audience", "buyer persona", "ICP" |  -  | brand/audience.md |
+| `competitive-intel` | "competitors", "competitive analysis" |  -  | brand/competitors.md |
+| `landscape-scan` | "market landscape", "ecosystem snapshot" |  -  | brand/landscape.md |
+| `brainstorm` | "brainstorm", "I don't know", vague marketing ask | all brand/ files |  -  |
+| `create-skill` | "create a skill", "new skill", "extend playbook" |  -  | skills/<name>/SKILL.md |
 | `deepen-plan` | "deepen this plan", "add research to plan" | existing plan | enhanced plan |
-| `document-review` | "audit brand files", "review brand docs" | all brand/ files | — |
+| `document-review` | "audit brand files", "review brand docs" | all brand/ files |  -  |
 | `voice-extraction` | "reverse-engineer voice", "analyze writing style" | content samples | voice analysis |
 
 ### Distribution (10 skills)
@@ -363,7 +363,7 @@ Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
 | `pricing-strategy` | strategy | Van Westendorp, packaging, monetization |
 | `marketing-psychology` | knowledge | Cialdini's 6 principles, cognitive biases |
 | `ai-check` | review | Line-by-line AI slop detection |
-| `editorial-first-pass` | review | Hook, thesis, promise, stakes — pass/fail |
+| `editorial-first-pass` | review | Hook, thesis, promise, stakes  -  pass/fail |
 | `ai-seo` | review | AI search optimization (ChatGPT, Perplexity, Claude, Gemini) |
 | `competitor-alternatives` | review | "X vs Y" and "X alternatives" SEO pages |
 | `landscape-scan` | infrastructure | Ecosystem snapshot + Claims Blacklist |
@@ -563,19 +563,19 @@ CREATE TABLE metric_baselines (
 ## New Files to Create
 
 ```
-server.ts — Bun.serve: local API server (SQLite + SSE + mktg bridge + /cmo bridge)
-db/schema.sql — SQLite schema (above)
-db/migrations/ — schema migration files
-lib/mktg.ts — mktg CLI bridge: spawn + parse CommandResult<T> + typed wrappers
-lib/agent.ts — Claude Code bridge: send messages to /cmo, receive responses
-lib/sse.ts — SSE event emitter (server) + useSSE hook (client)
-lib/sqlite.ts — SQLite connection + typed query helpers
-lib/watcher.ts — brand/ file watcher (Bun.watch) → SSE events
-lib/postiz.ts — thin postiz API client (mirrors mktg's postizFetch for direct queries)
-lib/jobs.ts — background job queue for long-running skill executions
-app/(dashboard)/publish/ — new Publish tab route
-components/workspace/publish/ — Publish tab components
-components/workspace/skill-browser/ — skill browser + execution trigger UI
+server.ts  -  Bun.serve: local API server (SQLite + SSE + mktg bridge + /cmo bridge)
+db/schema.sql  -  SQLite schema (above)
+db/migrations/  -  schema migration files
+lib/mktg.ts  -  mktg CLI bridge: spawn + parse CommandResult<T> + typed wrappers
+lib/agent.ts  -  Claude Code bridge: send messages to /cmo, receive responses
+lib/sse.ts  -  SSE event emitter (server) + useSSE hook (client)
+lib/sqlite.ts  -  SQLite connection + typed query helpers
+lib/watcher.ts  -  brand/ file watcher (Bun.watch) → SSE events
+lib/postiz.ts  -  thin postiz API client (mirrors mktg's postizFetch for direct queries)
+lib/jobs.ts  -  background job queue for long-running skill executions
+app/(dashboard)/publish/  -  new Publish tab route
+components/workspace/publish/  -  Publish tab components
+components/workspace/skill-browser/  -  skill browser + execution trigger UI
 ```
 
 ## Build Phases
@@ -589,17 +589,17 @@ components/workspace/skill-browser/ — skill browser + execution trigger UI
 - Verify: `bun dev` starts Next.js on localhost:3000 (empty dashboard)
 
 ### Phase 2: Wire Infrastructure (3-4 days)
-- Build lib/mktg.ts — shells out to `mktg <cmd> --json`, parses CommandResult, typed wrappers
-- Build lib/sqlite.ts — connection, query helpers, migration runner
-- Build lib/watcher.ts — Bun.watch on brand/ → SSE events
-- Build lib/sse.ts — server-side EventSource emitter + client useSSE hook
+- Build lib/mktg.ts  -  shells out to `mktg <cmd> --json`, parses CommandResult, typed wrappers
+- Build lib/sqlite.ts  -  connection, query helpers, migration runner
+- Build lib/watcher.ts  -  Bun.watch on brand/ → SSE events
+- Build lib/sse.ts  -  server-side EventSource emitter + client useSSE hook
 - Wire Pulse tab: mktg status + plan next → render cards
 - Verify: change brand/voice-profile.md → Pulse tab updates in <2s
 
 ### Phase 3: Wire /cmo → studio API (3-4 days)
 - Build studio HTTP endpoints /cmo calls: `POST /api/activity/log`, `POST /api/navigate`, `POST /api/toast`, `POST /api/brand/refresh`
-- Build the Activity panel that replaces the old chat slot — seeded from `/api/activity`, streamed from `/api/events`
-- Build lib/jobs.ts — background job queue for long-running skills (reports progress via `POST /api/activity/log`)
+- Build the Activity panel that replaces the old chat slot  -  seeded from `/api/activity`, streamed from `/api/events`
+- Build lib/jobs.ts  -  background job queue for long-running skills (reports progress via `POST /api/activity/log`)
 - Verify: running /cmo in Claude Code → studio Activity panel lights up; /cmo can switch tabs and fire toasts remotely
 
 ### Phase 4: Port primary surfaces (5-7 days)
@@ -629,13 +629,13 @@ components/workspace/skill-browser/ — skill browser + execution trigger UI
 
 > Fuse two layers into a local-first marketing studio that makes a solo builder feel like they have a full marketing department on their laptop.
 >
-> **Dashboard layer (this repo)**: 5 workspace tabs (Pulse, Signals, Publish, Brand, Settings), Activity panel, signal severity scoring. Local-first — no cloud dependencies.
+> **Dashboard layer (this repo)**: 5 workspace tabs (Pulse, Signals, Publish, Brand, Settings), Activity panel, signal severity scoring. Local-first  -  no cloud dependencies.
 >
-> **mktg** is the marketing brain — 63 skills, /cmo orchestrator (2,400 lines of routing knowledge), brand memory (10 files that compound), upstream catalogs. This is the engine. Everything runs through `mktg --json` for infrastructure and /cmo for intelligence.
+> **mktg** is the marketing brain  -  63 skills, /cmo orchestrator (2,400 lines of routing knowledge), brand memory (10 files that compound), upstream catalogs. This is the engine. Everything runs through `mktg --json` for infrastructure and /cmo for intelligence.
 >
-> **postiz** is the distribution layer — 30+ social providers via REST API. AGPL-firewalled. Call it, never fork it.
+> **postiz** is the distribution layer  -  30+ social providers via REST API. AGPL-firewalled. Call it, never fork it.
 >
-> **The one rule:** /cmo runs in Claude Code (the user's terminal) and *drives* the studio over HTTP. The studio is a dashboard + API — it never opens a Claude Code session, never imports `ai`/`@ai-sdk/react`, and never has an in-app chat widget. Skills call mktg CLI.
+> **The one rule:** /cmo runs in Claude Code (the user's terminal) and *drives* the studio over HTTP. The studio is a dashboard + API  -  it never opens a Claude Code session, never imports `ai`/`@ai-sdk/react`, and never has an in-app chat widget. Skills call mktg CLI.
 >
 > **Quality bar:** Linear-fast, information-dense. Every skill execution surfaces in the Activity panel. Every brand file change ripples through the dashboard in real time via SSE. Works offline except for postiz.
 >

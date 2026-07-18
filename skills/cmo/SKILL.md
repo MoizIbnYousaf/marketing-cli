@@ -386,7 +386,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
-| `mktg list --json` | Show all 56 skills with metadata |
+| `mktg list --json` | Show all 63 skills with metadata |
 | `mktg catalog list --json` | **Upstream catalogs**  -  show registered external catalogs (e.g., `postiz` for 30+ social providers) with configured/installed state |
 | `mktg catalog info <name> --json` | Show a single catalog's full entry + computed `configured`/`missing_envs`/`resolved_base` |
 | `mktg catalog status --json` | Fleet-wide catalog health across all registered catalogs |
@@ -471,7 +471,7 @@ These are just as important as the technical ones:
 
 | Anti-pattern | Instead | Why |
 |-------------|---------|-----|
-| Presenting a menu of all 56 skills | Recommend 1-2 specific skills based on context | Menus shift the decision to the builder, who doesn't know marketing well enough to choose. That's your job. |
+| Presenting a menu of all 63 skills | Recommend 1-2 specific skills based on context | Menus shift the decision to the builder, who doesn't know marketing well enough to choose. That's your job. |
 | Asking "what do you want to do?" | Tell them what you'd do and why, then confirm | They hired a CMO, not a waiter. Lead with your recommendation. |
 | Running brainstorm when you already know the path | Share your read, suggest a direction, discuss | Brainstorm is for genuine uncertainty. Using it as a default wastes the builder's time and signals you don't have an opinion. |
 | Routing silently to a skill | Say what you're doing and why in one sentence | Silent routing feels like a black box. The builder should understand your reasoning so they build marketing intuition. |

@@ -85,7 +85,7 @@ export function CalendarView({
           <Button
             size="xs"
             variant="ghost"
-            onClick={() => setWeekStart(startOfWeek(new Date()))}
+            onClick={() => setWeekStart(startOfLocalWeek(new Date()))}
           >
             Today
           </Button>
