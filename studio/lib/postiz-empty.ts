@@ -1,6 +1,6 @@
 /**
  * Shared copy for Postiz empty / degraded states.
- * Postiz is optional — mktg-native covers the local queue without it.
+ * Postiz is optional - mktg-native covers the local queue without it.
  */
 
 export type PostizEmptyKind = "providers" | "queue" | "calendar"

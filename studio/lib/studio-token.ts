@@ -79,7 +79,7 @@ export function studioAuthHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-/** JSON POST with bearer auth — canonical helper for dashboard mutations. */
+/** JSON POST with bearer auth: canonical helper for dashboard mutations. */
 export async function studioJsonPost(
   url: string,
   body?: unknown,

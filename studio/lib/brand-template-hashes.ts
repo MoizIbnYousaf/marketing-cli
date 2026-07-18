@@ -1,7 +1,7 @@
 /**
  * SHA-256 digests of the mktg CLI `BRAND_TEMPLATES` seeds
  * (`src/core/brand.ts`). Studio template detection must match
- * `isTemplateContent()` — exact hash equality, nothing else.
+ * `isTemplateContent()`: exact hash equality, nothing else.
  *
  * Regenerate after editing CLI templates:
  *   bun -e 'import { BRAND_TEMPLATES } from "./src/core/brand.ts";

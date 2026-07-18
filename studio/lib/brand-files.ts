@@ -57,7 +57,7 @@ export function getSpec(name: string): BrandFileSpec | null {
 //
 // Exact SHA-256 match against the CLI's `BRAND_TEMPLATES` digests
 // (`CLI_BRAND_TEMPLATE_SHA256`). Same contract as `isTemplateContent()` in
-// `src/core/brand.ts` — no char-count heuristics, no HTML-comment scans.
+// `src/core/brand.ts`: no char-count heuristics, no HTML-comment scans.
 
 const MODULE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -87,7 +87,7 @@ function samePath(a: string, b: string): boolean {
 
 /**
  * Resolve a marketing-cli package root that may hold seed brand scaffolds.
- * Used by foundation / regenerate paths — not by `looksLikeTemplate`
+ * Used by foundation / regenerate paths; not by `looksLikeTemplate`
  * (which uses `CLI_BRAND_TEMPLATE_SHA256` instead).
  *
  * Never returns the *project's* own `brand/` directory (self-compare would
