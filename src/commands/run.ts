@@ -99,6 +99,34 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     ], DOCS.skills);
   }
 
+  // Validate --writes BEFORE any dependency lookup (manifest, install dir):
+  // static input errors must precede environment errors, so an agent gets
+  // INVALID_ARGS about its payload whether or not skills are installed.
+  // Every path must pass the sandbox pipeline AND exist — recording work
+  // that didn't happen is the exact lie this command exists to prevent.
+  const validatedWrites: string[] = [];
+  if (wantComplete && writesList.length > 0) {
+    const writeErrors: string[] = [];
+    for (const w of writesList) {
+      const check = validatePathInput(flags.cwd, w);
+      if (!check.ok) {
+        writeErrors.push(`'${w}': ${check.message}`);
+        continue;
+      }
+      if (!(await Bun.file(check.path).exists())) {
+        writeErrors.push(`'${w}': file does not exist`);
+        continue;
+      }
+      validatedWrites.push(w);
+    }
+    if (writeErrors.length > 0) {
+      return invalidArgs(`Invalid --writes: ${writeErrors.join("; ")}`, [
+        "Writes must be existing files inside the project (brand/, marketing/, .mktg/)",
+        "Create the files first, then record completion with the same command",
+      ], DOCS.skills);
+    }
+  }
+
   // Lane 1 / Wave A audit fix: every other resource-name command in the
   // registry validates its positional via these two checks; `mktg run`
   // was the lone gap. Reject control chars + cap length at 128 BEFORE
@@ -153,32 +181,6 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     }));
   }
   const now = new Date().toISOString();
-
-  // Validate --writes: every path must pass the sandbox pipeline AND exist.
-  // Recording work that didn't happen is the exact lie this command now
-  // exists to prevent — invalid writes fail loudly with fix guidance.
-  const validatedWrites: string[] = [];
-  if (wantComplete && writesList.length > 0) {
-    const writeErrors: string[] = [];
-    for (const w of writesList) {
-      const check = validatePathInput(flags.cwd, w);
-      if (!check.ok) {
-        writeErrors.push(`'${w}': ${check.message}`);
-        continue;
-      }
-      if (!(await Bun.file(check.path).exists())) {
-        writeErrors.push(`'${w}': file does not exist`);
-        continue;
-      }
-      validatedWrites.push(w);
-    }
-    if (writeErrors.length > 0) {
-      return invalidArgs(`Invalid --writes: ${writeErrors.join("; ")}`, [
-        "Writes must be existing files inside the project (brand/, marketing/, .mktg/)",
-        "Create the files first, then record completion with the same command",
-      ], DOCS.skills);
-    }
-  }
 
   // Surface prior run context — agent sees usage history with every load
   const lastRun = await getLastRun(flags.cwd, resolved.name);
