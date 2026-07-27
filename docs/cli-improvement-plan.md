@@ -33,9 +33,9 @@
 |---|---|---|---|---|
 | 0 | Plan authored (this doc) | `completed` | — | 2026-07-18 |
 | 1 | Honest skill lifecycle (`loaded` vs `completed`) | `completed` | #43 | 2026-07-27 — `event` field, `--complete/--writes/--result`, dual-read legacy |
-| 2 | One-shot activation (`run --with-context`) | `completed` | cursor/run-with-context-ccd8 | 2026-07-27 — shared context-compiler; reads-first selection; templatesSkipped/budgetDropped signals |
+| 2 | One-shot activation (`run --with-context`) | `completed` | #44 | 2026-07-27 — shared context-compiler; reads-first selection; templatesSkipped/budgetDropped signals |
 | 3 | Outcome-aware `plan` / `status` / dashboard | `completed` | #43 | 2026-07-27 — plan reads completed-only; distribute needs artifacts/completed runs; health counts non-template; dashboard readiness completed-only |
-| 4 | Rich prerequisites + `--strict` | `completed` | cursor/run-with-context-ccd8 | 2026-07-27 — envs/tools/catalogs in `missing`; shared tool registry with doctor; strict exits 3 |
+| 4 | Rich prerequisites + `--strict` | `completed` | #44 | 2026-07-27 — envs/tools/catalogs in `missing`; shared tool registry with doctor; strict exits 3 |
 | 5 | Publish truth + promote path | `pending` | | |
 | 6 | Portable `mktg route` (+ CMO runner clarity) | `pending` | | |
 | 7 | Studio vs dashboard consolidation | `pending` | | |
