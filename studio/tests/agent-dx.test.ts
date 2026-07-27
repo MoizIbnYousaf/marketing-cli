@@ -15,11 +15,7 @@ import { spawn } from "bun";
 import { join } from "node:path";
 import { parseNdjson } from "../lib/ndjson.ts";
 
-// Port note: must stay unique across studio test files — bun runs files
-// concurrently, and two files sharing a port make each other's fetches hit
-// the wrong server (whichever wins the bind race). 3997 is taken by
-// tests/server/mktg-bridge-routes.test.ts.
-const TEST_PORT = 3993;
+const TEST_PORT = 3997;
 const BASE = `http://127.0.0.1:${TEST_PORT}`;
 const ROOT = join(import.meta.dir, "..");
 
@@ -182,6 +178,11 @@ describe("axis 3 — schema introspection", () => {
 describe("axis 4 — context window discipline", () => {
   test("/api/activity supports ?fields= dot-notation", async () => {
     const res = await fetch(`${BASE}/api/activity?fields=id,kind`);
+    if (!res.ok) {
+      // Diagnostic: the failure mode differs by environment (fresh DB vs
+      // seeded); surface the actual envelope instead of a bare boolean.
+      console.error(`[agent-dx] /api/activity?fields=id,kind -> ${res.status}: ${await res.text()}`);
+    }
     expect(res.ok).toBe(true);
     const body = (await res.json()) as { ok: boolean; data: unknown[] };
     expect(body.ok).toBe(true);
