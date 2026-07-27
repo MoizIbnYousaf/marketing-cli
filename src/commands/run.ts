@@ -9,12 +9,9 @@ import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory, isCompletedRecord } from "../core/run-log";
 import { compileBrandContext, filesForSkillActivation, type ContextFileEntry } from "../core/context-compiler";
-import { parseRunFlags, validateCompletionWrites } from "../core/run-flags";
+import { parseRunFlags, validateCompletionWrites, isRunOutcome, RUN_OUTCOME_VALUES, type RunOutcome } from "../core/run-flags";
 import { appendLearning, type LearningEntry } from "../core/brand";
 import { writeStderr } from "../core/output";
-
-const VALID_RUN_RESULTS = ["success", "partial", "failed"] as const;
-type RunOutcome = typeof VALID_RUN_RESULTS[number];
 
 type ActivationContext = {
   readonly layer: string;
@@ -94,15 +91,17 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
 
   // Parse --result / --writes (completion-only flags) and --budget
   const parsed = parseRunFlags(args);
-  const resultArg = parsed.resultArg as RunOutcome | undefined;
+  const resultRaw = parsed.resultArg;
   const writesList = parsed.writesList;
   const budget = parsed.budget;
 
-  if (resultArg !== undefined && !VALID_RUN_RESULTS.includes(resultArg)) {
-    return invalidArgs(`Invalid --result '${resultArg}'`, [
-      `Valid values: ${VALID_RUN_RESULTS.join(" | ")}`,
+  if (resultRaw !== undefined && !isRunOutcome(resultRaw)) {
+    return invalidArgs(`Invalid --result '${resultRaw}'`, [
+      `Valid values: ${RUN_OUTCOME_VALUES.join(" | ")}`,
     ], DOCS.skills);
   }
+  // Guard above narrows: defined values are RunOutcome, no cast needed.
+  const resultArg: RunOutcome | undefined = resultRaw;
   if (!wantComplete && (resultArg !== undefined || writesList.length > 0)) {
     return invalidArgs("--result and --writes require --complete", [
       "Usage: mktg run <skill> --complete [--result success] [--writes path1,path2]",

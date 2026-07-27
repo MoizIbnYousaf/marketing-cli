@@ -4,6 +4,16 @@
 // no manifest access.
 
 import { validatePathInput } from "./errors";
+import { flagValue, flagValues } from "./args";
+
+const VALID_RUN_RESULTS = ["success", "partial", "failed"] as const;
+export type RunOutcome = typeof VALID_RUN_RESULTS[number];
+
+/** Type guard — lets callers validate before narrowing instead of casting. */
+export const isRunOutcome = (value: string): value is RunOutcome =>
+  (VALID_RUN_RESULTS as readonly string[]).includes(value);
+
+export const RUN_OUTCOME_VALUES = VALID_RUN_RESULTS;
 
 export type RunFlagParse = {
   readonly resultArg: string | undefined;
@@ -11,24 +21,13 @@ export type RunFlagParse = {
   readonly budget: number | undefined;
 };
 
-/** Parse --result / --writes / --budget from raw args (both `--flag value` and `--flag=value` forms). */
+/** Parse --result / --writes / --budget via the canonical args helpers. */
 export const parseRunFlags = (args: readonly string[]): RunFlagParse => {
-  let resultArg: string | undefined;
-  const writesRaw: string[] = [];
-  let budget: number | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === "--result" && args[i + 1]) { resultArg = args[i + 1]!; i++; }
-    else if (a.startsWith("--result=")) { resultArg = a.slice(9); }
-    else if (a === "--writes" && args[i + 1]) { writesRaw.push(...args[i + 1]!.split(",")); i++; }
-    else if (a.startsWith("--writes=")) { writesRaw.push(...a.slice(9).split(",")); }
-    else if (a === "--budget" && args[i + 1]) { budget = parseInt(args[i + 1]!, 10); i++; }
-    else if (a.startsWith("--budget=")) { budget = parseInt(a.slice(9), 10); }
-  }
+  const budgetRaw = flagValue(args, "--budget");
   return {
-    resultArg,
-    writesList: writesRaw.map(w => w.trim()).filter(Boolean),
-    budget,
+    resultArg: flagValue(args, "--result"),
+    writesList: flagValues(args, "--writes"),
+    budget: budgetRaw !== undefined ? parseInt(budgetRaw, 10) : undefined,
   };
 };
 

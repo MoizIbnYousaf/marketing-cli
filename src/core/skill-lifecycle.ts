@@ -371,7 +371,15 @@ export const checkPrerequisites = async (
     }
   }
 
-  // Check reads brand files exist and have real content (not template)
+  // Check reads brand files exist and have real content (not template).
+  // writerIndex is built once — findSkillThatWrites would otherwise rescan
+  // every manifest entry for each missing file.
+  const writerIndex = new Map<string, string>();
+  for (const [name, skillEntry] of Object.entries(manifest.skills)) {
+    for (const w of skillEntry.writes) {
+      if (!writerIndex.has(w)) writerIndex.set(w, name);
+    }
+  }
   const brandDir = join(cwd, "brand");
   for (const readFile of entry.reads) {
     const normalized = readFile.replace(/^brand\//, "") as BrandFile;
@@ -383,8 +391,7 @@ export const checkPrerequisites = async (
 
     if (!exists) {
       missingBrandFiles.push(normalized);
-      // Find which skill writes this file
-      const writer = findSkillThatWrites(normalized, manifest);
+      const writer = writerIndex.get(normalized) ?? null;
       remediation.push(
         writer
           ? `Run /${writer} to create ${normalized}`
@@ -395,7 +402,7 @@ export const checkPrerequisites = async (
       const content = await file.text();
       if (isTemplateContent(normalized, content)) {
         missingBrandFiles.push(normalized);
-        const writer = findSkillThatWrites(normalized, manifest);
+        const writer = writerIndex.get(normalized) ?? null;
         remediation.push(
           writer
             ? `Run /${writer} to populate ${normalized} (currently template)`
@@ -461,17 +468,6 @@ export const checkPrerequisites = async (
     missing: { skills: missingSkills, brandFiles: missingBrandFiles, envs: missingEnvs, tools: missingTools, catalogs: missingCatalogs },
     remediation,
   };
-};
-
-// Find the first skill that writes a given brand file
-const findSkillThatWrites = (
-  brandFile: string,
-  manifest: SkillsManifest,
-): string | null => {
-  for (const [name, entry] of Object.entries(manifest.skills)) {
-    if (entry.writes.includes(brandFile)) return name;
-  }
-  return null;
 };
 
 // --- Skill info ---
