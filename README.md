@@ -56,7 +56,7 @@ You ask your agent for marketing help. It writes generic copy and forgets your a
 
 | | |
 |---|---|
-| **`mktg` CLI** | 20 commands, 21/21 Agent DX score, JSON-by-default |
+| **`mktg` CLI** | 21 commands, 21/21 Agent DX score, JSON-by-default |
 | **65 marketing skills** | The playbook, copied to `~/.claude/skills/` |
 | **5 research + review agents** | Parallel sub-agents in `~/.claude/agents/` |
 | **10 brand memory files** | Persistent marketing memory in your project's `brand/` (10 templates plus `SCHEMA.md`), created by `mktg init` |
@@ -179,7 +179,7 @@ Other marketing skill repos give you a folder of markdown files. mktg is infrast
 | | mktg | Other skill repos |
 |---|---|---|
 | **Install** | `npm i -g marketing-cli && mktg init` | `git clone` then manually copy files |
-| **CLI** | 20 commands, JSON output, exit codes, `--dry-run` | None |
+| **CLI** | 21 commands, JSON output, exit codes, `--dry-run` | None |
 | **Memory** | 10 brand files that compound across sessions | Stateless. Starts from scratch every time. |
 | **Health checks** | `mktg doctor` with pass/warn/fail diagnostics | None |
 | **Skill lifecycle** | Dependency DAG, freshness tracking, versioning | Flat directory of markdown |

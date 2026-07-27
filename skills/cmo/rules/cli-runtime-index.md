@@ -51,12 +51,13 @@ Current runtime command set:
 | `skill` | Inspect, validate, register, add, log, and analyze skills. |
 | `brand` | Read/write/export/import/diff/reset brand memory. |
 | `run` | Load a skill for agent consumption and record execution. |
+| `route` | Portable deterministic skill routing (no LLM) — trigger/playbook table → `{skill, playbook, confidence, rationale, nextCommand}`. Use when the `claude` binary is unavailable or for CI; /cmo remains the richer LLM router. |
 | `transcribe` | Download and transcribe audio/video sources. |
 | `context` | Compile token-budgeted brand context. |
 | `plan` | Get or persist the prioritized execution loop. |
 | `publish` | Route content to native, Postiz, Typefully, Resend, or file adapters. |
 | `compete` | Watch, scan, list, and diff competitor pages. |
-| `dashboard` | Read typed dashboard contracts for local command-center views. |
+| `dashboard` | JSON command-center contracts (snapshot/plan/outputs/publish/system/compete). Bare `mktg dashboard` is deprecated — the canonical human UI is `mktg studio`. |
 | `catalog` | Inspect and sync upstream service catalogs such as Postiz. |
 | `studio` | Launch or preview the companion local Studio, including CMO startup sessions. |
 | `verify` | Run ecosystem verification suites. |

@@ -37,9 +37,9 @@
 | 3 | Outcome-aware `plan` / `status` / dashboard | `completed` | #43 | 2026-07-27 — plan reads completed-only; distribute needs artifacts/completed runs; health counts non-template; dashboard readiness completed-only |
 | 4 | Rich prerequisites + `--strict` | `completed` | #44 | 2026-07-27 — envs/tools/catalogs in `missing`; shared tool registry with doctor; strict exits 3 |
 | 5 | Publish truth + promote path | `completed` | #45 | 2026-07-27 — per-item status enum across 5 adapters + Studio chip parity; promote path deferred (separate PR) |
-| 6 | Portable `mktg route` (+ CMO runner clarity) | `pending` | | |
-| 7 | Studio vs dashboard consolidation | `pending` | | |
-| 8 | Studio npm resolve + doctor check | `pending` | | Small; can jump ahead |
+| 6 | Portable `mktg route` (+ CMO runner clarity) | `completed` | cursor/portable-route-ccd8 | 2026-07-27 — deterministic trigger/playbook router, no LLM |
+| 7 | Studio vs dashboard consolidation | `completed` | cursor/portable-route-ccd8 | 2026-07-27 — bare dashboard → deprecation envelope (removeBy v0.9.0); studio canonical |
+| 8 | Studio npm resolve + doctor check | `completed` | cursor/portable-route-ccd8 | 2026-07-27 — tarball-first suggestions + `studio-launcher-resolves` doctor check |
 | 9 | Catalog sync/probe (or un-advertise) | `pending` | | |
 | 10 | Skill script exec allowlist | `pending` | | Bigger bet |
 | 11 | Strict skill-contract enforcement | `pending` | | |

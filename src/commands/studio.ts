@@ -41,12 +41,14 @@ const DEFAULT_STUDIO_PORT = "3001";
 const DEFAULT_DASHBOARD_PORT = "3000";
 const LOCAL_STUDIO_LAUNCHER = join("bin", "mktg-studio.ts");
 
-// mktg-studio is currently maintainer-only: the package is not yet published
-// to npm. The working install paths are the in-repo `studio/` subfolder
-// (when running from a marketing-cli source checkout), a sibling checkout, an
-// explicit MKTG_STUDIO_BIN env var, or a `bun link`'d local checkout. Don't
-// suggest `npm i -g mktg-studio` here: the registry returns 404 for it today.
+// Studio ships INSIDE the marketing-cli tarball — any working
+// `npm i -g marketing-cli` already has `studio/bin/mktg-studio.ts` under the
+// package root, and resolution prefers that packaged path first. The
+// standalone `mktg-studio` package is maintainer-only (npm 404) — never
+// suggest installing it. Missing-launcher recovery is about repairing or
+// overriding the marketing-cli install, not installing a second package.
 const INSTALL_SUGGESTIONS: readonly string[] = [
+  "Reinstall marketing-cli (studio ships inside its tarball): npm i -g marketing-cli",
   "Run from a marketing-cli source checkout: the studio/ subfolder is the default launcher",
   "Or use a sibling checkout: ~/projects/mktgmono/mktg-studio",
   "Or set MKTG_STUDIO_BIN=/absolute/path/to/mktg-studio/bin/mktg-studio.ts",
@@ -183,7 +185,8 @@ const resolveExplicitLauncher = (): string | null => {
 // Passes PATH explicitly so the lookup honors the current `process.env.PATH`
 // (Bun.which otherwise uses a snapshot taken at interpreter start, which
 // ignores any PATH exports made after boot — including those done by tests).
-const resolveStudioLauncher = (): ResolvedStudioLauncher | null => {
+// Exported for doctor's studio-launcher-resolves check.
+export const resolveStudioLauncher = (): ResolvedStudioLauncher | null => {
   const explicit = resolveExplicitLauncher();
   if (explicit) {
     return { binary: explicit, cmd: launcherCommand(explicit) };

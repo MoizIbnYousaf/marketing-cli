@@ -1,9 +1,5 @@
-import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
 import { join, basename, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 
 import {
   DASHBOARD_COMPETE_VERSION,
@@ -44,6 +40,7 @@ import { getRunHistory, isCompletedRecord, type RunSummaryEntry } from "../core/
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { invalidArgs, parseJsonInput, validatePathInput } from "../core/errors";
+import { isTTY, writeStderr, bold, dim, yellow } from "../core/output";
 import { ok, type CommandHandler, type CommandResult, type CommandSchema, type GlobalFlags } from "../types";
 
 const SUBCOMMANDS = {
@@ -56,9 +53,6 @@ const SUBCOMMANDS = {
   compete: "Return the typed competitive-war-room summary for the current project",
 } as const;
 
-const DASHBOARD_PORT = 4311;
-const DASHBOARD_HOST = "127.0.0.1";
-const DASHBOARD_SESSION_FILE = ".mktg/dashboard-session.json";
 const OUTPUT_DIRS = ["marketing", "campaigns", "content"] as const;
 const CONTENT_SKILLS = new Set(["seo-content", "direct-response-copy", "lead-magnet", "creative", "image-gen", "marketing-demo", "paper-marketing", "slideshow-script", "video-content", "app-store-screenshots", "frontend-slides"]);
 const DISTRIBUTION_SKILLS = new Set(["publish", "content-atomizer", "email-sequences", "newsletter", "postiz", "typefully", "send-email"]);
@@ -111,11 +105,11 @@ type CompeteWatchList = {
 
 export const schema: CommandSchema = {
   name: "dashboard",
-  description: "Local-first dashboard: project health, recommended next moves, and skill catalog",
+  description: "JSON command-center: project health, recommended next moves, and skill catalog. The canonical human UI is `mktg studio` — bare `mktg dashboard` returns a deprecation envelope (removal target v0.9.0)",
   flags: [],
   positional: {
     name: "subcommand",
-    description: "snapshot | action | plan | outputs | publish | system | compete (omit to launch the local dashboard)",
+    description: "snapshot | action | plan | outputs | publish | system | compete (omit for the deprecation envelope — use `mktg studio` for the UI)",
     required: false,
   },
   subcommands: Object.entries(SUBCOMMANDS).map(([name, description]) => ({
@@ -894,80 +888,27 @@ const handleAction = async (_args: readonly string[], flags: GlobalFlags): Promi
   }
 };
 
-const openBrowser = (url: string): void => {
-  const command =
-    process.platform === "darwin"
-      ? ["open", url]
-      : process.platform === "win32"
-        ? ["cmd", "/c", "start", url]
-        : ["xdg-open", url];
-
-  const proc = spawn(command[0]!, command.slice(1), { detached: true, stdio: "ignore" });
-  proc.unref();
-};
-
-const handleLaunch = async (flags: GlobalFlags): Promise<CommandResult> => {
-  const token = randomUUID();
-  const url = `http://${DASHBOARD_HOST}:${DASHBOARD_PORT}/dashboard`;
-  const sessionPath = join(flags.cwd, DASHBOARD_SESSION_FILE);
-
+// Bare `mktg dashboard` no longer spawns a competing UI (P7 — one UI story).
+// The dashboard command surface is JSON-only (snapshot/plan/outputs/publish/
+// system/compete/action); `mktg studio` is the canonical human UI. The legacy
+// :4311 Next dev spawn depended on a website/ dir that is not shipped, so it
+// failed in every real install anyway — the deprecation envelope is honest
+// about that and points at the working launcher.
+const handleLaunch = async (_flags: GlobalFlags): Promise<CommandResult> => {
   const payload = {
-    launched: !flags.dryRun,
-    projectRoot: flags.cwd,
-    url,
-    port: DASHBOARD_PORT,
-    sessionToken: token,
-    sessionPath,
-    mode: "local-first",
-    next: flags.dryRun
-      ? "Run mktg dashboard without --dry-run to start the local UI."
-      : "Local dashboard launch started. Open the URL if the browser does not appear.",
+    launched: false,
+    deprecated: true,
+    removeBy: "v0.9.0",
+    use: "mktg studio",
+    reason:
+      "The bare 'mktg dashboard' launcher is deprecated. 'mktg dashboard' is a JSON command-center (snapshot, plan, outputs, publish, system, compete, action). The canonical human UI is 'mktg studio'.",
+    next: "Run 'mktg studio' for the UI, or 'mktg dashboard snapshot --json' for a JSON project overview.",
   };
-
-  if (flags.dryRun) return ok(payload);
-
-  await mkdir(join(flags.cwd, ".mktg"), { recursive: true });
-  // Task #23 fix 6: session token file must be owner-read/write only. Default
-  // writeFile mode is 0644 which leaks the token to every local user on the
-  // machine — anyone with shell access could read .mktg/dashboard-session.json
-  // and hijack the running dashboard.
-  await writeFile(
-    sessionPath,
-    JSON.stringify({ token, projectRoot: flags.cwd, url, createdAt: new Date().toISOString() }, null, 2),
-    { mode: 0o600 },
-  );
-
-  // Runtime-agnostic module dir: Bun exposes `import.meta.dir` directly,
-  // but node only exposes `import.meta.url`. Using the node form works under
-  // both runtimes — required because dist/cli.js is bundled for node.
-  const moduleDir = dirname(fileURLToPath(import.meta.url));
-  const rootWebsiteDir = join(moduleDir, "..", "..", "website");
-  const localWebsiteDir = join(flags.cwd, "website");
-  const spawnCwd = existsSync(localWebsiteDir) ? localWebsiteDir : rootWebsiteDir;
-
-  const proc = spawn(
-    "bun",
-    ["x", "next", "dev", "--hostname", DASHBOARD_HOST, "--port", String(DASHBOARD_PORT)],
-    {
-      cwd: spawnCwd,
-      detached: true,
-      stdio: "ignore",
-      env: {
-        ...process.env,
-        MKTG_DASHBOARD_SESSION_TOKEN: token,
-        MKTG_DASHBOARD_PROJECT_ROOT: flags.cwd,
-        MKTG_DASHBOARD_MODE: "local",
-      },
-    },
-  );
-  proc.unref();
-
-  try {
-    openBrowser(url);
-  } catch {
-    // best effort only
+  if (isTTY()) {
+    writeStderr(`${yellow("deprecated:")} bare 'mktg dashboard' no longer launches a UI.`);
+    writeStderr(`  Use ${bold("mktg studio")} for the dashboard, or ${bold("mktg dashboard snapshot --json")} for JSON.`);
+    writeStderr(dim(`  Removal target: ${payload.removeBy}`));
   }
-
   return ok(payload);
 };
 

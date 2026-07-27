@@ -21,6 +21,9 @@ triggers:
   - directory submissions
   - AppSumo campaign
   - Hacker News launch
+  - Show HN
+  - show hn post
+  - hacker news post
   - where should I launch
   - launch across platforms
   - submit everywhere
