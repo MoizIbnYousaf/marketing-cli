@@ -5,7 +5,7 @@
 import { basename, extname, join } from "node:path";
 import { createHash } from "node:crypto";
 import { mkdir, rename, writeFile } from "node:fs/promises";
-import { ok, err, type CommandHandler, type CommandSchema, type PublishPostType } from "../types";
+import { ok, err, type CommandHandler, type CommandSchema, type PublishPostType, type PublishItemStatus, TERMINAL_PUBLISH_STATUSES } from "../types";
 import { rejectControlChars, validatePathInput, parseJsonInput } from "../core/errors";
 import { validatePublicUrl } from "../core/url-validation";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
@@ -37,8 +37,9 @@ export const schema: CommandSchema = {
   output: {
     campaign: "string — campaign name from manifest",
     adapters: "AdapterResult[] — per-adapter publish results",
+    "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (typefully, postiz) | sent (resend) | written-file (file) | failed | skipped",
     totalItems: "number — total content items processed",
-    published: "number — items successfully published",
+    published: "number — items reaching a terminal adapter status (queued-local/draft-external/sent/written-file)",
     failed: "number — items that failed",
     dryRun: "boolean — true if this was a validation-only run",
   },
@@ -76,8 +77,11 @@ type AdapterResult = {
   readonly published: number;
   readonly failed: number;
   readonly errors: readonly string[];
-  readonly results: readonly { readonly item: number; readonly status: "published" | "failed" | "skipped"; readonly detail: string; readonly postType?: PublishPostType }[];
+  readonly results: readonly { readonly item: number; readonly status: PublishItemStatus; readonly detail: string; readonly postType?: PublishPostType }[];
 };
+
+const countTerminal = (results: readonly { readonly status: PublishItemStatus }[]): number =>
+  results.filter(r => (TERMINAL_PUBLISH_STATUSES as readonly PublishItemStatus[]).includes(r.status)).length;
 
 type NativeAccountResult = Awaited<ReturnType<typeof getNativePublishAccountSummary>>;
 type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
@@ -131,7 +135,8 @@ const publishTypefully = async (
         signal: AbortSignal.timeout(10000),
       });
       if (resp.ok) {
-        results.push({ item: i, status: "published", detail: "Draft created" });
+        // Typefully's API creates DRAFTS — never imply a send happened.
+        results.push({ item: i, status: "draft-external", detail: "Draft created on Typefully" });
       } else {
         results.push({ item: i, status: "failed", detail: `HTTP ${resp.status}` });
       }
@@ -144,7 +149,7 @@ const publishTypefully = async (
   return {
     adapter: "typefully",
     items: items.length,
-    published: results.filter(r => r.status === "published").length,
+    published: countTerminal(results),
     failed: results.filter(r => r.status === "failed").length,
     errors: results.filter(r => r.status === "failed").map(r => r.detail),
     results,
@@ -189,7 +194,7 @@ const publishResend = async (
         signal: AbortSignal.timeout(10000),
       });
       if (resp.ok) {
-        results.push({ item: i, status: "published", detail: "Email sent" });
+        results.push({ item: i, status: "sent", detail: "Email sent via Resend" });
       } else {
         results.push({ item: i, status: "failed", detail: `HTTP ${resp.status}` });
       }
@@ -202,7 +207,7 @@ const publishResend = async (
   return {
     adapter: "resend",
     items: items.length,
-    published: results.filter(r => r.status === "published").length,
+    published: countTerminal(results),
     failed: results.filter(r => r.status === "failed").length,
     errors: results.filter(r => r.status === "failed").map(r => r.detail),
     results,
@@ -234,7 +239,7 @@ const publishFile = async (
       const { mkdir: mkdirFs } = await import("node:fs/promises");
       await mkdirFs(outDir, { recursive: true });
       await Bun.write(join(outDir, filename), item.content);
-      results.push({ item: i, status: "published", detail: `Written to ${filename}` });
+      results.push({ item: i, status: "written-file", detail: `Written to .mktg/published/${filename}` });
     } catch (e) {
       results.push({ item: i, status: "failed", detail: e instanceof Error ? e.message : "Unknown error" });
     }
@@ -244,7 +249,7 @@ const publishFile = async (
   return {
     adapter: "file",
     items: items.length,
-    published: results.filter(r => r.status === "published").length,
+    published: countTerminal(results),
     failed: results.filter(r => r.status === "failed").length,
     errors: results.filter(r => r.status === "failed").map(r => r.detail),
     results,
@@ -290,15 +295,18 @@ const publishNative = async (
       ...(metadata ? { metadata } : {}),
       targets: targetResolution.targets,
     });
-    const detail = `${stored.status} → ${targetResolution.targets.map((target) => target.identifier).join(", ")}`;
-    results.push({ item: i, status: "published", detail, postType: stored.type });
-    if (ndjson) writeStderr(JSON.stringify({ adapter: "mktg-native", item: i, status: "published", detail }));
+    // mktg-native is a LOCAL workspace queue — the write never leaves the
+    // machine, so the item status is always queued-local regardless of the
+    // stored post's internal draft/scheduled/published state.
+    const detail = `queued-local (${stored.status}) → ${targetResolution.targets.map((target) => target.identifier).join(", ")}`;
+    results.push({ item: i, status: "queued-local", detail, postType: stored.type });
+    if (ndjson) writeStderr(JSON.stringify({ adapter: "mktg-native", item: i, status: "queued-local", detail }));
   }
 
   return {
     adapter: "mktg-native",
     items: items.length,
-    published: results.filter((result) => result.status === "published").length,
+    published: countTerminal(results),
     failed: results.filter((result) => result.status === "failed").length,
     errors: results.filter((result) => result.status === "failed").map((result) => result.detail),
     results,
@@ -836,8 +844,10 @@ const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterResult> =>
     }
 
     marker.sent[key] = { postedAt: new Date().toISOString(), providers: [...providers] };
-    if (inp.ndjson) writeStderr(JSON.stringify({ adapter: "postiz", item: i, status: "published", providers }));
-    results.push({ item: i, status: "published", detail: `draft → ${providers.join(", ")}` });
+    if (inp.ndjson) writeStderr(JSON.stringify({ adapter: "postiz", item: i, status: "draft-external", providers }));
+    // The v1 postiz adapter only creates drafts (buildCreatePostDraft) —
+    // postiz itself owns any later scheduling/sending.
+    results.push({ item: i, status: "draft-external", detail: `draft on postiz → ${providers.join(", ")}` });
     published++;
   }
 

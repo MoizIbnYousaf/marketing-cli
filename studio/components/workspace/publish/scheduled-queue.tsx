@@ -138,7 +138,7 @@ export function ScheduledQueue({
         ) : (
           <ul className="space-y-2">
             {posts.map((post) => (
-              <ScheduledPostRow key={post.id} post={post} />
+              <ScheduledPostRow key={post.id} post={post} adapter={adapter} />
             ))}
           </ul>
         )}
@@ -147,7 +147,7 @@ export function ScheduledQueue({
   )
 }
 
-function ScheduledPostRow({ post }: { post: ScheduledPost }) {
+function ScheduledPostRow({ post, adapter }: { post: ScheduledPost; adapter: string }) {
   const firstPost = post.posts?.[0]
   const firstPart = firstPost?.value?.[0]
   const content = firstPart?.content ?? ""
@@ -196,7 +196,7 @@ function ScheduledPostRow({ post }: { post: ScheduledPost }) {
             </div>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
-            <StatusChip status={status} />
+            <StatusChip status={status} adapter={adapter} />
             <span title={post.date}>{relative}</span>
             {previewProviders.length > 0 && (
               <span className="flex items-center gap-1">
@@ -226,8 +226,9 @@ function isImageAsset(path: string): boolean {
   return /\.(png|jpe?g|webp|gif|svg|avif)$/i.test(path)
 }
 
-function StatusChip({ status }: { status: string }) {
-  const tone = statusTone(status)
+function StatusChip({ status, adapter }: { status: string; adapter: string }) {
+  const label = displayStatus(status, adapter)
+  const tone = statusTone(label)
   return (
     <span
       className={cn(
@@ -235,19 +236,35 @@ function StatusChip({ status }: { status: string }) {
         tone === "draft" && "border-muted text-muted-foreground",
         tone === "scheduled" && "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
         tone === "published" && "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+        tone === "queued-local" && "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
         tone === "failed" && "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
       )}
     >
-      {status}
+      {label}
     </span>
   )
 }
 
-function statusTone(status: string): "draft" | "scheduled" | "published" | "failed" {
+// CLI publish-truth parity: the native backend is a LOCAL workspace queue
+// (.mktg/native-publish/). Its internal draft/scheduled/published states all
+// mean "written locally" — the chip must never imply a network send.
+// Mirrors PublishItemStatus in src/types.ts.
+function displayStatus(status: string, adapter: string): string {
+  if (adapter === "mktg-native") {
+    const s = status.toLowerCase()
+    if (s.includes("fail") || s.includes("error")) return "failed"
+    if (s.includes("draft")) return "queued-local (draft)"
+    return "queued-local"
+  }
+  return status
+}
+
+function statusTone(status: string): "draft" | "scheduled" | "published" | "queued-local" | "failed" {
   const s = status.toLowerCase()
-  if (s.includes("publish")) return "published"
+  if (s.includes("queued-local")) return "queued-local"
   if (s.includes("fail") || s.includes("error")) return "failed"
   if (s.includes("draft")) return "draft"
+  if (s.includes("publish")) return "published"
   return "scheduled"
 }
 

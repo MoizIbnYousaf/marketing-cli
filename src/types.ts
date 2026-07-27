@@ -35,6 +35,21 @@ export type CommandResult<T = unknown> =
 
 export type PublishPostType = "draft" | "schedule" | "now" | "update";
 
+/**
+ * Per-item publish truth. Every adapter maps its outcome to exactly one:
+ * - "queued-local"   — written to the local mktg-native queue (.mktg/native-publish/)
+ * - "draft-external" — draft created on an external service (Typefully, postiz)
+ * - "sent"           — confirmed sent/scheduled on an external network (Resend)
+ * - "written-file"   — file adapter output under .mktg/published/
+ * - "failed"         — adapter rejected the item (detail carries why)
+ * - "skipped"        — dry-run preview or idempotency skip
+ * Local queue writes NEVER report "sent"; external drafts NEVER report "sent".
+ */
+export type PublishItemStatus = "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped";
+
+/** Statuses that count as terminal adapter success (drives `published` counts). */
+export const TERMINAL_PUBLISH_STATUSES: readonly PublishItemStatus[] = ["queued-local", "draft-external", "sent", "written-file"];
+
 // Result constructors
 export const ok = <T>(data: T, display?: string): CommandResult<T> => ({
   ok: true,
