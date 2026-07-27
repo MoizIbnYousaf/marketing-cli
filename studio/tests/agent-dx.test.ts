@@ -15,7 +15,11 @@ import { spawn } from "bun";
 import { join } from "node:path";
 import { parseNdjson } from "../lib/ndjson.ts";
 
-const TEST_PORT = 3997;
+// Port note: must stay unique across studio test files — bun runs files
+// concurrently, and two files sharing a port make each other's fetches hit
+// the wrong server (whichever wins the bind race). 3997 is taken by
+// tests/server/mktg-bridge-routes.test.ts.
+const TEST_PORT = 3993;
 const BASE = `http://127.0.0.1:${TEST_PORT}`;
 const ROOT = join(import.meta.dir, "..");
 
