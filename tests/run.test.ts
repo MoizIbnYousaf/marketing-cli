@@ -3,7 +3,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile, writeFile, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
@@ -86,7 +86,7 @@ describe("mktg run", () => {
     }
   });
 
-  test("successful run creates JSONL log entry", async () => {
+  test("bare run logs event 'loaded' with NO result (a load is not a success)", async () => {
     const { exitCode } = await run(["run", "brand-voice", "--json", "--cwd", tmpDir]);
     if (exitCode === 0) {
       const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
@@ -94,8 +94,77 @@ describe("mktg run", () => {
       expect(lines.length).toBe(1);
       const record = JSON.parse(lines[0]!);
       expect(record.skill).toBe("brand-voice");
-      expect(record.result).toBe("success");
+      expect(record.event).toBe("loaded");
+      expect(record.result).toBeUndefined();
+      expect(record.writes).toBeUndefined();
       expect(record.timestamp).toBeTruthy();
+    }
+  });
+
+  test("--complete with valid writes logs event 'completed' with result + writes", async () => {
+    await mkdir(join(tmpDir, "marketing", "content"), { recursive: true });
+    await writeFile(join(tmpDir, "marketing", "content", "x.md"), "# Article");
+    const { stdout, exitCode } = await run([
+      "run", "brand-voice", "--complete", "--writes", "marketing/content/x.md", "--result", "success", "--json", "--cwd", tmpDir,
+    ]);
+    if (exitCode === 0) {
+      const parsed = JSON.parse(stdout);
+      expect(parsed.event).toBe("completed");
+      expect(parsed.result).toBe("success");
+      expect(parsed.writes).toEqual(["marketing/content/x.md"]);
+
+      const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
+      const record = JSON.parse(logContent.trim().split("\n")[0]!);
+      expect(record.event).toBe("completed");
+      expect(record.result).toBe("success");
+      expect(record.writes).toEqual(["marketing/content/x.md"]);
+    }
+  });
+
+  test("--complete with a missing write path exits 2 with fix guidance (no silent success)", async () => {
+    const { stdout, exitCode } = await run([
+      "run", "brand-voice", "--complete", "--writes", "marketing/content/ghost.md", "--json", "--cwd", tmpDir,
+    ]);
+    expect(exitCode).toBe(2);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("ghost.md");
+    expect(parsed.error.suggestions.join(" ")).toContain("Create the files first");
+    const logExists = await Bun.file(join(tmpDir, ".mktg", "runs.jsonl")).exists();
+    expect(logExists).toBe(false);
+  });
+
+  test("--complete rejects traversal in writes", async () => {
+    const { stdout, exitCode } = await run([
+      "run", "brand-voice", "--complete", "--writes", "../outside.md", "--json", "--cwd", tmpDir,
+    ]);
+    expect(exitCode).toBe(2);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+  });
+
+  test("--result without --complete exits 2", async () => {
+    const { stdout, exitCode } = await run(["run", "brand-voice", "--result", "success", "--json", "--cwd", tmpDir]);
+    expect(exitCode).toBe(2);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("--complete");
+  });
+
+  test("--result rejects invalid values", async () => {
+    const { stdout, exitCode } = await run(["run", "brand-voice", "--complete", "--result", "amazing", "--json", "--cwd", tmpDir]);
+    expect(exitCode).toBe(2);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.error.message).toContain("Invalid --result");
+  });
+
+  test("--complete --result failed logs the failure honestly", async () => {
+    const { exitCode } = await run(["run", "brand-voice", "--complete", "--result", "failed", "--json", "--cwd", tmpDir]);
+    if (exitCode === 0) {
+      const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
+      const record = JSON.parse(logContent.trim().split("\n")[0]!);
+      expect(record.event).toBe("completed");
+      expect(record.result).toBe("failed");
     }
   });
 

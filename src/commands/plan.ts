@@ -12,9 +12,24 @@ import { getRunSummary, type RunSummaryEntry } from "../core/run-log";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 
+// Content-file extensions that count as distributable artifacts under marketing/
+const MARKETING_ARTIFACT_GLOB = "**/*.{md,mdx,txt,html,json}";
+
+// True when the project has at least one real content artifact under marketing/.
+// Load-only skill runs must never stand in for artifacts (honest distribute gate).
+const hasMarketingArtifacts = async (cwd: string): Promise<boolean> => {
+  try {
+    const glob = new Bun.Glob(MARKETING_ARTIFACT_GLOB);
+    for await (const _file of glob.scan({ cwd: join(cwd, "marketing") })) {
+      return true; // one is enough
+    }
+  } catch { /* marketing/ doesn't exist */ }
+  return false;
+};
+
 export const schema: CommandSchema = {
   name: "plan",
-  description: "Execution loop — reads project state and outputs a prioritized, actionable task queue",
+  description: "Execution loop — reads project state (completed runs only, never load events) and outputs a prioritized, actionable task queue",
   flags: [
     { name: "--save", type: "boolean", required: false, description: "Persist plan to .mktg/plan.json" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream each task as a NDJSON line to stderr as it is computed" },
@@ -175,7 +190,9 @@ const buildTasks = async (
     }
   }
 
-  // 4. Execution skills not yet run (suggest based on dependency graph)
+  // 4. Execution skills not yet completed (suggest based on dependency graph).
+  // runSummary is completed-only (load events filtered upstream) — a skill
+  // that was merely loaded still counts as never-done.
   try {
     const manifest = await loadManifest();
     const graph = buildGraph(manifest);
@@ -188,33 +205,41 @@ const buildTasks = async (
         emitTask({
           id: `run-${skill}`, order: tasks.length, category: "execute",
           action: `Run /${skill} for the first time`, command: `mktg run ${skill}`,
-          reason: `Must-have execution skill never run — produces marketing assets`, blocked: false,
+          reason: `Must-have execution skill never completed — produces marketing assets`, blocked: false,
         });
       }
     }
   } catch { /* manifest issues handled elsewhere */ }
 
-  // 5. Distribution — check if content exists but hasn't been distributed
-  const executedSkills = Object.keys(runSummary);
-  const hasContent = executedSkills.some(s =>
+  // 5. Distribution — real evidence only: artifacts under marketing/ OR a
+  // completed content-skill run. Load-only history never unlocks distribute.
+  const completedSkills = Object.keys(runSummary);
+  const hasCompletedContent = completedSkills.some(s =>
     ["seo-content", "direct-response-copy", "lead-magnet", "creative"].includes(s),
   );
-  const hasDistributed = executedSkills.some(s =>
+  const contentEvidence = hasCompletedContent || await hasMarketingArtifacts(cwd);
+  const hasDistributed = completedSkills.some(s =>
     ["content-atomizer", "email-sequences", "social-campaign", "typefully"].includes(s),
   );
-  if (hasContent && !hasDistributed) {
+  if (contentEvidence && !hasDistributed) {
     emitTask({
       id: "distribute-content", order: tasks.length, category: "distribute",
       action: "Distribute created content", command: "mktg run content-atomizer",
-      reason: "Content skills have run but no distribution skills yet — 70% of marketing is distribution",
+      reason: "Content artifacts exist but no distribution skill has completed — 70% of marketing is distribution",
       blocked: false,
     });
   }
 
-  const populated = brandStatuses.filter(s => {
-    if (!s.exists) return false;
-    try { return true; } catch { return false; }
-  }).length;
+  // Health counts files with REAL content — templates don't count, so a
+  // fresh scaffold can never report "ready".
+  let populated = 0;
+  for (const status of brandStatuses) {
+    if (!status.exists) continue;
+    try {
+      const content = await Bun.file(join(cwd, "brand", status.file)).text();
+      if (!isTemplateContent(status.file, content)) populated++;
+    } catch { /* unreadable — doesn't count */ }
+  }
   const health: PlanResult["health"] = populated >= 3 ? "ready" : "incomplete";
 
   return { tasks: tasks.filter(t => !completedSet.has(t.id)), health };
@@ -252,8 +277,9 @@ export const handler: CommandHandler<PlanResult | { completed: string } | { task
     return ok({ completed: taskId });
   }
 
-  // Build plan
-  const runSummary = await getRunSummary(cwd);
+  // Build plan — completed runs only. A bare `mktg run` logs event:"loaded"
+  // and must not count as executed work anywhere in this queue.
+  const runSummary = await getRunSummary(cwd, { completedOnly: true });
   const { tasks, health } = await buildTasks(cwd, runSummary, completed, ndjson);
   if (ndjson) writeStderr(JSON.stringify({ type: "summary", data: { health, count: tasks.length } }));
   const summary = buildSummary(tasks, health);

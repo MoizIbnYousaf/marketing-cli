@@ -24,7 +24,7 @@ export const schema: CommandSchema = {
     "agents": "{installed, total} — agent counts",
     "content": "{totalFiles, byDir} — content file counts with breakdown",
     "integrations": "Record<string, IntegrationEntry> — env var readiness for third-party skills",
-    "recentActivity": "Record<string, {lastRun, result, daysSince}> — per-skill execution history",
+    "recentActivity": "Record<string, {lastRun, result|null, event: 'loaded'|'completed', daysSince}> — per-skill run history (loads never imply outcomes)",
     "nextActions": "string[] — prioritized suggestions for what the agent should do next",
     "health": "'ready' | 'incomplete' | 'needs-setup' — overall project marketing readiness",
   },
@@ -64,7 +64,8 @@ type ContentSummary = {
 
 type ActivityEntry = {
   readonly lastRun: string;
-  readonly result: string;
+  readonly result: string | null;
+  readonly event: "loaded" | "completed";
   readonly daysSince: number;
 };
 
@@ -337,8 +338,11 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   if (activityKeys.length > 0) {
     lines.push(bold("  Recent Activity") + dim(` ${activityKeys.length} skills run`));
     for (const [skill, activity] of Object.entries(recentActivity).slice(0, 5)) {
-      const icon = activity.result === "success" ? green("●") : activity.result === "partial" ? yellow("●") : red("●");
-      lines.push(`    ${icon} ${skill} ${dim(`(${activity.daysSince}d ago, ${activity.result})`)}`);
+      const icon = activity.event === "loaded"
+        ? dim("○")
+        : activity.result === "success" ? green("●") : activity.result === "partial" ? yellow("●") : red("●");
+      const label = activity.event === "loaded" ? "loaded" : activity.result;
+      lines.push(`    ${icon} ${skill} ${dim(`(${activity.daysSince}d ago, ${label})`)}`);
     }
     if (activityKeys.length > 5) {
       lines.push(dim(`    ... and ${activityKeys.length - 5} more`));

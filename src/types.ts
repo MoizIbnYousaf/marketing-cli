@@ -429,10 +429,21 @@ export type SkillEvaluation = {
 };
 
 // Skill execution history
+export type SkillRunEvent = "loaded" | "completed";
+
 export type SkillRunRecord = {
   readonly skill: string;
   readonly timestamp: string; // ISO 8601
-  readonly result: "success" | "partial" | "failed";
+  /**
+   * What actually happened. "loaded" = SKILL.md was read for the agent
+   * (no work implied). "completed" = the agent reported an outcome.
+   * Absent in pre-event records — treat via isCompletedRecord() dual-read.
+   */
+  readonly event?: SkillRunEvent;
+  /** Outcome of a completed run. Absent on load events — a load is not a success. */
+  readonly result?: "success" | "partial" | "failed";
+  /** Files the agent produced, recorded at --complete time (validated to exist). */
+  readonly writes?: readonly string[];
   readonly brandFilesChanged: readonly string[];
   readonly durationMs?: number;
   readonly note?: string;

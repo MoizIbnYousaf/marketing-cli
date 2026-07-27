@@ -9,7 +9,8 @@ const LOG_FILE = ".mktg/runs.jsonl";
 
 export type RunSummaryEntry = {
   readonly lastRun: string;
-  readonly result: string;
+  readonly result: string | null;
+  readonly event: "loaded" | "completed";
   readonly runCount: number;
   readonly daysSince: number;
 };
@@ -20,8 +21,25 @@ export type RunStats = {
   readonly successCount: number;
   readonly failedCount: number;
   readonly partialCount: number;
+  readonly loadedCount: number;
+  readonly completedCount: number;
   readonly successRate: number;
 };
+
+export type RunHistoryFilter = {
+  /** Keep only records that represent completed work (see isCompletedRecord). */
+  readonly completedOnly?: boolean;
+};
+
+/**
+ * Dual-read: an explicit event field wins. Pre-event records are legacy —
+ * only those with real brand writes count as completed work; legacy
+ * result:"success" records with empty writes were load-only and must NOT
+ * unlock downstream plan/distribute steps.
+ */
+export const isCompletedRecord = (record: SkillRunRecord): boolean =>
+  record.event === "completed" ||
+  (record.event === undefined && record.brandFilesChanged.length > 0);
 
 export const logRun = async (
   cwd: string,
@@ -50,12 +68,14 @@ export const getRunHistory = async (
   cwd: string,
   skillName?: string,
   limit: number = 50,
+  filter?: RunHistoryFilter,
 ): Promise<SkillRunRecord[]> => {
   const logPath = join(cwd, LOG_FILE);
   try {
     const content = await readFile(logPath, "utf-8");
     let records = parseJsonl(content);
     if (skillName) records = records.filter(r => r.skill === skillName);
+    if (filter?.completedOnly) records = records.filter(isCompletedRecord);
     return records.slice(-limit).reverse(); // Most recent first
   } catch {
     return []; // No log file yet
@@ -72,8 +92,9 @@ export const getLastRun = async (
 
 export const getRunSummary = async (
   cwd: string,
+  filter?: RunHistoryFilter,
 ): Promise<Record<string, RunSummaryEntry>> => {
-  const history = await getRunHistory(cwd, undefined, 1000);
+  const history = await getRunHistory(cwd, undefined, 1000, filter);
   const summary: Record<string, RunSummaryEntry> = {};
   // history is most-recent-first, so count all but only take metadata from first seen
   const counts: Record<string, number> = {};
@@ -81,7 +102,13 @@ export const getRunSummary = async (
     counts[record.skill] = (counts[record.skill] ?? 0) + 1;
     if (!summary[record.skill]) {
       const daysSince = Math.floor((Date.now() - new Date(record.timestamp).getTime()) / (1000 * 60 * 60 * 24));
-      summary[record.skill] = { lastRun: record.timestamp, result: record.result, runCount: 0, daysSince };
+      summary[record.skill] = {
+        lastRun: record.timestamp,
+        result: record.result ?? null,
+        event: isCompletedRecord(record) ? "completed" : "loaded",
+        runCount: 0,
+        daysSince,
+      };
     }
   }
   // Fill in counts
@@ -96,15 +123,21 @@ export const getRunStats = async (
 ): Promise<RunStats> => {
   const history = await getRunHistory(cwd, undefined, 10000);
   const skills = new Set(history.map(r => r.skill));
-  const successCount = history.filter(r => r.result === "success").length;
-  const failedCount = history.filter(r => r.result === "failed").length;
-  const partialCount = history.filter(r => r.result === "partial").length;
+  // Result counts cover only records that carry an outcome (completed runs
+  // and pre-event legacy records). Load events have no result by design.
+  const outcomeRecords = history.filter(r => r.result !== undefined);
+  const successCount = outcomeRecords.filter(r => r.result === "success").length;
+  const failedCount = outcomeRecords.filter(r => r.result === "failed").length;
+  const partialCount = outcomeRecords.filter(r => r.result === "partial").length;
+  const completedCount = history.filter(isCompletedRecord).length;
   return {
     totalRuns: history.length,
     uniqueSkills: skills.size,
     successCount,
     failedCount,
     partialCount,
-    successRate: history.length > 0 ? Math.round((successCount / history.length) * 100) : 0,
+    loadedCount: history.length - completedCount,
+    completedCount,
+    successRate: outcomeRecords.length > 0 ? Math.round((successCount / outcomeRecords.length) * 100) : 0,
   };
 };

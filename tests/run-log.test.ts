@@ -5,7 +5,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { logRun, getRunHistory, getLastRun, getRunSummary, getRunStats } from "../src/core/run-log";
+import { logRun, getRunHistory, getLastRun, getRunSummary, getRunStats, isCompletedRecord } from "../src/core/run-log";
 import type { SkillRunRecord } from "../src/types";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
@@ -328,5 +328,72 @@ describe("mktg skill log", () => {
 
     const exists = await Bun.file(join(tmpDir, ".mktg", "runs.jsonl")).exists();
     expect(exists).toBe(false);
+  });
+});
+
+// ==================== Event semantics: loaded vs completed ====================
+
+describe("isCompletedRecord dual-read", () => {
+  test("explicit completed event counts", () => {
+    expect(isCompletedRecord({ skill: "a", timestamp: "t", event: "completed", result: "success", brandFilesChanged: [] })).toBe(true);
+  });
+
+  test("explicit loaded event does NOT count, even if it carried a result", () => {
+    expect(isCompletedRecord({ skill: "a", timestamp: "t", event: "loaded", brandFilesChanged: [] })).toBe(false);
+  });
+
+  test("legacy record with brand writes counts as completed (transitional dual-read)", () => {
+    expect(isCompletedRecord({ skill: "a", timestamp: "t", result: "success", brandFilesChanged: ["voice-profile.md"] })).toBe(true);
+  });
+
+  test("legacy result:'success' with empty writes was a LOAD — must not count", () => {
+    expect(isCompletedRecord({ skill: "a", timestamp: "t", result: "success", brandFilesChanged: [] })).toBe(false);
+  });
+});
+
+describe("completedOnly filtering", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "mktg-runlog-filter-"));
+    await logRun(tmpDir, { skill: "seo-content", timestamp: "2026-03-13T10:00:00.000Z", event: "loaded", brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "seo-content", timestamp: "2026-03-13T11:00:00.000Z", event: "completed", result: "success", writes: ["marketing/x.md"], brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "legacy-skill", timestamp: "2026-03-13T12:00:00.000Z", result: "success", brandFilesChanged: ["audience.md"] });
+    await logRun(tmpDir, { skill: "legacy-load", timestamp: "2026-03-13T13:00:00.000Z", result: "success", brandFilesChanged: [] });
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  test("getRunHistory completedOnly keeps completions + legacy-with-writes only", async () => {
+    const completed = await getRunHistory(tmpDir, undefined, 50, { completedOnly: true });
+    const skills = completed.map(r => r.skill).sort();
+    expect(skills).toEqual(["legacy-skill", "seo-content"]);
+    expect(completed.find(r => r.skill === "legacy-load")).toBeUndefined();
+  });
+
+  test("getRunSummary completedOnly drops load-only skills entirely", async () => {
+    const summary = await getRunSummary(tmpDir, { completedOnly: true });
+    expect(Object.keys(summary).sort()).toEqual(["legacy-skill", "seo-content"]);
+    expect(summary["legacy-load"]).toBeUndefined();
+  });
+
+  test("summary entries expose event + nullable result", async () => {
+    const summary = await getRunSummary(tmpDir);
+    expect(summary["seo-content"]!.event).toBe("completed");
+    expect(summary["seo-content"]!.result).toBe("success");
+    expect(summary["legacy-load"]!.event).toBe("loaded");
+  });
+
+  test("stats count loaded vs completed separately; rate uses outcome records only", async () => {
+    const stats = await getRunStats(tmpDir);
+    expect(stats.totalRuns).toBe(4);
+    expect(stats.completedCount).toBe(2);
+    expect(stats.loadedCount).toBe(2);
+    // 3 records carry an outcome field (completed + both legacy records);
+    // only the explicit load event has none.
+    expect(stats.successCount).toBe(3);
+    expect(stats.successRate).toBe(100);
   });
 });

@@ -32,9 +32,9 @@
 | # | Phase | Status | PR/Commit | Notes |
 |---|---|---|---|---|
 | 0 | Plan authored (this doc) | `completed` | — | 2026-07-18 |
-| 1 | Honest skill lifecycle (`loaded` vs `completed`) | `pending` | | Foundation for everything else |
+| 1 | Honest skill lifecycle (`loaded` vs `completed`) | `completed` | cursor/honest-run-lifecycle-ccd8 | 2026-07-27 — `event` field, `--complete/--writes/--result`, dual-read legacy |
 | 2 | One-shot activation (`run --with-context`) | `pending` | | Can ship parallel to P1 after log shape lands |
-| 3 | Outcome-aware `plan` / `status` / dashboard | `pending` | | Depends on P1 |
+| 3 | Outcome-aware `plan` / `status` / dashboard | `completed` | cursor/honest-run-lifecycle-ccd8 | 2026-07-27 — plan reads completed-only; distribute needs artifacts/completed runs; health counts non-template; dashboard readiness completed-only |
 | 4 | Rich prerequisites + `--strict` | `pending` | | |
 | 5 | Publish truth + promote path | `pending` | | |
 | 6 | Portable `mktg route` (+ CMO runner clarity) | `pending` | | |

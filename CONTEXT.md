@@ -70,7 +70,18 @@ mktg status --json --fields "brand.populated,skills.installed"
 
 ```bash
 mktg run brand-voice --json
-# Returns skill content + metadata + brand context
+# Returns skill content + prerequisites + prior run context.
+# Logs event:"loaded" — a load is NOT work and never unlocks plan distribute steps.
+# For brand context, call `mktg context` (below) — `run` does not return it.
+```
+
+### 3b. Record the outcome after doing the work
+
+```bash
+mktg run brand-voice --complete --writes brand/voice-profile.md --result success --json
+# --writes paths must exist inside the project (validated, exit 2 otherwise).
+# Only event:"completed" records count as executed work in `mktg plan`.
+# History: mktg skill history <skill> --json (shows loaded vs completed events).
 ```
 
 ### 4. Get token-budgeted brand context
@@ -162,7 +173,9 @@ posting and the native backend is only acting as the local queue.
 | User says "help me with marketing" | `/cmo`; it routes to the right skill |
 | Agent needs project state | `mktg status --json` |
 | Agent needs health check | `mktg doctor --json` |
-| Agent needs a specific skill loaded | `mktg run <skill> --json` |
+| Agent needs a specific skill loaded | `mktg run <skill> --json` (logs `event:"loaded"`) |
+| Agent finished the work and records it | `mktg run <skill> --complete --writes <paths> --result success --json` |
+| Agent needs load vs completion history | `mktg skill history <skill> --json` |
 | Agent needs brand context for a skill | `mktg context --json` |
 | Updating skills after package upgrade | `mktg update --json` |
 | Checking whether a newer marketing-cli is on npm | `mktg update --check --json` |

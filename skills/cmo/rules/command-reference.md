@@ -50,8 +50,10 @@ routing, see `rules/publish-index.md`.
 | `mktg plan next --json` | Single highest-priority task. Default for "what should I do?" after session start. |
 | `mktg plan complete <id> --json` | After a skill successfully finishes — persists progress across sessions via `.mktg/plan.json`. |
 | `mktg plan --save --json` | Stream-persist the plan for long-running orchestration. |
-| `mktg run <skill> --json` | Direct skill invocation (bypasses the usual Claude Code slash-command flow). Use when the orchestration layer needs programmatic control. |
+| `mktg run <skill> --json` | Direct skill invocation (bypasses the usual Claude Code slash-command flow). Use when the orchestration layer needs programmatic control. Logs `event:"loaded"` — a load is NOT work; `mktg plan` ignores loads for execute/distribute gates. |
+| `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work. |
 | `mktg run <skill> --learning '{...}'` | Run a skill + record the learning atomically. |
+| `mktg skill history <skill> --json` | Load vs completion history for a skill. |
 
 ---
 
