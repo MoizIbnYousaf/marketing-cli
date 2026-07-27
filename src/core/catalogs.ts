@@ -228,6 +228,9 @@ const validateShape = (
     if (auth.header_format !== undefined && auth.header_format !== "bearer" && auth.header_format !== "bare") {
       return { ok: false, detail: "'auth.header_format' must be 'bearer' or 'bare' when present", path: `catalogs.${name}.auth.header_format` };
     }
+    if (auth.base_default !== undefined && (typeof auth.base_default !== "string" || !auth.base_default.startsWith("https://"))) {
+      return { ok: false, detail: "'auth.base_default' must be an https URL when present", path: `catalogs.${name}.auth.base_default` };
+    }
 
     // mcp (optional): { url_env, default_url } — MCP-over-HTTP endpoint contract
     if (e.mcp !== undefined) {
@@ -300,19 +303,23 @@ export const getCatalog = (
 
 // Compute configured/missing env vars for a catalog against the current
 // process.env. Used by `catalog info` + `catalog status`.
+// base_env with a documented base_default resolves to the default when unset —
+// only true gaps count as missing (adapters with sane defaults stay honest).
 export const computeConfiguredStatus = (
   entry: CatalogEntry,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): { configured: boolean; missingEnvs: readonly string[]; resolvedBase: string | null } => {
   const missing: string[] = [];
-  if (!env[entry.auth.base_env]) missing.push(entry.auth.base_env);
+  const envBase = env[entry.auth.base_env];
+  const resolvedBase = envBase ?? entry.auth.base_default ?? null;
+  if (!envBase && entry.auth.base_default === undefined) missing.push(entry.auth.base_env);
   for (const cred of entry.auth.credential_envs) {
     if (!env[cred]) missing.push(cred);
   }
   return {
     configured: missing.length === 0,
     missingEnvs: missing,
-    resolvedBase: env[entry.auth.base_env] ?? null,
+    resolvedBase,
   };
 };
 

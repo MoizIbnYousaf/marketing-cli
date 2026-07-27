@@ -85,9 +85,10 @@ export function PostComposer({
  adapter: string
  published?: number
  failed?: number
- results?: Array<{
- status: "published" | "failed" | "skipped"
- detail: string
+         results?: Array<{
+           // PublishItemStatus (src/types.ts): CLI-owned vocabulary, keep 1:1
+           status: "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped"
+           detail: string
  /** Server-side follow-up: per-item post type so the UI
  * can stop inferring from `mode`. Optional until the
  * marketing-cli adapter starts emitting it. */

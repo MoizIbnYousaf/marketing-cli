@@ -4,11 +4,12 @@
 import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
 import { ok, err } from "../types";
-import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId, validatePathInput } from "../core/errors";
+import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory, isCompletedRecord } from "../core/run-log";
 import { compileBrandContext, filesForSkillActivation, type ContextFileEntry } from "../core/context-compiler";
+import { parseRunFlags, validateCompletionWrites } from "../core/run-flags";
 import { appendLearning, type LearningEntry } from "../core/brand";
 import { writeStderr } from "../core/output";
 
@@ -92,19 +93,10 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   }
 
   // Parse --result / --writes (completion-only flags) and --budget
-  let resultArg: RunOutcome | undefined;
-  const writesRaw: string[] = [];
-  let budget: number | undefined;
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === "--result" && args[i + 1]) { resultArg = args[i + 1] as RunOutcome; i++; }
-    else if (a.startsWith("--result=")) { resultArg = a.slice(9) as RunOutcome; }
-    else if (a === "--writes" && args[i + 1]) { writesRaw.push(...args[i + 1]!.split(",")); i++; }
-    else if (a.startsWith("--writes=")) { writesRaw.push(...a.slice(9).split(",")); }
-    else if (a === "--budget" && args[i + 1]) { budget = parseInt(args[i + 1]!, 10); i++; }
-    else if (a.startsWith("--budget=")) { budget = parseInt(a.slice(9), 10); }
-  }
-  const writesList = writesRaw.map(w => w.trim()).filter(Boolean);
+  const parsed = parseRunFlags(args);
+  const resultArg = parsed.resultArg as RunOutcome | undefined;
+  const writesList = parsed.writesList;
+  const budget = parsed.budget;
 
   if (resultArg !== undefined && !VALID_RUN_RESULTS.includes(resultArg)) {
     return invalidArgs(`Invalid --result '${resultArg}'`, [
@@ -129,29 +121,16 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   // Validate --writes BEFORE any dependency lookup (manifest, install dir):
   // static input errors must precede environment errors, so an agent gets
   // INVALID_ARGS about its payload whether or not skills are installed.
-  // Every path must pass the sandbox pipeline AND exist — recording work
-  // that didn't happen is the exact lie this command exists to prevent.
-  const validatedWrites: string[] = [];
+  let validatedWrites: readonly string[] = [];
   if (wantComplete && writesList.length > 0) {
-    const writeErrors: string[] = [];
-    for (const w of writesList) {
-      const check = validatePathInput(flags.cwd, w);
-      if (!check.ok) {
-        writeErrors.push(`'${w}': ${check.message}`);
-        continue;
-      }
-      if (!(await Bun.file(check.path).exists())) {
-        writeErrors.push(`'${w}': file does not exist`);
-        continue;
-      }
-      validatedWrites.push(w);
-    }
-    if (writeErrors.length > 0) {
-      return invalidArgs(`Invalid --writes: ${writeErrors.join("; ")}`, [
+    const writesCheck = await validateCompletionWrites(flags.cwd, writesList);
+    if (!writesCheck.ok) {
+      return invalidArgs(writesCheck.message, [
         "Writes must be existing files inside the project (brand/, marketing/, .mktg/)",
         "Create the files first, then record completion with the same command",
       ], DOCS.skills);
     }
+    validatedWrites = writesCheck.writes;
   }
 
   // Lane 1 / Wave A audit fix: every other resource-name command in the

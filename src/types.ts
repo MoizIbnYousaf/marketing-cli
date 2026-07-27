@@ -239,6 +239,13 @@ export type CatalogAuth = {
   readonly base_env: string;
   readonly credential_envs: readonly string[];
   readonly header_format?: "bearer" | "bare";
+  /**
+   * Documented default for base_env when the env var is unset (e.g. postiz
+   * defaults to https://api.postiz.com). When present, an unset base_env is
+   * NOT a missing-env: the runtime default applies. Keeps --strict honest —
+   * never blocks on a variable the adapter does not actually need.
+   */
+  readonly base_default?: string;
 };
 
 export type CatalogCapabilities = {

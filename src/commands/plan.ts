@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { ok, err, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
 import { getBrandStatus, isTemplateContent } from "../core/brand";
-import { loadManifest, getSkillNames } from "../core/skills";
+import { loadManifest } from "../core/skills";
 import { buildGraph } from "../core/skill-lifecycle";
 import { getRunSummary, type RunSummaryEntry } from "../core/run-log";
 import { rejectControlChars, validateResourceId } from "../core/errors";

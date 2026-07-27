@@ -129,7 +129,10 @@ describe("run --strict + rich prerequisites", () => {
     const parsed = JSON.parse(stdout);
     expect(parsed.prerequisites.satisfied).toBe(false);
     expect(parsed.prerequisites.missing.envs).toContain("POSTIZ_API_KEY");
-    expect(parsed.prerequisites.missing.envs).toContain("POSTIZ_API_BASE");
+    // POSTIZ_API_BASE has a documented default (catalog auth.base_default) —
+    // it must NOT appear as missing: --strict never blocks on a variable
+    // the adapter does not actually need.
+    expect(parsed.prerequisites.missing.envs).not.toContain("POSTIZ_API_BASE");
     expect(parsed.prerequisites.missing.catalogs).toContain("postiz");
     expect(parsed.prerequisites.remediation.join(" ")).toContain("POSTIZ_API_KEY");
   });
