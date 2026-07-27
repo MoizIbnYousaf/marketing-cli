@@ -1128,7 +1128,10 @@
         "product tour"
       ],
       "review_interval_days": 90,
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "tools": [
+        "ffmpeg"
+      ]
     },
     "paper-marketing": {
       "source": "new",
@@ -1215,7 +1218,10 @@
         "remotion render"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "tools": [
+        "ffmpeg"
+      ]
     },
     "social-campaign": {
       "source": "new",
@@ -1279,7 +1285,10 @@
         "end-to-end video"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "tools": [
+        "ffmpeg"
+      ]
     },
     "frontend-slides": {
       "source": "new",
@@ -1638,6 +1647,9 @@
       "version": "1.0.0",
       "env_vars": [
         "FIRECRAWL_API_KEY"
+      ],
+      "tools": [
+        "firecrawl"
       ]
     },
     "mktg-x": {
@@ -1700,7 +1712,10 @@
         "shorten this"
       ],
       "review_interval_days": 180,
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "tools": [
+        "summarize"
+      ]
     },
     "remotion-best-practices": {
       "source": "new",
@@ -1744,7 +1759,11 @@
           "repo": "remotion-dev/remotion",
           "path": ".claude"
         }
-      }
+      },
+      "tools": [
+        "remotion",
+        "ffmpeg"
+      ]
     },
     "cmo-remotion": {
       "source": "new",
@@ -1774,7 +1793,11 @@
         "video shader pipeline"
       ],
       "review_interval_days": 30,
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "tools": [
+        "remotion",
+        "ffmpeg"
+      ]
     },
     "higgsfield-generate": {
       "source": "new",
@@ -1814,7 +1837,10 @@
         "Marketing Studio"
       ],
       "review_interval_days": 30,
-      "version": "0.3.0"
+      "version": "0.3.0",
+      "tools": [
+        "higgsfield"
+      ]
     },
     "higgsfield-soul-id": {
       "source": "new",
@@ -1849,7 +1875,10 @@
         "soul-id create"
       ],
       "review_interval_days": 30,
-      "version": "0.3.0"
+      "version": "0.3.0",
+      "tools": [
+        "higgsfield"
+      ]
     },
     "higgsfield-product-photoshoot": {
       "source": "new",
@@ -1885,7 +1914,10 @@
         "brand campaign visual"
       ],
       "review_interval_days": 30,
-      "version": "0.3.0"
+      "version": "0.3.0",
+      "tools": [
+        "higgsfield"
+      ]
     },
     "exa-search": {
       "source": "new",

@@ -7,6 +7,8 @@ import { homedir } from "node:os";
 import { isTemplateContent } from "./brand";
 import { sandboxPath } from "./errors";
 import { getPackageRoot } from "./paths";
+import { loadCatalogManifest, computeConfiguredStatus } from "./catalogs";
+import { toolAvailable, toolInstallHint } from "./tool-registry";
 import type {
   BrandFile,
   BRAND_FILES,
@@ -346,13 +348,16 @@ export const checkPrerequisites = async (
   if (!entry) {
     return {
       satisfied: false,
-      missing: { skills: [], brandFiles: [] },
+      missing: { skills: [], brandFiles: [], envs: [], tools: [], catalogs: [] },
       remediation: [`Skill '${skillName}' not found in manifest`],
     };
   }
 
   const missingSkills: string[] = [];
   const missingBrandFiles: BrandFile[] = [];
+  const missingEnvs: string[] = [];
+  const missingTools: string[] = [];
+  const missingCatalogs: string[] = [];
   const remediation: string[] = [];
 
   // Check depends_on skills are installed
@@ -400,9 +405,51 @@ export const checkPrerequisites = async (
     }
   }
 
+  // Check manifest-declared env vars (shared with doctor's integration checks)
+  for (const envVar of entry.env_vars ?? []) {
+    if (!process.env[envVar] && !missingEnvs.includes(envVar)) {
+      missingEnvs.push(envVar);
+      remediation.push(`Set ${envVar} — mktg doctor shows integration status + signup links`);
+    }
+  }
+
+  // Check manifest-declared CLI tools against the shared tool registry —
+  // remediation strings are byte-identical to doctor's install hints.
+  for (const tool of entry.tools ?? []) {
+    if (!toolAvailable(tool) && !missingTools.includes(tool)) {
+      missingTools.push(tool);
+      const hint = toolInstallHint(tool);
+      remediation.push(hint ? `Install ${tool}: ${hint}` : `Install ${tool} (see mktg doctor)`);
+    }
+  }
+
+  // Check catalogs that claim this skill (e.g. postiz → postiz skill).
+  // Env gaps merge into missing.envs (deduped); the catalog itself is named
+  // so agents can route to `mktg catalog info <name>`.
+  const catalogResult = await loadCatalogManifest();
+  if (catalogResult.ok) {
+    for (const catalog of Object.values(catalogResult.manifest.catalogs)) {
+      if (!catalog.skills.includes(skillName)) continue;
+      const status = computeConfiguredStatus(catalog);
+      if (status.configured) continue;
+      if (!missingCatalogs.includes(catalog.name)) missingCatalogs.push(catalog.name);
+      for (const envVar of status.missingEnvs) {
+        if (!missingEnvs.includes(envVar)) {
+          missingEnvs.push(envVar);
+          remediation.push(`Set ${envVar} for catalog '${catalog.name}' — mktg catalog info ${catalog.name} --json --fields missing_envs`);
+        }
+      }
+    }
+  }
+
   return {
-    satisfied: missingSkills.length === 0 && missingBrandFiles.length === 0,
-    missing: { skills: missingSkills, brandFiles: missingBrandFiles },
+    satisfied:
+      missingSkills.length === 0 &&
+      missingBrandFiles.length === 0 &&
+      missingEnvs.length === 0 &&
+      missingTools.length === 0 &&
+      missingCatalogs.length === 0,
+    missing: { skills: missingSkills, brandFiles: missingBrandFiles, envs: missingEnvs, tools: missingTools, catalogs: missingCatalogs },
     remediation,
   };
 };

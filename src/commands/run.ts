@@ -3,16 +3,25 @@
 
 import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
-import { ok } from "../types";
+import { ok, err } from "../types";
 import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId, validatePathInput } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory, isCompletedRecord } from "../core/run-log";
+import { compileBrandContext, filesForSkillActivation, type ContextFileEntry } from "../core/context-compiler";
 import { appendLearning, type LearningEntry } from "../core/brand";
 import { writeStderr } from "../core/output";
 
 const VALID_RUN_RESULTS = ["success", "partial", "failed"] as const;
 type RunOutcome = typeof VALID_RUN_RESULTS[number];
+
+type ActivationContext = {
+  readonly layer: string;
+  readonly files: Record<string, ContextFileEntry>;
+  readonly tokenEstimate: number;
+  readonly budgetDropped: readonly string[];
+  readonly templatesSkipped: readonly string[];
+};
 
 export const schema: CommandSchema = {
   name: "run",
@@ -23,25 +32,29 @@ export const schema: CommandSchema = {
     { name: "--complete", type: "boolean", required: false, description: "Record a completed run (work actually happened) instead of a load event" },
     { name: "--result", type: "string", required: false, description: "Outcome with --complete: success | partial | failed (default success)" },
     { name: "--writes", type: "string", required: false, description: "Comma-separated files the agent produced (repeatable); each must exist inside the project" },
+    { name: "--with-context", type: "boolean", required: false, description: "One-shot activation: include non-template brand context selected from the skill's declared reads (or layer matrix)" },
+    { name: "--budget", type: "string", required: false, description: "With --with-context: approximate token budget for context files (priority truncation)" },
+    { name: "--strict", type: "boolean", required: false, description: "Exit 3 (DEPENDENCY_MISSING) when any prerequisite (skills, brand files, envs, tools, catalogs) is unsatisfied" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream prerequisite check, skill-loaded, and complete events as NDJSON lines to stderr" },
   ],
   output: {
     skill: "string — resolved skill name",
     content: "string — full SKILL.md content",
-    prerequisites: "PrerequisiteStatus — prerequisite check results",
+    prerequisites: "PrerequisiteStatus — prerequisite check results (skills, brandFiles, envs, tools, catalogs)",
     loggedAt: "string | null — ISO timestamp of logged run (null on --dry-run)",
     event: "'loaded' | 'completed' — what was logged: load events never imply work",
     result: "'success' | 'partial' | 'failed' | null — outcome with --complete; null on loads",
     writes: "string[] | null — validated files recorded with --complete; null on loads",
+    context: "object | null — with --with-context: {layer, files, tokenEstimate, budgetDropped, templatesSkipped}; null otherwise",
     priorRuns: "object — lastRun timestamp, lastEvent, runCount, and lastResult for this skill",
     learningAppended: "string | null — the table row appended to learnings.md, or null if --learning not provided",
   },
   examples: [
     { args: "mktg run seo-content --json", description: "Load SEO content skill for agent (logs event: loaded)" },
-    { args: "mktg run brand-voice --dry-run", description: "Preview without logging" },
+    { args: "mktg run seo-content --with-context --budget 4000 --json", description: "One-shot activation: skill + brand context in one call" },
+    { args: "mktg run postiz --strict --json", description: "Fail fast (exit 3) when env vars like POSTIZ_API_KEY are missing" },
     { args: "mktg run seo-content --complete --writes marketing/content/x.md --result success --json", description: "Record completed work with validated writes" },
     { args: "mktg skill history seo-content --json", description: "See load vs completion events for a skill" },
-    { args: "mktg run seo-content --ndjson", description: "Stream prerequisite, load, and complete events to stderr" },
   ],
   vocabulary: ["run", "execute", "load skill", "complete", "record outcome"],
 };
@@ -61,6 +74,7 @@ type RunResult = {
   readonly event: "loaded" | "completed";
   readonly result: "success" | "partial" | "failed" | null;
   readonly writes: readonly string[] | null;
+  readonly context: ActivationContext | null;
   readonly priorRuns: PriorRunContext;
   readonly learningAppended: string | null;
 };
@@ -70,20 +84,25 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   const skillName = positionalArgs[0];
   const ndjson = args.includes("--ndjson");
   const wantComplete = args.includes("--complete");
+  const withContext = args.includes("--with-context");
+  const strict = args.includes("--strict");
 
   if (!skillName) {
     return invalidArgs("Missing skill name", ["Usage: mktg run <skill-name>", "mktg list --json to see available skills"], DOCS.skills);
   }
 
-  // Parse --result / --writes (completion-only flags)
+  // Parse --result / --writes (completion-only flags) and --budget
   let resultArg: RunOutcome | undefined;
   const writesRaw: string[] = [];
+  let budget: number | undefined;
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (a === "--result" && args[i + 1]) { resultArg = args[i + 1] as RunOutcome; i++; }
     else if (a.startsWith("--result=")) { resultArg = a.slice(9) as RunOutcome; }
     else if (a === "--writes" && args[i + 1]) { writesRaw.push(...args[i + 1]!.split(",")); i++; }
     else if (a.startsWith("--writes=")) { writesRaw.push(...a.slice(9).split(",")); }
+    else if (a === "--budget" && args[i + 1]) { budget = parseInt(args[i + 1]!, 10); i++; }
+    else if (a.startsWith("--budget=")) { budget = parseInt(a.slice(9), 10); }
   }
   const writesList = writesRaw.map(w => w.trim()).filter(Boolean);
 
@@ -96,6 +115,14 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     return invalidArgs("--result and --writes require --complete", [
       "Usage: mktg run <skill> --complete [--result success] [--writes path1,path2]",
       "A bare 'mktg run' logs event: loaded — completions must be explicit",
+    ], DOCS.skills);
+  }
+  if (budget !== undefined && (isNaN(budget) || budget < 1)) {
+    return invalidArgs("--budget must be a positive integer", ["Example: mktg run seo-content --with-context --budget 4000"], DOCS.skills);
+  }
+  if (budget !== undefined && !withContext) {
+    return invalidArgs("--budget requires --with-context", [
+      "Usage: mktg run <skill> --with-context --budget 4000",
     ], DOCS.skills);
   }
 
@@ -122,7 +149,9 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     ], DOCS.skills);
   }
 
-  // Check prerequisites (warn but don't block — progressive enhancement)
+  // Check prerequisites (skills, brand files, envs, tools, catalogs).
+  // Default: warn but don't block — progressive enhancement.
+  // --strict: any unsatisfied prerequisite is a hard dependency failure.
   const prerequisites = await checkPrerequisites(resolved.name, flags.cwd, manifest);
   if (ndjson) {
     writeStderr(JSON.stringify({
@@ -133,6 +162,12 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
         missing: prerequisites.missing,
       },
     }));
+  }
+  if (strict && !prerequisites.satisfied) {
+    return err("DEPENDENCY_MISSING", `Prerequisites not satisfied for '${resolved.name}' (--strict)`, [
+      ...prerequisites.remediation,
+      "Run without --strict to load anyway (progressive enhancement)",
+    ], 3);
   }
 
   // Read SKILL.md from install directory
@@ -177,6 +212,33 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
         "Writes must be existing files inside the project (brand/, marketing/, .mktg/)",
         "Create the files first, then record completion with the same command",
       ], DOCS.skills);
+    }
+  }
+
+  // One-shot activation envelope: compile brand context for this skill.
+  // Declared manifest reads win; layer matrix is the fallback. Template
+  // files are excluded but named in templatesSkipped — nothing is silent.
+  let context: ActivationContext | null = null;
+  if (withContext) {
+    const manifestEntry = manifest.skills[resolved.name]!;
+    const selection = filesForSkillActivation(manifestEntry);
+    const compiled = await compileBrandContext(flags.cwd, {
+      ...(selection.files ? { files: selection.files } : {}),
+      ...(budget !== undefined ? { budget } : {}),
+      excludeTemplates: true,
+    });
+    context = {
+      layer: selection.layer,
+      files: compiled.files,
+      tokenEstimate: compiled.tokenEstimate,
+      budgetDropped: compiled.budgetDropped,
+      templatesSkipped: compiled.templatesSkipped,
+    };
+    if (ndjson) {
+      writeStderr(JSON.stringify({
+        type: "context",
+        data: { skill: resolved.name, layer: context.layer, files: Object.keys(compiled.files), tokenEstimate: compiled.tokenEstimate, budgetDropped: compiled.budgetDropped, templatesSkipped: compiled.templatesSkipped },
+      }));
     }
   }
 
@@ -246,6 +308,7 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     event,
     result: outcome,
     writes: wantComplete ? validatedWrites : null,
+    context,
     priorRuns,
     learningAppended,
   };

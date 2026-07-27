@@ -72,7 +72,16 @@ mktg status --json --fields "brand.populated,skills.installed"
 mktg run brand-voice --json
 # Returns skill content + prerequisites + prior run context.
 # Logs event:"loaded" — a load is NOT work and never unlocks plan distribute steps.
-# For brand context, call `mktg context` (below) — `run` does not return it.
+
+mktg run seo-content --with-context --budget 4000 --json
+# One-shot activation: also returns non-template brand context selected from
+# the skill's declared reads (layer matrix fallback). Templates are named in
+# context.templatesSkipped; budget overflow in context.budgetDropped.
+
+mktg run postiz --strict --json
+# Prereqs cover skills, brand files, env vars (manifest env_vars), CLI tools,
+# and backing catalogs. --strict exits 3 (DEPENDENCY_MISSING) when any are
+# unsatisfied; default stays warn-only (progressive enhancement).
 ```
 
 ### 3b. Record the outcome after doing the work
@@ -174,6 +183,8 @@ posting and the native backend is only acting as the local queue.
 | Agent needs project state | `mktg status --json` |
 | Agent needs health check | `mktg doctor --json` |
 | Agent needs a specific skill loaded | `mktg run <skill> --json` (logs `event:"loaded"`) |
+| Agent needs skill + brand context in one call | `mktg run <skill> --with-context --json` |
+| Agent must fail fast on missing prereqs | `mktg run <skill> --strict --json` (exit 3) |
 | Agent finished the work and records it | `mktg run <skill> --complete --writes <paths> --result success --json` |
 | Agent needs load vs completion history | `mktg skill history <skill> --json` |
 | Agent needs brand context for a skill | `mktg context --json` |
