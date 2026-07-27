@@ -247,7 +247,7 @@ function StatusChip({ status, adapter }: { status: string; adapter: string }) {
 
 // CLI publish-truth parity: the native backend is a LOCAL workspace queue
 // (.mktg/native-publish/). Its internal draft/scheduled/published states all
-// mean "written locally" — the chip must never imply a network send.
+// mean "written locally" - the chip must never imply a network send.
 // Mirrors PublishItemStatus in src/types.ts.
 function displayStatus(status: string, adapter: string): string {
   if (adapter === "mktg-native") {
