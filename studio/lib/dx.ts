@@ -255,7 +255,7 @@ export function applyFieldMaskStrict(
 
   // Empty list: no rows means no evidence to invalidate requested fields.
   // Without this guard, fieldHeadResolves() returns false for every head on
-  // an empty array, so any ?fields= probe on an empty list 400s — the mask
+  // an empty array, so any ?fields= probe on an empty list 400s: the mask
   // becomes environment-dependent (fresh DB vs seeded). The CLI-side
   // filterArrayItems already accepts masks on empty arrays; parity here.
   if (Array.isArray(data) && data.length === 0) return { ok: true, data };
