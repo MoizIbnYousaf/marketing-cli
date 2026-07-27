@@ -34,8 +34,17 @@ function freshDb(): Database {
 // in an INSERT's VALUES clause silently produce NULL created_at. Sidestep by
 // computing the ISO timestamp in JS and binding it as plain TEXT, matching
 // the format SQLite's date()/datetime() returns.
+//
+// Anchor to UTC midnight, NOT Date.now(): the funnel buckets by SQLite
+// date(created_at) calendar day. Seeding "now - N days + H hours" crosses a
+// day boundary whenever the suite runs within H hours of UTC midnight
+// (e.g. daysAgo=0 at 21:00 UTC + 6h lands on TOMORROW's day-key, which falls
+// outside the 14 keys ending today and silently vanishes from counts).
+// Midnight + ≤9h stays on the intended day-key at any wall-clock hour.
 function isoOffset(daysAgo: number, hours = 6): string {
-  const t = Date.now() - daysAgo * 24 * 60 * 60 * 1000 + hours * 60 * 60 * 1000
+  const now = new Date()
+  const utcMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const t = utcMidnight - daysAgo * 24 * 60 * 60 * 1000 + hours * 60 * 60 * 1000
   return new Date(t).toISOString().slice(0, 19).replace("T", " ")
 }
 function seedSignal(db: Database, daysAgo: number, hourOffset = 6): void {
