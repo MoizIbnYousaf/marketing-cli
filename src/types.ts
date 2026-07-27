@@ -245,6 +245,20 @@ export type CatalogCapabilities = {
   readonly publish_adapters?: readonly string[];
   readonly scheduling_adapters?: readonly string[];
   readonly email_adapters?: readonly string[];
+  /** Research/data-plane adapters (SEO metrics, SERP, backlinks, …). */
+  readonly research_adapters?: readonly string[];
+};
+
+/**
+ * Optional MCP endpoint contract for catalogs whose agent surface is an
+ * MCP server (e.g. OpenSEO). `transport` stays "http" — MCP rides over
+ * HTTP; no new transport value is introduced.
+ */
+export type CatalogMcp = {
+  /** Env var agents read for the MCP URL (self-host override). */
+  readonly url_env: string;
+  /** Hosted default MCP URL (https). */
+  readonly default_url: string;
 };
 
 export type CatalogEntry = {
@@ -258,6 +272,7 @@ export type CatalogEntry = {
   readonly sdk_reference: string | null;
   readonly auth: CatalogAuth;
   readonly skills: readonly string[];
+  readonly mcp?: CatalogMcp;
 };
 
 export type CatalogsManifest = {
@@ -266,7 +281,7 @@ export type CatalogsManifest = {
 };
 
 export type CatalogCollision = {
-  readonly kind: "publish_adapters" | "scheduling_adapters" | "email_adapters";
+  readonly kind: "publish_adapters" | "scheduling_adapters" | "email_adapters" | "research_adapters";
   readonly adapter: string;
   readonly declaredBy: readonly string[];
 };

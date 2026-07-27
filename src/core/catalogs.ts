@@ -73,7 +73,7 @@ export const detectAdapterCollisions = (
     seen.set(`publish_adapters:${name}`, ["<builtin>"]);
   }
 
-  const kinds = ["publish_adapters", "scheduling_adapters", "email_adapters"] as const;
+  const kinds = ["publish_adapters", "scheduling_adapters", "email_adapters", "research_adapters"] as const;
   for (const [catName, cat] of Object.entries(manifest.catalogs)) {
     for (const kind of kinds) {
       const adapters = cat.capabilities[kind] ?? [];
@@ -175,7 +175,7 @@ const validateShape = (
     }
     const caps = e.capabilities as Record<string, unknown>;
     let hasAnyAdapter = false;
-    for (const kind of ["publish_adapters", "scheduling_adapters", "email_adapters"] as const) {
+    for (const kind of ["publish_adapters", "scheduling_adapters", "email_adapters", "research_adapters"] as const) {
       const arr = caps[kind];
       if (arr === undefined) continue;
       if (!Array.isArray(arr)) {
@@ -227,6 +227,20 @@ const validateShape = (
     }
     if (auth.header_format !== undefined && auth.header_format !== "bearer" && auth.header_format !== "bare") {
       return { ok: false, detail: "'auth.header_format' must be 'bearer' or 'bare' when present", path: `catalogs.${name}.auth.header_format` };
+    }
+
+    // mcp (optional): { url_env, default_url } — MCP-over-HTTP endpoint contract
+    if (e.mcp !== undefined) {
+      if (e.mcp === null || typeof e.mcp !== "object" || Array.isArray(e.mcp)) {
+        return { ok: false, detail: "'mcp' must be an object", path: `catalogs.${name}.mcp` };
+      }
+      const mcp = e.mcp as Record<string, unknown>;
+      if (typeof mcp.url_env !== "string" || mcp.url_env.length === 0) {
+        return { ok: false, detail: "'mcp.url_env' must be a non-empty string", path: `catalogs.${name}.mcp.url_env` };
+      }
+      if (typeof mcp.default_url !== "string" || !mcp.default_url.startsWith("https://")) {
+        return { ok: false, detail: "'mcp.default_url' must be an https URL", path: `catalogs.${name}.mcp.default_url` };
+      }
     }
   }
 

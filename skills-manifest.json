@@ -2095,6 +2095,34 @@
       "env_vars": [
         "EXA_API_KEY"
       ]
+    },
+    "openseo": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md"
+      ],
+      "writes": [
+        "keyword-plan.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "keyword difficulty",
+        "search volume",
+        "serp results",
+        "ranked keywords",
+        "backlinks",
+        "rank tracker",
+        "gsc performance"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ]
     }
   },
   "redirects": {

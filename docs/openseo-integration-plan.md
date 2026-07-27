@@ -86,10 +86,10 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 | # | Phase | Status | PR | Notes |
 |---|---|---|---|---|
 | 0 | Plan authored (this doc) | `completed` | — | 2026-07-20 |
-| 1 | Catalog model: `openseo` + SEO/MCP capabilities | `pending` | | Schema/types foundation |
-| 2 | Doctor + env/MCP readiness | `pending` | | |
-| 3 | Root MCP wiring + agent install docs | `pending` | | `.mcp.json` / CONTEXT |
-| 4 | First-class `openseo` skill (adapter / coach) | `pending` | | Namespace-safe |
+| 1 | Catalog model: `openseo` + SEO/MCP capabilities | `completed` | cursor/catalog-research-capability-ccd8 | 2026-07-27 — `research_adapters` + `mcp` block; openseo pinned v0.1.2 |
+| 2 | Doctor + env/MCP readiness | `in_progress` | cursor/catalog-research-capability-ccd8 | envs surface via doctor catalog checks + prereqs; named readiness states (mcp_client_only etc.) deferred |
+| 3 | Root MCP wiring + agent install docs | `completed` | cursor/catalog-research-capability-ccd8 | 2026-07-27 — `.mcp.json` openseo server + CONTEXT backend matrix |
+| 4 | First-class `openseo` skill (adapter / coach) | `completed` | cursor/catalog-research-capability-ccd8 | 2026-07-27 — `skills/openseo/SKILL.md` (65 skills); drift-locked envs |
 | 5 | Steal & adapt OpenSEO workflow skills (`openseo-*`) | `pending` | | Upstream provenance |
 | 6 | Rewire existing SEO skills + `/cmo` Path A/B | `pending` | | Prefer OpenSEO when configured |
 | 7 | Brand / `.seo` / OpenSEO project sync contract | `pending` | | |
