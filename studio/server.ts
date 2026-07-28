@@ -75,15 +75,34 @@ import {
   enrichRouteSchema,
   enrichRouteEntry,
 } from "./lib/schema-export.ts";
-import {
-  BRAND_FILE_NAMES,
-  listBrandFiles,
-  readBrandFile,
-  writeBrandFile,
-  resolveBrandPath,
-  getSpec as getBrandSpec,
-} from "./lib/brand-files.ts";
 import { resolveProjectPath, resolveProjectRoot, resolveStudioDbPath } from "./lib/project-root.ts";
+import { safeJsonParse } from "./server/http.ts";
+import {
+  ACTIVITY_LIST_ROUTE,
+  ACTIVITY_LOG_BODY,
+  ACTIVITY_LOG_ROUTE,
+  ACTIVITY_DELETE_ROUTE,
+} from "./server/routes/activity.ts";
+import {
+  BRAND_WRITE_BODY,
+  BRAND_REGENERATE_BODY,
+  BRAND_FILES_ROUTE,
+  BRAND_READ_ROUTE,
+  BRAND_WRITE_ROUTE,
+  BRAND_REGENERATE_ROUTE,
+} from "./server/routes/brand.ts";
+import {
+  EMPTY_LIST_ROUTE,
+  TRENDS_HOT_CONTEXT_ROUTE,
+  SIGNALS_LIST_ROUTE,
+  SIGNALS_BASELINE_ROUTE,
+  SIGNAL_ID_BODY,
+  SIGNAL_DISMISS_ROUTE,
+  SIGNAL_APPROVE_ROUTE,
+  SIGNAL_FLAG_BODY,
+  SIGNAL_FLAG_ROUTE,
+  normalizeSignalRow,
+} from "./server/routes/signals.ts";
 import {
   assertProjectMediaPath,
   buildContentManifest,
@@ -522,14 +541,6 @@ function spawnEnv(extra: Record<string, string> = {}): Record<string, string> {
   return out;
 }
 
-function safeJsonParse<T>(raw: string, fallback: T): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 function sanitizeContentAssetPatch(patch: Record<string, unknown>): ContentAssetMeta {
   const out: ContentAssetMeta = {};
   if (typeof patch.title === "string") out.title = patch.title.slice(0, 240);
@@ -764,14 +775,15 @@ const ROUTE_SCHEMA = [
 // wrapRoute migration (Agent DX 21/21 — T4)
 //
 // `wrapRoute` from lib/dx.ts is the single source of truth for the route
-// contract: error envelope, dryRun, fields, NDJSON, rate limit, access log.
-// Handlers below opt in for that uniformity. The remaining inline if-blocks
-// in the dispatcher either:
+// contract: error envelope, dryRun, fields, NDJSON, access log.
+// Rate limiting is applied once at the fetch perimeter (not inside wrapRoute).
+// Migrated wrapRoute handlers live under server/routes/*.ts and are imported
+// above. The remaining inline if-blocks in the dispatcher either:
 //   - serve SSE (which bypasses the JSON envelope), or
 //   - return shapes that wrapRoute can't represent yet (degraded reads,
 //     job creation with custom top-level fields, path-param routes that
 //     need a regex match before invocation).
-// Each opt-in route below has the same wire contract as before with one
+// Each opt-in route has the same wire contract as before with one
 // uniformity change: success bodies are `{ok:true, data:T}` (no extra
 // top-level fields like `id` — those nest into `data`).
 // ---------------------------------------------------------------------------
@@ -789,306 +801,6 @@ const HEALTH_ROUTE = wrapRoute<undefined, {
       ts: new Date().toISOString(),
       subscribers: globalEmitter.size,
     },
-  }),
-});
-
-const ACTIVITY_LIST_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async (_input, ctx) => {
-    const kind = ctx.url.searchParams.get("kind");
-    const skill = ctx.url.searchParams.get("skill");
-    const limit = Math.min(
-      Math.max(parseInt(ctx.url.searchParams.get("limit") ?? "50", 10) || 50, 1),
-      500,
-    );
-    const offset = Math.max(
-      parseInt(ctx.url.searchParams.get("offset") ?? "0", 10) || 0,
-      0,
-    );
-
-    const where: string[] = [];
-    const params: unknown[] = [];
-    if (kind) {
-      const c = rejectControlChars(kind, "kind");
-      if (!c.ok) {
-        return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: c.message };
-      }
-      where.push("kind = ?");
-      params.push(kind);
-    }
-    if (skill) {
-      const c = rejectControlChars(skill, "skill");
-      if (!c.ok) {
-        return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: c.message };
-      }
-      where.push("skill = ?");
-      params.push(skill);
-    }
-
-    let sql = "SELECT id, kind, skill, summary, detail, files_changed, meta, created_at FROM activity";
-    if (where.length) sql += " WHERE " + where.join(" AND ");
-    sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-    params.push(limit, offset);
-
-    const rows = queryAll<{
-      id: number;
-      kind: string;
-      skill: string | null;
-      summary: string;
-      detail: string | null;
-      files_changed: string | null;
-      meta: string | null;
-      created_at: string;
-    }>(sql, params);
-
-    return {
-      ok: true as const,
-      data: rows.map((r) => ({
-        id: r.id,
-        kind: r.kind,
-        skill: r.skill,
-        summary: r.summary,
-        detail: r.detail,
-        filesChanged: r.files_changed ? safeJsonParse<string[]>(r.files_changed, []) : [],
-        meta: r.meta ? safeJsonParse<Record<string, unknown> | null>(r.meta, null) : null,
-        createdAt: r.created_at,
-      })),
-    };
-  },
-});
-
-// ActivityKind — the canonical set of /cmo event types. Mirrors the Activity
-// type in lib/types/activity.ts and the icon mapping in
-// components/workspace/activity-panel/activity-item.tsx. Anything outside this
-// set should fail BAD_INPUT instead of writing a row the UI can't render.
-const ACTIVITY_LOG_BODY = z.object({
-  kind: z.enum([
-    "skill-run",
-    "brand-write",
-    "publish",
-    "toast",
-    "navigate",
-    "audit",
-    "note",
-    "custom",
-  ]),
-  skill: z.string().min(1).max(128).optional(),
-  summary: z.string().min(1).max(500),
-  detail: z.string().max(8_000).optional(),
-  filesChanged: z.array(z.string().max(512)).max(50).optional(),
-  meta: z.record(z.string(), z.unknown()).optional(),
-});
-
-const ACTIVITY_LOG_ROUTE = wrapRoute<z.infer<typeof ACTIVITY_LOG_BODY>, {
-  id: number;
-  kind: string;
-  skill: string | null;
-  summary: string;
-  detail: string | null;
-  filesChanged: string[];
-  meta: Record<string, unknown> | null;
-  createdAt: string;
-}>({
-  method: "POST",
-  inputSchema: ACTIVITY_LOG_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    for (const [field, value] of Object.entries({
-      kind: input.kind,
-      summary: input.summary,
-      detail: input.detail ?? "",
-      skill: input.skill ?? "",
-    })) {
-      const c = rejectControlChars(value, field);
-      if (!c.ok) {
-        return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: c.message };
-      }
-    }
-    if (input.skill) {
-      const idCheck = validateResourceId(input.skill, "skill");
-      if (!idCheck.ok) {
-        return { ok: false as const, code: "INVALID_RESOURCE_ID" as const, message: idCheck.message };
-      }
-    }
-
-    const result = execute(
-      `INSERT INTO activity (kind, skill, summary, detail, files_changed, meta)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        input.kind,
-        input.skill ?? null,
-        input.summary,
-        input.detail ?? null,
-        input.filesChanged ? JSON.stringify(input.filesChanged) : null,
-        input.meta ? JSON.stringify(input.meta) : null,
-      ],
-    );
-
-    const id = Number(result.lastInsertRowid);
-    const payload = {
-      id,
-      kind: input.kind,
-      skill: input.skill ?? null,
-      summary: input.summary,
-      detail: input.detail ?? null,
-      filesChanged: input.filesChanged ?? [],
-      meta: input.meta ?? null,
-      createdAt: new Date().toISOString(),
-    };
-
-    globalEmitter.publish("*", { type: "activity-new", payload });
-
-    return { ok: true as const, data: payload };
-  },
-});
-
-// DELETE /api/activity/:id?confirm=true — destructive removal of one activity
-// row. wrapRoute's `destructive: true` auto-gates on `?confirm=true`; without
-// it the request returns `{ok:false, error:{code:"CONFIRM_REQUIRED"}}`. The
-// handler reads :id from the URL path (set by the dispatcher), 404s when the
-// row isn't there, otherwise deletes + emits an `activity-deleted` SSE event
-// so the Activity panel can drop the row in real time.
-const ACTIVITY_DELETE_ROUTE = wrapRoute<undefined, { id: number; deleted: true }>({
-  method: "DELETE",
-  destructive: true,
-  dryRun: true,
-  handler: async (_input, ctx) => {
-    const match = ctx.url.pathname.match(/^\/api\/activity\/(\d+)$/);
-    if (!match) {
-      return { ok: false as const, code: "BAD_INPUT" as const, message: "Path must be /api/activity/:id where :id is a positive integer" };
-    }
-    const id = Number(match[1]);
-    const row = queryOne<{ id: number }>("SELECT id FROM activity WHERE id = ?", [id]);
-    if (!row) {
-      return { ok: false as const, code: "NOT_FOUND" as const, message: `activity row ${id} does not exist`, status: 404, fix: "GET /api/activity to list valid ids" };
-    }
-    execute("DELETE FROM activity WHERE id = ?", [id]);
-    globalEmitter.publish("*", { type: "activity-deleted", payload: { id } });
-    return { ok: true as const, data: { id, deleted: true as const } };
-  },
-});
-
-// Shared wrapped handlers for empty-stub GETs (HQ legacy signal routes, Trends, Audience, etc.)
-// Each returns `{ok:true, data:[]}` and inherits the wrapper's contract:
-// fields projection, NDJSON streaming, structured errors, access logging.
-const EMPTY_LIST_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async () => ({ ok: true as const, data: [] as unknown[] }),
-});
-
-const TRENDS_HOT_CONTEXT_ROUTE = wrapRoute({
-  method: "GET",
-  handler: async () => ({ ok: true as const, data: null }),
-});
-
-const SIGNALS_LIST_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async (_input, ctx) => {
-    const platform = ctx.url.searchParams.get("platform");
-    const feedback = ctx.url.searchParams.get("filter");
-    const where: string[] = [];
-    const params: unknown[] = [];
-    if (platform) {
-      const c = rejectControlChars(platform, "platform");
-      if (!c.ok) return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: c.message };
-      where.push("platform = ?");
-      params.push(platform);
-    }
-    if (feedback) {
-      const c = rejectControlChars(feedback, "filter");
-      if (!c.ok) return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: c.message };
-      where.push("feedback = ?");
-      params.push(feedback);
-    }
-    let sql = "SELECT * FROM signals";
-    if (where.length) sql += " WHERE " + where.join(" AND ");
-    sql += " ORDER BY severity DESC, created_at DESC LIMIT 100";
-    const rows = queryAll<Record<string, unknown>>(sql, params);
-    return { ok: true as const, data: rows.map(normalizeSignalRow) };
-  },
-});
-
-function normalizeSignalSeverity(value: unknown): "p0" | "p1" | "watch" | "negative" | "neutral" {
-  const numeric = typeof value === "number" ? value : Number(value ?? 0);
-  if (!Number.isFinite(numeric)) return "neutral";
-  if (numeric >= 80) return "p0";
-  if (numeric >= 60) return "p1";
-  if (numeric >= 40) return "watch";
-  if (numeric < 0) return "negative";
-  return "neutral";
-}
-
-function normalizeSignalRow(row: Record<string, unknown>) {
-  const createdAt =
-    typeof row.created_at === "string"
-      ? new Date(row.created_at.endsWith("Z") ? row.created_at : `${row.created_at}Z`).toISOString()
-      : new Date().toISOString();
-  const updatedAt =
-    typeof row.updated_at === "string"
-      ? new Date(row.updated_at.endsWith("Z") ? row.updated_at : `${row.updated_at}Z`).toISOString()
-      : createdAt;
-  const capturedAt = Date.parse(createdAt);
-  const metadata = safeJsonParse<Record<string, unknown>>(typeof row.metadata === "string" ? row.metadata : "{}", {});
-  const content = typeof row.content === "string" ? row.content.replace(/^demo:\s*/i, "") : null;
-  const canonicalUrl = typeof row.url === "string" ? row.url : null;
-  const spikeDetected = row.spike_detected === 1 || row.spike_detected === true;
-  const severity = normalizeSignalSeverity(row.severity);
-
-  return {
-    id: String(row.id),
-    platform: typeof row.platform === "string" ? row.platform : "news",
-    content,
-    url: canonicalUrl,
-    canonicalUrl,
-    severity,
-    spikeMultiplier:
-      typeof metadata.spikeMultiplier === "number"
-        ? metadata.spikeMultiplier
-        : spikeDetected && typeof row.severity === "number" && row.severity > 0
-          ? Math.max(1, row.severity / 20)
-          : undefined,
-    spikeDetected,
-    feedback: typeof row.feedback === "string" ? row.feedback : "pending",
-    feedbackAt:
-      typeof metadata.feedbackAt === "number"
-        ? metadata.feedbackAt
-        : undefined,
-    metadata: typeof row.metadata === "string" ? row.metadata : null,
-    capturedAt: Number.isFinite(capturedAt) ? capturedAt : Date.now(),
-    createdAt,
-    updatedAt,
-    title: typeof metadata.title === "string" ? metadata.title : undefined,
-    authorHandle: typeof metadata.authorHandle === "string" ? metadata.authorHandle : null,
-    externalId: typeof metadata.externalId === "string" ? metadata.externalId : null,
-    hashtags: Array.isArray(metadata.hashtags)
-      ? metadata.hashtags.filter((tag): tag is string => typeof tag === "string")
-      : null,
-    stream: typeof metadata.stream === "string" ? metadata.stream : null,
-    metrics:
-      metadata.metrics && typeof metadata.metrics === "object"
-        ? {
-            views: typeof (metadata.metrics as Record<string, unknown>).views === "number" ? (metadata.metrics as Record<string, number>).views : undefined,
-            likes: typeof (metadata.metrics as Record<string, unknown>).likes === "number" ? (metadata.metrics as Record<string, number>).likes : undefined,
-            comments: typeof (metadata.metrics as Record<string, unknown>).comments === "number" ? (metadata.metrics as Record<string, number>).comments : undefined,
-            shares: typeof (metadata.metrics as Record<string, unknown>).shares === "number" ? (metadata.metrics as Record<string, number>).shares : undefined,
-          }
-        : undefined,
-    trendInterest: typeof metadata.trendInterest === "number" ? metadata.trendInterest : undefined,
-    trendRising: typeof metadata.trendRising === "boolean" ? metadata.trendRising : undefined,
-  };
-}
-
-const SIGNALS_BASELINE_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async () => ({
-    ok: true as const,
-    data: queryAll<Record<string, unknown>>(
-      "SELECT * FROM metric_baselines ORDER BY computed_at DESC",
-    ),
   }),
 });
 
@@ -1136,86 +848,6 @@ const RESEARCH_ACTIVE_ROUTE = wrapRoute({
   }),
 });
 
-const SIGNAL_ID_BODY = z.object({ id: z.number().int().positive() });
-
-const SIGNAL_DISMISS_ROUTE = wrapRoute<z.infer<typeof SIGNAL_ID_BODY>, { id: number; feedback: "dismissed" }>({
-  method: "POST",
-  inputSchema: SIGNAL_ID_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    const result = execute(
-      "UPDATE signals SET feedback = 'dismissed', updated_at = datetime('now') WHERE id = ?",
-      [input.id],
-    );
-    if (result.changes === 0) {
-      return {
-        ok: false as const,
-        code: "NOT_FOUND" as const,
-        status: 404,
-        message: `signal row ${input.id} does not exist`,
-        fix: "GET /api/signals to list valid ids",
-      };
-    }
-    return { ok: true as const, data: { id: input.id, feedback: "dismissed" as const } };
-  },
-});
-
-const SIGNAL_APPROVE_ROUTE = wrapRoute<z.infer<typeof SIGNAL_ID_BODY>, { id: number; feedback: "approved" }>({
-  method: "POST",
-  inputSchema: SIGNAL_ID_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    const result = execute(
-      "UPDATE signals SET feedback = 'approved', updated_at = datetime('now') WHERE id = ?",
-      [input.id],
-    );
-    if (result.changes === 0) {
-      return {
-        ok: false as const,
-        code: "NOT_FOUND" as const,
-        status: 404,
-        message: `signal row ${input.id} does not exist`,
-        fix: "GET /api/signals to list valid ids",
-      };
-    }
-    return { ok: true as const, data: { id: input.id, feedback: "approved" as const } };
-  },
-});
-
-const SIGNAL_FLAG_BODY = z.object({
-  id: z.number().int().positive(),
-  reason: z.string().min(1).max(500),
-});
-
-const SIGNAL_FLAG_ROUTE = wrapRoute<z.infer<typeof SIGNAL_FLAG_BODY>, { id: number; feedback: "flagged"; reason: string }>({
-  method: "POST",
-  inputSchema: SIGNAL_FLAG_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    const reasonCheck = rejectControlChars(input.reason, "reason");
-    if (!reasonCheck.ok) {
-      return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: reasonCheck.message };
-    }
-    const result = execute(
-      "UPDATE signals SET feedback = 'flagged', metadata = json_patch(COALESCE(metadata,'{}'), json_object('flagReason', ?)), updated_at = datetime('now') WHERE id = ?",
-      [input.reason, input.id],
-    );
-    if (result.changes === 0) {
-      return {
-        ok: false as const,
-        code: "NOT_FOUND" as const,
-        status: 404,
-        message: `signal row ${input.id} does not exist`,
-        fix: "GET /api/signals to list valid ids",
-      };
-    }
-    return {
-      ok: true as const,
-      data: { id: input.id, feedback: "flagged" as const, reason: input.reason },
-    };
-  },
-});
-
 const CMO_PLAYBOOK_BODY = z.object({ name: z.string().min(1).max(128) });
 
 const CMO_PLAYBOOK_ROUTE = wrapRoute<z.infer<typeof CMO_PLAYBOOK_BODY>, { jobId: string; playbook: string }>({
@@ -1233,256 +865,6 @@ const CMO_PLAYBOOK_ROUTE = wrapRoute<z.infer<typeof CMO_PLAYBOOK_BODY>, { jobId:
       return { status: "queued", playbook: input.name };
     });
     return { ok: true as const, data: { jobId: job.id, playbook: input.name } };
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Brand docs editor server endpoints
-//
-// 4 endpoints power the Brand docs UI:
-//   GET  /api/brand/files       list every brand/*.md with freshness chips
-//   GET  /api/brand/read        read one file + mtime
-//   POST /api/brand/write       atomic write with optimistic-lock (mtime)
-//   POST /api/brand/regenerate  invoke the owning skill via the job queue
-//
-// Body schemas live as constants here so the same Zod validator drives both
-// the wire AND the JSON Schema enrichment on /api/schema (single source of truth).
-// ---------------------------------------------------------------------------
-
-const BRAND_FILE_NAME_SCHEMA = z.string().min(1).max(128).regex(
-  /^(brand\/)?[a-z0-9][a-z0-9._-]*\.md$/,
-  "must be a .md file under brand/",
-);
-
-const BRAND_WRITE_BODY = z.object({
-  file: BRAND_FILE_NAME_SCHEMA,
-  content: z.string().max(2_000_000), // 2MB — markdown rarely exceeds this
-  expectedMtime: z.string().optional(),
-});
-
-const BRAND_REGENERATE_BODY = z.object({
-  file: BRAND_FILE_NAME_SCHEMA,
-});
-
-const BRAND_FILES_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async () => ({
-    ok: true as const,
-    data: listBrandFiles() as unknown[],
-    meta: { fetchedAt: new Date().toISOString() },
-  }),
-});
-
-const BRAND_READ_ROUTE = wrapRoute<undefined, {
-  file: string;
-  content: string;
-  mtime: string;
-  bytes: number;
-  freshness: "fresh" | "stale" | "template";
-  ageDays: number | null;
-}>({
-  method: "GET",
-  handler: async (_input, ctx) => {
-    const fileQ = ctx.url.searchParams.get("file");
-    if (!fileQ) {
-      return { ok: false as const, code: "BAD_INPUT" as const, message: "file query parameter is required" };
-    }
-    const ctrl = rejectControlChars(fileQ, "file");
-    if (!ctrl.ok) {
-      return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: ctrl.message };
-    }
-    const resolved = resolveBrandPath(fileQ);
-    if (!resolved.ok) {
-      return { ok: false as const, code: "PATH_TRAVERSAL" as const, message: resolved.message };
-    }
-    if (!existsSync(resolved.abs)) {
-      return { ok: false as const, code: "NOT_FOUND" as const, message: `brand/${resolved.rel} does not exist`, status: 404 };
-    }
-    try {
-      const r = readBrandFile(resolved.abs);
-      return {
-        ok: true as const,
-        data: {
-          file: resolved.rel,
-          content: r.content,
-          mtime: r.mtime,
-          bytes: r.bytes,
-          freshness: r.freshness,
-          ageDays: r.ageDays,
-        },
-        meta: { fetchedAt: new Date().toISOString() },
-      };
-    } catch (e) {
-      return {
-        ok: false as const,
-        code: "INTERNAL_ERROR" as const,
-        message: e instanceof Error ? e.message : "failed to read file",
-        status: 500,
-      };
-    }
-  },
-});
-
-const BRAND_WRITE_ROUTE = wrapRoute<z.infer<typeof BRAND_WRITE_BODY>, {
-  file: string;
-  mtime: string;
-  bytes: number;
-  deltaChars: number;
-}>({
-  method: "POST",
-  inputSchema: BRAND_WRITE_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    const ctrl = rejectControlChars(input.file, "file");
-    if (!ctrl.ok) {
-      return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: ctrl.message };
-    }
-    const resolved = resolveBrandPath(input.file);
-    if (!resolved.ok) {
-      return { ok: false as const, code: "PATH_TRAVERSAL" as const, message: resolved.message };
-    }
-
-    const result = writeBrandFile(resolved.abs, input.content, input.expectedMtime);
-    if (!result.ok) {
-      return {
-        ok: false as const,
-        code: "CONFLICT" as const,
-        message: `File modified elsewhere at ${result.serverMtime}`,
-        status: 409,
-        fix: `Reload (GET /api/brand/read?file=${resolved.rel}) and merge — your expectedMtime was ${result.clientMtime}`,
-      };
-    }
-
-    // Hook the Activity panel: every successful write becomes a brand-write
-    // entry that the dashboard renders in real time.
-    const summary = `Wrote brand/${resolved.rel} (${result.deltaChars >= 0 ? "+" : ""}${result.deltaChars} chars)`;
-    try {
-      const row = execute(
-        `INSERT INTO activity (kind, summary, files_changed, meta)
-         VALUES ('brand-write', ?, ?, ?)`,
-        [
-          summary,
-          JSON.stringify([`brand/${resolved.rel}`]),
-          JSON.stringify({ source: "studio", bytes: result.bytes, deltaChars: result.deltaChars }),
-        ],
-      );
-      globalEmitter.publish("*", {
-        type: "activity-new",
-        payload: {
-          id: Number(row.lastInsertRowid),
-          kind: "brand-write" as const,
-          summary,
-          filesChanged: [`brand/${resolved.rel}`],
-          meta: { source: "studio", bytes: result.bytes, deltaChars: result.deltaChars },
-          createdAt: new Date().toISOString(),
-        },
-      });
-    } catch {
-      // DB write failures don't break the file write
-    }
-
-    globalEmitter.publish("*", {
-      type: "brand-file-changed",
-      payload: { file: `brand/${resolved.rel}`, mtime: result.mtime, bytes: result.bytes },
-    });
-
-    return {
-      ok: true as const,
-      data: {
-        file: resolved.rel,
-        mtime: result.mtime,
-        bytes: result.bytes,
-        deltaChars: result.deltaChars,
-      },
-    };
-  },
-});
-
-const BRAND_REGENERATE_ROUTE = wrapRoute<z.infer<typeof BRAND_REGENERATE_BODY>, {
-  jobId: string;
-  skill: string;
-  file: string;
-  note: string;
-}>({
-  method: "POST",
-  inputSchema: BRAND_REGENERATE_BODY,
-  dryRun: true,
-  handler: async (input) => {
-    const ctrl = rejectControlChars(input.file, "file");
-    if (!ctrl.ok) {
-      return { ok: false as const, code: "CONTROL_CHARS_REJECTED" as const, message: ctrl.message };
-    }
-    const resolved = resolveBrandPath(input.file);
-    if (!resolved.ok) {
-      return { ok: false as const, code: "PATH_TRAVERSAL" as const, message: resolved.message };
-    }
-    const spec = getBrandSpec(resolved.rel);
-    if (!spec || !spec.skill) {
-      return {
-        ok: false as const,
-        code: "BAD_INPUT" as const,
-        message: `brand/${resolved.rel} has no owning skill — append-only or manual file`,
-        fix: "Pick a file from the canonical 10 with a skill owner (voice-profile, audience, competitors, …)",
-      };
-    }
-
-    // The studio cannot directly invoke /cmo (no AGPL-style coupling); instead
-    // we queue a job that /cmo (running in the user's Claude Code session)
-    // picks up. Same pattern as /api/skill/run.
-    const job = createJob(`brand:regenerate:${spec.skill}`, {
-      file: resolved.rel,
-      skill: spec.skill,
-    });
-    runJob(job.id, async (_job, emit) => {
-      emit(`Queued brand/${resolved.rel} regeneration via skill ${spec.skill}. Run /cmo to execute.`);
-      // Emit the skill-start event so the dashboard can render a "regenerating"
-      // banner immediately; skill-complete fires when /cmo POSTs back.
-      globalEmitter.publish("*", {
-        type: "skill-start",
-        payload: { skill: spec.skill, file: `brand/${resolved.rel}`, jobId: job.id },
-      });
-      return { status: "queued", skill: spec.skill, file: resolved.rel };
-    });
-
-    // Activity-feed entry so the user sees this immediately.
-    try {
-      const row = execute(
-        `INSERT INTO activity (kind, skill, summary, files_changed, meta)
-         VALUES ('skill-run', ?, ?, ?, ?)`,
-        [
-          spec.skill,
-          `Regenerating brand/${resolved.rel}`,
-          JSON.stringify([`brand/${resolved.rel}`]),
-          JSON.stringify({ source: "studio", jobId: job.id, status: "queued" }),
-        ],
-      );
-      globalEmitter.publish("*", {
-        type: "activity-new",
-        payload: {
-          id: Number(row.lastInsertRowid),
-          kind: "skill-run" as const,
-          skill: spec.skill,
-          summary: `Regenerating brand/${resolved.rel}`,
-          filesChanged: [`brand/${resolved.rel}`],
-          meta: { source: "studio", jobId: job.id, status: "queued" },
-          createdAt: new Date().toISOString(),
-        },
-      });
-    } catch {
-      // ignore
-    }
-
-    return {
-      ok: true as const,
-      data: {
-        jobId: job.id,
-        skill: spec.skill,
-        file: resolved.rel,
-        note: `Queued via job ${job.id} — /cmo executes the skill in the user's Claude Code session`,
-      },
-      meta: { fetchedAt: new Date().toISOString() },
-    };
   },
 });
 
@@ -1646,7 +1028,7 @@ const server = Bun.serve({
   async fetch(req) {
     const url = new URL(req.url);
     const method = req.method;
-    const corsHeaders = cors(req);
+    let corsHeaders = cors(req);
 
     // OPTIONS preflight — browsers cannot send Authorization on preflight,
     // so this stays open. The actual request that follows still goes
@@ -1671,6 +1053,8 @@ const server = Bun.serve({
 
     // Rate limit mutations (Agent DX axis 5).
     // GETs are idempotent and unthrottled.
+    // Applied once at the perimeter — wrapRoute does NOT re-check (would
+    // double-count mutating requests against the 60/min quota).
     const rate = checkRateLimit(req);
     if (!rate.ok) {
       return err(
@@ -1679,6 +1063,11 @@ const server = Bun.serve({
         { ...corsHeaders, "Retry-After": String(rate.retryAfterSec) },
         "Back off — the studio allows 60 mutating requests per minute per client",
       );
+    }
+    // Fail-open when the store is degraded: let the request through but tag
+    // every response so callers know the quota count is not authoritative.
+    if (rate.degraded) {
+      corsHeaders = { ...corsHeaders, "X-Rate-Limit-Degraded": "true" };
     }
 
     // -----------------------------------------------------------------------

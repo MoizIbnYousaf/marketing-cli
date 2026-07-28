@@ -13,6 +13,9 @@ import type {
 } from "../types";
 import { getPackageRoot } from "./paths";
 import { parseJsonInput } from "./errors";
+import { BUILTIN_PUBLISH_ADAPTERS as DEFAULT_BUILTIN_PUBLISH_ADAPTERS } from "./publish/builtins";
+
+export { DEFAULT_BUILTIN_PUBLISH_ADAPTERS };
 
 // License allowlist. LINK_SAFE licenses may declare transport: "sdk".
 // COPYLEFT licenses may declare a catalog only if transport: "http" and
@@ -250,11 +253,9 @@ const validateShape = (
   return { ok: true, manifest: raw as CatalogsManifest };
 };
 
-// Default built-in set — kept in sync with publish.ts ADAPTERS registry.
-// Ownership note: API reviewer may export this from publish.ts; until then the
-// loader call site injects the constant, and this default lets unit tests
-// run without pulling publish.ts into the import graph.
-export const DEFAULT_BUILTIN_PUBLISH_ADAPTERS: readonly string[] = ["mktg-native", "typefully", "resend", "file"] as const;
+// Default built-in set — single source of truth lives in publish/builtins
+// (also re-exported via publish/registry as BUILTIN_PUBLISH_ADAPTERS).
+// Importing builtins (not registry) keeps catalogs free of adapter/postiz.
 
 /**
  * Load and fully validate catalogs-manifest.json. Returns a discriminated

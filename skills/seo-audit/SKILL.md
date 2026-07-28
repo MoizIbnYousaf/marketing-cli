@@ -49,15 +49,15 @@ This skill operates in three modes. Select based on what the user needs:
 
 ## Backend Selection
 
-1. **OpenSEO configured**: pull rank snapshots, GSC performance, and technical SERP context from OpenSEO (`get_search_console_performance`, `get_ranked_keywords`, `get_serp_results`) so the audit prioritizes pages by measured impact. Store snapshots in `.seo/rank-snapshots/`.
-2. **OpenSEO absent**: audit with crawl/Exa evidence only; label ranking impact estimates `unknown`.
-   ```
-   Brand context loaded:
-   ├── Voice Profile   ✓/✗
-   ├── Tech Stack      ✓/✗
-   ├── Audience        ✓/✗
-   └── Keyword Plan    ✓/✗
-   ```
+Prefer OpenSEO `get_search_console_performance` / `get_ranked_keywords` / `get_serp_results` (snapshots in `.seo/rank-snapshots/`) when configured; otherwise crawl/Exa with ranking impact `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+
+```
+Brand context loaded:
+├── Voice Profile   ✓/✗
+├── Tech Stack      ✓/✗
+├── Audience        ✓/✗
+└── Keyword Plan    ✓/✗
+```
 3. Determine which mode applies based on user request. If ambiguous, confirm before proceeding.
 4. Ask only for information not already available from brand files.
 

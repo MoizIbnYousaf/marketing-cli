@@ -249,15 +249,13 @@ export const fetchWithSizeCap = async (
     return { ok: false, message: `Fetch failed: ${msg}` };
   }
 
+  // Manual redirect: follow at most one hop (non-recursive). A second 3xx
+  // from the target is rejected — matches the documented SSRF ceiling.
   if (resp.status >= 300 && resp.status < 400) {
     const location = resp.headers.get("location");
     if (location === null) {
       return { ok: false, message: `Redirect without Location header (${resp.status})` };
     }
-    // Resolve against the original URL to get an absolute href, then re-
-    // validate. Only follow one hop — good enough for the CLI's use case
-    // and a hard ceiling on redirect chains that could be used to exhaust
-    // memory or sneak past SSRF checks.
     let next: URL;
     try {
       next = new URL(location, url);
@@ -271,9 +269,22 @@ export const fetchWithSizeCap = async (
         message: `Redirect rejected: ${revalidate.message}`,
       };
     }
-    // One-hop follow — do not recurse on the revalidated target (prevents
-    // infinite redirect chains and keeps the code trivially auditable).
-    return fetchWithSizeCap(revalidate.url, { ...opts, maxBytes, timeoutMs });
+    try {
+      resp = await fetch(revalidate.url, {
+        signal: AbortSignal.timeout(timeoutMs),
+        ...(opts.headers ? { headers: opts.headers } : {}),
+        redirect: "manual",
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { ok: false, message: `Fetch failed after redirect: ${msg}` };
+    }
+    if (resp.status >= 300 && resp.status < 400) {
+      return {
+        ok: false,
+        message: `Redirect chain longer than one hop (HTTP ${resp.status})`,
+      };
+    }
   }
 
   if (!resp.ok) {

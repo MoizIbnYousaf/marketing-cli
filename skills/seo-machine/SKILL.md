@@ -64,17 +64,20 @@ Striking-distance boosts (pages already ranking pos 5–20 in GSC) jump the queu
 
 ## Backend Selection
 
-1. **OpenSEO configured**: validate KD/competition BEFORE generating pages (`get_keyword_metrics`, `get_serp_results`) — programmatic SEO on unvalidated targets manufactures pages nobody can rank for. Consume `marketing/seo/clusters/*.md` from `openseo-keyword-clustering` when present.
-2. **OpenSEO absent**: proceed with playbook validation (Exa + manual checks); mark competition estimates `unknown` in phase docs.
-   ```
-   Brand context loaded:
-   ├── Keyword Plan    ✓/✗  (seeds the roadmap; ✗ → generate during Initialize)
-   ├── Positioning     ✓/✗  (drives /compare and /alternatives angles)
-   ├── Competitors     ✓/✗  (target list for /alternatives pages)
-   ├── Audience        ✓/✗  (intent buckets for /for/<persona> pages)
-   └── Stack           ✓/✗  (selects references/stacks/<framework>.md)
-   ```
-3. Progressive enhancement: with zero brand files the skill still works — it derives signal from the repo (`CLAUDE.md`, `README.md`, `package.json`, design tokens, existing marketing pages) during Initialize Step 2. With full brand context it skips re-discovery and goes straight to research + roadmap.
+Validate KD/competition with OpenSEO `get_keyword_metrics` / `get_serp_results` before generating pages; consume `openseo-keyword-clustering` outputs when present. Qualitative research uses Exa-stack (or manual) per the shared ordered resolver — record `research_backend` in `.seo/config.json`. Full contract: `skills/openseo/references/backend-contract.md`.
+
+```
+Brand context loaded:
+├── Keyword Plan    ✓/✗  (seeds the roadmap; ✗ → generate during Initialize)
+├── Positioning     ✓/✗  (drives /compare and /alternatives angles)
+├── Competitors     ✓/✗  (target list for /alternatives pages)
+├── Audience        ✓/✗  (intent buckets for /for/<persona> pages)
+└── Stack           ✓/✗  (selects references/stacks/<framework>.md)
+```
+
+Progressive enhancement: with zero brand files the skill still works — it derives signal from the repo during Initialize Step 2. With full brand context it skips re-discovery and goes straight to research + roadmap.
+
+Exa recipes: `references/exa-recipes.md` + `references/api-stack-recipes.md`. Manual fallback: `references/manual-research.md`. Ahrefs is an optional paid overlay only (see Exa recipes appendix).
 
 ---
 
@@ -84,14 +87,7 @@ Striking-distance boosts (pages already ranking pos 5–20 in GSC) jump the queu
 |---|---|---|
 | 1 | `git rev-parse --is-inside-work-tree` succeeds | Stop. Tell the user this skill writes a persistent roadmap; initialize git or run from a repo. |
 | 2 | A stack is detectable — one of `package.json`, `Gemfile`, `composer.json`, `requirements.txt`, `astro.config.*`, `next.config.*`, `nuxt.config.*`, `gatsby-config.*`, `_config.yml`, `config.toml`, `pyproject.toml` | Ask the user what stack they're on before continuing. |
-| 3 | Research backend resolved (see below) | Never refuse to run — fall through to manual mode. |
-
-**Research backend resolution order** (record the choice in `.seo/config.json` under `research_backend`):
-
-1. **Exa-stack** (mktg-native, default). Probe `mcp__exa__web_search_advanced_exa` with a minimal query. On success, use the full Exa research stack — Exa MCP + Firecrawl (SERP scrape) + `gh` (OSS competitor signal) + `/last30days` skill (Reddit/X/HN aggregation) + `mktg-x` (auth-walled Twitter) + the mktg-native `company-research` / `people-research` skills. The 7 Exa-native recipes in `references/exa-recipes.md` replace the Ahrefs cookbook entirely; the cross-API compound recipes in `references/api-stack-recipes.md` add capabilities Ahrefs alone can't do (pain-point clustering, OSS competitor teardown, outreach prospect discovery, newcomer surveillance).
-2. **Manual mode** — Exa-stack unavailable. Follow `references/manual-research.md` (free Google + Search Console + paste-from-UI fallback).
-
-> **Ahrefs as a footnote:** if `mcp__ahrefs__subscription-info-limits-and-usage` returns data AND the user wants numeric volume/KD/TP precision, layer Ahrefs on top of the Exa-stack rather than replacing it. The "Ahrefs appendix" at the bottom of `references/exa-recipes.md` documents which Ahrefs queries upgrade each Exa-native recipe with precise numbers. Ahrefs MCP is intentionally NOT in mktg's chained-in ecosystem table — it's a paid escalation, not a default dependency.
+| 3 | Research backend resolved (`skills/openseo/references/backend-contract.md`) | Never refuse to run — fall through to manual mode. |
 
 ---
 

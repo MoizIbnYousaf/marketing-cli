@@ -41,6 +41,9 @@ Commands:
   skill      Skill lifecycle management (info, validate, graph, check, register)
   brand      Brand memory management (export, import, freshness)
   run        Load a skill and log execution
+  route      Score a free-text ask against skill routing triggers
+  seo        OpenSEO project link / keyword sync / status
+  release    Version bump + changelog + git tag (+ optional publish)
   transcribe Audio/video → transcript via whisper.cpp (YouTube, TikTok, podcasts, local files)
   context    Brand context compiler — token-budgeted JSON artifact
   publish    Distribution pipeline — push content to platforms
@@ -55,6 +58,7 @@ Flags:
   --dry-run        Validate without writing
   --fields <f,f>   Limit output fields (comma-separated)
   --cwd <path>     Set working directory
+  --input <json>   Raw JSON payload for mutating commands
   --help, -h       Show this help
   --version, -v    Show version
 
