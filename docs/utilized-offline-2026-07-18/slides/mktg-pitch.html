@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mktg — Agent-Native Marketing Playbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1a1816;
+      --bg-elev: #24201c;
+      --ink: #f3ece4;
+      --muted: #a89a8c;
+      --accent: #e8a45c;
+      --accent-dim: #c4843d;
+      --line: #3a342e;
+      --ok: #7dcea0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Outfit", system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+    .slide {
+      min-height: 100vh;
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      padding: clamp(2rem, 5vw, 4rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(232, 164, 92, 0.12), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 90% 100%, rgba(125, 206, 160, 0.06), transparent 50%),
+        var(--bg);
+    }
+    .slide-label {
+      position: absolute;
+      top: clamp(1.25rem, 3vw, 2rem);
+      left: clamp(2rem, 5vw, 4rem);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .slide-num {
+      position: absolute;
+      top: clamp(1.25rem, 3vw, 2rem);
+      right: clamp(2rem, 5vw, 4rem);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .brand {
+      font-family: "DM Serif Display", Georgia, serif;
+      font-size: clamp(3.5rem, 10vw, 6.5rem);
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .brand em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    h2 {
+      font-family: "DM Serif Display", Georgia, serif;
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.15;
+      max-width: 16ch;
+      margin-bottom: 1.25rem;
+    }
+    .lede {
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+      color: var(--muted);
+      max-width: 36ch;
+      line-height: 1.45;
+      font-weight: 400;
+    }
+    .accent-line {
+      width: 3rem;
+      height: 3px;
+      background: var(--accent);
+      margin: 1.5rem 0;
+      border-radius: 2px;
+    }
+    .cmd {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      color: var(--ok);
+      padding: 0.85rem 1.25rem;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 1.75rem;
+    }
+    .tag {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-top: 2rem;
+      max-width: 920px;
+    }
+    .card {
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 1.35rem 1.25rem;
+    }
+    .card strong {
+      display: block;
+      font-size: 2rem;
+      font-family: "DM Serif Display", serif;
+      color: var(--accent);
+      margin-bottom: 0.35rem;
+    }
+    .card span {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+    ul.clean {
+      list-style: none;
+      margin-top: 1.5rem;
+      max-width: 40rem;
+    }
+    ul.clean li {
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 1.15rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: baseline;
+    }
+    ul.clean li::before {
+      content: "→";
+      color: var(--accent);
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      max-width: 960px;
+    }
+    .pill {
+      display: inline-block;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+    .footer-note {
+      margin-top: 2rem;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    @media (max-width: 720px) {
+      .grid-3, .split { grid-template-columns: 1fr; }
+      h2 { max-width: 22ch; }
+      .slide { justify-content: flex-start; padding-top: 4.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1 -->
+  <section class="slide" id="s1">
+    <div class="slide-label">marketing-cli</div>
+    <div class="slide-num">01 / 06</div>
+    <p class="pill">Agent-native playbook</p>
+    <div class="brand">mktg</div>
+    <div class="accent-line"></div>
+    <p class="lede">Your coding agent already ships product. Now give it a marketing playbook.</p>
+    <div class="cmd">npm i -g marketing-cli</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide" id="s2">
+    <div class="slide-label">Problem</div>
+    <div class="slide-num">02 / 06</div>
+    <p class="tag">Session amnesia</p>
+    <h2>Marketing dies when the chat closes.</h2>
+    <p class="lede">Re-brief voice. Re-explain ICP. Lose the thread. Prompt packs don’t remember brand/voice-profile.md next Tuesday.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide" id="s3">
+    <div class="slide-label">Product</div>
+    <div class="slide-num">03 / 06</div>
+    <p class="tag">One install</p>
+    <h2>Playbook, not a paste.</h2>
+    <div class="grid-3">
+      <div class="card"><strong>64</strong><span>Versioned skills, manifest-backed</span></div>
+      <div class="card"><strong>6</strong><span>Research & review agents</span></div>
+      <div class="card"><strong>brand/</strong><span>Memory that compounds across sessions</span></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide" id="s4">
+    <div class="slide-label">How it works</div>
+    <div class="slide-num">04 / 06</div>
+    <div class="split">
+      <div>
+        <p class="tag">Orchestration</p>
+        <h2>/cmo routes the work.</h2>
+        <p class="lede">Skills never call skills. Agents never call agents. Brand memory enhances — never gates.</p>
+      </div>
+      <ul class="clean">
+        <li>Works at L0 (zero brand context)</li>
+        <li>JSON when piped · --dry-run · --fields</li>
+        <li>Agent DX 21/21 enforced in CI</li>
+        <li>Studio via mktg studio — same tarball</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide" id="s5">
+    <div class="slide-label">Positioning</div>
+    <div class="slide-num">05 / 06</div>
+    <p class="tag">Anti-positioning</p>
+    <h2>What we are not.</h2>
+    <ul class="clean">
+      <li>Not a social scheduler SaaS — those are adapters</li>
+      <li>Not a one-off prompt pack</li>
+      <li>Not opaque “AI CMO” chat without files</li>
+    </ul>
+    <p class="footer-note">CLI for the agent. Studio for the human.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide" id="s6">
+    <div class="slide-label">Next step</div>
+    <div class="slide-num">06 / 06</div>
+    <div class="brand">Ship the <em>playbook</em>.</div>
+    <div class="accent-line"></div>
+    <p class="lede">Init. Doctor. Run /cmo. Let brand memory compound.</p>
+    <div class="cmd">npm i -g marketing-cli && mktg init</div>
+    <p class="footer-note">GitHub: marketing-cli · Free & open</p>
+  </section>
+
+</body>
+</html>
