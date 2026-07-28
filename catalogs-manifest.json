@@ -16,7 +16,8 @@
         "style": "bearer",
         "base_env": "POSTIZ_API_BASE",
         "credential_envs": ["POSTIZ_API_KEY"],
-        "header_format": "bare"
+        "header_format": "bare",
+        "base_default": "https://api.postiz.com"
       },
       "skills": ["postiz"]
     },

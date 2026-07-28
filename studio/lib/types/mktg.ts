@@ -284,7 +284,9 @@ export type PublishManifest = {
 
 export type AdapterItemResult = {
   readonly item: number;
-  readonly status: "published" | "failed" | "skipped";
+  // Mirrors PublishItemStatus in src/types.ts (CLI publish truth enum).
+  // Keep 1:1: the CLI owns the vocabulary; studio never renames it.
+  readonly status: "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped";
   readonly detail: string;
   readonly postType?: "draft" | "schedule" | "now" | "update";
 };

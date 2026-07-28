@@ -28,7 +28,9 @@ export type RouteDecision = {
 // Named /cmo playbooks (skills/cmo/rules/playbooks.md) with route phrases.
 // A playbook hit routes to its entry skill and names the playbook so agents
 // can follow the multi-step protocol in the /cmo rules.
-const PLAYBOOKS: ReadonlyArray<{
+// DRIFT LOCK: tests/skill-router.test.ts asserts this table stays in sync
+// with the doc's numbered headings — update both in the same commit.
+export const PLAYBOOKS: ReadonlyArray<{
   readonly name: string;
   readonly phrases: readonly string[];
   readonly entrySkill: string;

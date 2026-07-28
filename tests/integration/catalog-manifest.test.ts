@@ -196,6 +196,50 @@ describe("research_adapters capability family", () => {
     expect(result.ok).toBe(false);
   });
 
+  test("base_default: unset base_env with a documented default is NOT a missing env", () => {
+    const entry = makeEntry("postiz", {
+      auth: { style: "bearer", base_env: "POSTIZ_API_BASE", credential_envs: ["POSTIZ_API_KEY"], header_format: "bare", base_default: "https://api.postiz.com" },
+    });
+    // Key set, base unset → configured via the documented default
+    const configured = computeConfiguredStatus(entry, { POSTIZ_API_KEY: "k" });
+    expect(configured.configured).toBe(true);
+    expect(configured.missingEnvs).toEqual([]);
+    expect(configured.resolvedBase).toBe("https://api.postiz.com");
+    // Key unset → still missing the credential only (base stays out of the list)
+    const unconfigured = computeConfiguredStatus(entry, {});
+    expect(unconfigured.configured).toBe(false);
+    expect(unconfigured.missingEnvs).toEqual(["POSTIZ_API_KEY"]);
+    expect(unconfigured.resolvedBase).toBe("https://api.postiz.com");
+    // Explicit env base wins over the default
+    const overridden = computeConfiguredStatus(entry, { POSTIZ_API_KEY: "k", POSTIZ_API_BASE: "http://localhost:4007" });
+    expect(overridden.resolvedBase).toBe("http://localhost:4007");
+  });
+
+  test("base_default must be https when present", async () => {
+    const { _testing } = await import("../../src/core/catalogs");
+    const bad = {
+      version: 1,
+      catalogs: {
+        baddefault: {
+          ...makeEntry("baddefault"),
+          auth: { style: "bearer", base_env: "BADDEFAULT_API_BASE", credential_envs: ["BADDEFAULT_API_KEY"], header_format: "bare", base_default: "http://insecure.example.com" },
+        },
+      },
+    };
+    const result = _testing.validateShape(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.detail).toContain("https");
+  });
+
+  test("shipped postiz entry declares base_default so POSTIZ_API_BASE alone is not blocking", async () => {
+    const result = await loadCatalogManifest();
+    if (!result.ok) throw new Error("shipped manifest failed to load");
+    const postiz = result.manifest.catalogs["postiz"];
+    expect(postiz!.auth.base_default).toBe("https://api.postiz.com");
+    const status = computeConfiguredStatus(postiz!, { POSTIZ_API_KEY: "k" });
+    expect(status.configured).toBe(true);
+  });
+
   test("research_adapters-only catalog (no skills) passes shape validation", async () => {
     const { _testing } = await import("../../src/core/catalogs");
     const okShape = {

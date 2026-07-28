@@ -371,7 +371,15 @@ export const checkPrerequisites = async (
     }
   }
 
-  // Check reads brand files exist and have real content (not template)
+  // Check reads brand files exist and have real content (not template).
+  // writerIndex is built once — findSkillThatWrites would otherwise rescan
+  // every manifest entry for each missing file.
+  const writerIndex = new Map<string, string>();
+  for (const [name, skillEntry] of Object.entries(manifest.skills)) {
+    for (const w of skillEntry.writes) {
+      if (!writerIndex.has(w)) writerIndex.set(w, name);
+    }
+  }
   const brandDir = join(cwd, "brand");
   for (const readFile of entry.reads) {
     const normalized = readFile.replace(/^brand\//, "") as BrandFile;
@@ -383,8 +391,7 @@ export const checkPrerequisites = async (
 
     if (!exists) {
       missingBrandFiles.push(normalized);
-      // Find which skill writes this file
-      const writer = findSkillThatWrites(normalized, manifest);
+      const writer = writerIndex.get(normalized) ?? null;
       remediation.push(
         writer
           ? `Run /${writer} to create ${normalized}`
@@ -395,7 +402,7 @@ export const checkPrerequisites = async (
       const content = await file.text();
       if (isTemplateContent(normalized, content)) {
         missingBrandFiles.push(normalized);
-        const writer = findSkillThatWrites(normalized, manifest);
+        const writer = writerIndex.get(normalized) ?? null;
         remediation.push(
           writer
             ? `Run /${writer} to populate ${normalized} (currently template)`
@@ -405,9 +412,22 @@ export const checkPrerequisites = async (
     }
   }
 
+  // Catalogs that claim this skill (e.g. postiz → postiz skill) are loaded
+  // first so env checks can honor documented base_env defaults (base_default)
+  // instead of blocking on variables the runtime does not actually need.
+  const catalogResult = await loadCatalogManifest();
+  const claimingCatalogs = catalogResult.ok
+    ? Object.values(catalogResult.manifest.catalogs).filter(c => c.skills.includes(skillName))
+    : [];
+  const defaultedEnvs = new Set(
+    claimingCatalogs
+      .filter(c => c.auth.base_default !== undefined)
+      .map(c => c.auth.base_env),
+  );
+
   // Check manifest-declared env vars (shared with doctor's integration checks)
   for (const envVar of entry.env_vars ?? []) {
-    if (!process.env[envVar] && !missingEnvs.includes(envVar)) {
+    if (!process.env[envVar] && !missingEnvs.includes(envVar) && !defaultedEnvs.has(envVar)) {
       missingEnvs.push(envVar);
       remediation.push(`Set ${envVar} — mktg doctor shows integration status + signup links`);
     }
@@ -423,21 +443,17 @@ export const checkPrerequisites = async (
     }
   }
 
-  // Check catalogs that claim this skill (e.g. postiz → postiz skill).
-  // Env gaps merge into missing.envs (deduped); the catalog itself is named
-  // so agents can route to `mktg catalog info <name>`.
-  const catalogResult = await loadCatalogManifest();
-  if (catalogResult.ok) {
-    for (const catalog of Object.values(catalogResult.manifest.catalogs)) {
-      if (!catalog.skills.includes(skillName)) continue;
-      const status = computeConfiguredStatus(catalog);
-      if (status.configured) continue;
-      if (!missingCatalogs.includes(catalog.name)) missingCatalogs.push(catalog.name);
-      for (const envVar of status.missingEnvs) {
-        if (!missingEnvs.includes(envVar)) {
-          missingEnvs.push(envVar);
-          remediation.push(`Set ${envVar} for catalog '${catalog.name}' — mktg catalog info ${catalog.name} --json --fields missing_envs`);
-        }
+  // Check claiming catalogs' configured state. Env gaps merge into
+  // missing.envs (deduped); the catalog itself is named so agents can route
+  // to `mktg catalog info <name>`.
+  for (const catalog of claimingCatalogs) {
+    const status = computeConfiguredStatus(catalog);
+    if (status.configured) continue;
+    if (!missingCatalogs.includes(catalog.name)) missingCatalogs.push(catalog.name);
+    for (const envVar of status.missingEnvs) {
+      if (!missingEnvs.includes(envVar)) {
+        missingEnvs.push(envVar);
+        remediation.push(`Set ${envVar} for catalog '${catalog.name}' — mktg catalog info ${catalog.name} --json --fields missing_envs`);
       }
     }
   }
@@ -452,17 +468,6 @@ export const checkPrerequisites = async (
     missing: { skills: missingSkills, brandFiles: missingBrandFiles, envs: missingEnvs, tools: missingTools, catalogs: missingCatalogs },
     remediation,
   };
-};
-
-// Find the first skill that writes a given brand file
-const findSkillThatWrites = (
-  brandFile: string,
-  manifest: SkillsManifest,
-): string | null => {
-  for (const [name, entry] of Object.entries(manifest.skills)) {
-    if (entry.writes.includes(brandFile)) return name;
-  }
-  return null;
 };
 
 // --- Skill info ---

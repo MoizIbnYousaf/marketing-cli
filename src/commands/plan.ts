@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { ok, err, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
 import { getBrandStatus, isTemplateContent } from "../core/brand";
-import { loadManifest, getSkillNames } from "../core/skills";
+import { loadManifest } from "../core/skills";
 import { buildGraph } from "../core/skill-lifecycle";
 import { getRunSummary, type RunSummaryEntry } from "../core/run-log";
 import { rejectControlChars, validateResourceId } from "../core/errors";
@@ -132,10 +132,13 @@ const buildTasks = async (
     return { tasks: tasks.filter(t => !completedSet.has(t.id)), health: "needs-setup" };
   }
 
-  // 2. Template files need population (foundation first)
+  // 2. Template files need population (foundation first).
+  // templateState is computed once here and reused by the health check at
+  // the end — the old flow re-read every foundation file a second time.
   const foundationOrder: BrandFile[] = ["voice-profile.md", "audience.md", "competitors.md", "landscape.md", "positioning.md"];
   const strategyOrder: BrandFile[] = ["keyword-plan.md"];
   const configOrder: BrandFile[] = ["creative-kit.md", "stack.md"];
+  const templateState = new Map<string, boolean>();
 
   for (const file of [...foundationOrder, ...strategyOrder, ...configOrder]) {
     const status = brandStatuses.find(s => s.file === file);
@@ -149,6 +152,7 @@ const buildTasks = async (
     }
     try {
       const content = await Bun.file(join(cwd, "brand", file)).text();
+      templateState.set(file, isTemplateContent(file, content));
       if (isTemplateContent(file, content)) {
         const skillMap: Record<string, string> = {
           "voice-profile.md": "brand-voice", "positioning.md": "positioning-angles",
@@ -231,10 +235,16 @@ const buildTasks = async (
   }
 
   // Health counts files with REAL content — templates don't count, so a
-  // fresh scaffold can never report "ready".
+  // fresh scaffold can never report "ready". Files the populate section
+  // already read reuse templateState; the rest are read once here.
   let populated = 0;
   for (const status of brandStatuses) {
     if (!status.exists) continue;
+    const cached = templateState.get(status.file);
+    if (cached !== undefined) {
+      if (!cached) populated++;
+      continue;
+    }
     try {
       const content = await Bun.file(join(cwd, "brand", status.file)).text();
       if (!isTemplateContent(status.file, content)) populated++;

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { join, basename, dirname } from "node:path";
+import { join, basename } from "node:path";
 
 import {
   DASHBOARD_COMPETE_VERSION,
