@@ -479,7 +479,6 @@ export interface WrapRouteOptions<I, O> {
 /**
  * Wrap a route handler with the full DX 21/21 stack:
  *   - method check
- *   - rate limit (mutations only)
  *   - dry-run gate
  *   - confirm gate (destructive)
  *   - JSON body parse + zod validate
@@ -487,6 +486,12 @@ export interface WrapRouteOptions<I, O> {
  *   - NDJSON streaming on list responses
  *   - access log
  *   - consistent error envelope
+ *
+ * Rate limiting is intentionally NOT applied here. `server.ts` already
+ * calls `checkRateLimit` once at the fetch perimeter; repeating it inside
+ * wrapRoute double-counted mutating requests against the 60/min quota.
+ * Callers that invoke wrapRoute handlers outside the Bun fetch perimeter
+ * must apply `checkRateLimit` themselves if they need throttling.
  */
 export function wrapRoute<I = undefined, O = unknown>(
   opts: WrapRouteOptions<I, O>,
@@ -505,82 +510,66 @@ export function wrapRoute<I = undefined, O = unknown>(
           corsHeaders,
         );
       } else {
-        const rate = checkRateLimit(req);
-        if (rate.ok && rate.degraded) {
-          // Fail-open path: the underlying store had a hiccup but we let the
-          // request through. Tag every downstream response with the header
-          // so callers know the count they're seeing isn't authoritative.
-          corsHeaders = { ...corsHeaders, "X-Rate-Limit-Degraded": "true" };
-        }
-        if (!rate.ok) {
+        const url = new URL(req.url);
+        const dryRun = url.searchParams.get("dryRun") === "true";
+        const confirm = url.searchParams.get("confirm") === "true";
+        const fields = url.searchParams.get("fields");
+
+        if (opts.destructive && !confirm) {
           response = apiError(
-            "RATE_LIMITED",
-            `Rate limit exceeded -- retry in ${rate.retryAfterSec}s`,
-            429,
-            { ...corsHeaders, "Retry-After": String(rate.retryAfterSec) },
+            "CONFIRM_REQUIRED",
+            "This route is destructive and requires explicit confirmation",
+            400,
+            corsHeaders,
           );
         } else {
-          const url = new URL(req.url);
-          const dryRun = url.searchParams.get("dryRun") === "true";
-          const confirm = url.searchParams.get("confirm") === "true";
-          const fields = url.searchParams.get("fields");
+          let input: I = undefined as unknown as I;
+          if (opts.inputSchema && opts.method !== "GET") {
+            const parsed = await parseBodyStrict(req, opts.inputSchema);
+            if (!parsed.ok) {
+              response = parsed.res;
+              logAccess(req, response.status, performance.now() - started);
+              return withCors(response, corsHeaders);
+            }
+            input = parsed.data;
+          }
 
-          if (opts.destructive && !confirm) {
-            response = apiError(
-              "CONFIRM_REQUIRED",
-              "This route is destructive and requires explicit confirmation",
-              400,
-              corsHeaders,
+          if (dryRun && opts.dryRun) {
+            response = new Response(
+              JSON.stringify({ ok: true, dryRun: true }),
+              {
+                status: 200,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+              },
             );
           } else {
-            let input: I = undefined as unknown as I;
-            if (opts.inputSchema && opts.method !== "GET") {
-              const parsed = await parseBodyStrict(req, opts.inputSchema);
-              if (!parsed.ok) {
-                response = parsed.res;
-                logAccess(req, response.status, performance.now() - started);
-                return withCors(response, corsHeaders);
-              }
-              input = parsed.data;
-            }
+            const ctx: DXContext = {
+              req,
+              url,
+              corsHeaders,
+              dryRun,
+              fields,
+              acceptsNdjson: wantsNdjson(req),
+            };
 
-            if (dryRun && opts.dryRun) {
-              response = new Response(
-                JSON.stringify({ ok: true, dryRun: true }),
-                {
-                  status: 200,
-                  headers: { "Content-Type": "application/json", ...corsHeaders },
-                },
+            const result = await opts.handler(input, ctx);
+
+            if (!result.ok) {
+              response = apiError(
+                result.code,
+                result.message,
+                result.status ?? 400,
+                corsHeaders,
+                result.fix,
               );
             } else {
-              const ctx: DXContext = {
-                req,
-                url,
-                corsHeaders,
-                dryRun,
-                fields,
-                acceptsNdjson: wantsNdjson(req),
-              };
-
-              const result = await opts.handler(input, ctx);
-
-              if (!result.ok) {
-                response = apiError(
-                  result.code,
-                  result.message,
-                  result.status ?? 400,
-                  corsHeaders,
-                  result.fix,
-                );
-              } else {
-                response = shapeOk(
-                  result.data,
-                  ctx,
-                  result.status ?? 200,
-                  opts.listResponse === true,
-                  result.meta,
-                );
-              }
+              response = shapeOk(
+                result.data,
+                ctx,
+                result.status ?? 200,
+                opts.listResponse === true,
+                result.meta,
+              );
             }
           }
         }
