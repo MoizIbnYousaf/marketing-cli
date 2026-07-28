@@ -2,11 +2,16 @@
 // The most important command for agents. /cmo reads this first on every activation.
 
 import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
-import { getBrandStatus, isTemplateContent } from "../core/brand";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { getIntegrationStatus } from "../core/integrations";
 import { getRunSummary } from "../core/run-log";
+import {
+  assessProject,
+  FOUNDATION_FILES,
+  type AssessedBrandEntry,
+  type BrandSummary,
+} from "../core/project-assess";
 import { bold, dim, green, red, yellow, isTTY } from "../core/output";
 import { join } from "node:path";
 
@@ -36,20 +41,7 @@ export const schema: CommandSchema = {
   vocabulary: ["status", "state", "overview", "snapshot"],
 };
 
-type BrandEntry = {
-  readonly exists: boolean;
-  readonly freshness: "current" | "stale" | "missing" | "template";
-  readonly lines?: number;
-  readonly ageDays?: number | null;
-  readonly isTemplate?: boolean;
-};
-
-type BrandSummary = {
-  readonly populated: number;
-  readonly template: number;
-  readonly missing: number;
-  readonly stale: number;
-};
+type BrandEntry = AssessedBrandEntry;
 
 type IntegrationEntry = {
   readonly configured: boolean;
@@ -106,27 +98,12 @@ const countContentFiles = async (cwd: string): Promise<ContentSummary> => {
   return { totalFiles, byDir };
 };
 
-// Determine project name from package.json or directory name
-const getProjectName = async (cwd: string): Promise<string> => {
-  try {
-    const pkgPath = join(cwd, "package.json");
-    const file = Bun.file(pkgPath);
-    if (await file.exists()) {
-      const pkg = await file.json();
-      if (pkg.name) return pkg.name;
-    }
-  } catch {
-    // Fall through
-  }
-  return cwd.split("/").pop() ?? "unknown";
-};
-
 // Generate prioritized next actions based on current state
 const buildNextActions = (
   health: StatusResult["health"],
   brand: Record<string, BrandEntry>,
-  brandSummary: BrandSummary,
   recentActivity: Record<string, ActivityEntry>,
+  skillForFile: (file: string) => string,
 ): string[] => {
   const actions: string[] = [];
 
@@ -136,18 +113,10 @@ const buildNextActions = (
   }
 
   // Priority 1: Populate template files (foundation first)
-  const foundationFiles: BrandFile[] = ["voice-profile.md", "positioning.md", "audience.md", "competitors.md", "landscape.md"];
-  for (const file of foundationFiles) {
+  for (const file of FOUNDATION_FILES) {
     const entry = brand[file];
     if (entry && entry.isTemplate) {
-      const skillMap: Record<string, string> = {
-        "voice-profile.md": "/brand-voice",
-        "positioning.md": "/positioning-angles",
-        "audience.md": "/audience-research",
-        "competitors.md": "/competitive-intel",
-        "landscape.md": "/landscape-scan",
-      };
-      actions.push(`Run ${skillMap[file]} to populate ${file} (still template)`);
+      actions.push(`Run /${skillForFile(file)} to populate ${file} (still template)`);
     }
   }
 
@@ -167,7 +136,7 @@ const buildNextActions = (
 
   // Priority 4: Remaining template files (non-foundation)
   for (const [file, entry] of Object.entries(brand)) {
-    if (entry.isTemplate && !foundationFiles.includes(file as BrandFile)) {
+    if (entry.isTemplate && !FOUNDATION_FILES.includes(file as BrandFile)) {
       actions.push(`Populate brand/${file} (still template)`);
     }
   }
@@ -208,55 +177,14 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   }
 
   // Run checks in parallel
-  const [brandStatuses, contentSummary, projectName, recentActivity] = await Promise.all([
-    getBrandStatus(cwd),
+  const [assessment, contentSummary, recentActivity] = await Promise.all([
+    assessProject(cwd, { withLines: true }),
     countContentFiles(cwd),
-    getProjectName(cwd),
     getRunSummary(cwd),
   ]);
 
-  // Build brand status map with line counts, freshness, and template detection (parallel)
-  const brandEntries = await Promise.all(
-    brandStatuses.map(async (status) => {
-      if (!status.exists) return [status.file, { exists: false, freshness: "missing" as const }] as const;
-      const filePath = join(cwd, "brand", status.file);
-      try {
-        const content = await Bun.file(filePath).text();
-        const isTemplate = isTemplateContent(status.file as BrandFile, content);
-        // Override freshness to "template" when content matches scaffold — more useful for agents
-        const freshness = isTemplate ? "template" as const : status.freshness;
-        return [status.file, {
-          exists: true,
-          freshness,
-          lines: content.split("\n").length,
-          ageDays: status.ageDays,
-          isTemplate,
-        }] as const;
-      } catch {
-        return [status.file, { exists: true, freshness: status.freshness, lines: 0, ageDays: status.ageDays, isTemplate: false }] as const;
-      }
-    })
-  );
-  const brand: Record<string, BrandEntry> = Object.fromEntries(brandEntries);
-
-  // Compute brand summary counts
-  const brandValues = Object.values(brand);
-  const brandSummary: BrandSummary = {
-    populated: brandValues.filter(b => b.exists && !b.isTemplate).length,
-    template: brandValues.filter(b => b.exists && b.isTemplate).length,
-    missing: brandValues.filter(b => !b.exists).length,
-    stale: brandValues.filter(b => b.freshness === "stale").length,
-  };
-
-  // Determine health — template-only files don't count as populated
-  const hasBrandDir = brandStatuses.some((s) => s.exists);
-  const health: StatusResult["health"] = !hasBrandDir
-    ? "needs-setup"
-    : brandSummary.populated >= 3
-      ? "ready"
-      : "incomplete";
-
-  const nextActions = buildNextActions(health, brand, brandSummary, recentActivity);
+  const { projectName, health, brand, brandSummary, brandStatuses, skillForFile } = assessment;
+  const nextActions = buildNextActions(health, brand, recentActivity, skillForFile);
 
   const result: StatusResult = {
     project: projectName,
@@ -323,8 +251,8 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     lines.push(bold("  Integrations"));
     for (const entry of integrationEntries) {
       const icon = entry.configured ? green("●") : yellow("●");
-      const status = entry.configured ? "configured" : "not configured";
-      lines.push(`    ${icon} ${entry.envVar} ${dim(`(${status} — ${entry.skills.join(", ")})`)}`);
+      const statusLabel = entry.configured ? "configured" : "not configured";
+      lines.push(`    ${icon} ${entry.envVar} ${dim(`(${statusLabel} — ${entry.skills.join(", ")})`)}`);
     }
     lines.push("");
   }

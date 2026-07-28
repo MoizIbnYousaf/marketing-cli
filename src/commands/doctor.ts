@@ -6,9 +6,9 @@ import { join } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 // end Track E imports
-import { ok, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
+import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { invalidArgs } from "../core/errors";
-import { getBrandStatus, isTemplateContent } from "../core/brand";
+import { getBrandStatus } from "../core/brand";
 import { loadManifest, getInstallStatus, getSkillNames, readExternalSkills } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { buildGraph } from "../core/skill-lifecycle";
@@ -93,13 +93,10 @@ const checkBrand = async (cwd: string): Promise<Check[]> => {
   }
 
   const existingProfiles = profileFiles.filter(s => s.exists);
-  const templateFiles: string[] = [];
-  for (const s of existingProfiles) {
-    try {
-      const content = await Bun.file(join(cwd, "brand", s.file)).text();
-      if (isTemplateContent(s.file as BrandFile, content)) templateFiles.push(s.file);
-    } catch { /* file read error — skip */ }
-  }
+  // getBrandStatus already classifies templates via freshness === "template"
+  const templateFiles = existingProfiles
+    .filter(s => s.freshness === "template")
+    .map(s => s.file);
 
   if (templateFiles.length > 0) {
     checks.push({ name: "brand-content", status: "warn", detail: `${templateFiles.length} files still have template content: ${templateFiles.join(", ")}`, fix: "Run /cmo to populate brand files with real content" });
