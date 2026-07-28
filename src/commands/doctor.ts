@@ -13,6 +13,7 @@ import { loadManifest, getInstallStatus, getSkillNames, readExternalSkills } fro
 import { loadAgentManifest, getAgentInstallStatus, getAgentNames } from "../core/agents";
 import { buildGraph } from "../core/skill-lifecycle";
 import { getIntegrationStatus, INTEGRATION_CONFIG } from "../core/integrations";
+import { TOOL_REGISTRY, toolAvailable } from "../core/tool-registry";
 import { isTTY, writeStderr, green, red, yellow, dim, bold } from "../core/output";
 import { executeDoctor, type FixEntry } from "../core/doctor-fix";
 
@@ -161,43 +162,12 @@ const checkGraph = async (): Promise<Check[]> => {
   }
 };
 
-// Check CLI tool availability
+// Check CLI tool availability — registry lives in core/tool-registry.ts so
+// doctor and skill prerequisites share the same names + install hints.
 const checkCLIs = async (): Promise<Check[]> => {
-  const tools = [
-    { name: "bun", required: true },
-    { name: "gws", required: false },
-    { name: "playwright-cli", required: false },
-    { name: "ffmpeg", required: false },
-    { name: "remotion", required: false },
-    { name: "firecrawl", required: false },
-    { name: "whisper-cpp", required: false },
-    { name: "yt-dlp", required: false },
-    { name: "summarize", required: false },
-    { name: "gh", required: false },
-    { name: "gh-axi", required: false },
-    { name: "chrome-devtools-axi", required: false },
-    { name: "higgsfield", required: false },
-  ] as const;
-
-  const CLI_INSTALL_HINTS: Record<string, string> = {
-    bun: "curl -fsSL https://bun.sh/install | bash",
-    ffmpeg: "brew install ffmpeg",
-    remotion: "npm i -g @remotion/cli",
-    firecrawl: "npm i -g firecrawl",
-    "playwright-cli": "npm i -g @playwright/cli",
-    gws: "npm i -g gws",
-    "whisper-cpp": "brew install whisper-cpp",
-    "yt-dlp": "brew install yt-dlp",
-    summarize: "npm i -g @steipete/summarize",
-    gh: "brew install gh",
-    "gh-axi": "npm i -g gh-axi   # or: npx -y gh-axi  (see /axi)",
-    "chrome-devtools-axi": "npm i -g chrome-devtools-axi   # or: npx -y chrome-devtools-axi  (see /axi)",
-    higgsfield: "npm i -g @higgsfield/cli && higgsfield auth login",
-  };
-
-  return tools.map(tool => {
-    const found = Bun.which(tool.name) !== null;
-    const hint = CLI_INSTALL_HINTS[tool.name];
+  return TOOL_REGISTRY.map(tool => {
+    const found = toolAvailable(tool.name);
+    const hint = tool.installHint;
     if (found) return { name: `cli-${tool.name}`, status: "pass" as const, detail: `${tool.name} found` };
     if (tool.required) return hint
       ? { name: `cli-${tool.name}`, status: "fail" as const, detail: `${tool.name} not found (required)`, fix: hint }

@@ -3,34 +3,13 @@
 
 import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
-import { ok, err, BRAND_FILES, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
-import { isTemplateContent, getBrandStatus, CONTEXT_MATRIX } from "../core/brand";
+import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
+import { compileBrandContext, CONTEXT_LAYERS, type ContextFileEntry } from "../core/context-compiler";
 import { writeStderr, isTTY, bold, dim, green, yellow, red } from "../core/output";
 
-// Token estimation: ~4 chars per token
-const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
-
-// Truncate content to fit a token budget, preserving leading lines
-const truncateToTokens = (content: string, maxTokens: number): { text: string; truncated: boolean } => {
-  if (estimateTokens(content) <= maxTokens) return { text: content, truncated: false };
-  const charBudget = maxTokens * 4;
-  const truncated = content.slice(0, charBudget);
-  // Cut at last newline to avoid mid-line truncation
-  const lastNewline = truncated.lastIndexOf("\n");
-  const text = lastNewline > 0 ? truncated.slice(0, lastNewline) + "\n[...truncated]" : truncated + "\n[...truncated]";
-  return { text, truncated: true };
-};
-
 // Valid layer names (keys of CONTEXT_MATRIX)
-const VALID_LAYERS = Object.keys(CONTEXT_MATRIX) as (keyof typeof CONTEXT_MATRIX)[];
-
-type ContextFileEntry = {
-  readonly content: string;
-  readonly tokens: number;
-  readonly truncated: boolean;
-  readonly freshness: string;
-};
+const VALID_LAYERS = CONTEXT_LAYERS;
 
 type ContextSummary = {
   readonly totalFiles: number;
@@ -45,6 +24,7 @@ type ContextResult = {
   readonly tokenEstimate: number;
   readonly layer?: string;
   readonly files: Record<string, ContextFileEntry>;
+  readonly budgetDropped: readonly string[];
   readonly summary: ContextSummary;
 };
 
@@ -66,6 +46,7 @@ export const schema: CommandSchema = {
     "files.*.tokens": "number — estimated tokens for this file",
     "files.*.truncated": "boolean — true if content was truncated by --budget",
     "files.*.freshness": "'current' | 'stale' | 'template' | 'missing' — file freshness state",
+    "budgetDropped": "string[] — files dropped entirely when --budget ran out (structured overflow signal)",
     "summary": "{totalFiles, populatedFiles, templateFiles, staleFiles} — counts",
   },
   examples: [
@@ -78,20 +59,6 @@ export const schema: CommandSchema = {
   ],
   vocabulary: ["context", "compile", "brand-context", "token-budget"],
 };
-
-// Priority order for truncation — most important files first
-const FILE_PRIORITY: readonly BrandFile[] = [
-  "voice-profile.md",
-  "positioning.md",
-  "audience.md",
-  "competitors.md",
-  "landscape.md",
-  "keyword-plan.md",
-  "creative-kit.md",
-  "stack.md",
-  "assets.md",
-  "learnings.md",
-];
 
 // Get project name from package.json or dir name
 const getProjectName = async (cwd: string): Promise<string> => {
@@ -149,7 +116,7 @@ export const handler: CommandHandler<ContextResult> = async (args, flags) => {
     if (!idCheck.ok) return err("INVALID_ARGS", idCheck.message, [`Valid layers: ${VALID_LAYERS.join(", ")}`], 2);
     const ctrlCheck = rejectControlChars(layer, "layer");
     if (!ctrlCheck.ok) return err("INVALID_ARGS", ctrlCheck.message, [], 2);
-    if (!VALID_LAYERS.includes(layer as keyof typeof CONTEXT_MATRIX)) {
+    if (!(VALID_LAYERS as readonly string[]).includes(layer)) {
       return err("INVALID_ARGS", `Unknown layer: '${layer}'`, [`Valid layers: ${VALID_LAYERS.join(", ")}`], 2);
     }
   }
@@ -159,90 +126,32 @@ export const handler: CommandHandler<ContextResult> = async (args, flags) => {
     return err("INVALID_ARGS", "Budget must be a positive integer", ["Example: mktg context --budget 2000"], 2);
   }
 
-  // Determine which files to include
-  const targetFiles: readonly BrandFile[] = layer
-    ? CONTEXT_MATRIX[layer as keyof typeof CONTEXT_MATRIX]
-    : BRAND_FILES;
+  const compiled = await compileBrandContext(cwd, {
+    ...(layer !== undefined ? { layer } : {}),
+    ...(budget !== undefined ? { budget } : {}),
+  });
 
-  // Read brand statuses and file contents in parallel
-  const brandStatuses = await getBrandStatus(cwd);
-  const statusMap = new Map(brandStatuses.map(s => [s.file, s]));
-
-  const brandDir = join(cwd, "brand");
-  const fileEntries: [string, ContextFileEntry][] = [];
-  let totalPopulated = 0;
-  let totalTemplate = 0;
-  let totalStale = 0;
-
-  // Read all target files
-  for (const file of targetFiles) {
-    const status = statusMap.get(file);
-    if (!status || !status.exists) continue;
-
-    const filePath = join(brandDir, file);
-    try {
-      const content = await Bun.file(filePath).text();
-      const isTemplate = isTemplateContent(file, content);
-      const freshness = isTemplate ? "template" : status.freshness;
-
-      if (isTemplate) totalTemplate++;
-      else totalPopulated++;
-      if (status.freshness === "stale") totalStale++;
-
-      const entry: ContextFileEntry = {
-        content,
-        tokens: estimateTokens(content),
-        truncated: false,
-        freshness,
-      };
-      fileEntries.push([file, entry]);
-      if (ndjson) {
-        writeStderr(JSON.stringify({ type: "brand-file", data: { file, status: freshness, tokens: entry.tokens } }));
-      }
-    } catch { /* skip unreadable files */ }
-  }
-
-  // Apply budget truncation if requested
-  if (budget !== undefined && budget > 0) {
-    // Sort by priority (FILE_PRIORITY order)
-    const priorityOrder = new Map(FILE_PRIORITY.map((f, i) => [f, i]));
-    fileEntries.sort((a, b) => (priorityOrder.get(a[0] as BrandFile) ?? 99) - (priorityOrder.get(b[0] as BrandFile) ?? 99));
-
-    let remainingTokens = budget;
-    for (let i = 0; i < fileEntries.length; i++) {
-      const [name, entry] = fileEntries[i]!;
-      if (remainingTokens <= 0) {
-        // No budget left — truncate to nothing
-        fileEntries[i] = [name, { content: "[...truncated — budget exceeded]", tokens: 0, truncated: true, freshness: entry.freshness }];
-        continue;
-      }
-      const { text, truncated } = truncateToTokens(entry.content, remainingTokens);
-      const tokens = estimateTokens(text);
-      remainingTokens -= tokens;
-      fileEntries[i] = [name, { content: text, tokens, truncated, freshness: entry.freshness }];
+  if (ndjson) {
+    for (const [file, entry] of Object.entries(compiled.files)) {
+      writeStderr(JSON.stringify({ type: "brand-file", data: { file, status: entry.freshness, tokens: entry.tokens } }));
     }
   }
 
-  const files = Object.fromEntries(fileEntries);
-  const tokenEstimate = fileEntries.reduce((sum, [, e]) => sum + e.tokens, 0);
+  const fileEntries = Object.entries(compiled.files);
   const projectName = await getProjectName(cwd);
 
   const result: ContextResult = {
     compiledAt: new Date().toISOString(),
     project: projectName,
-    tokenEstimate,
+    tokenEstimate: compiled.tokenEstimate,
     ...(layer && { layer }),
-    files,
-    summary: {
-      totalFiles: fileEntries.length,
-      populatedFiles: totalPopulated,
-      templateFiles: totalTemplate,
-      staleFiles: totalStale,
-    },
+    files: compiled.files,
+    budgetDropped: compiled.budgetDropped,
+    summary: compiled.summary,
   };
 
   if (ndjson) {
-    writeStderr(JSON.stringify({ type: "complete", data: { totalTokens: tokenEstimate, filesIncluded: fileEntries.length } }));
+    writeStderr(JSON.stringify({ type: "complete", data: { totalTokens: compiled.tokenEstimate, filesIncluded: fileEntries.length } }));
   }
 
   // Save to .mktg/context.json
@@ -262,7 +171,7 @@ export const handler: CommandHandler<ContextResult> = async (args, flags) => {
     const lines: string[] = [];
     lines.push(bold(`mktg context — ${projectName}`));
     lines.push("");
-    lines.push(`  Token estimate: ${tokenEstimate}${budget ? ` (budget: ${budget})` : ""}`);
+    lines.push(`  Token estimate: ${compiled.tokenEstimate}${budget ? ` (budget: ${budget})` : ""}`);
     if (layer) lines.push(`  Layer: ${layer}`);
     lines.push("");
     lines.push(bold("  Files"));

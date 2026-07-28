@@ -51,6 +51,8 @@ routing, see `rules/publish-index.md`.
 | `mktg plan complete <id> --json` | After a skill successfully finishes — persists progress across sessions via `.mktg/plan.json`. |
 | `mktg plan --save --json` | Stream-persist the plan for long-running orchestration. |
 | `mktg run <skill> --json` | Direct skill invocation (bypasses the usual Claude Code slash-command flow). Use when the orchestration layer needs programmatic control. Logs `event:"loaded"` — a load is NOT work; `mktg plan` ignores loads for execute/distribute gates. |
+| `mktg run <skill> --with-context --budget 4000 --json` | One-shot activation: skill body + non-template brand context (declared reads win, layer matrix fallback) in a single call. Prefer this over separate `run` + `context` calls. |
+| `mktg run <skill> --strict --json` | Fail fast (exit 3 DEPENDENCY_MISSING) when skills/brand/envs/tools/catalogs are unsatisfied. Default is warn-only. |
 | `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work. |
 | `mktg run <skill> --learning '{...}'` | Run a skill + record the learning atomically. |
 | `mktg skill history <skill> --json` | Load vs completion history for a skill. |

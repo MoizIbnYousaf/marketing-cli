@@ -168,6 +168,8 @@ export type SkillManifestEntry = {
   readonly review_interval_days: number;
   readonly version?: string; // semver string for per-skill versioning
   readonly env_vars?: readonly string[];
+  /** CLI tools (from core/tool-registry) this skill shells out to. */
+  readonly tools?: readonly string[];
   readonly routing?: SkillRoutingEntry; // Optional CMO routing metadata
 };
 
@@ -353,6 +355,12 @@ export type PrerequisiteStatus = {
   readonly missing: {
     readonly skills: readonly string[];
     readonly brandFiles: readonly BrandFile[];
+    /** Manifest-declared env vars absent from process.env. */
+    readonly envs: readonly string[];
+    /** Manifest-declared CLI tools not found on PATH. */
+    readonly tools: readonly string[];
+    /** Catalogs backing this skill that are not fully configured. */
+    readonly catalogs: readonly string[];
   };
   readonly remediation: readonly string[];
 };
