@@ -218,3 +218,80 @@ describe("plan honesty gates", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 });
+
+// ==================== S5: OpenSEO backend awareness ====================
+
+const runWithEnv = async (
+  args: string[],
+  envOverrides: Record<string, string | undefined>,
+): Promise<{ stdout: string; exitCode: number }> => {
+  const env: Record<string, string> = { ...process.env, NO_COLOR: "1" } as Record<string, string>;
+  for (const [key, value] of Object.entries(envOverrides)) {
+    if (value === undefined) delete env[key];
+    else env[key] = value;
+  }
+  const proc = Bun.spawn(["bun", "run", "src/cli.ts", ...args], {
+    cwd: import.meta.dir.replace("/tests", ""),
+    stdout: "pipe", stderr: "pipe",
+    env,
+  });
+  const stdout = await new Response(proc.stdout).text();
+  return { stdout: stdout.trim(), exitCode: await proc.exited };
+};
+
+describe("plan OpenSEO backend awareness (S5)", () => {
+  test("configured OpenSEO + no binding → seo-link-project task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-seo-"));
+    await seedBrandTemplates(tmp);
+    const { stdout } = await runWithEnv(
+      ["plan", "--json", "--cwd", tmp],
+      { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" },
+    );
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-link-project")).toBe(true);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("configured OpenSEO + binding present → no seo-link-project task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-seo-"));
+    await seedBrandTemplates(tmp);
+    await mkdir(join(tmp, ".seo"), { recursive: true });
+    await writeFile(join(tmp, ".seo", "openseo.json"), JSON.stringify({
+      version: 1, projectId: "p1", domain: "example.com", mcpUrl: "https://app.openseo.so/mcp",
+      linkedAt: "2026-07-01T00:00:00.000Z", updatedAt: "2026-07-01T00:00:00.000Z",
+    }));
+    const { stdout } = await runWithEnv(
+      ["plan", "--json", "--cwd", tmp],
+      { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" },
+    );
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-link-project")).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("unconfigured OpenSEO + populated keyword plan → seo-connect-openseo task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-seo-"));
+    await seedBrandTemplates(tmp);
+    await writeFile(join(tmp, "brand", "keyword-plan.md"), "# Keyword Plan\n\nReal researched keywords. " + "x".repeat(400));
+    const { stdout } = await runWithEnv(
+      ["plan", "--json", "--cwd", tmp],
+      { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined },
+    );
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-connect-openseo")).toBe(true);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("unconfigured OpenSEO + template keyword plan → correctly silent", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-seo-"));
+    await seedBrandTemplates(tmp);
+    const { stdout } = await runWithEnv(
+      ["plan", "--json", "--cwd", tmp],
+      { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined },
+    );
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-connect-openseo")).toBe(false);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-link-project")).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+});

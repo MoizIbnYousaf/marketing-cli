@@ -97,7 +97,7 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 | 9 | Studio: SEO panel / deep links / status | `completed` | #51 | 2026-07-28 — Pulse SEO readiness card + `/api/seo/status` bridge + deep link |
 | 10 | Self-host launcher + compose helper | `completed` | #51 | 2026-07-28 — docs-only path (CONTEXT self-host block); no compose helper by design |
 | 11 | Tests, counts, release packaging | `completed` | #51 | bridge test for the route; counts/CI green throughout; no creds required in tests |
-| 12 | Ultimate hardening: single SEO OS UX | `pending` | | End-state polish |
+| 12 | Ultimate hardening: single SEO OS UX | `completed` | #52 | 2026-07-28 — plan SEO-awareness tasks (link/connect), mktg-setup handoff, CONTEXT 5c loop; route already carries openseo-* triggers |
 
 ---
 
@@ -449,11 +449,11 @@ mktg seo link-project --input '{"projectId":"..."}' --json
 
 | Milestone | Phases | User-visible win |
 |---|---|---|
-| **S1 — Catalog foothold** | 1–4 | `openseo` in catalog/doctor/skills; docs for MCP |
-| **S2 — Workflow parity** | 5–6 | OpenSEO workflows + CMO prefers OpenSEO data |
-| **S3 — System of record** | 7–8 | Project link + keyword sync CLI |
-| **S4 — Productized** | 9–11 | Studio card, tests, optional self-host sugar |
-| **S5 — Native feel** | 12 | Plan/route/onboarding treat OpenSEO as default SEO backend |
+| **S1 — Catalog foothold** | 1–4 | `openseo` in catalog/doctor/skills; docs for MCP | ✅ #46 |
+| **S2 — Workflow parity** | 5–6 | OpenSEO workflows + CMO prefers OpenSEO data | ✅ #49 |
+| **S3 — System of record** | 7–8 | Project link + keyword sync CLI | ✅ #50 |
+| **S4 — Productized** | 9–11 | Studio card, tests, optional self-host sugar | ✅ #51 |
+| **S5 — Native feel** | 12 | Plan/route/onboarding treat OpenSEO as default SEO backend | ✅ this branch |
 
 ---
 
