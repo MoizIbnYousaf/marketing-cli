@@ -338,13 +338,31 @@ const checkUpstreamSkills = async (cwd: string, liveCheck: boolean): Promise<Che
 };
 // --- end Track E checkUpstreamSkills ---
 
+// Verify the Studio launcher resolves (P8). Studio ships inside the
+// marketing-cli tarball, so any healthy install resolves the packaged path;
+// a miss means a broken/partial install or a hostile MKTG_STUDIO_BIN.
+const checkStudioLauncher = async (): Promise<Check[]> => {
+  const { resolveStudioLauncher } = await import("./studio");
+  const resolved = resolveStudioLauncher();
+  if (resolved) {
+    return [{ name: "studio-launcher-resolves", status: "pass", detail: `Studio launcher resolves (${resolved.binary})` }];
+  }
+  return [{
+    name: "studio-launcher-resolves",
+    status: "warn",
+    detail: "Studio launcher not found — studio ships inside the marketing-cli tarball",
+    fix: "Reinstall: npm i -g marketing-cli — or set MKTG_STUDIO_BIN=/abs/path/to/mktg-studio.ts",
+  }];
+};
+
 const runAllChecks = async (cwd: string, liveUpstream = false) => {
-  const [brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream] = await Promise.all([
+  const [brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream, studio] = await Promise.all([
     checkBrand(cwd), checkSkills(), checkAgents(), checkGraph(), checkCLIs(), checkIntegrations(), checkExternalSkills(cwd), checkCatalogs(),
     // Track E — added 2026-05-04
     checkUpstreamSkills(cwd, liveUpstream),
+    checkStudioLauncher(),
   ]);
-  return { brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream };
+  return { brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream, studio };
 };
 
 // TTY display
@@ -369,6 +387,7 @@ const printChecks = (sections: ReturnType<typeof runAllChecks> extends Promise<i
   if (sections.externalSkills.length > 0) printSection("External Skills", sections.externalSkills);
   if (sections.integrations.length > 0) printSection("Integrations", sections.integrations);
   if (sections.catalogs.length > 0) printSection("Catalogs", sections.catalogs);
+  printSection("Studio", sections.studio);
   // Track E (frostbyte) — added 2026-05-04
   if (sections.upstream.length > 0) printSection("Upstream-Mirrored Skills", sections.upstream);
 
@@ -448,7 +467,7 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
 
   // Initial checks
   let sections = await runAllChecks(flags.cwd, wantsCheckUpstream);
-  let allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs, ...sections.upstream];
+  let allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs, ...sections.upstream, ...sections.studio];
   let fixes: FixEntry[] | undefined;
 
   if (wantsFix) {
@@ -457,7 +476,7 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
     // Re-run checks after fixes to show final state
     if (!flags.dryRun && fixes.some(f => f.result === "fixed")) {
       sections = await runAllChecks(flags.cwd, wantsCheckUpstream);
-      allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.integrations, ...sections.catalogs, ...sections.upstream];
+      allChecks = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.integrations, ...sections.catalogs, ...sections.upstream, ...sections.studio];
     }
   }
 

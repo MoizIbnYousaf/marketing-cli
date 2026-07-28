@@ -44,6 +44,7 @@ const SMOKE_CASES: Record<string, SmokeCase> = {
   skill: { args: () => ["skill", "info", "cmo", "--json"], key: "name" },
   brand: { args: (tmpCwd) => ["brand", "freshness", "--json", "--cwd", tmpCwd], key: "files" },
   run: { args: () => ["run", "cmo", "--dry-run", "--json"], key: "skill" },
+  route: { args: () => ["route", "keyword research", "--json"], key: "skill" },
   transcribe: { args: () => ["transcribe", "https://example.com/audio.mp3", "--dry-run", "--json"], key: "action" },
   context: { args: (tmpCwd) => ["context", "--json", "--cwd", tmpCwd], key: "files" },
   plan: { args: (tmpCwd) => ["plan", "--json", "--cwd", tmpCwd], key: "tasks" },

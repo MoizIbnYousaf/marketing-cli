@@ -198,6 +198,7 @@ posting and the native backend is only acting as the local queue.
 | Situation | Use |
 |-----------|-----|
 | User says "help me with marketing" | `/cmo`; it routes to the right skill |
+| Agent needs routing without Claude (CI/Cursor/Codex) | `mktg route "<prompt>" --json` — deterministic, no LLM |
 | Agent needs project state | `mktg status --json` |
 | Agent needs health check | `mktg doctor --json` |
 | Agent needs a specific skill loaded | `mktg run <skill> --json` (logs `event:"loaded"`) |
@@ -212,7 +213,8 @@ posting and the native backend is only acting as the local queue.
 | Agent needs to check a specific catalog's readiness | `mktg catalog info <name> --json --fields configured,missing_envs` |
 | Agent needs health across all catalogs at once | `mktg catalog status --json` |
 | Agent needs the full catalog registry | `mktg catalog list --json` |
-| User wants to see the studio dashboard | `mktg studio` |
+| User wants to see the studio dashboard | `mktg studio` (the ONE human UI; bare `mktg dashboard` is deprecated) |
+| Agent wants a JSON project overview | `mktg dashboard snapshot --json` |
 | Agent wants to preview the studio launch envelope | `mktg studio --dry-run --json` |
 | Agent wants to preview verification suites | `mktg verify --dry-run --json` |
 | Agent wants a release go/no-go verdict | `mktg ship-check --dry-run --json` first, then fresh run if approved |

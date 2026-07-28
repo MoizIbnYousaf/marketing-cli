@@ -11,11 +11,11 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 65 marketing skills (63 playbook + `/cmo` + `/axi`), 6 agents, 20 commands, 1 upstream catalog. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 65 marketing skills (63 playbook + `/cmo` + `/axi`), 6 agents, 21 commands, 2 upstream catalogs. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
-| `mktg` CLI | 20 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
+| `mktg` CLI | 21 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `/axi` skill | 1 orchestrator | Routes agent-tool work to AXI-catalog CLIs (gh-axi, chrome-devtools-axi, …) |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |

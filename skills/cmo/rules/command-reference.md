@@ -56,6 +56,7 @@ routing, see `rules/publish-index.md`.
 | `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work. |
 | `mktg run <skill> --learning '{...}'` | Run a skill + record the learning atomically. |
 | `mktg skill history <skill> --json` | Load vs completion history for a skill. |
+| `mktg route "<prompt>" --json` | Deterministic skill routing without an LLM — returns `{skill, playbook, confidence, rationale, nextCommand}`. Use for CI/Cursor/Codex or when the `claude` binary is missing; /cmo remains the richer LLM router. |
 
 ---
 

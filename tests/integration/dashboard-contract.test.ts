@@ -50,15 +50,16 @@ describe("dashboard snapshot contract", () => {
     expect(parsed.emptyState.stage).toBeDefined();
   });
 
-  test("dry-run launch returns local session metadata", async () => {
+  test("bare dashboard returns the deprecation envelope pointing at mktg studio (P7)", async () => {
     const { stdout, exitCode } = await run(["dashboard", "--json", "--dry-run"]);
     expect(exitCode).toBe(0);
 
     const parsed = JSON.parse(stdout);
     expect(parsed.launched).toBe(false);
-    expect(parsed.mode).toBe("local-first");
-    expect(typeof parsed.sessionToken).toBe("string");
-    expect(typeof parsed.url).toBe("string");
+    expect(parsed.deprecated).toBe(true);
+    expect(parsed.use).toBe("mktg studio");
+    expect(parsed.removeBy).toBeTruthy();
+    expect(parsed.next).toContain("mktg studio");
   });
 });
 

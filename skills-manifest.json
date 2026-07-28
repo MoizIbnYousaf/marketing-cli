@@ -1492,7 +1492,10 @@
         "Hacker News launch",
         "where should I launch",
         "launch across platforms",
-        "submit everywhere"
+        "submit everywhere",
+        "Show HN",
+        "show hn post",
+        "hacker news post"
       ],
       "review_interval_days": 30,
       "version": "1.0.0"

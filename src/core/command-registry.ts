@@ -19,6 +19,7 @@ export const COMMANDS: Record<string, CommandLoader> = {
   skill: () => import("../commands/skill"),
   brand: () => import("../commands/brand"),
   run: () => import("../commands/run"),
+  route: () => import("../commands/route"),
   transcribe: () => import("../commands/transcribe"),
   context: () => import("../commands/context"),
   plan: () => import("../commands/plan"),
