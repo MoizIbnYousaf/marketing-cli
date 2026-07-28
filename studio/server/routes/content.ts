@@ -346,8 +346,6 @@ export async function tryContentRoutes(
   }
 
   if (method === "POST" && url.pathname === "/api/cmo/content/reindex") {
-    // Body is optional / empty — still parse when present for schema parity.
-    void CONTENT_REINDEX_BODY;
     const manifest = buildContentManifest(cwd);
     if (!h.isDryRun(url)) {
       globalEmitter.publish("*", {
