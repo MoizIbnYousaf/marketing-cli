@@ -15,24 +15,14 @@ import {
   resolveBrandPath,
   getSpec as getBrandSpec,
 } from "../../lib/brand-files.ts";
+import {
+  BRAND_FILE_NAME_SCHEMA,
+  BRAND_WRITE_BODY,
+  BRAND_REGENERATE_BODY,
+} from "../../lib/schemas.ts";
 
-// Body schemas live as constants so the same Zod validator drives both
-// the wire AND the JSON Schema enrichment on /api/schema (single source of truth).
-
-export const BRAND_FILE_NAME_SCHEMA = z.string().min(1).max(128).regex(
-  /^(brand\/)?[a-z0-9][a-z0-9._-]*\.md$/,
-  "must be a .md file under brand/",
-);
-
-export const BRAND_WRITE_BODY = z.object({
-  file: BRAND_FILE_NAME_SCHEMA,
-  content: z.string().max(2_000_000), // 2MB — markdown rarely exceeds this
-  expectedMtime: z.string().optional(),
-});
-
-export const BRAND_REGENERATE_BODY = z.object({
-  file: BRAND_FILE_NAME_SCHEMA,
-});
+// Re-export SSOT body schemas (lib/schemas.ts) for registerRouteSchema callers.
+export { BRAND_FILE_NAME_SCHEMA, BRAND_WRITE_BODY, BRAND_REGENERATE_BODY };
 
 export const BRAND_FILES_ROUTE = wrapRoute({
   method: "GET",

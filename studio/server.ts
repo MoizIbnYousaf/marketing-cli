@@ -39,7 +39,6 @@ import {
 } from "./lib/auth.ts";
 import { basename, join } from "node:path";
 import { writeFileSync, existsSync, readFileSync, statSync } from "node:fs";
-import { diagnosePostiz, getScheduledPosts, mapPostizError } from "./lib/postiz.ts";
 import {
   mktgList,
   mktgSkillInfo,
@@ -48,14 +47,7 @@ import {
   mktgSeoStatus,
   mktgCatalogInfo,
   mktgStatus,
-  mktgPublishListAdapters,
-  mktgPublishListIntegrations,
-  mktgPublishNativeAccount,
-  mktgPublishNativeListPosts,
-  mktgPublishNativeUpsertProvider,
-  mktgPublish,
 } from "./lib/mktg.ts";
-import type { PublishManifest } from "./lib/types/mktg.ts";
 import { buildPulseSnapshot } from "./lib/pulse-snapshot.ts";
 import {
   errEnv,
@@ -76,7 +68,18 @@ import {
   enrichRouteEntry,
 } from "./lib/schema-export.ts";
 import { resolveProjectPath, resolveProjectRoot, resolveStudioDbPath } from "./lib/project-root.ts";
-import { safeJsonParse } from "./server/http.ts";
+import { contentMimeType } from "./lib/content-manifest.ts";
+import {
+  BRAND_NOTE_BODY,
+  BRAND_RESET_BODY,
+  HIGHLIGHT_BODY,
+  INIT_BODY,
+  OPPORTUNITIES_PUSH_BODY,
+  SETTINGS_ENV_BODY,
+  SKILL_RUN_BODY,
+  TOAST_BODY,
+} from "./lib/schemas.ts";
+import { type RouteHttpHelpers } from "./server/http.ts";
 import {
   ACTIVITY_LIST_ROUTE,
   ACTIVITY_LOG_BODY,
@@ -104,17 +107,17 @@ import {
   normalizeSignalRow,
 } from "./server/routes/signals.ts";
 import {
-  assertProjectMediaPath,
-  buildContentManifest,
-  classifyContentAssetKind,
-  contentMimeType,
-  loadContentMeta,
-  readContentFile,
-  writeContentFile,
-  writeContentMeta,
-  type ContentAssetMeta,
-  type ContentGroupMeta,
-} from "./lib/content-manifest.ts";
+  tryContentRoutes,
+  serveProjectAsset,
+  CONTENT_FILE_WRITE_BODY,
+  CONTENT_META_PATCH_BODY,
+  CONTENT_REINDEX_BODY,
+} from "./server/routes/content.ts";
+import {
+  tryPublishRoutes,
+  PUBLISH_BODY,
+  PUBLISH_NATIVE_PROVIDER_BODY,
+} from "./server/routes/publish.ts";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -242,99 +245,6 @@ function json(data: unknown, status = 200, extraHeaders: Record<string, string> 
   });
 }
 
-function assetContentType(path: string): string {
-  return contentMimeType(path);
-}
-
-function parseByteRange(rangeHeader: string | null, size: number):
-  | { ok: true; start: number; end: number }
-  | { ok: false } {
-  if (!rangeHeader) return { ok: false };
-  const match = rangeHeader.match(/^bytes=(\d*)-(\d*)$/);
-  if (!match) return { ok: false };
-  const [, startRaw = "", endRaw = ""] = match;
-  if (!startRaw && !endRaw) return { ok: false };
-
-  let start: number;
-  let end: number;
-  if (!startRaw) {
-    const suffix = Number(endRaw);
-    if (!Number.isFinite(suffix) || suffix <= 0) return { ok: false };
-    start = Math.max(size - suffix, 0);
-    end = size - 1;
-  } else {
-    start = Number(startRaw);
-    end = endRaw ? Number(endRaw) : size - 1;
-  }
-
-  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || start >= size) {
-    return { ok: false };
-  }
-  return { ok: true, start, end: Math.min(end, size - 1) };
-}
-
-function serveProjectAsset(
-  req: Request,
-  relativePath: string,
-  corsHeaders: Record<string, string>,
-): Response {
-  const ctrl = rejectControlChars(relativePath, "path");
-  if (!ctrl.ok) return err(ctrl.message, 400, corsHeaders);
-
-  const resolved = assertProjectMediaPath(relativePath, STUDIO_CWD);
-  if (!resolved.ok) {
-    const status = resolved.message.includes("does not exist") ? 404 : 400;
-    return errResponse(
-      status === 404 ? "NOT_FOUND" : "PATH_TRAVERSAL",
-      resolved.message,
-      status,
-      undefined,
-      corsHeaders,
-    );
-  }
-
-  const stat = statSync(resolved.abs);
-  const contentType = assetContentType(resolved.abs);
-  const baseHeaders = {
-    ...corsHeaders,
-    "Accept-Ranges": "bytes",
-    "Cache-Control": "no-store",
-    "Content-Type": contentType,
-    "ETag": `W/"${stat.size}-${Math.trunc(stat.mtimeMs)}"`,
-    "Last-Modified": stat.mtime.toUTCString(),
-  };
-  const range = parseByteRange(req.headers.get("range"), stat.size);
-  if (range.ok) {
-    const chunkSize = range.end - range.start + 1;
-    return new Response(Bun.file(resolved.abs).slice(range.start, range.end + 1), {
-      status: 206,
-      headers: {
-        ...baseHeaders,
-        "Content-Length": String(chunkSize),
-        "Content-Range": `bytes ${range.start}-${range.end}/${stat.size}`,
-      },
-    });
-  }
-
-  if (req.headers.has("range")) {
-    return new Response(null, {
-      status: 416,
-      headers: {
-        ...baseHeaders,
-        "Content-Range": `bytes */${stat.size}`,
-      },
-    });
-  }
-
-  return new Response(Bun.file(resolved.abs), {
-    status: 200,
-    headers: {
-      ...baseHeaders,
-      "Content-Length": String(stat.size),
-    },
-  });
-}
-
 const PROJECT_LOGO_CANDIDATES = [
   "brand/logo.png",
   "brand/logo.jpg",
@@ -388,7 +298,7 @@ function discoverProjectLogo(projectName: string):
         kind: "image",
         path: resolved.rel,
         url: `/api/assets/file?path=${encodeURIComponent(resolved.rel)}`,
-        contentType: assetContentType(resolved.abs),
+        contentType: contentMimeType(resolved.abs),
       };
     } catch {
       continue;
@@ -541,47 +451,6 @@ function spawnEnv(extra: Record<string, string> = {}): Record<string, string> {
   return out;
 }
 
-function sanitizeContentAssetPatch(patch: Record<string, unknown>): ContentAssetMeta {
-  const out: ContentAssetMeta = {};
-  if (typeof patch.title === "string") out.title = patch.title.slice(0, 240);
-  if (
-    patch.status === "draft" ||
-    patch.status === "approved" ||
-    patch.status === "published" ||
-    patch.status === "archived"
-  ) {
-    out.status = patch.status;
-  }
-  if (Array.isArray(patch.tags)) {
-    out.tags = patch.tags.filter((tag): tag is string => typeof tag === "string").slice(0, 40);
-  }
-  if (typeof patch.orderKey === "string") out.orderKey = patch.orderKey.slice(0, 128);
-  if (typeof patch.groupId === "string") out.groupId = patch.groupId.slice(0, 128);
-  if (Array.isArray(patch.linkedMarkdownPaths)) {
-    out.linkedMarkdownPaths = patch.linkedMarkdownPaths
-      .filter((path): path is string => typeof path === "string")
-      .slice(0, 40);
-  }
-  if (typeof patch.notes === "string") out.notes = patch.notes.slice(0, 8_000);
-  out.updatedAt = new Date().toISOString();
-  return out;
-}
-
-function sanitizeContentGroupPatch(
-  id: string,
-  existing: ContentGroupMeta | undefined,
-  patch: Record<string, unknown>,
-): ContentGroupMeta {
-  return {
-    title: typeof patch.title === "string" && patch.title.trim()
-      ? patch.title.slice(0, 160)
-      : existing?.title ?? id,
-    orderKey: typeof patch.orderKey === "string"
-      ? patch.orderKey.slice(0, 128)
-      : existing?.orderKey,
-  };
-}
-
 /**
  * Respond to a list-style GET with field-mask + NDJSON support (axis 4).
  *
@@ -653,6 +522,18 @@ function respondMktgError(
   const fix = result.error.suggestions?.[0] ?? undefined;
   return errResponse(code, result.error.message, status, fix, corsHeaders);
 }
+
+/** Shared HTTP helpers injected into extracted content/publish route modules. */
+const routeHttp: RouteHttpHelpers = {
+  json,
+  err,
+  errResponse,
+  parseBody,
+  isDryRun,
+  respondList,
+  respondObject,
+  respondMktgError,
+};
 
 // ---------------------------------------------------------------------------
 // Route schema (for /api/schema — Agent DX axis 3)
@@ -869,21 +750,10 @@ const CMO_PLAYBOOK_ROUTE = wrapRoute<z.infer<typeof CMO_PLAYBOOK_BODY>, { jobId:
 });
 
 // ---------------------------------------------------------------------------
-// Inline body schemas extracted to constants
-//
-// DO NOT STRIP — these registrations are required at runtime so /api/schema
-// returns real JSON Schema 2020-12 for every POST. A "strip unused" lint pass
-// might think these are dead because they're side-effect imports; they are
-// NOT. The regression test in tests/server/route-schema.test.ts will catch a
-// drift; the single-line registrations below must stay.
+// Inline body schemas — navigate/foundation stay local (canonical tab enum
+// for /api/schema differs from the legacy-accepting parser). Other POST body
+// schemas are imported from lib/schemas.ts (SSOT) or route modules.
 // ---------------------------------------------------------------------------
-
-const OPPORTUNITIES_PUSH_BODY = z.object({
-  skill: z.string().min(1).max(128),
-  reason: z.string().min(1).max(2_000),
-  priority: z.number().int().min(0).max(100).optional(),
-  prerequisites: z.record(z.string(), z.unknown()).optional(),
-});
 
 const PRIMARY_NAV_TABS = ["pulse", "signals", "publish", "brand"] as const;
 
@@ -910,71 +780,10 @@ function normalizeNavigateTab(tab: string): { tab: (typeof PRIMARY_NAV_TABS)[num
   return null;
 }
 
-const TOAST_BODY = z.object({
-  level: z.enum(["info", "success", "warn", "error"]),
-  message: z.string().min(1).max(500),
-  duration: z.number().int().min(500).max(60_000).optional(),
-});
-
-const HIGHLIGHT_BODY = z.object({
-  tab: z.string().min(1).max(64),
-  selector: z.string().max(256).optional(),
-  reason: z.string().max(500).optional(),
-});
-
-const BRAND_NOTE_BODY = z.object({
-  file: z.string().min(1).max(512),
-  excerpt: z.string().min(1).max(8_000),
-});
-
-const SKILL_RUN_BODY = z.object({
-  name: z.string().min(1).max(128),
-  args: z.record(z.string(), z.unknown()).optional(),
-});
-
-const INIT_BODY = z.object({
-  from: z.string().url().optional(),
-});
-
-const SETTINGS_ENV_BODY = z.record(z.string(), z.string().max(512));
-
 const FOUNDATION_BODY = z.object({
   from: z.string().url().optional(),
   seed: z.boolean().optional(),
 });
-
-const BRAND_RESET_BODY = z.object({}).optional();
-
-const PUBLISH_BODY = z.object({
-  adapter: z.string().min(1).max(64),
-  manifest: z.record(z.string(), z.unknown()),
-  confirm: z.boolean().optional(),
-});
-
-const PUBLISH_NATIVE_PROVIDER_BODY = z.object({
-  id: z.string().min(1).max(128).optional(),
-  identifier: z.string().min(1).max(64),
-  name: z.string().min(1).max(120),
-  profile: z.string().min(1).max(120),
-  picture: z.string().max(2048).optional(),
-  disabled: z.boolean().optional(),
-});
-
-const CONTENT_FILE_WRITE_BODY = z.object({
-  path: z.string().min(1).max(1_024),
-  content: z.string().max(5_000_000),
-  expectedMtime: z.string().optional(),
-});
-
-const CONTENT_META_PATCH_BODY = z.object({
-  assetId: z.string().min(1).max(128).optional(),
-  groupId: z.string().min(1).max(128).optional(),
-  patch: z.record(z.string(), z.unknown()),
-}).refine((value) => Boolean(value.assetId) !== Boolean(value.groupId), {
-  message: "Provide exactly one of assetId or groupId",
-});
-
-const CONTENT_REINDEX_BODY = z.object({}).optional();
 
 // Single source of truth: register schemas with the introspection registry
 // (powers GET /api/schema?route=… inputSchema enrichment).
@@ -1612,7 +1421,7 @@ const server = Bun.serve({
     if (method === "GET" && url.pathname === "/api/assets/file") {
       const fileQ = url.searchParams.get("path");
       if (!fileQ) return err("path query parameter is required", 400, corsHeaders);
-      return serveProjectAsset(req, fileQ, corsHeaders);
+      return serveProjectAsset(req, fileQ, corsHeaders, STUDIO_CWD, routeHttp);
     }
 
     // POST /api/brand/write — atomic write w/ optimistic lock
@@ -1677,162 +1486,11 @@ const server = Bun.serve({
     }
 
     // -----------------------------------------------------------------------
-    // Content workspace — local-first manifest + artifact APIs
+    // Content workspace — extracted to server/routes/content.ts
     // -----------------------------------------------------------------------
-    if (method === "GET" && url.pathname === "/api/cmo/content/manifest") {
-      return respondObject(url, buildContentManifest(STUDIO_CWD), corsHeaders);
-    }
-
-    if (method === "GET" && url.pathname === "/api/cmo/content/file") {
-      const pathQ = url.searchParams.get("path");
-      if (!pathQ) return err("path query parameter is required", 400, corsHeaders);
-      const ctrl = rejectControlChars(pathQ, "path");
-      if (!ctrl.ok) return err(ctrl.message, 400, corsHeaders);
-      try {
-        return respondObject(url, readContentFile(pathQ, STUDIO_CWD), corsHeaders);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "failed to read file";
-        if (message.includes("does not exist")) return errResponse("NOT_FOUND", message, 404, undefined, corsHeaders);
-        if (message.includes("absolute paths") || message.includes("project root")) {
-          return errResponse("PATH_TRAVERSAL", message, 400, undefined, corsHeaders);
-        }
-        return errResponse("BAD_INPUT", message, 400, undefined, corsHeaders);
-      }
-    }
-
-    if (method === "PUT" && url.pathname === "/api/cmo/content/file") {
-      const body = await parseBody(req, CONTENT_FILE_WRITE_BODY);
-      if (!body.ok) return body.res;
-      const ctrl = rejectControlChars(body.data.path, "path");
-      if (!ctrl.ok) return err(ctrl.message, 400, corsHeaders);
-      if (isDryRun(url)) {
-        return json({ ok: true, dryRun: true, data: { path: body.data.path } }, 200, corsHeaders);
-      }
-
-      try {
-        const result = writeContentFile(
-          body.data.path,
-          body.data.content,
-          body.data.expectedMtime,
-          STUDIO_CWD,
-        );
-        if (!result.ok) {
-          return errResponse(
-            "CONFLICT",
-            `File modified elsewhere at ${result.serverMtime}`,
-            409,
-            `Reload (GET /api/cmo/content/file?path=${encodeURIComponent(body.data.path)}) and merge`,
-            corsHeaders,
-          );
-        }
-
-        const payload = {
-          path: result.path,
-          kind: classifyContentAssetKind(result.path),
-          mtime: result.mtime,
-          bytes: result.bytes,
-        };
-        globalEmitter.publish("*", { type: "content-file-changed", payload });
-        if (result.path.startsWith("brand/") && result.path.endsWith(".md")) {
-          globalEmitter.publish("*", {
-            type: "brand-file-changed",
-            payload: {
-              file: result.path.replace(/^brand\//, ""),
-              brandFile: result.path.replace(/^brand\//, ""),
-              path: join(STUDIO_CWD, result.path),
-              eventType: "change",
-            },
-          });
-        }
-
-        try {
-          const row = execute(
-            `INSERT INTO activity (kind, summary, files_changed, meta)
-             VALUES ('brand-write', ?, ?, ?)`,
-            [
-              `Wrote ${result.path} (${result.deltaChars >= 0 ? "+" : ""}${result.deltaChars} chars)`,
-              JSON.stringify([result.path]),
-              JSON.stringify({ source: "content-workspace", bytes: result.bytes, deltaChars: result.deltaChars }),
-            ],
-          );
-          globalEmitter.publish("*", {
-            type: "activity-new",
-            payload: {
-              id: Number(row.lastInsertRowid),
-              kind: "brand-write",
-              summary: `Wrote ${result.path}`,
-              filesChanged: [result.path],
-              meta: { source: "content-workspace", bytes: result.bytes, deltaChars: result.deltaChars },
-              createdAt: new Date().toISOString(),
-            },
-          });
-        } catch {
-          // Activity logging should not block the file write.
-        }
-
-        return json({ ok: true, data: result }, 200, corsHeaders);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "failed to write file";
-        if (message.includes("absolute paths") || message.includes("project root")) {
-          return errResponse("PATH_TRAVERSAL", message, 400, undefined, corsHeaders);
-        }
-        return errResponse("BAD_INPUT", message, 400, undefined, corsHeaders);
-      }
-    }
-
-    if (method === "GET" && url.pathname === "/api/cmo/content/media") {
-      const fileQ = url.searchParams.get("path");
-      if (!fileQ) return err("path query parameter is required", 400, corsHeaders);
-      return serveProjectAsset(req, fileQ, corsHeaders);
-    }
-
-    if (
-      method === "GET" &&
-      (url.pathname === "/api/cmo/content/events" || url.pathname === "/api/cmo/content/events/stream")
-    ) {
-      return globalEmitter.subscribe("*", corsHeaders);
-    }
-
-    if (method === "PATCH" && url.pathname === "/api/cmo/content/meta") {
-      const body = await parseBody(req, CONTENT_META_PATCH_BODY);
-      if (!body.ok) return body.res;
-      const id = body.data.assetId ?? body.data.groupId ?? "";
-      const ctrl = rejectControlChars(id, body.data.assetId ? "assetId" : "groupId");
-      if (!ctrl.ok) return err(ctrl.message, 400, corsHeaders);
-      if (isDryRun(url)) {
-        return json({ ok: true, dryRun: true, data: { id, patch: body.data.patch } }, 200, corsHeaders);
-      }
-
-      const meta = loadContentMeta(STUDIO_CWD);
-      if (body.data.assetId) {
-        meta.assets[body.data.assetId] = {
-          ...(meta.assets[body.data.assetId] ?? {}),
-          ...sanitizeContentAssetPatch(body.data.patch),
-        };
-      } else if (body.data.groupId) {
-        meta.groups[body.data.groupId] = sanitizeContentGroupPatch(
-          body.data.groupId,
-          meta.groups[body.data.groupId],
-          body.data.patch,
-        );
-      }
-      const saved = writeContentMeta(meta, STUDIO_CWD);
-      globalEmitter.publish("*", {
-        type: "content-meta-changed",
-        payload: { assetId: body.data.assetId ?? null, groupId: body.data.groupId ?? null },
-      });
-      return json({ ok: true, data: saved }, 200, corsHeaders);
-    }
-
-    if (method === "POST" && url.pathname === "/api/cmo/content/reindex") {
-      const manifest = buildContentManifest(STUDIO_CWD);
-      if (!isDryRun(url)) {
-        globalEmitter.publish("*", {
-          type: "content-reindexed",
-          payload: { total: manifest.stats.total, generatedAt: manifest.generatedAt },
-        });
-      }
-      return json({ ok: true, data: manifest, dryRun: isDryRun(url) || undefined }, 200, corsHeaders);
+    {
+      const contentRes = await tryContentRoutes(method, url, req, corsHeaders, STUDIO_CWD, routeHttp);
+      if (contentRes) return contentRes;
     }
 
     // -----------------------------------------------------------------------
@@ -2197,294 +1855,11 @@ const server = Bun.serve({
     }
 
     // -----------------------------------------------------------------------
-    // Publish tab
+    // Publish tab — extracted to server/routes/publish.ts
     // -----------------------------------------------------------------------
-    // Note: when an upstream is unreachable but the route is healthy we return
-    // `{ok:true, data:[], degraded:true, degradedReason:"..."}`. The route
-    // itself succeeded — the *upstream* is degraded — so `ok:true` is right.
-    // The `error` envelope (axis 7) is reserved for true `ok:false` failures.
-
-    if (method === "GET" && url.pathname === "/api/publish/adapters") {
-      const result = await mktgPublishListAdapters(STUDIO_CWD);
-      if (!result.ok) {
-        return json(
-          {
-            ok: true,
-            data: [],
-            degraded: true,
-            degradedReason: result.error.message,
-          },
-          200,
-          corsHeaders,
-        );
-      }
-      return respondList(req, url, result.data.adapters, corsHeaders);
-    }
-
-    if (method === "GET" && url.pathname === "/api/publish/integrations") {
-      const adapter = url.searchParams.get("adapter") ?? "postiz";
-      const idCheck = validateResourceId(adapter, "adapter");
-      if (!idCheck.ok) {
-        return err(idCheck.message, 400, corsHeaders, "Use [a-z0-9._-] only");
-      }
-
-      const result = await mktgPublishListIntegrations(adapter, STUDIO_CWD);
-      if (!result.ok) {
-        return json(
-          {
-            ok: true,
-            data: [],
-            adapter,
-            degraded: true,
-            degradedReason: result.error.message,
-          },
-          200,
-          corsHeaders,
-        );
-      }
-      return respondList(req, url, result.data.integrations, {
-        ...corsHeaders,
-        "X-Adapter": adapter,
-      });
-    }
-
-    if (method === "GET" && url.pathname === "/api/publish/postiz/diagnostics") {
-      const diagnostics = await diagnosePostiz();
-      return respondObject(url, diagnostics, corsHeaders);
-    }
-
-    if (method === "GET" && url.pathname === "/api/publish/native/account") {
-      const result = await mktgPublishNativeAccount(STUDIO_CWD);
-      if (!result.ok) return respondMktgError(result, corsHeaders);
-      // Redact the full apiKey at the wire. apiKeyPreview is the safe
-      // 6-char tail the dashboard renders; the full secret stays in the
-      // user's `.mktg/native-publish/account.json` and is never returned.
-      // Lane 1 / Wave A.
-      const safe = {
-        ...result.data,
-        account: {
-          ...result.data.account,
-          apiKey: undefined,
-        },
-      };
-      // Drop the undefined key entirely so consumers cannot detect a "redacted"
-      // signal from the JSON shape -- the field simply isn't present.
-      delete (safe.account as { apiKey?: unknown }).apiKey;
-      return respondObject(url, safe, corsHeaders);
-    }
-
-    if (method === "POST" && url.pathname === "/api/publish/native/providers") {
-      const dryRun = url.searchParams.get("dryRun") === "true";
-      const parsed = await parseBody(req, PUBLISH_NATIVE_PROVIDER_BODY);
-      if (!parsed.ok) return parsed.res;
-
-      for (const [field, value] of Object.entries({
-        identifier: parsed.data.identifier,
-        name: parsed.data.name,
-        profile: parsed.data.profile,
-        picture: parsed.data.picture ?? "",
-      })) {
-        const c = rejectControlChars(value, field);
-        if (!c.ok) {
-          return err(c.message, 400, corsHeaders, `Remove control characters from ${field}`);
-        }
-      }
-
-      if (dryRun) {
-        return json({ ok: true, dryRun: true, adapter: "mktg-native", input: parsed.data }, 200, corsHeaders);
-      }
-
-      const result = await mktgPublishNativeUpsertProvider(parsed.data, STUDIO_CWD);
-      if (!result.ok) return respondMktgError(result, corsHeaders);
-      return respondObject(url, result.data, corsHeaders);
-    }
-
-    // GET /api/publish/scheduled — adapter queue (mktg-native or Postiz read-through)
-    if (method === "GET" && url.pathname === "/api/publish/scheduled") {
-      const adapter = url.searchParams.get("adapter") ?? "postiz";
-      const adapterCheck = validateResourceId(adapter, "adapter");
-      if (!adapterCheck.ok) {
-        return err(adapterCheck.message, 400, corsHeaders, "Use lowercase adapter ids like postiz or mktg-native");
-      }
-      const now = new Date();
-      const defaultStart = new Date(now.getTime() - 7 * 86_400_000).toISOString();
-      const defaultEnd = new Date(now.getTime() + 30 * 86_400_000).toISOString();
-      const startDate = url.searchParams.get("startDate") ?? defaultStart;
-      const endDate = url.searchParams.get("endDate") ?? defaultEnd;
-
-      for (const [field, value] of Object.entries({ startDate, endDate })) {
-        const c = rejectControlChars(value, field);
-        if (!c.ok) {
-          return err(c.message, 400, corsHeaders, `Send ${field} as a clean ISO 8601 string`);
-        }
-        if (Number.isNaN(Date.parse(value))) {
-          return err(
-            `${field} must be ISO 8601`,
-            400,
-            corsHeaders,
-            "Use new Date().toISOString() format",
-          );
-        }
-      }
-
-      // Explicit cwd: matches brand/status routes. Launcher also sets
-      // MKTG_PROJECT_ROOT so `run()` would resolve the same root by default.
-      if (adapter === "mktg-native") {
-        const result = await mktgPublishNativeListPosts(STUDIO_CWD);
-        if (!result.ok) return respondMktgError(result, corsHeaders);
-
-        const filtered = result.data.posts.filter((post) =>
-          post.date >= startDate && post.date <= endDate,
-        );
-        return respondList(req, url, filtered, {
-          ...corsHeaders,
-          "X-Adapter": adapter,
-        });
-      }
-
-      const result = await getScheduledPosts(startDate, endDate);
-      if (!result.ok) {
-        return json(
-          {
-            ok: true,
-            data: [],
-            degraded: true,
-            degradedReason: mapPostizError(result.error),
-            postizErrorKind: result.error.kind,
-            adapter,
-          },
-          200,
-          corsHeaders,
-        );
-      }
-      return respondList(req, url, result.data, {
-        ...corsHeaders,
-        "X-Adapter": adapter,
-      });
-    }
-
-    // GET /api/publish/history — local SQLite publish_log
-    if (method === "GET" && url.pathname === "/api/publish/history") {
-      const limit = Math.min(
-        Math.max(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 1),
-        500,
-      );
-      const offset = Math.max(
-        parseInt(url.searchParams.get("offset") ?? "0", 10) || 0,
-        0,
-      );
-
-      const rows = queryAll<{
-        id: number;
-        adapter: string;
-        providers: string | null;
-        content_preview: string | null;
-        result: string | null;
-        items_published: number;
-        items_failed: number;
-        created_at: string;
-      }>(
-        "SELECT id, adapter, providers, content_preview, result, items_published, items_failed, created_at FROM publish_log ORDER BY created_at DESC LIMIT ? OFFSET ?",
-        [limit, offset],
-      );
-
-      const data = rows.map((r) => ({
-        id: r.id,
-        adapter: r.adapter,
-        providers: r.providers ? safeJsonParse<string[]>(r.providers, []) : [],
-        contentPreview: r.content_preview ?? "",
-        result: r.result ? safeJsonParse<unknown>(r.result, null) : null,
-        itemsPublished: r.items_published,
-        itemsFailed: r.items_failed,
-        createdAt: r.created_at,
-      }));
-
-      return respondList(req, url, data, corsHeaders);
-    }
-
-    if (method === "POST" && url.pathname === "/api/publish") {
-      const body = await parseBody(
-        req,
-        z.object({
-          adapter: z.string().min(1).max(64),
-          manifest: z.record(z.string(), z.unknown()),
-          confirm: z.boolean().optional(),
-        }),
-      );
-      if (!body.ok) return body.res;
-
-      const idCheck = validateResourceId(body.data.adapter, "adapter");
-      if (!idCheck.ok) return err(idCheck.message, 400, corsHeaders);
-
-      if (isDryRun(url)) {
-        return json(
-          { ok: true, dryRun: true, adapter: body.data.adapter },
-          200,
-          corsHeaders,
-        );
-      }
-
-      const manifest = body.data.manifest as unknown as PublishManifest;
-      const result = await mktgPublish(manifest, {
-        adapter: body.data.adapter,
-        confirm: body.data.confirm ?? false,
-        cwd: STUDIO_CWD,
-      });
-
-      if (!result.ok) {
-        const code: StudioErrorCode =
-          result.error.code === "AUTH_MISSING" || result.error.code === "AUTH_INVALID"
-            ? "UNAUTHORIZED"
-            : result.error.code === "RATE_LIMITED"
-              ? "RATE_LIMITED"
-              : "UPSTREAM_FAILED";
-        const fix = result.error.suggestions?.[0] ?? undefined;
-        return errResponse(code, result.error.message, code === "UNAUTHORIZED" ? 401 : 502, fix, corsHeaders);
-      }
-
-      const data = result.data;
-      const adapterResults = data.adapters?.[0];
-      const providers = adapterResults
-        ? Array.from(
-            new Set(
-              (manifest.items ?? [])
-                .flatMap((it) => {
-                  const meta = it.metadata ?? {};
-                  const integ = meta.integrationIdentifier;
-                  if (typeof integ === "string") return [integ];
-                  if (Array.isArray(integ)) return integ as string[];
-                  return [];
-                })
-                .filter(Boolean) as string[],
-            ),
-          )
-        : [];
-
-      const contentPreview = (manifest.items?.[0]?.content ?? "").slice(0, 280);
-
-      execute(
-        `INSERT INTO publish_log (adapter, providers, content_preview, result, items_published, items_failed)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          body.data.adapter,
-          providers.length ? JSON.stringify(providers) : null,
-          contentPreview,
-          JSON.stringify(data),
-          data.published ?? 0,
-          data.failed ?? 0,
-        ],
-      );
-
-      globalEmitter.publish("*", {
-        type: "publish-completed",
-        payload: {
-          adapter: body.data.adapter,
-          published: data.published ?? 0,
-          failed: data.failed ?? 0,
-        },
-      });
-
-      return json({ ok: true, data }, 200, corsHeaders);
+    {
+      const publishRes = await tryPublishRoutes(method, url, req, corsHeaders, STUDIO_CWD, routeHttp);
+      if (publishRes) return publishRes;
     }
 
     // -----------------------------------------------------------------------

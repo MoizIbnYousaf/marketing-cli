@@ -90,8 +90,7 @@ export const BRAND_RESET_BODY = z.object({}).optional();
 
 // ─── Brand docs ───────────────────────────────────────────────────────
 //
-// Mirrors `BRAND_FILE_NAME_SCHEMA` in server.ts. Path-checked at
-// the brand-files layer too -- this validator is the first wall.
+// Path-checked at the brand-files layer too -- this validator is the first wall.
 
 export const BRAND_FILE_NAME_SCHEMA = z
   .string()
@@ -107,4 +106,33 @@ export const BRAND_WRITE_BODY = z.object({
 
 export const BRAND_REGENERATE_BODY = z.object({
   file: BRAND_FILE_NAME_SCHEMA,
+});
+
+// ─── Content workspace ────────────────────────────────────────────────
+export const CONTENT_FILE_WRITE_BODY = z.object({
+  path: z.string().min(1).max(1_024),
+  content: z.string().max(5_000_000),
+  expectedMtime: z.string().optional(),
+});
+
+export const CONTENT_META_PATCH_BODY = z
+  .object({
+    assetId: z.string().min(1).max(128).optional(),
+    groupId: z.string().min(1).max(128).optional(),
+    patch: z.record(z.string(), z.unknown()),
+  })
+  .refine((value) => Boolean(value.assetId) !== Boolean(value.groupId), {
+    message: "Provide exactly one of assetId or groupId",
+  });
+
+export const CONTENT_REINDEX_BODY = z.object({}).optional();
+
+// ─── Publish ──────────────────────────────────────────────────────────
+export const PUBLISH_NATIVE_PROVIDER_BODY = z.object({
+  id: z.string().min(1).max(128).optional(),
+  identifier: z.string().min(1).max(64),
+  name: z.string().min(1).max(120),
+  profile: z.string().min(1).max(120),
+  picture: z.string().max(2048).optional(),
+  disabled: z.boolean().optional(),
 });
