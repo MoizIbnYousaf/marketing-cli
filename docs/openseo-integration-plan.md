@@ -97,7 +97,7 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 | 9 | Studio: SEO panel / deep links / status | `completed` | #51 | 2026-07-28 — Pulse SEO readiness card + `/api/seo/status` bridge + deep link |
 | 10 | Self-host launcher + compose helper | `completed` | #51 | 2026-07-28 — docs-only path (CONTEXT self-host block); no compose helper by design |
 | 11 | Tests, counts, release packaging | `completed` | #51 | bridge test for the route; counts/CI green throughout; no creds required in tests |
-| 12 | Ultimate hardening: single SEO OS UX | `completed` | cursor/openseo-native-feel-ccd8 | 2026-07-28 — plan SEO-awareness tasks (link/connect), mktg-setup handoff, CONTEXT 5c loop; route already carries openseo-* triggers |
+| 12 | Ultimate hardening: single SEO OS UX | `completed` | #52 | 2026-07-28 — plan SEO-awareness tasks (link/connect), mktg-setup handoff, CONTEXT 5c loop; route already carries openseo-* triggers |
 
 ---
 
