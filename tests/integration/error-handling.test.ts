@@ -20,7 +20,7 @@ import {
   exitCodeLabel,
   DOCS,
 } from "../../src/core/errors";
-import { formatOutput } from "../../src/core/output";
+import { formatOutput, applyFieldsFilter } from "../../src/core/output";
 import { ok, err } from "../../src/types";
 import type { GlobalFlags, ExitCode, MktgError } from "../../src/types";
 
@@ -392,7 +392,8 @@ describe("formatOutput JSON consistency", () => {
   test("--fields filtering works on success data", () => {
     const result = ok({ name: "test", count: 42, extra: "hidden" });
     const flags = { ...jsonFlags, fields: ["name", "count"] };
-    const output = formatOutput(result, flags);
+    // cli.ts applies applyFieldsFilter before formatOutput (single choke point)
+    const output = formatOutput(applyFieldsFilter(result, flags.fields), flags);
     const parsed = JSON.parse(output);
     expect(parsed.name).toBe("test");
     expect(parsed.count).toBe(42);
@@ -405,7 +406,7 @@ describe("formatOutput JSON consistency", () => {
       { name: "b", tier: "nice-to-have", extra: 2 },
     ]);
     const flags = { ...jsonFlags, fields: ["name", "tier"] };
-    const output = formatOutput(result, flags);
+    const output = formatOutput(applyFieldsFilter(result, flags.fields), flags);
     const parsed = JSON.parse(output);
     expect(parsed).toHaveLength(2);
     expect(parsed[0].name).toBe("a");

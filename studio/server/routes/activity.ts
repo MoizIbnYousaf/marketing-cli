@@ -6,7 +6,11 @@ import { wrapRoute } from "../../lib/dx.ts";
 import { queryAll, queryOne, execute } from "../../lib/sqlite.ts";
 import { globalEmitter } from "../../lib/sse.ts";
 import { rejectControlChars, validateResourceId } from "../../lib/validators.ts";
+import { ACTIVITY_LOG_BODY } from "../../lib/schemas.ts";
 import { safeJsonParse } from "../http.ts";
+
+// Re-export SSOT body schema so /api/schema registration stays local to routes.
+export { ACTIVITY_LOG_BODY };
 
 export const ACTIVITY_LIST_ROUTE = wrapRoute({
   method: "GET",
@@ -72,28 +76,6 @@ export const ACTIVITY_LIST_ROUTE = wrapRoute({
       })),
     };
   },
-});
-
-// ActivityKind — the canonical set of /cmo event types. Mirrors the Activity
-// type in lib/types/activity.ts and the icon mapping in
-// components/workspace/activity-panel/activity-item.tsx. Anything outside this
-// set should fail BAD_INPUT instead of writing a row the UI can't render.
-export const ACTIVITY_LOG_BODY = z.object({
-  kind: z.enum([
-    "skill-run",
-    "brand-write",
-    "publish",
-    "toast",
-    "navigate",
-    "audit",
-    "note",
-    "custom",
-  ]),
-  skill: z.string().min(1).max(128).optional(),
-  summary: z.string().min(1).max(500),
-  detail: z.string().max(8_000).optional(),
-  filesChanged: z.array(z.string().max(512)).max(50).optional(),
-  meta: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ACTIVITY_LOG_ROUTE = wrapRoute<z.infer<typeof ACTIVITY_LOG_BODY>, {

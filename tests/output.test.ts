@@ -1,13 +1,21 @@
 // E2E tests for output.ts — formatting, field filtering, TTY detection
 // No mocks. Tests real output formatting.
+// --fields filtering is applied via applyFieldsFilter (cli.ts choke point);
+// formatOutput only formats the already-filtered CommandResult.
 
 import { describe, test, expect } from "bun:test";
-import { formatOutput, dim, bold, green, red, yellow, cyan } from "../src/core/output";
+import { formatOutput, applyFieldsFilter, dim, bold, green, red, yellow, cyan } from "../src/core/output";
 import { ok, err } from "../src/types";
 import type { GlobalFlags } from "../src/types";
 
 const jsonFlags: GlobalFlags = { json: true, dryRun: false, fields: [], cwd: "." };
 const defaultFlags: GlobalFlags = { json: false, dryRun: false, fields: [], cwd: "." };
+
+/** Mirror cli.ts: filter then format (single choke point for --fields). */
+const formatWithFields = <T>(
+  result: ReturnType<typeof ok<T>> | ReturnType<typeof err>,
+  flags: GlobalFlags,
+): string => formatOutput(applyFieldsFilter(result, flags.fields), flags);
 
 describe("formatOutput", () => {
   test("formats success result as JSON when --json flag set", () => {
@@ -30,7 +38,7 @@ describe("formatOutput", () => {
   test("applies --fields filter", () => {
     const result = ok({ name: "test", count: 42, extra: "data" });
     const fieldsFlags = { ...jsonFlags, fields: ["name", "count"] };
-    const output = formatOutput(result, fieldsFlags);
+    const output = formatWithFields(result, fieldsFlags);
     const parsed = JSON.parse(output);
     expect(parsed.name).toBe("test");
     expect(parsed.count).toBe(42);
@@ -46,7 +54,12 @@ describe("formatOutput", () => {
     // the available top-level keys so the agent can self-correct.
     const result = ok({ name: "test" });
     const fieldsFlags = { ...jsonFlags, fields: ["name", "missing"] };
-    const output = formatOutput(result, fieldsFlags);
+    const filtered = applyFieldsFilter(result, fieldsFlags.fields);
+    expect(filtered.ok).toBe(false);
+    if (filtered.ok) throw new Error("expected UNKNOWN_FIELD");
+    expect(filtered.error.code).toBe("UNKNOWN_FIELD");
+    expect(filtered.exitCode).toBe(2);
+    const output = formatOutput(filtered, fieldsFlags);
     const parsed = JSON.parse(output);
     expect(parsed.error).toBeDefined();
     expect(parsed.error.code).toBe("UNKNOWN_FIELD");
@@ -90,7 +103,7 @@ describe("formatOutput", () => {
       { name: "b", count: 2, extra: "y" },
     ]);
     const fieldsFlags = { ...jsonFlags, fields: ["name", "count"] };
-    const output = formatOutput(result, fieldsFlags);
+    const output = formatWithFields(result, fieldsFlags);
     const parsed = JSON.parse(output);
     expect(parsed).toHaveLength(2);
     expect(parsed[0].name).toBe("a");

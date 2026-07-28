@@ -1,5 +1,7 @@
 // mktg — Output formatting utilities
-// JSON/TTY auto-detection, --fields filtering, formatOutput<T>
+// JSON/TTY auto-detection, applyFieldsFilter, formatOutput<T>
+// --fields filtering is applied ONCE in cli.ts (exit-code choke point);
+// formatOutput only serializes already-filtered CommandResult data.
 // Only cli.ts calls process.exit() — commands return CommandResult.
 
 import type { CommandResult, GlobalFlags } from "../types";
@@ -313,26 +315,10 @@ export const formatOutput = <T>(
     );
   }
 
-  // Apply --fields filter. cli.ts also calls applyFieldsFilter upstream so
-  // it can update the process exit code on UNKNOWN_FIELD errors, but the
-  // operation is idempotent on already-filtered success results, so calling
-  // it again here is safe. This second call exists for direct callers (unit
-  // tests, library use) that don't go through cli.ts but still want the
-  // filter behavior. If the filter converts the success result into an error
-  // result, we restart formatOutput recursively so the error envelope path
-  // handles it.
-  //
-  // Keep `result` immutable so its narrowed `ok: true` type still gives us
-  // typed access to `result.display` below; bind the (possibly filtered)
-  // payload into a separate `data` variable.
-  let data: unknown = result.data;
-  if (flags.fields.length > 0) {
-    const refiltered = applyFieldsFilter(result, flags.fields);
-    if (!refiltered.ok) {
-      return formatOutput(refiltered, flags);
-    }
-    data = refiltered.data;
-  }
+  // Formatting only — `--fields` filtering lives in ONE place (cli.ts via
+  // applyFieldsFilter) so UNKNOWN_FIELD can drive process.exitCode. Callers
+  // that bypass cli.ts must applyFieldsFilter themselves before formatOutput.
+  const data: unknown = result.data;
 
   if (flags.json || !isTTY()) {
     const json = JSON.stringify(data, null, 2);

@@ -14,9 +14,9 @@ import {
   type NativePublishProviderInput,
 } from "../core/native-publish";
 import { type AdapterResult, type PublishItem, type PublishManifest } from "../core/publish/types";
+import { listNativeIntegrations } from "../core/publish/adapters";
 import {
   diagnosePostiz,
-  listNativeIntegrations,
   listPostizIntegrations,
   type ListIntegrationsResult,
   type PostizDiagnosticsResult,

@@ -4,14 +4,18 @@
 
 import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
-import { ok, err, type CommandHandler, type CommandSchema, type BrandFile } from "../types";
-import { getBrandStatus, isTemplateContent } from "../core/brand";
+import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { loadManifest } from "../core/skills";
-import { buildGraph } from "../core/skill-lifecycle";
 import { loadCatalogManifest, computeConfiguredStatus } from "../core/catalogs";
 import { getRunSummary, type RunSummaryEntry } from "../core/run-log";
-import { rejectControlChars, validateResourceId } from "../core/errors";
-import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
+import { validateResourceId } from "../core/errors";
+import {
+  assessProject,
+  FOUNDATION_FILES,
+  PLAN_FOLLOWON_FILES,
+  type ProjectHealth,
+} from "../core/project-assess";
+import { isTTY, writeStdout, bold, dim, green, yellow, red } from "../core/output";
 
 // Content-file extensions that count as distributable artifacts under marketing/
 const MARKETING_ARTIFACT_GLOB = "**/*.{md,mdx,txt,html,json}";
@@ -86,7 +90,7 @@ type PersistedPlan = {
 
 type PlanResult = {
   readonly generatedAt: string;
-  readonly health: "ready" | "incomplete" | "needs-setup";
+  readonly health: ProjectHealth;
   readonly tasks: readonly PlanTask[];
   readonly completedCount: number;
   readonly summary: string;
@@ -111,20 +115,19 @@ const buildTasks = async (
   runSummary: Record<string, RunSummaryEntry>,
   completed: string[],
   ndjson = false,
-): Promise<{ tasks: PlanTask[]; health: PlanResult["health"] }> => {
+): Promise<{ tasks: PlanTask[]; health: ProjectHealth }> => {
   const tasks: PlanTask[] = [];
   const completedSet = new Set(completed);
 
   const emitTask = (task: PlanTask) => {
     tasks.push(task);
-    if (ndjson) writeStderr(JSON.stringify({ type: "task", data: task }));
+    if (ndjson) writeStdout(JSON.stringify({ type: "task", data: task }));
   };
 
-  // 1. Check brand status
-  const brandStatuses = await getBrandStatus(cwd);
-  const hasBrand = brandStatuses.some(s => s.exists);
+  const assessment = await assessProject(cwd);
+  const { brand, brandStatuses, health, skillForFile } = assessment;
 
-  if (!hasBrand) {
+  if (health === "needs-setup") {
     emitTask({
       id: "init-brand", order: tasks.length, category: "setup",
       action: "Scaffold brand/ directory", command: "mktg init",
@@ -133,17 +136,16 @@ const buildTasks = async (
     return { tasks: tasks.filter(t => !completedSet.has(t.id)), health: "needs-setup" };
   }
 
-  // 2. Template files need population (foundation first).
-  // templateState is computed once here and reused by the health check at
-  // the end — the old flow re-read every foundation file a second time.
-  const foundationOrder: BrandFile[] = ["voice-profile.md", "audience.md", "competitors.md", "landscape.md", "positioning.md"];
-  const strategyOrder: BrandFile[] = ["keyword-plan.md"];
-  const configOrder: BrandFile[] = ["creative-kit.md", "stack.md"];
-  const templateState = new Map<string, boolean>();
+  // Template files need population (foundation first, then strategy/config).
+  // isTemplate comes from assessProject (freshness === "template", plus
+  // append-only scaffold detection) — no per-file re-read here.
+  const scanOrder = [...FOUNDATION_FILES, ...PLAN_FOLLOWON_FILES];
+  const voicePopulated = brand["voice-profile.md"]?.exists === true
+    && brand["voice-profile.md"]?.isTemplate !== true;
 
-  for (const file of [...foundationOrder, ...strategyOrder, ...configOrder]) {
-    const status = brandStatuses.find(s => s.file === file);
-    if (!status?.exists) {
+  for (const file of scanOrder) {
+    const entry = brand[file];
+    if (!entry?.exists) {
       emitTask({
         id: `create-${file.replace(".md", "")}`, order: tasks.length, category: "setup",
         action: `Create missing brand/${file}`, command: "mktg init",
@@ -151,40 +153,20 @@ const buildTasks = async (
       });
       continue;
     }
-    try {
-      const content = await Bun.file(join(cwd, "brand", file)).text();
-      templateState.set(file, isTemplateContent(file, content));
-      if (isTemplateContent(file, content)) {
-        const skillMap: Record<string, string> = {
-          "voice-profile.md": "brand-voice", "positioning.md": "positioning-angles",
-          "audience.md": "audience-research", "competitors.md": "competitive-intel",
-          "landscape.md": "landscape-scan",
-          "keyword-plan.md": "keyword-research", "creative-kit.md": "creative",
-          "stack.md": "cmo",
-        };
-        const skill = skillMap[file] ?? "cmo";
-        const needsVoice = file !== "voice-profile.md" && foundationOrder.includes(file);
-        const voicePopulated = !brandStatuses.find(s => s.file === "voice-profile.md")?.exists
-          ? false
-          : !(await (async () => {
-              try {
-                const vc = await Bun.file(join(cwd, "brand", "voice-profile.md")).text();
-                return isTemplateContent("voice-profile.md", vc);
-              } catch { return true; }
-            })());
-
-        emitTask({
-          id: `populate-${file.replace(".md", "")}`, order: tasks.length, category: "populate",
-          action: `Populate brand/${file}`, command: `mktg run ${skill}`,
-          reason: `${file} has template content — needs real data`,
-          blocked: needsVoice && !voicePopulated,
-          ...(needsVoice && !voicePopulated && { blockedBy: "populate-voice-profile" }),
-        });
-      }
-    } catch { /* skip unreadable */ }
+    if (entry.isTemplate) {
+      const skill = skillForFile(file);
+      const needsVoice = file !== "voice-profile.md" && FOUNDATION_FILES.includes(file);
+      emitTask({
+        id: `populate-${file.replace(".md", "")}`, order: tasks.length, category: "populate",
+        action: `Populate brand/${file}`, command: `mktg run ${skill}`,
+        reason: `${file} has template content — needs real data`,
+        blocked: needsVoice && !voicePopulated,
+        ...(needsVoice && !voicePopulated && { blockedBy: "populate-voice-profile" }),
+      });
+    }
   }
 
-  // 3. Stale files need refresh
+  // Stale files need refresh
   for (const status of brandStatuses) {
     if (status.freshness === "stale") {
       emitTask({
@@ -195,12 +177,11 @@ const buildTasks = async (
     }
   }
 
-  // 4. Execution skills not yet completed (suggest based on dependency graph).
+  // Execution skills not yet completed (suggest based on dependency graph).
   // runSummary is completed-only (load events filtered upstream) — a skill
   // that was merely loaded still counts as never-done.
   try {
     const manifest = await loadManifest();
-    const graph = buildGraph(manifest);
     const mustHaveSkills = Object.entries(manifest.skills)
       .filter(([, m]) => m.tier === "must-have" && m.layer === "execution")
       .map(([name]) => name);
@@ -216,7 +197,7 @@ const buildTasks = async (
     }
   } catch { /* manifest issues handled elsewhere */ }
 
-  // 5. Distribution — real evidence only: artifacts under marketing/ OR a
+  // Distribution — real evidence only: artifacts under marketing/ OR a
   // completed content-skill run. Load-only history never unlocks distribute.
   const completedSkills = Object.keys(runSummary);
   const hasCompletedContent = completedSkills.some(s =>
@@ -235,17 +216,15 @@ const buildTasks = async (
     });
   }
 
-  // 6. SEO backend awareness (OpenSEO is the default SEO data plane — S5).
-  // Two gaps are actionable: configured-but-unbound (link a project), and
-  // populated-plan-but-unmeasured (connect OpenSEO so metrics stop being
-  // "unknown"). Anything else is correctly silent.
+  // SEO backend awareness (OpenSEO is the default SEO data plane — S5).
   try {
     const catalogResult = await loadCatalogManifest();
     const openseo = catalogResult.ok ? catalogResult.manifest.catalogs["openseo"] ?? null : null;
     if (openseo) {
       const openseoStatus = computeConfiguredStatus(openseo);
       const bindingExists = await Bun.file(join(cwd, ".seo", "openseo.json")).exists();
-      const keywordPlanPopulated = templateState.get("keyword-plan.md") === false;
+      const keywordPlanPopulated = brand["keyword-plan.md"]?.exists === true
+        && brand["keyword-plan.md"]?.isTemplate === false;
       if (openseoStatus.configured && !bindingExists) {
         emitTask({
           id: "seo-link-project", order: tasks.length, category: "setup",
@@ -263,24 +242,6 @@ const buildTasks = async (
       }
     }
   } catch { /* catalog issues are doctor's job, not plan's */ }
-
-  // Health counts files with REAL content — templates don't count, so a
-  // fresh scaffold can never report "ready". Files the populate section
-  // already read reuse templateState; the rest are read once here.
-  let populated = 0;
-  for (const status of brandStatuses) {
-    if (!status.exists) continue;
-    const cached = templateState.get(status.file);
-    if (cached !== undefined) {
-      if (!cached) populated++;
-      continue;
-    }
-    try {
-      const content = await Bun.file(join(cwd, "brand", status.file)).text();
-      if (!isTemplateContent(status.file, content)) populated++;
-    } catch { /* unreadable — doesn't count */ }
-  }
-  const health: PlanResult["health"] = populated >= 3 ? "ready" : "incomplete";
 
   return { tasks: tasks.filter(t => !completedSet.has(t.id)), health };
 };
@@ -321,7 +282,7 @@ export const handler: CommandHandler<PlanResult | { completed: string } | { task
   // and must not count as executed work anywhere in this queue.
   const runSummary = await getRunSummary(cwd, { completedOnly: true });
   const { tasks, health } = await buildTasks(cwd, runSummary, completed, ndjson);
-  if (ndjson) writeStderr(JSON.stringify({ type: "summary", data: { health, count: tasks.length } }));
+  if (ndjson) writeStdout(JSON.stringify({ type: "summary", data: { health, count: tasks.length } }));
   const summary = buildSummary(tasks, health);
   const now = new Date().toISOString();
 
@@ -340,19 +301,19 @@ export const handler: CommandHandler<PlanResult | { completed: string } | { task
 
   // TTY display
   if (isTTY() && !flags.json) {
-    writeStderr("");
-    writeStderr(`  ${bold("mktg plan")} ${dim(`(${tasks.length} tasks)`)}`);
-    writeStderr(`  ${dim(summary)}`);
-    writeStderr("");
+    writeStdout("");
+    writeStdout(`  ${bold("mktg plan")} ${dim(`(${tasks.length} tasks)`)}`);
+    writeStdout(`  ${dim(summary)}`);
+    writeStdout("");
     for (const task of tasks.slice(0, 10)) {
       const icon = task.blocked ? red("x") : task.category === "setup" ? yellow("!") : green(">");
       const blockedTag = task.blocked ? dim(` [blocked by ${task.blockedBy}]`) : "";
-      writeStderr(`  ${icon} ${bold(`#${task.order}`)} ${task.action}${blockedTag}`);
-      writeStderr(`    ${dim(task.reason)}`);
-      writeStderr(`    ${dim(`$ ${task.command}`)}`);
+      writeStdout(`  ${icon} ${bold(`#${task.order}`)} ${task.action}${blockedTag}`);
+      writeStdout(`    ${dim(task.reason)}`);
+      writeStdout(`    ${dim(`$ ${task.command}`)}`);
     }
-    if (tasks.length > 10) writeStderr(dim(`  ... and ${tasks.length - 10} more`));
-    writeStderr("");
+    if (tasks.length > 10) writeStdout(dim(`  ... and ${tasks.length - 10} more`));
+    writeStdout("");
   }
 
   return ok(result);

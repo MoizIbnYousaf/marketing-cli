@@ -5,9 +5,58 @@ import { type PublishPostType } from "../../types";
 import { writeStdout } from "../output";
 import {
   appendNativePublishPost,
+  listNativePublishProviders,
   resolveNativePublishTargets,
 } from "../native-publish";
-import { type AdapterResult, type PublishItem, countTerminal } from "./types";
+import { type AdapterResult, type AdapterResultItem, type PublishItem, countTerminal } from "./types";
+import { type ListIntegrationsResult } from "./postiz/types";
+
+/** Shared AdapterResult envelope used by typefully / resend / file / mktg-native. */
+export const finalizeAdapterResult = (
+  adapter: string,
+  items: readonly PublishItem[],
+  results: readonly AdapterResultItem[],
+): AdapterResult => ({
+  adapter,
+  items: items.length,
+  published: countTerminal(results),
+  failed: results.filter((r) => r.status === "failed").length,
+  errors: results.filter((r) => r.status === "failed").map((r) => r.detail),
+  results,
+});
+
+/** Shared dry-run skip + optional NDJSON progress line. */
+export const pushDryRunSkip = (
+  results: AdapterResultItem[],
+  adapter: string,
+  item: number,
+  detail: string,
+  ndjson: boolean,
+  extra?: Pick<AdapterResultItem, "postType">,
+): void => {
+  results.push({ item, status: "skipped", detail, ...extra });
+  if (ndjson) writeStdout(JSON.stringify({ adapter, item, status: "skipped" }));
+};
+
+export const listNativeIntegrations = async (
+  cwd: string,
+): Promise<{ ok: true; data: ListIntegrationsResult }> => {
+  const integrations = await listNativePublishProviders(cwd);
+  return {
+    ok: true,
+    data: {
+      adapter: "mktg-native",
+      integrations: integrations.map((integration) => ({
+        id: integration.id,
+        identifier: integration.identifier,
+        name: integration.name,
+        picture: integration.picture,
+        disabled: integration.disabled,
+        profile: integration.profile,
+      })),
+    },
+  };
+};
 
 export const publishTypefully = async (
   items: PublishItem[],
@@ -15,7 +64,7 @@ export const publishTypefully = async (
   ndjson: boolean,
 ): Promise<AdapterResult> => {
   const apiKey = process.env.TYPEFULLY_API_KEY;
-  const results: AdapterResult["results"][number][] = [];
+  const results: AdapterResultItem[] = [];
 
   if (!apiKey) {
     return {
@@ -28,8 +77,7 @@ export const publishTypefully = async (
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
     if (!confirm) {
-      results.push({ item: i, status: "skipped", detail: `Would publish: ${item.content.slice(0, 80)}...` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "typefully", item: i, status: "skipped" }));
+      pushDryRunSkip(results, "typefully", i, `Would publish: ${item.content.slice(0, 80)}...`, ndjson);
       continue;
     }
     try {
@@ -51,14 +99,7 @@ export const publishTypefully = async (
     if (ndjson) writeStdout(JSON.stringify({ adapter: "typefully", item: i, status: results[results.length - 1]!.status }));
   }
 
-  return {
-    adapter: "typefully",
-    items: items.length,
-    published: countTerminal(results),
-    failed: results.filter(r => r.status === "failed").length,
-    errors: results.filter(r => r.status === "failed").map(r => r.detail),
-    results,
-  };
+  return finalizeAdapterResult("typefully", items, results);
 };
 
 export const publishResend = async (
@@ -67,7 +108,7 @@ export const publishResend = async (
   ndjson: boolean,
 ): Promise<AdapterResult> => {
   const apiKey = process.env.RESEND_API_KEY;
-  const results: AdapterResult["results"][number][] = [];
+  const results: AdapterResultItem[] = [];
 
   if (!apiKey) {
     return {
@@ -80,8 +121,7 @@ export const publishResend = async (
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
     if (!confirm) {
-      results.push({ item: i, status: "skipped", detail: `Would send: ${item.content.slice(0, 80)}...` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: "skipped" }));
+      pushDryRunSkip(results, "resend", i, `Would send: ${item.content.slice(0, 80)}...`, ndjson);
       continue;
     }
     try {
@@ -108,14 +148,7 @@ export const publishResend = async (
     if (ndjson) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: results[results.length - 1]!.status }));
   }
 
-  return {
-    adapter: "resend",
-    items: items.length,
-    published: countTerminal(results),
-    failed: results.filter(r => r.status === "failed").length,
-    errors: results.filter(r => r.status === "failed").map(r => r.detail),
-    results,
-  };
+  return finalizeAdapterResult("resend", items, results);
 };
 
 export const publishFile = async (
@@ -124,7 +157,7 @@ export const publishFile = async (
   cwd: string,
   ndjson: boolean,
 ): Promise<AdapterResult> => {
-  const results: AdapterResult["results"][number][] = [];
+  const results: AdapterResultItem[] = [];
   const outDir = join(cwd, ".mktg", "published");
 
   for (let i = 0; i < items.length; i++) {
@@ -134,8 +167,7 @@ export const publishFile = async (
     // Sanitize filename — strip path separators and traversal to prevent writes outside outDir
     const filename = rawFilename.replace(/[/\\]/g, "_").replace(/\.\./g, "_");
     if (!confirm) {
-      results.push({ item: i, status: "skipped", detail: `Would write: ${filename}` });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "file", item: i, status: "skipped" }));
+      pushDryRunSkip(results, "file", i, `Would write: ${filename}`, ndjson);
       continue;
     }
     try {
@@ -149,14 +181,7 @@ export const publishFile = async (
     if (ndjson) writeStdout(JSON.stringify({ adapter: "file", item: i, status: results[results.length - 1]!.status }));
   }
 
-  return {
-    adapter: "file",
-    items: items.length,
-    published: countTerminal(results),
-    failed: results.filter(r => r.status === "failed").length,
-    errors: results.filter(r => r.status === "failed").map(r => r.detail),
-    results,
-  };
+  return finalizeAdapterResult("file", items, results);
 };
 
 export const publishNative = async (
@@ -166,7 +191,7 @@ export const publishNative = async (
   ndjson: boolean,
   campaign: string,
 ): Promise<AdapterResult> => {
-  const results: AdapterResult["results"][number][] = [];
+  const results: AdapterResultItem[] = [];
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
@@ -181,13 +206,14 @@ export const publishNative = async (
     }
 
     if (!confirm) {
-      results.push({
-        item: i,
-        status: "skipped",
-        detail: `[dry-run] would write ${item.metadata?.postType ?? "draft"} to native backend → ${targetResolution.targets.map((target) => target.identifier).join(", ")}`,
-        postType: (item.metadata?.postType as PublishPostType | undefined) ?? "draft",
-      });
-      if (ndjson) writeStdout(JSON.stringify({ adapter: "mktg-native", item: i, status: "skipped" }));
+      pushDryRunSkip(
+        results,
+        "mktg-native",
+        i,
+        `[dry-run] would write ${item.metadata?.postType ?? "draft"} to native backend → ${targetResolution.targets.map((target) => target.identifier).join(", ")}`,
+        ndjson,
+        { postType: (item.metadata?.postType as PublishPostType | undefined) ?? "draft" },
+      );
       continue;
     }
 
@@ -206,12 +232,5 @@ export const publishNative = async (
     if (ndjson) writeStdout(JSON.stringify({ adapter: "mktg-native", item: i, status: "queued-local", detail }));
   }
 
-  return {
-    adapter: "mktg-native",
-    items: items.length,
-    published: countTerminal(results),
-    failed: results.filter((result) => result.status === "failed").length,
-    errors: results.filter((result) => result.status === "failed").map((result) => result.detail),
-    results,
-  };
+  return finalizeAdapterResult("mktg-native", items, results);
 };
