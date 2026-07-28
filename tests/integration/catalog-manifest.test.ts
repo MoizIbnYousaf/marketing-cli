@@ -128,6 +128,88 @@ describe("detectLicenseDenials — copyleft + transport gate", () => {
 });
 
 // =========================================================================
+// research_adapters capability + mcp block (OpenSEO Phase 1)
+// =========================================================================
+
+describe("research_adapters capability family", () => {
+  test("research_adapters collisions are detected across catalogs", () => {
+    const manifest: CatalogsManifest = {
+      version: 1,
+      catalogs: {
+        openseo: makeEntry("openseo", { capabilities: { research_adapters: ["openseo"] } }),
+        copycat: makeEntry("copycat", { capabilities: { research_adapters: ["openseo"] } }),
+      },
+    };
+    const collisions = detectAdapterCollisions(manifest, { publish_adapters: [] });
+    expect(collisions).toHaveLength(1);
+    expect(collisions[0]).toMatchObject({ kind: "research_adapters", adapter: "openseo" });
+  });
+
+  test("shipped manifest includes the openseo research catalog with mcp contract", async () => {
+    const result = await loadCatalogManifest();
+    if (!result.ok) throw new Error("shipped manifest failed to load");
+    const openseo = result.manifest.catalogs["openseo"];
+    expect(openseo).toBeDefined();
+    expect(openseo!.license).toBe("MIT");
+    expect(openseo!.transport).toBe("http");
+    expect(openseo!.capabilities.research_adapters).toEqual(["openseo"]);
+    expect(openseo!.mcp?.url_env).toBe("OPENSEO_MCP_URL");
+    expect(openseo!.mcp?.default_url).toBe("https://app.openseo.so/mcp");
+    expect(openseo!.auth.credential_envs).toEqual(["OPENSEO_API_KEY"]);
+  });
+
+  test("mcp block with non-https default_url is rejected", async () => {
+    const { _testing } = await import("../../src/core/catalogs");
+    const bad = {
+      version: 1,
+      catalogs: {
+        badmcp: {
+          ...makeEntry("badmcp", { capabilities: { research_adapters: ["badmcp"] } }),
+          mcp: { url_env: "BADMCP_MCP_URL", default_url: "http://insecure.example.com/mcp" },
+        },
+      },
+    };
+    const result = _testing.validateShape(bad);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.detail).toContain("https");
+  });
+
+  test("mcp block missing url_env is rejected", async () => {
+    const { _testing } = await import("../../src/core/catalogs");
+    const bad = {
+      version: 1,
+      catalogs: {
+        badmcp: {
+          ...makeEntry("badmcp", { capabilities: { research_adapters: ["badmcp"] } }),
+          mcp: { default_url: "https://app.openseo.so/mcp" },
+        },
+      },
+    };
+    const result = _testing.validateShape(bad);
+    expect(result.ok).toBe(false);
+  });
+
+  test("research-only catalog with no skills is rejected (zero-capability guard still holds)", async () => {
+    const { _testing } = await import("../../src/core/catalogs");
+    const empty = { version: 1, catalogs: { hollow: { ...makeEntry("hollow", { capabilities: {}, skills: [] }), skills: [] } } };
+    const result = _testing.validateShape(empty);
+    expect(result.ok).toBe(false);
+  });
+
+  test("research_adapters-only catalog (no skills) passes shape validation", async () => {
+    const { _testing } = await import("../../src/core/catalogs");
+    const okShape = {
+      version: 1,
+      catalogs: {
+        researchonly: { ...makeEntry("researchonly", { capabilities: { research_adapters: ["researchonly"] }, skills: [] }), skills: [] },
+      },
+    };
+    const result = _testing.validateShape(okShape);
+    expect(result.ok).toBe(true);
+  });
+});
+
+// =========================================================================
 // Adapter-name collision detection
 // =========================================================================
 

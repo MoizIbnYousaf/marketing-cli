@@ -146,21 +146,21 @@ export const infoSchema: CommandSchema = {
 
 export const syncSchema: CommandSchema = {
   name: "sync",
-  description: "Check each catalog's pinned version against upstream (v1: read-only, reports drift without mutating)",
+  description: "Report each catalog's pinned version. NOTE: upstream drift detection is NOT yet implemented — to_version is always null and every item carries an explicit 'unimplemented' error string",
   flags: [
-    { name: "--dry-run", type: "boolean", required: false, default: false, description: "Preview version diffs without writing (v1 is always read-only — flag accepted for forward-compat)" },
-    { name: "--catalog", type: "string", required: false, description: "Limit sync to a single catalog" },
+    { name: "--dry-run", type: "boolean", required: false, default: false, description: "No-op today — sync never mutates" },
+    { name: "--catalog", type: "string", required: false, description: "Limit to a single catalog" },
   ],
   output: {
-    "catalogs": "Array<{name, from_version, to_version, changed}> — per-catalog diff",
+    "catalogs": "Array<{name, from_version, to_version, changed, error}> — per-catalog pinned version (drift check unimplemented)",
     "catalogs.*.name": "string",
     "catalogs.*.from_version": "string — currently pinned version",
-    "catalogs.*.to_version": "string | null — latest upstream tag, or null on network error",
-    "catalogs.*.changed": "boolean — true if from_version !== to_version",
-    "catalogs.*.error": "string | undefined — present when upstream check failed",
+    "catalogs.*.to_version": "null — always null until upstream drift detection is implemented",
+    "catalogs.*.changed": "false — always false until drift detection is implemented",
+    "catalogs.*.error": "string — always present: 'upstream version check not yet implemented'",
     "summary.total": "number",
-    "summary.changed": "number — catalogs with pending bumps",
-    "summary.errors": "number — upstream check failures",
+    "summary.changed": "number — always 0 until drift detection is implemented",
+    "summary.errors": "number — equals total (every item reports unimplemented)",
     "dryRun": "boolean",
   },
   examples: [
@@ -172,17 +172,17 @@ export const syncSchema: CommandSchema = {
 
 export const statusSchema: CommandSchema = {
   name: "status",
-  description: "Health snapshot across all catalogs: configured + reachable",
+  description: "Configured-state snapshot across all catalogs. Health probes are NOT implemented — healthy is always null rather than guessed",
   flags: [],
   output: {
     "catalogs": "Array<{name, configured, healthy, detail}>",
     "catalogs.*.name": "string",
     "catalogs.*.configured": "boolean — all auth env vars set",
-    "catalogs.*.healthy": "boolean | null — reachable + auth ok (null when unconfigured or read-only path)",
+    "catalogs.*.healthy": "null — always null until reachability probes are implemented (never guessed)",
     "catalogs.*.detail": "string — human-readable status message",
     "summary.total": "number",
     "summary.configured": "number",
-    "summary.healthy": "number",
+    "summary.healthy": "number — always 0 until probes are implemented",
   },
   examples: [
     { args: "mktg catalog status --json", description: "All catalog health at a glance" },
@@ -325,7 +325,7 @@ const handleSync = async (args: readonly string[]): Promise<CommandResult<SyncRe
     from_version: c.version_pinned,
     to_version: null,
     changed: false,
-    error: "upstream version check not yet implemented — see plan v2 §Phase A-prime",
+    error: "upstream version check not yet implemented",
   }));
 
   return ok({

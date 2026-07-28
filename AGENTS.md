@@ -150,6 +150,7 @@ Add a new upstream catalog without touching CLI code. Catalogs are external OSS 
    - `publish_adapters[]` → add the adapter to `ADAPTERS` and `ADAPTER_ENV_VARS` in `src/commands/publish.ts`.
    - `scheduling_adapters[]` → reserved for cal.com-style catalogs; future.
    - `email_adapters[]` → reserved for listmonk-style catalogs; future.
+   - `research_adapters[]` → research/data-plane catalogs (SEO metrics, SERP, backlinks). Wired via the companion skill + optional `mcp` block, not publish adapters.
    - `skills[]` → create the corresponding `skills/<skill-name>/SKILL.md` and register in `skills-manifest.json`.
 3. Run `mktg catalog list --json` to verify the entry loaded. `loadCatalogManifest` runs here and rejects adapter-name collisions (`CATALOG_COLLISION`), licenses outside the allowlist (`CATALOG_LICENSE_DENIED`), and malformed entries (`CATALOG_MANIFEST_INVALID`) as structured errors. (`mktg catalog sync` is the wrong command for this; it checks upstream version drift against GitHub releases, not manifest validity.)
 4. (Optional) Run `mktg doctor --json` to verify env vars in `auth.credential_envs` are set for the new catalog.
@@ -163,7 +164,8 @@ Add a new upstream catalog without touching CLI code. Catalogs are external OSS 
 | `version_pinned` | An upstream tag (not `main`). `mktg catalog sync` diffs this against latest. |
 | `transport` | `"sdk"` ONLY if the upstream's SDK license permits linking. Otherwise `"http"` and `sdk_reference: null`. |
 | `auth` | Fully declared: `style`, `base_env`, `credential_envs`, `header_format`. Skill and adapter code never hardcodes env names; it reads from the catalog entry. |
-| `capabilities` | At least one non-empty capability array. A catalog with zero capabilities is rejected at load time. |
+| `capabilities` | At least one non-empty capability array (`publish_adapters`, `scheduling_adapters`, `email_adapters`, `research_adapters`). A catalog with zero capabilities is rejected at load time. |
+| `mcp` (optional) | `{ url_env, default_url }` for MCP-served catalogs (e.g. openseo). `default_url` must be https. `transport` stays `"http"` — MCP rides over HTTP; no new transport value. |
 
 ### Security Posture
 

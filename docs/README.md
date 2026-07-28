@@ -13,6 +13,7 @@ indexes under `skills/cmo/rules/`:
 | [EXIT_CODES.md](EXIT_CODES.md) | Exit code reference — codes 0-6, constructors, agent usage |
 | [plans/2026-04-25-001-feat-cmo-studio-boot-session-plan.md](plans/2026-04-25-001-feat-cmo-studio-boot-session-plan.md) | CMO Studio boot session plan — command-driven, hook-free startup contract |
 | [cli-improvement-plan.md](cli-improvement-plan.md) | Phased CLI improvement plan — honest run lifecycle, plan/publish truth, portable route |
+| [openseo-integration-plan.md](openseo-integration-plan.md) | Plan to make OpenSEO the first-class SEO data plane inside mktg |
 
 ## Subdirectories
 

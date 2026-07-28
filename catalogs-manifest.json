@@ -19,6 +19,29 @@
         "header_format": "bare"
       },
       "skills": ["postiz"]
+    },
+    "openseo": {
+      "name": "openseo",
+      "repo_url": "https://github.com/every-app/open-seo",
+      "docs_url": "https://openseo.so/docs/mcp",
+      "license": "MIT",
+      "version_pinned": "v0.1.2",
+      "capabilities": {
+        "research_adapters": ["openseo"]
+      },
+      "transport": "http",
+      "sdk_reference": null,
+      "auth": {
+        "style": "bearer",
+        "base_env": "OPENSEO_API_BASE",
+        "credential_envs": ["OPENSEO_API_KEY"],
+        "header_format": "bearer"
+      },
+      "skills": ["openseo"],
+      "mcp": {
+        "url_env": "OPENSEO_MCP_URL",
+        "default_url": "https://app.openseo.so/mcp"
+      }
     }
   }
 }

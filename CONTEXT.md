@@ -113,14 +113,29 @@ mktg catalog info postiz --json --fields name,license,version_pinned,auth.creden
 # `configured: true` iff every auth.credential_envs entry is set in process.env.
 
 mktg catalog status --json
-# Fleet-wide health check across all registered catalogs.
+# Configured-state across all registered catalogs.
+# healthy is always null — reachability probes are not implemented (never guessed).
 
 mktg catalog sync --dry-run --json
-# Diff local version_pinned against upstream tags. v1 is read-only; --dry-run is parity-only.
+# Reports each catalog's pinned version. Upstream drift detection is NOT
+# implemented: to_version is always null and every item says so in `error`.
 
 mktg catalog add <name> --confirm --json
 # Register a new catalog entry. Mutating, destructive-guarded.
+
+mktg catalog info openseo --json --fields configured,missing_envs,mcp
+# SEO data plane (research_adapters capability). mcp.default_url is the hosted
+# MCP; OPENSEO_MCP_URL overrides for self-host. OPENSEO_API_KEY enables
+# non-interactive automation; without it, SEO metrics are `unknown` (never invented).
 ```
+
+### 5b. Pick the right research backend
+
+| Job | Preferred | Fallback |
+|-----|-----------|----------|
+| KD / volume / SERP / backlinks / rank tracking / GSC | OpenSEO (catalog + MCP) | none — mark metrics `unknown` |
+| Open-web discovery, Reddit/GitHub mining | Exa | — |
+| Fetch known-URL content | Firecrawl | — |
 
 ### 6. Launch the studio dashboard
 
