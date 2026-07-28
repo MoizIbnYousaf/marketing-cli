@@ -51,6 +51,29 @@ When a platform has no usable API, /cmo routes to the browser. Multiple browser 
 
 ## MCP servers
 
+### OpenSEO - SEO data plane (catalog + MCP)
+
+**What it is:** Open-source Semrush/Ahrefs alternative ([every-app/open-seo](https://github.com/every-app/open-seo), MIT). Registered as the `openseo` catalog with a `research_adapters` capability — mktg's measured-metrics backend for SEO: KD, volume, CPC, intent, SERP, ranked keywords, backlinks, rank tracking, GSC.
+
+**Research backend matrix (route by job):**
+
+| Job | Preferred | Fallback |
+|---|---|---|
+| KD / volume / CPC / intent | OpenSEO MCP (`get_keyword_metrics`, `research_keywords`) | none — mark `unknown` |
+| Live SERP for a keyword | OpenSEO MCP (`get_serp_results`) | firecrawl/Exa scrape (weaker) |
+| Domain ranked keywords / backlinks | OpenSEO MCP (`get_ranked_keywords`, `get_backlinks_overview`) | `competitive-intel` qualitative |
+| GSC striking-distance / cannibalization | OpenSEO (`get_search_console_performance`) | manual GSC CSV export into `.seo/gsc/` |
+| Open-web discovery / Reddit / GitHub | Exa | — |
+| Fetch known-URL content | firecrawl | — |
+
+**Skills:** `openseo` (adapter/readiness), `openseo-project-setup`, `openseo-coach`, `openseo-keyword-research`, `openseo-keyword-clustering`, `openseo-competitive-landscape`, `openseo-competitor-analysis`, `openseo-link-prospecting`.
+
+**CMO routes to OpenSEO when:** any metrics-bearing SEO request arrives and `mktg catalog info openseo --json --fields configured` returns true. SEO playbook skills (`keyword-research`, `seo-audit`, `off-page-seo`, `ai-seo`, `seo-machine`, `competitor-alternatives`) have Backend Selection sections that prefer OpenSEO when ready.
+
+**Wired via:** `.mcp.json` at the repo root (`openseo` server, hosted MCP `https://app.openseo.so/mcp`, `OPENSEO_MCP_URL` override for self-host) and `OPENSEO_API_KEY` for non-interactive automation (`mktg doctor` surfaces catalog readiness). Cost discipline: bulk research + `save_keywords` require confirmation (DataForSEO credit).
+
+---
+
 ### Exa - first-class skills + MCP
 
 **What it is:** Semantic web research platform. Distinct from firecrawl:

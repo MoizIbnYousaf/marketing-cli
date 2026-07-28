@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  A senior marketing operator for any project. Orchestrates 65 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
+  A senior marketing operator for any project. Orchestrates 72 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
 allowed-tools:
   - Bash(mktg *)
   - Bash(curl *)
@@ -54,7 +54,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 65 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 72 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."

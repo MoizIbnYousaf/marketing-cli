@@ -22,6 +22,13 @@ description: >
 
 > **Note:** Examples below use fictional brands (Acme, Lumi, Helm). Replace with your own brand context.
 
+## Backend Selection
+
+1. **OpenSEO configured** (`mktg catalog info openseo --json --fields configured` → true): get measured metrics (KD, volume, CPC, intent, SERP, GSC striking-distance) from OpenSEO via `openseo-keyword-research` instead of estimating. This skill remains the methodology — strategy, prioritization, and the `brand/keyword-plan.md` structure.
+2. **OpenSEO absent**: proceed with the Exa-stack validation below (Phase 3) and mark every metric `unknown`. Never invent KD/volume.
+
+Rule of thumb: OpenSEO is the data plane, this skill is the playbook. When both exist, the playbook consumes measured inputs.
+
 # /keyword-research -- Data-Backed Keyword Strategy
 
 Most keyword research is backwards. People start with tools, get overwhelmed by
@@ -49,34 +56,14 @@ Do not start from scratch. Instead:
 1. Read the existing plan.
 2. Present a summary of the current keyword strategy:
    ```
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EXISTING KEYWORD PLAN (last updated {date})
+   Pillars: {Pillar 1} {N} clusters {priority} · {Pillar 2} {N} {priority} · {Pillar 3} {N} {priority}
+   Top keywords: {kw1} {priority} · {kw2} {priority} · {kw3} {priority}
+   Content briefs: {N} created, {N} published
 
-     EXISTING KEYWORD PLAN
-     Last updated {date} by /keyword-research
-
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-     Pillars:
-     ├── {Pillar 1}    {N} clusters    Priority: {level}
-     ├── {Pillar 2}    {N} clusters    Priority: {level}
-     └── {Pillar 3}    {N} clusters    Priority: {level}
-
-     Top keywords:
-     ├── {keyword 1}   {priority}
-     ├── {keyword 2}   {priority}
-     └── {keyword 3}   {priority}
-
-     Content briefs: {N} created, {N} published
-
-     ──────────────────────────────────────────────
-
-     What would you like to do?
-
-     ① Refresh with new SERP data
-     ② Add a new topic area
-     ③ Re-prioritize existing clusters
-     ④ Full rebuild from scratch
-     ⑤ Generate briefs for top keywords
+   What would you like to do?
+   ① Refresh with new SERP data  ② Add a new topic area  ③ Re-prioritize clusters
+   ④ Full rebuild from scratch   ⑤ Generate briefs for top keywords
    ```
 
 3. Process the user's choice:
@@ -86,23 +73,7 @@ Do not start from scratch. Instead:
    - Option ④ --> Full process from scratch
    - Option ⑤ --> Skip to content brief generation for highest-priority unfilled clusters
 
-4. Before overwriting, show a diff of what changed:
-   ```
-   Changes to keyword plan:
-
-   New clusters added:
-   ├── "AI email marketing" (Pillar: AI Marketing)
-   └── "automated content creation" (Pillar: AI Marketing)
-
-   Priority changes:
-   ├── "marketing automation" High → Critical
-   └── "fractional CMO" Medium → Low
-
-   Removed:
-   └── "our methodology" (failed validation)
-
-   Save these changes? (y/n)
-   ```
+4. Before overwriting, show a compact diff of what changed (new clusters, priority changes, removals) and ask: "Save these changes? (y/n)"
 
 5. Only overwrite after explicit confirmation.
 

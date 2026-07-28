@@ -34,6 +34,11 @@ People searching "[Competitor] alternatives" or "[Product] vs [Competitor]" have
 
 1. Read `brand/` directory: load `competitors.md`, `positioning.md`, `voice-profile.md`, `audience.md` if present.
 2. Show what loaded:
+
+## Backend Selection
+
+1. **OpenSEO configured**: pick comparison targets from measured SERP overlap (`find_serp_competitors`, `get_serp_results`) and use `openseo-competitor-analysis` findings in `brand/competitors.md` when present.
+2. **OpenSEO absent**: choose targets from Exa SERP scraping; label overlap strength `unknown`.
    ```
    Brand context loaded:
    ├── Competitors    ✓/✗  ({N} competitors profiled)

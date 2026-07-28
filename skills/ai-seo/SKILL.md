@@ -36,6 +36,11 @@ This is a different game. AI engines don't rank pages — they synthesize answer
 
 1. Read `brand/` directory: load `voice-profile.md`, `keyword-plan.md`, `positioning.md`, `competitors.md` if present.
 2. Show what loaded:
+
+## Backend Selection
+
+1. **OpenSEO configured**: use measured rank/SERP data (`get_ranked_keywords`, `get_serp_results`) to prioritize which pages get AI-search optimization first; use OpenSEO AI-search features when exposed via MCP.
+2. **OpenSEO absent**: optimize from crawl/Exa evidence; label ranking data `unknown`.
    ```
    Brand context loaded:
    ├── Voice Profile   ✓/✗
