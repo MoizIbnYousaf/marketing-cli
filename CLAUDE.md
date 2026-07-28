@@ -11,7 +11,7 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 65 marketing skills (63 playbook + `/cmo` + `/axi`), 6 agents, 21 commands, 2 upstream catalogs. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 72 marketing skills (70 playbook + `/cmo` + `/axi`), 6 agents, 21 commands, 2 upstream catalogs. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
@@ -48,7 +48,7 @@ src/
 │   ├── skill-add.ts    # External skill chaining (mktg skill add)
 │   ├── agents.ts       # Agent registry, install to ~/.claude/agents/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
-skills/                  # 65 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 72 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 6 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata

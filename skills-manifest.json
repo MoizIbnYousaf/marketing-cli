@@ -2126,6 +2126,244 @@
         "OPENSEO_API_KEY",
         "OPENSEO_API_BASE"
       ]
+    },
+    "openseo-project-setup": {
+      "source": "new",
+      "category": "seo",
+      "layer": "foundation",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md"
+      ],
+      "writes": [
+        "keyword-plan.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "set up openseo",
+        "link seo project",
+        "connect gsc",
+        "start seo for this site",
+        "openseo project id"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/seo-project-setup",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-coach": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md",
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "seo coach",
+        "new to seo",
+        "explain openseo",
+        "what seo should i do",
+        "seo strategy help"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/seo-coach",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-keyword-research": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md",
+        "positioning.md"
+      ],
+      "writes": [
+        "keyword-plan.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "keyword difficulty",
+        "search volume",
+        "keyword opportunities",
+        "striking distance keywords",
+        "measured keyword research"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/keyword-research",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-keyword-clustering": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "keyword-plan.md"
+      ],
+      "writes": [
+        "keyword-plan.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "cluster keywords",
+        "keyword mapping",
+        "map keywords to pages",
+        "keyword cannibalization",
+        "which page should target"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/keyword-clustering",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-competitive-landscape": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "landscape.md",
+        "competitors.md"
+      ],
+      "writes": [
+        "landscape.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "competitive landscape seo",
+        "who ranks for",
+        "seo market map",
+        "how competitive is",
+        "serp competitors"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/competitive-landscape",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-competitor-analysis": {
+      "source": "new",
+      "category": "seo",
+      "layer": "strategy",
+      "tier": "nice-to-have",
+      "reads": [
+        "competitors.md",
+        "positioning.md"
+      ],
+      "writes": [
+        "competitors.md"
+      ],
+      "depends_on": [],
+      "triggers": [
+        "analyze competitor",
+        "competitor keywords",
+        "competitor backlinks",
+        "beat competitor",
+        "competitor seo teardown"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/competitor-analysis",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
+    },
+    "openseo-link-prospecting": {
+      "source": "new",
+      "category": "seo",
+      "layer": "distribution",
+      "tier": "nice-to-have",
+      "reads": [
+        "positioning.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "link prospecting",
+        "find backlink opportunities",
+        "resource page outreach",
+        "get backlinks for",
+        "link building outreach"
+      ],
+      "review_interval_days": 60,
+      "version": "1.0.0",
+      "env_vars": [
+        "OPENSEO_API_KEY",
+        "OPENSEO_API_BASE"
+      ],
+      "upstream": {
+        "primary": {
+          "repo": "every-app/open-seo",
+          "path": ".agents/skills/link-prospecting",
+          "snapshot_sha": "f56972639f14e7e766498a8a2f6441913eb83c0c",
+          "snapshot_at": "2026-07-28T00:30:08.274Z"
+        }
+      }
     }
   },
   "redirects": {

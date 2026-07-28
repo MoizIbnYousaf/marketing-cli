@@ -90,8 +90,8 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 | 2 | Doctor + env/MCP readiness | `in_progress` | #46 | envs surface via doctor catalog checks + prereqs; named readiness states (mcp_client_only etc.) deferred |
 | 3 | Root MCP wiring + agent install docs | `completed` | #46 | 2026-07-27 — `.mcp.json` openseo server + CONTEXT backend matrix |
 | 4 | First-class `openseo` skill (adapter / coach) | `completed` | #46 | 2026-07-27 — `skills/openseo/SKILL.md` (65 skills); drift-locked envs |
-| 5 | Steal & adapt OpenSEO workflow skills (`openseo-*`) | `pending` | | Upstream provenance |
-| 6 | Rewire existing SEO skills + `/cmo` Path A/B | `pending` | | Prefer OpenSEO when configured |
+| 5 | Steal & adapt OpenSEO workflow skills (`openseo-*`) | `completed` | cursor/openseo-workflow-skills-ccd8 | 2026-07-28 — all 7 adapted (light `upstream` provenance, snapshot f569726); 65 → 72 skills |
+| 6 | Rewire existing SEO skills + `/cmo` Path A/B | `completed` | cursor/openseo-workflow-skills-ccd8 | 2026-07-28 — Backend Selection on 6 skills; playbooks data-plane gate; ecosystem research matrix |
 | 7 | Brand / `.seo` / OpenSEO project sync contract | `pending` | | |
 | 8 | CLI surface: `mktg catalog` / optional `mktg seo` | `pending` | | |
 | 9 | Studio: SEO panel / deep links / status | `pending` | | |

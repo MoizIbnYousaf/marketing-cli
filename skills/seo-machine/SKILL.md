@@ -61,6 +61,11 @@ Striking-distance boosts (pages already ranking pos 5–20 in GSC) jump the queu
 
 1. Load brand context where present: `brand/keyword-plan.md`, `positioning.md`, `competitors.md`, `audience.md`, `stack.md`. Missing files are fine.
 2. Surface what loaded:
+
+## Backend Selection
+
+1. **OpenSEO configured**: validate KD/competition BEFORE generating pages (`get_keyword_metrics`, `get_serp_results`) — programmatic SEO on unvalidated targets manufactures pages nobody can rank for. Consume `marketing/seo/clusters/*.md` from `openseo-keyword-clustering` when present.
+2. **OpenSEO absent**: proceed with playbook validation (Exa + manual checks); mark competition estimates `unknown` in phase docs.
    ```
    Brand context loaded:
    ├── Keyword Plan    ✓/✗  (seeds the roadmap; ✗ → generate during Initialize)

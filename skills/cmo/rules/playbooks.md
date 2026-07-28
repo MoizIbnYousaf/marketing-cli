@@ -168,6 +168,8 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 
 Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestion`.
 
+**Data plane first (both paths):** check `mktg catalog info openseo --json --fields configured`. When OpenSEO is ready, measured metrics (KD, volume, SERP, backlinks, GSC) come from the `openseo-*` skills and the playbook skills below consume them via their Backend Selection sections. When OpenSEO is absent, the same playbook steps run on Exa/Firecrawl with every metric marked as unknown — never invented.
+
 **Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"*  -  short-horizon, one-shot, no roadmap.
 
 **Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"alternatives pages"*, *"comparison pages"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"*  -  multi-phase, ship dozens of pages, persistent roadmap.
@@ -178,11 +180,11 @@ Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestio
 
 | # | Skill | Artifact |
 |---|---|---|
-| 1 | `keyword-research` | `brand/keyword-plan.md` with primary, secondary, long-tail terms + search intent notes. |
+| 1 | `keyword-research` (OpenSEO path: `openseo-keyword-research`) | `brand/keyword-plan.md` with primary, secondary, long-tail terms + search intent notes. Measured KD/volume when OpenSEO is configured. |
 | 2 | `seo-content` (ongoing) | `marketing/content/*.md`  -  rankable, anti-AI-slop articles with schema. |
 | 3 | `ai-seo` | Entity optimization, structured data, citation-worthy formatting for ChatGPT/Perplexity/Claude/Gemini/AI Overviews. |
-| 4 | `competitor-alternatives` | `marketing/alternatives/<competitor>-vs-us.md`  -  high-intent comparison pages. |
-| 5 | `seo-audit` (periodically) | Site architecture + schema markup audit. |
+| 4 | `competitor-alternatives` (OpenSEO path: target picks from `openseo-competitor-analysis`) | `marketing/alternatives/<competitor>-vs-us.md`  -  high-intent comparison pages. |
+| 5 | `seo-audit` (periodically) | Site architecture + schema markup audit. Rank snapshots in `.seo/rank-snapshots/` when OpenSEO is configured. |
 
 **Stop:** one cornerstone + one AI-SEO piece + one alternatives page shipped. Schedule re-runs quarterly.
 
@@ -194,8 +196,8 @@ When the user wants an *operating system* for organic growth  -  not one article
 
 | # | Skill / Agent | Artifact |
 |---|---|---|
-| 1 | Foundation prerequisites (if missing) | Spawn `mktg-competitive-scanner` + `mktg-audience-researcher` in parallel (Exa via `company-research` / `exa-search`) → `brand/competitors.md`, `brand/audience.md`. Run `keyword-research` → `brand/keyword-plan.md`. |
-| 2 | `seo-machine` (Initialize) | `docs/seo-machine.md` roadmap + `.seo/brand.md` + `.seo/link-inventory.md` + `.seo/config.json`. Stack auto-detected. |
+| 1 | Foundation prerequisites (if missing) | Spawn `mktg-competitive-scanner` + `mktg-audience-researcher` in parallel (Exa via `company-research` / `exa-search`) → `brand/competitors.md`, `brand/audience.md`. Run `keyword-research` → `brand/keyword-plan.md` (OpenSEO path: `openseo-keyword-research` for measured inputs; `openseo-project-setup` first if `.seo/openseo.json` is missing). |
+| 2 | `seo-machine` (Initialize) | `docs/seo-machine.md` roadmap + `.seo/brand.md` + `.seo/link-inventory.md` + `.seo/config.json`. Stack auto-detected. OpenSEO path: targets pre-validated with `get_keyword_metrics`; clusters from `openseo-keyword-clustering` in `marketing/seo/clusters/`. |
 | 3 | `seo-machine` (Resume  -  per phase) | Generates the phase's pages (e.g. 12 `/alternatives/<competitor>` pages, or 8 `/for/<persona>` use-case pages) directly into the user's framework (Next.js / Astro / Rails+Inertia / markdown fallback). |
 | 4 | Per-phase quality gate  -  `mktg-content-reviewer` (voice) + `mktg-seo-analyst` (keyword adherence) | Scored, not rewritten. Spawn both in one message after each phase. |
 | 5 | Off-page checklist + technical audit | Chain into `off-page-seo` skill → spawns `mktg-backlink-prospector` agent to research competitor referring-domains → writes `.seo/backlink-targets.json`. Plus `scripts/link_audit.py` + `scripts/tech_audit.py` run locally; findings appended to `docs/seo-machine.md`. |

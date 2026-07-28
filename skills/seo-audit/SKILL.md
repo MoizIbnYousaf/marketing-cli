@@ -46,6 +46,11 @@ This skill operates in three modes. Select based on what the user needs:
 
 1. Read `brand/` directory: load `voice-profile.md`, `stack.md`, `audience.md`, `keyword-plan.md` if present.
 2. Show what loaded:
+
+## Backend Selection
+
+1. **OpenSEO configured**: pull rank snapshots, GSC performance, and technical SERP context from OpenSEO (`get_search_console_performance`, `get_ranked_keywords`, `get_serp_results`) so the audit prioritizes pages by measured impact. Store snapshots in `.seo/rank-snapshots/`.
+2. **OpenSEO absent**: audit with crawl/Exa evidence only; label ranking impact estimates `unknown`.
    ```
    Brand context loaded:
    ├── Voice Profile   ✓/✗

@@ -31,6 +31,11 @@ The off-page half of the SEO operation. Pairs with `seo-machine` (on-page progra
 
 1. Load brand context: `positioning.md`, `competitors.md`, `audience.md`, `voice-profile.md`. Missing files are fine.
 2. Surface what loaded:
+
+## Backend Selection
+
+1. **OpenSEO configured**: ground backlink gaps in measured data (`get_backlinks_overview`, `get_domain_overview`) and consume `.seo/backlink-targets.json` from `openseo-link-prospecting` when present. Write refreshed overviews to `.seo/backlink-overview.json`.
+2. **OpenSEO absent**: prospect and prioritize with Exa/web evidence only; label authority metrics `unknown`.
    ```
    Brand context loaded:
    ├── Positioning    ✓/✗  (drives outreach angle + value-add framing)
