@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { GlobalFlags, ExitCode } from "../src/types";
-import { formatOutput } from "../src/core/output";
+import { applyFieldsFilter, formatOutput } from "../src/core/output";
 import { exitCodeLabel } from "../src/core/errors";
 import { handler as statusHandler } from "../src/commands/status";
 import { handler as initHandler } from "../src/commands/init";
@@ -323,7 +323,13 @@ describe("--fields filtering", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    const output = formatOutput(result, flags);
+    // --fields is applied once at the cli choke point; direct callers must
+    // mirror that before formatOutput (formatOutput only serializes).
+    const filtered = applyFieldsFilter(result, flags.fields);
+    expect(filtered.ok).toBe(true);
+    if (!filtered.ok) return;
+
+    const output = formatOutput(filtered, flags);
     const parsed = JSON.parse(output);
 
     expect(parsed).toHaveProperty("health");
