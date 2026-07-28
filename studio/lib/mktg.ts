@@ -369,6 +369,42 @@ export function mktgPublishListAdapters(cwd?: string): Promise<CommandResult<{ a
 }
 
 /**
+ * mktg seo status --json
+ * SEO readiness snapshot: catalog config, project binding, .seo inventory,
+ * keyword-plan state, named readiness, and the app URL for deep links.
+ */
+export type SeoStatusData = {
+  readonly catalog: {
+    readonly registered: boolean;
+    readonly configured: boolean;
+    readonly missingEnvs: readonly string[];
+    readonly mcp: { readonly url_env: string; readonly default_url: string } | null;
+    readonly resolvedBase: string | null;
+  };
+  readonly readiness: "not_configured" | "mcp_client_only" | "api_ready" | "selfhost_ready";
+  readonly project: {
+    readonly projectId: string;
+    readonly domain: string;
+    readonly mcpUrl: string;
+    readonly updatedAt: string;
+  } | null;
+  readonly bindingCorrupt: boolean;
+  readonly state: {
+    readonly rankSnapshots: number;
+    readonly hasBacklinkOverview: boolean;
+    readonly gscFiles: number;
+    readonly hasKeywordsSync: boolean;
+    readonly keywordsSyncAt: string | null;
+  };
+  readonly keywordPlan: "missing" | "template" | "populated";
+  readonly openUrl: string;
+};
+
+export function mktgSeoStatus(opts: { cwd?: string } = {}): Promise<CommandResult<SeoStatusData>> {
+  return run<SeoStatusData>(["seo", "status"], { cwd: opts.cwd });
+}
+
+/**
  * mktg publish --adapter <name> --list-integrations --json
  * Lists connected provider integrations for an adapter (postiz only for now).
  */

@@ -34,11 +34,13 @@ import {
   Layers3,
   Play,
   Radio,
+  Search,
   Send,
   Sparkles,
   Target,
 } from "lucide-react"
 import { fadeInUp } from "@/lib/animation/variants"
+import { SeoReadinessCard } from "./seo-readiness-card"
 import { dataFetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { computeFreshness, getFileLabel } from "@/lib/brand-editor"
@@ -385,7 +387,7 @@ function BottomStrip({
   publishStale: boolean
 }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-3">
+    <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
       <Panel
         title="Brand health"
         icon={BookOpen}
@@ -394,6 +396,10 @@ function BottomStrip({
         stale={brandStale}
       >
         <BrandHealthCard brandHealth={brandHealth} />
+      </Panel>
+
+      <Panel title="SEO readiness" icon={Search}>
+        <SeoReadinessCard />
       </Panel>
 
       <Panel

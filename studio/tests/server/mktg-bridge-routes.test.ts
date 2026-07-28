@@ -101,4 +101,23 @@ describe("mktg-backed route stubs", () => {
     expect(detailBody.data.name).toBe(first.name);
     expect(typeof detailBody.data.configured).toBe("boolean");
   });
+
+  test("/api/seo/status returns bridged readiness data with named state", async () => {
+    const res = await fetch(`${BASE}/api/seo/status`);
+    expect(res.ok).toBe(true);
+    const body = (await res.json()) as {
+      ok: boolean;
+      data: {
+        readiness: string;
+        catalog: { registered: boolean; configured: boolean };
+        keywordPlan: string;
+        openUrl: string;
+      };
+    };
+    expect(body.ok).toBe(true);
+    expect(body.data.catalog.registered).toBe(true);
+    expect(["not_configured", "mcp_client_only", "api_ready", "selfhost_ready"]).toContain(body.data.readiness);
+    expect(["missing", "template", "populated"]).toContain(body.data.keywordPlan);
+    expect(body.data.openUrl).toMatch(/^https?:\/\//);
+  });
 });
