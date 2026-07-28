@@ -34,15 +34,15 @@ The off-page half of the SEO operation. Pairs with `seo-machine` (on-page progra
 
 ## Backend Selection
 
-1. **OpenSEO configured**: ground backlink gaps in measured data (`get_backlinks_overview`, `get_domain_overview`) and consume `.seo/backlink-targets.json` from `openseo-link-prospecting` when present. Write refreshed overviews to `.seo/backlink-overview.json`.
-2. **OpenSEO absent**: prospect and prioritize with Exa/web evidence only; label authority metrics `unknown`.
-   ```
-   Brand context loaded:
-   ├── Positioning    ✓/✗  (drives outreach angle + value-add framing)
-   ├── Competitors    ✓/✗  (target list source — Recipe F runs on them)
-   ├── Audience       ✓/✗  (selects niche-specific directories + communities)
-   └── Voice Profile  ✓/✗  (shapes outreach email tone if user chains into cold-email)
-   ```
+Prefer OpenSEO `get_backlinks_overview` / `get_domain_overview` and `openseo-link-prospecting` outputs when configured; otherwise Exa/web with authority metrics `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+
+```
+Brand context loaded:
+├── Positioning    ✓/✗  (drives outreach angle + value-add framing)
+├── Competitors    ✓/✗  (target list source — Recipe F runs on them)
+├── Audience       ✓/✗  (selects niche-specific directories + communities)
+└── Voice Profile  ✓/✗  (shapes outreach email tone if user chains into cold-email)
+```
 3. If `competitors.md` is missing, prompt the user for 3-7 direct competitors before running Recipe F (the researched-target-list recipe needs competitor domains as input).
 4. Check for `.seo/backlink-targets.json` in the current project. If present, this is a re-run — show the user the existing target counts and ask whether to refresh or just present the existing list.
 

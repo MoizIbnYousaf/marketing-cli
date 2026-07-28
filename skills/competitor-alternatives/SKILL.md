@@ -37,15 +37,15 @@ People searching "[Competitor] alternatives" or "[Product] vs [Competitor]" have
 
 ## Backend Selection
 
-1. **OpenSEO configured**: pick comparison targets from measured SERP overlap (`find_serp_competitors`, `get_serp_results`) and use `openseo-competitor-analysis` findings in `brand/competitors.md` when present.
-2. **OpenSEO absent**: choose targets from Exa SERP scraping; label overlap strength `unknown`.
-   ```
-   Brand context loaded:
-   ├── Competitors    ✓/✗  ({N} competitors profiled)
-   ├── Positioning    ✓/✗  ("{primary angle}")
-   ├── Voice Profile  ✓/✗
-   └── Audience       ✓/✗
-   ```
+Prefer OpenSEO `find_serp_competitors` / `get_serp_results` and `openseo-competitor-analysis` findings when configured; otherwise Exa SERP scrape with overlap `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+
+```
+Brand context loaded:
+├── Competitors    ✓/✗  ({N} competitors profiled)
+├── Positioning    ✓/✗  ("{primary angle}")
+├── Voice Profile  ✓/✗
+└── Audience       ✓/✗
+```
 3. If `competitors.md` is missing: suggest running `/competitive-intel` first, or ask user to provide competitor names, pricing, and key differentiators.
 4. If `positioning.md` is missing: ask for the product's primary value prop and target audience.
 5. Ask which competitors to create pages for (or "all" from competitors.md).

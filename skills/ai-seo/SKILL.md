@@ -39,15 +39,15 @@ This is a different game. AI engines don't rank pages — they synthesize answer
 
 ## Backend Selection
 
-1. **OpenSEO configured**: use measured rank/SERP data (`get_ranked_keywords`, `get_serp_results`) to prioritize which pages get AI-search optimization first; use OpenSEO AI-search features when exposed via MCP.
-2. **OpenSEO absent**: optimize from crawl/Exa evidence; label ranking data `unknown`.
-   ```
-   Brand context loaded:
-   ├── Voice Profile   ✓/✗
-   ├── Keyword Plan    ✓/✗
-   ├── Positioning     ✓/✗
-   └── Competitors     ✓/✗
-   ```
+Prefer OpenSEO `get_ranked_keywords` / `get_serp_results` (and AI-search MCP tools when exposed) when configured; otherwise crawl/Exa with ranking data `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+
+```
+Brand context loaded:
+├── Voice Profile   ✓/✗
+├── Keyword Plan    ✓/✗
+├── Positioning     ✓/✗
+└── Competitors     ✓/✗
+```
 3. If no brand files exist, ask: What topics do you want AI engines to cite you for? Who are your competitors in AI results?
 4. Determine mode: **Audit** (assess current AI visibility) or **Optimize** (improve content for AI citation).
 5. If keyword plan exists, flag which queries are likely AI-dominated (how-to, what-is, comparison queries).

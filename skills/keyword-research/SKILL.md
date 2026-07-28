@@ -24,10 +24,7 @@ description: >
 
 ## Backend Selection
 
-1. **OpenSEO configured** (`mktg catalog info openseo --json --fields configured` → true): get measured metrics (KD, volume, CPC, intent, SERP, GSC striking-distance) from OpenSEO via `openseo-keyword-research` instead of estimating. This skill remains the methodology — strategy, prioritization, and the `brand/keyword-plan.md` structure.
-2. **OpenSEO absent**: proceed with the Exa-stack validation below (Phase 3) and mark every metric `unknown`. Never invent KD/volume.
-
-Rule of thumb: OpenSEO is the data plane, this skill is the playbook. When both exist, the playbook consumes measured inputs.
+Prefer measured KD/volume/CPC/intent/SERP/GSC via `openseo-keyword-research` when OpenSEO is configured; otherwise Exa-stack validation with metrics marked `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
 
 # /keyword-research -- Data-Backed Keyword Strategy
 

@@ -32,6 +32,7 @@ import { existsSync } from "node:fs";
 import { spawn as spawnChild } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { ok, type CommandHandler, type CommandSchema } from "../types";
+import { flagValue } from "../core/args";
 import { missingDep } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green } from "../core/output";
 import { getPackageRoot } from "../core/paths";
@@ -265,8 +266,8 @@ const buildPreview = (args: {
 }): StudioLaunchPreview => {
   const studioPort = process.env.STUDIO_PORT ?? DEFAULT_STUDIO_PORT;
   const dashboardPort = process.env.DASHBOARD_PORT ?? DEFAULT_DASHBOARD_PORT;
-  const intent = getFlagValue(args.forwardArgv, "--intent");
-  const session = getFlagValue(args.forwardArgv, "--session");
+  const intent = flagValue(args.forwardArgv, "--intent");
+  const session = flagValue(args.forwardArgv, "--session");
   const dashboardPath = intent || session
     ? `/dashboard?${new URLSearchParams({
         ...(intent ? { mode: intent } : {}),
@@ -285,16 +286,6 @@ const buildPreview = (args: {
     },
     exitCode: args.exitCode,
   };
-};
-
-const getFlagValue = (args: readonly string[], flag: string): string | undefined => {
-  const eq = `${flag}=`;
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]!;
-    if (arg === flag) return args[i + 1];
-    if (arg.startsWith(eq)) return arg.slice(eq.length);
-  }
-  return undefined;
 };
 
 const parseForwardArgv = (args: readonly string[]): readonly string[] => {

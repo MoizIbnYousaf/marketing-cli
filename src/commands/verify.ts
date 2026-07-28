@@ -23,10 +23,11 @@ import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
+import { flagValue, flagValues, hasFlag } from "../core/args";
+import { resolveMonorepoRoot } from "../core/monorepo";
 
 // ------------------------------------------------------------------
 // Suite registry — data-driven, single source of truth
@@ -364,44 +365,9 @@ export const schema: CommandSchema = {
 // Handler
 // ------------------------------------------------------------------
 
-/**
- * Resolve the mktgmono root by walking up from the marketing-cli package
- * directory. Falls back to $HOME/projects/mktgmono if the package lives
- * outside the monorepo (e.g., npm-installed global).
- */
-const resolveMonorepoRoot = (): string => {
-  // Runtime-agnostic module dir: Bun exposes `import.meta.dir` directly, but
-  // the node-installed dist bundle only guarantees `import.meta.url`.
-  const here = dirname(fileURLToPath(import.meta.url));
-  const cliRootCandidates = [resolve(here, "..", ".."), resolve(here, "..")];
-  for (const marketingCliRoot of cliRootCandidates) {
-    if (!existsSync(join(marketingCliRoot, "package.json")) || !existsSync(join(marketingCliRoot, "skills-manifest.json"))) {
-      continue;
-    }
-    const candidate = resolve(marketingCliRoot, "..");
-    if (existsSync(join(candidate, "marketing-cli"))) {
-      return candidate;
-    }
-    return dirname(marketingCliRoot);
-  }
-  // Fallback: conventional location
-  return join(homedir(), "projects", "mktgmono");
-};
-
 /** Parse comma-separated + repeated --suite values. */
-const parseSuiteFilter = (args: readonly string[]): string[] => {
-  const out: string[] = [];
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === "--suite" && args[i + 1]) {
-      out.push(...args[i + 1]!.split(",").map((s) => s.trim()).filter(Boolean));
-      i++;
-    } else if (a.startsWith("--suite=")) {
-      out.push(...a.slice(8).split(",").map((s) => s.trim()).filter(Boolean));
-    }
-  }
-  return out;
-};
+const parseSuiteFilter = (args: readonly string[]): string[] =>
+  [...flagValues(args, "--suite")];
 
 const buildPlan = (filter: readonly string[], monorepoRoot: string): SuitePlan[] =>
   SUITES.map((def): SuitePlan => {
@@ -618,15 +584,6 @@ const writeSummary = async (report: VerifyReport): Promise<string> => {
 // Flag parsing (Pass 2 additions: --fail-fast, --parallel, --capture)
 // ------------------------------------------------------------------
 
-const parseFlagValue = (args: readonly string[], name: string): string | undefined => {
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === name && args[i + 1]) return args[i + 1];
-    if (a.startsWith(`${name}=`)) return a.slice(name.length + 1);
-  }
-  return undefined;
-};
-
 // ------------------------------------------------------------------
 // Handler
 // ------------------------------------------------------------------
@@ -649,9 +606,9 @@ export const handler: CommandHandler<VerifyReport> = async (args, flags) => {
     }
   }
 
-  const failFast = args.includes("--fail-fast");
+  const failFast = hasFlag(args, "--fail-fast");
 
-  const parallelRaw = parseFlagValue(args, "--parallel") ?? "1";
+  const parallelRaw = flagValue(args, "--parallel") ?? "1";
   const parallel = parseInt(parallelRaw, 10);
   if (!Number.isFinite(parallel) || parallel < 1 || parallel > 32) {
     return err(
@@ -662,7 +619,7 @@ export const handler: CommandHandler<VerifyReport> = async (args, flags) => {
     );
   }
 
-  let capturePath: string | undefined = parseFlagValue(args, "--capture");
+  let capturePath: string | undefined = flagValue(args, "--capture");
   if (capturePath !== undefined) {
     const ctrl = rejectControlChars(capturePath, "capture");
     if (!ctrl.ok) return err("INVALID_ARGS", ctrl.message, [], 2);

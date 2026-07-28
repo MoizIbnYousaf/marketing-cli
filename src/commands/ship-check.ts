@@ -27,12 +27,12 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { homedir } from "node:os";
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
+import { flagValue, hasFlag } from "../core/args";
+import { resolveMonorepoRoot } from "../core/monorepo";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 
 // ------------------------------------------------------------------
@@ -160,31 +160,6 @@ export const schema: CommandSchema = {
 // ------------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------------
-
-const resolveMonorepoRoot = (): string => {
-  const here = dirname(fileURLToPath(import.meta.url));
-  const cliRootCandidates = [resolve(here, "..", ".."), resolve(here, "..")];
-  for (const marketingCliRoot of cliRootCandidates) {
-    if (!existsSync(join(marketingCliRoot, "package.json")) || !existsSync(join(marketingCliRoot, "skills-manifest.json"))) {
-      continue;
-    }
-    const candidate = resolve(marketingCliRoot, "..");
-    if (existsSync(join(candidate, "marketing-cli"))) {
-      return candidate;
-    }
-    return dirname(marketingCliRoot);
-  }
-  return join(homedir(), "projects", "mktgmono");
-};
-
-const parseFlagValue = (args: readonly string[], name: string): string | undefined => {
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === name && args[i + 1]) return args[i + 1];
-    if (a.startsWith(`${name}=`)) return a.slice(name.length + 1);
-  }
-  return undefined;
-};
 
 /** Run a shell command, capture output, return {exitCode, stdout, stderr, durationMs}. */
 const spawnAndCapture = async (
@@ -508,14 +483,14 @@ const printTty = (report: ShipCheckReport): void => {
 };
 
 export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
-  const verbose = args.includes("--verbose");
-  const freshRaw = parseFlagValue(args, "--fresh") ?? "true";
+  const verbose = hasFlag(args, "--verbose");
+  const freshRaw = flagValue(args, "--fresh") ?? "true";
   if (freshRaw !== "true" && freshRaw !== "false") {
     return err("INVALID_ARGS", `--fresh must be 'true' or 'false'; got '${freshRaw}'`, ["Example: --fresh=false"], 2);
   }
   const fresh = freshRaw === "true";
 
-  const skipRaw = parseFlagValue(args, "--skip");
+  const skipRaw = flagValue(args, "--skip");
   const skipList: string[] = skipRaw ? skipRaw.split(",").map((s) => s.trim()).filter(Boolean) : [];
   for (const n of skipList) {
     const ctrl = rejectControlChars(n, "skip");

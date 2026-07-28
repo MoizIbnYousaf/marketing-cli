@@ -356,19 +356,20 @@ export function writeBrandFile(
     }
   }
 
-  // Ensure brand/ exists for first-time writes.
-  mkdirSync(brandRoot(process.cwd()), { recursive: true });
+  // Ensure the destination directory exists (abs may be outside cwd brand/
+  // when MKTG_BRAND_DIR / project root diverge).
+  const previousChars = before && existsSync(abs) ? readFileSync(abs, "utf-8").length : 0;
+  mkdirSync(dirname(abs), { recursive: true });
 
   const tmp = `${abs}.${Date.now()}.tmp`;
   writeFileSync(tmp, content, "utf-8");
   renameSync(tmp, abs);
 
   const after = statSync(abs);
-  const deltaChars = content.length - (before?.size ?? 0);
   return {
     ok: true,
     mtime: after.mtime.toISOString(),
     bytes: after.size,
-    deltaChars,
+    deltaChars: content.length - previousChars,
   };
 }

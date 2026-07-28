@@ -27,6 +27,7 @@
 //           command-reference.md will gain an entry in a follow-up
 
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
+import { flagValue } from "../core/args";
 import { isTTY, writeStderr, bold, dim, green, yellow } from "../core/output";
 
 const CLAUDE_BIN = "claude";
@@ -223,15 +224,6 @@ export const parseRouting = (response: string): CmoRouting | undefined => {
   };
 };
 
-const parseFlagValue = (args: readonly string[], name: string): string | undefined => {
-  for (let i = 0; i < args.length; i++) {
-    const a = args[i]!;
-    if (a === name && args[i + 1]) return args[i + 1];
-    if (a.startsWith(`${name}=`)) return a.slice(name.length + 1);
-  }
-  return undefined;
-};
-
 /** Reject only the control chars that break JSON + shell — allow \n, \t, \r. */
 const rejectDangerousControlChars = (s: string, label: string):
   | { ok: true }
@@ -290,7 +282,7 @@ export const handler: CommandHandler<CmoResponse> = async (args, flags) => {
     : `/cmo ${promptRaw}`;
 
   // --- Flag parsing ---
-  const timeoutSecRaw = parseFlagValue(args, "--timeout") ?? String(DEFAULT_TIMEOUT_MS / 1000);
+  const timeoutSecRaw = flagValue(args, "--timeout") ?? String(DEFAULT_TIMEOUT_MS / 1000);
   const timeoutSec = parseInt(timeoutSecRaw, 10);
   if (!Number.isFinite(timeoutSec) || timeoutSec < 1 || timeoutSec > MAX_TIMEOUT_MS / 1000) {
     return err(
@@ -302,13 +294,13 @@ export const handler: CommandHandler<CmoResponse> = async (args, flags) => {
   }
   const timeoutMs = timeoutSec * 1000;
 
-  const model = parseFlagValue(args, "--model");
+  const model = flagValue(args, "--model");
   if (model !== undefined) {
     const mctrl = rejectDangerousControlChars(model, "model");
     if (!mctrl.ok) return err("INVALID_ARGS", mctrl.message, [], 2);
   }
 
-  const allowedTools = parseFlagValue(args, "--allowed-tools") ?? DEFAULT_ALLOWED_TOOLS;
+  const allowedTools = flagValue(args, "--allowed-tools") ?? DEFAULT_ALLOWED_TOOLS;
   const atCtrl = rejectDangerousControlChars(allowedTools, "allowed-tools");
   if (!atCtrl.ok) return err("INVALID_ARGS", atCtrl.message, [], 2);
 
