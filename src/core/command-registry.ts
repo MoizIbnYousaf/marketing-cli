@@ -27,6 +27,7 @@ export const COMMANDS: Record<string, CommandLoader> = {
   compete: () => import("../commands/compete"),
   dashboard: () => import("../commands/dashboard"),
   catalog: () => import("../commands/catalog"),
+  seo: () => import("../commands/seo"),
   studio: () => import("../commands/studio"),
   verify: () => import("../commands/verify"),
   "ship-check": () => import("../commands/ship-check"),

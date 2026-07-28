@@ -127,6 +127,17 @@ mktg catalog info openseo --json --fields configured,missing_envs,mcp
 # SEO data plane (research_adapters capability). mcp.default_url is the hosted
 # MCP; OPENSEO_MCP_URL overrides for self-host. OPENSEO_API_KEY enables
 # non-interactive automation; without it, SEO metrics are `unknown` (never invented).
+
+mktg seo status --json
+# SEO readiness: catalog config, .seo/openseo.json binding, .seo inventory,
+# and named readiness (not_configured | mcp_client_only | api_ready | selfhost_ready).
+
+mktg seo link-project --input '{"projectId":"proj_123","domain":"example.com"}' --json
+# Bind repo to an OpenSEO project (idempotent; relinking needs --confirm).
+
+mktg seo sync-keywords --dry-run --json   # then --confirm
+# Merge .seo/keywords-sync.json into brand/keyword-plan.md as an atomic
+# 'OpenSEO Sync' section. Never writes without --confirm.
 ```
 
 ### 5b. Pick the right research backend

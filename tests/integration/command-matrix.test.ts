@@ -52,6 +52,7 @@ const SMOKE_CASES: Record<string, SmokeCase> = {
   compete: { args: (tmpCwd) => ["compete", "list", "--json", "--cwd", tmpCwd], key: "urls" },
   dashboard: { args: (tmpCwd) => ["dashboard", "snapshot", "--json", "--cwd", tmpCwd], key: "health" },
   catalog: { args: () => ["catalog", "list", "--json"], key: "catalogs" },
+  seo: { args: (tmpCwd) => ["seo", "status", "--json", "--cwd", tmpCwd], key: "readiness" },
   studio: { args: () => ["studio", "--dry-run", "--json"], key: "mode" },
   verify: { args: () => ["verify", "--dry-run", "--json"], key: "suites" },
   "ship-check": { args: () => ["ship-check", "--dry-run", "--json"], key: "checks" },
