@@ -87,13 +87,13 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 |---|---|---|---|---|
 | 0 | Plan authored (this doc) | `completed` | — | 2026-07-20 |
 | 1 | Catalog model: `openseo` + SEO/MCP capabilities | `completed` | #46 | 2026-07-27 — `research_adapters` + `mcp` block; openseo pinned v0.1.2 |
-| 2 | Doctor + env/MCP readiness | `completed` | #46, cursor/openseo-state-sync-ccd8 | 2026-07-28 — named states shipped in `mktg seo status` (not_configured / mcp_client_only / api_ready / selfhost_ready) |
+| 2 | Doctor + env/MCP readiness | `completed` | #46, #50 | 2026-07-28 — named states shipped in `mktg seo status` (not_configured / mcp_client_only / api_ready / selfhost_ready) |
 | 3 | Root MCP wiring + agent install docs | `completed` | #46 | 2026-07-27 — `.mcp.json` openseo server + CONTEXT backend matrix |
 | 4 | First-class `openseo` skill (adapter / coach) | `completed` | #46 | 2026-07-27 — `skills/openseo/SKILL.md` (65 skills); drift-locked envs |
 | 5 | Steal & adapt OpenSEO workflow skills (`openseo-*`) | `completed` | #49 | 2026-07-28 — all 7 adapted (light `upstream` provenance, snapshot f569726); 65 → 72 skills |
 | 6 | Rewire existing SEO skills + `/cmo` Path A/B | `completed` | #49 | 2026-07-28 — Backend Selection on 6 skills; playbooks data-plane gate; ecosystem research matrix |
-| 7 | Brand / `.seo` / OpenSEO project sync contract | `completed` | cursor/openseo-state-sync-ccd8 | 2026-07-28 — `.seo/openseo.json` binding + atomic sync section; template/overwrite guards |
-| 8 | CLI surface: `mktg catalog` / optional `mktg seo` | `completed` | cursor/openseo-state-sync-ccd8 | 2026-07-28 — `mktg seo` group (status/link-project/sync-keywords/open); 22 commands |
+| 7 | Brand / `.seo` / OpenSEO project sync contract | `completed` | #50 | 2026-07-28 — `.seo/openseo.json` binding + atomic sync section; template/overwrite guards |
+| 8 | CLI surface: `mktg catalog` / optional `mktg seo` | `completed` | #50 | 2026-07-28 — `mktg seo` group (status/link-project/sync-keywords/open); 22 commands |
 | 9 | Studio: SEO panel / deep links / status | `pending` | | |
 | 10 | Self-host launcher + compose helper | `pending` | | Advanced path |
 | 11 | Tests, counts, release packaging | `pending` | | |
