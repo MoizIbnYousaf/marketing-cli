@@ -115,7 +115,7 @@ Navigate to Trend radar:
 
 - Skill runs that produce user-visible artifacts.
 - Brand file writes and refreshes.
-- Native, Postiz, Typefully, Resend, or file publish actions.
+- Native, Postiz, Typefully, Resend, or file publish actions. Report them with the CLI's per-item status vocabulary (`queued-local`, `draft-external`, `sent`, `written-file`, `failed`, `skipped`) — Studio labels match the CLI enum 1:1, so a native queue write shows as `queued-local`, never as network-published.
 - Recommended next actions that should appear on Pulse.
 - One navigation event when the user's attention should move.
 

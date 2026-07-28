@@ -24,6 +24,24 @@ mktg catalog info postiz --json --fields configured,missing_envs,resolved_base
 | `resend` | Email send path | `RESEND_API_KEY` | Transactional/email distribution. |
 | `file` | Always-on local export | None | Writes publish artifacts to disk for manual or later posting. |
 
+## Per-Item Status Truth (read this before reporting outcomes)
+
+Every item in `adapters[].results[]` carries a `status` from this enum —
+**never** paraphrase it into something stronger:
+
+| Status | Meaning | Adapters |
+|---|---|---|
+| `queued-local` | Written to the local `.mktg/native-publish/` queue. NOT posted anywhere. | `mktg-native` |
+| `draft-external` | Draft created on an external service. NOT scheduled/sent. | `typefully`, `postiz` |
+| `sent` | Confirmed sent/scheduled on an external network. | `resend` |
+| `written-file` | Exported to `.mktg/published/` on disk. | `file` |
+| `failed` | Adapter rejected the item (see `detail`). | all |
+| `skipped` | Dry-run preview or idempotency skip. | all |
+
+Anti-pattern: telling the user a post "went out" when the status is
+`queued-local` or `draft-external`. Say "queued locally" or "draft created"
+instead — promotion to a live network is a separate step.
+
 ## Native Backend
 
 Initial native provider rollout is deliberately small:
@@ -64,7 +82,8 @@ Native publish manifest shape:
 Important: `mktg-native` is local-first. It records drafts, scheduled
 items, published-local state, and queue history. It does not magically own
 third-party OAuth yet; use Postiz or browser automation when real external
-network posting is required.
+network posting is required. Studio renders these states as `queued-local`
+chips (CLI enum parity), never as network-published.
 
 ## Platform Routing
 

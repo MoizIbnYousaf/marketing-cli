@@ -36,7 +36,7 @@
 | 2 | One-shot activation (`run --with-context`) | `completed` | #44 | 2026-07-27 — shared context-compiler; reads-first selection; templatesSkipped/budgetDropped signals |
 | 3 | Outcome-aware `plan` / `status` / dashboard | `completed` | #43 | 2026-07-27 — plan reads completed-only; distribute needs artifacts/completed runs; health counts non-template; dashboard readiness completed-only |
 | 4 | Rich prerequisites + `--strict` | `completed` | #44 | 2026-07-27 — envs/tools/catalogs in `missing`; shared tool registry with doctor; strict exits 3 |
-| 5 | Publish truth + promote path | `pending` | | |
+| 5 | Publish truth + promote path | `completed` | #45 | 2026-07-27 — per-item status enum across 5 adapters + Studio chip parity; promote path deferred (separate PR) |
 | 6 | Portable `mktg route` (+ CMO runner clarity) | `pending` | | |
 | 7 | Studio vs dashboard consolidation | `pending` | | |
 | 8 | Studio npm resolve + doctor check | `pending` | | Small; can jump ahead |

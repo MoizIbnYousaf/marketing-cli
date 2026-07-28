@@ -141,3 +141,75 @@ describe("mktg publish", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 });
+
+// ==================== Publish truth enum (Phase 5) ====================
+// Locks the status strings agents read: queued-local | draft-external |
+// sent | written-file | failed | skipped. A local queue write is NEVER
+// "sent"; an external draft is NEVER "published".
+
+describe("publish truth enum", () => {
+  test("file adapter --confirm reports written-file, not published", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-pub-enum-"));
+    const manifest = {
+      name: "enum-file",
+      items: [{ type: "file", adapter: "file", content: "x", metadata: { filename: "x.txt" } }],
+    };
+    await Bun.write(join(tmp, "publish.json"), JSON.stringify(manifest));
+    const { stdout, exitCode } = await run(["publish", "--confirm", "--json", "--cwd", tmp]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.adapters[0].results[0].status).toBe("written-file");
+    expect(parsed.adapters[0].results[0].detail).toContain(".mktg/published/");
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("mktg-native --confirm reports queued-local, never sent/published", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-pub-enum-"));
+    // Connect a native provider first
+    await run([
+      "publish", "--native-upsert-provider",
+      "--input", '{"identifier":"linkedin","name":"Test LinkedIn","profile":"test"}',
+      "--json", "--cwd", tmp,
+    ]);
+    const manifest = {
+      name: "enum-native",
+      items: [{
+        type: "social",
+        adapter: "mktg-native",
+        content: "Queue me locally",
+        metadata: { providers: ["linkedin"], postType: "now" },
+      }],
+    };
+    await Bun.write(join(tmp, "publish.json"), JSON.stringify(manifest));
+    const { stdout, exitCode } = await run(["publish", "--adapter", "mktg-native", "--confirm", "--json", "--cwd", tmp]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    const item = parsed.adapters[0].results[0];
+    expect(item.status).toBe("queued-local");
+    expect(item.detail).toContain("queued-local");
+    expect(JSON.stringify(parsed)).not.toContain('"status":"sent"');
+    expect(JSON.stringify(parsed)).not.toContain('"status":"published"');
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("dry-run keeps skipped status across all adapters", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-pub-enum-"));
+    const manifest = {
+      name: "enum-dry",
+      items: [
+        { type: "file", adapter: "file", content: "a", metadata: { filename: "a.txt" } },
+        { type: "social", adapter: "typefully", content: "b" },
+      ],
+    };
+    await Bun.write(join(tmp, "publish.json"), JSON.stringify(manifest));
+    const { stdout, exitCode } = await run(["publish", "--json", "--cwd", tmp]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    for (const adapter of parsed.adapters) {
+      for (const item of adapter.results) {
+        expect(["skipped", "failed"]).toContain(item.status);
+      }
+    }
+    await rm(tmp, { recursive: true, force: true });
+  });
+});
