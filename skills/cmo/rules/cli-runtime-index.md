@@ -59,6 +59,7 @@ Current runtime command set:
 | `compete` | Watch, scan, list, and diff competitor pages. |
 | `dashboard` | JSON command-center contracts (snapshot/plan/outputs/publish/system/compete). Bare `mktg dashboard` is deprecated — the canonical human UI is `mktg studio`. |
 | `catalog` | Inspect and sync upstream service catalogs such as Postiz. |
+| `seo` | OpenSEO state contract: `status` (named readiness), `link-project` (idempotent binding), `sync-keywords` (atomic merge into brand/keyword-plan.md), `open`. |
 | `studio` | Launch or preview the companion local Studio, including CMO startup sessions. |
 | `verify` | Run ecosystem verification suites. |
 | `ship-check` | Aggregate go/no-go verdicts for release readiness. |
