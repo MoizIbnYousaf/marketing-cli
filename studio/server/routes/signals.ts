@@ -30,7 +30,7 @@ function normalizeSignalSeverity(value: unknown): "p0" | "p1" | "watch" | "negat
   return "neutral";
 }
 
-function normalizeSignalRow(row: Record<string, unknown>) {
+export function normalizeSignalRow(row: Record<string, unknown>) {
   const createdAt =
     typeof row.created_at === "string"
       ? new Date(row.created_at.endsWith("Z") ? row.created_at : `${row.created_at}Z`).toISOString()

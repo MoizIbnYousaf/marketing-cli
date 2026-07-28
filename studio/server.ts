@@ -101,6 +101,7 @@ import {
   SIGNAL_APPROVE_ROUTE,
   SIGNAL_FLAG_BODY,
   SIGNAL_FLAG_ROUTE,
+  normalizeSignalRow,
 } from "./server/routes/signals.ts";
 import {
   assertProjectMediaPath,
