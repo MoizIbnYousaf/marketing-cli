@@ -45,6 +45,7 @@ import {
   mktgSkillInfo,
   mktgCatalogList,
   mktgCatalogStatus,
+  mktgSeoStatus,
   mktgCatalogInfo,
   mktgStatus,
   mktgPublishListAdapters,
@@ -756,6 +757,7 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/catalog/list",            description: "List all upstream catalogs" },
   { method: "GET",  path: "/api/catalog/info/:name",      description: "Catalog detail by name" },
   { method: "GET",  path: "/api/catalog/status",          description: "Catalog health status" },
+  { method: "GET",  path: "/api/seo/status",              description: "OpenSEO readiness snapshot: catalog config, project binding, .seo inventory, keyword-plan state, named readiness, app URL", params: ["fields"] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -3108,6 +3110,13 @@ const server = Bun.serve({
       const result = await mktgCatalogStatus();
       if (!result.ok) return respondMktgError(result, corsHeaders);
       return respondList(req, url, result.data.catalogs, corsHeaders);
+    }
+
+    // SEO readiness — bridges `mktg seo status` for the Pulse readiness card
+    if (method === "GET" && url.pathname === "/api/seo/status") {
+      const result = await mktgSeoStatus({ cwd: STUDIO_CWD });
+      if (!result.ok) return respondMktgError(result, corsHeaders);
+      return respondObject(url, result.data, corsHeaders);
     }
 
     const catalogInfoMatch = url.pathname.match(/^\/api\/catalog\/info\/([a-z0-9-]+)$/);

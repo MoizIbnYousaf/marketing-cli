@@ -189,6 +189,7 @@ const statusSchema: CommandSchema = {
     bindingCorrupt: "boolean — true when the binding file exists but fails validation",
     state: "{rankSnapshots, hasBacklinkOverview, gscFiles, hasKeywordsSync, keywordsSyncAt} — .seo inventory",
     keywordPlan: "'missing' | 'template' | 'populated' — brand/keyword-plan.md state",
+    openUrl: "string — OpenSEO app URL for the bound project (hosted or self-host base)",
   },
   examples: [{ args: "mktg seo status --json", description: "Full SEO readiness snapshot" }],
   vocabulary: ["seo status", "openseo status", "seo readiness"],
@@ -301,6 +302,8 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
     ? (isSelfHost ? "selfhost_ready" : "api_ready")
     : (binding || process.env.OPENSEO_MCP_CONFIGURED === "1" ? "mcp_client_only" : "not_configured");
 
+  const openUrl = process.env.OPENSEO_API_BASE ?? (binding ? binding.mcpUrl.replace(/\/mcp$/, "") : HOSTED_APP_URL);
+
   return ok({
     catalog: {
       registered: openseo !== null,
@@ -320,6 +323,7 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
       keywordsSyncAt: binding?.lastKeywordsSync ?? null,
     },
     keywordPlan,
+    openUrl,
   });
 };
 

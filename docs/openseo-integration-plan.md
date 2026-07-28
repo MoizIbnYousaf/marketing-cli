@@ -94,9 +94,9 @@ Playbooks stay in mktg. **Metrics, SERP truth, rank tracking, backlinks, GSC** c
 | 6 | Rewire existing SEO skills + `/cmo` Path A/B | `completed` | #49 | 2026-07-28 — Backend Selection on 6 skills; playbooks data-plane gate; ecosystem research matrix |
 | 7 | Brand / `.seo` / OpenSEO project sync contract | `completed` | #50 | 2026-07-28 — `.seo/openseo.json` binding + atomic sync section; template/overwrite guards |
 | 8 | CLI surface: `mktg catalog` / optional `mktg seo` | `completed` | #50 | 2026-07-28 — `mktg seo` group (status/link-project/sync-keywords/open); 22 commands |
-| 9 | Studio: SEO panel / deep links / status | `pending` | | |
-| 10 | Self-host launcher + compose helper | `pending` | | Advanced path |
-| 11 | Tests, counts, release packaging | `pending` | | |
+| 9 | Studio: SEO panel / deep links / status | `completed` | cursor/openseo-studio-readiness-ccd8 | 2026-07-28 — Pulse SEO readiness card + `/api/seo/status` bridge + deep link |
+| 10 | Self-host launcher + compose helper | `completed` | cursor/openseo-studio-readiness-ccd8 | 2026-07-28 — docs-only path (CONTEXT self-host block); no compose helper by design |
+| 11 | Tests, counts, release packaging | `completed` | cursor/openseo-studio-readiness-ccd8 | bridge test for the route; counts/CI green throughout; no creds required in tests |
 | 12 | Ultimate hardening: single SEO OS UX | `pending` | | End-state polish |
 
 ---

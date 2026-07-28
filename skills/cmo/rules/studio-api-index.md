@@ -75,6 +75,7 @@ Trend radar is not its own tab. Use:
 | Navigate | `POST /api/navigate` | Move the dashboard to the user's next useful view. |
 | Toast | `POST /api/toast` | Short transient user-visible confirmation. |
 | Brand refresh | `POST /api/brand/refresh` | Re-run/refresh foundation data when the user explicitly wants it. |
+| SEO readiness | `GET /api/seo/status` | OpenSEO readiness snapshot (named state, binding, .seo inventory, keyword-plan state, `openUrl` deep link) — drives the Pulse SEO readiness card. |
 
 ## Payload Patterns
 
