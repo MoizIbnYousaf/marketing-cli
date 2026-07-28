@@ -226,7 +226,8 @@ export type DashboardRunEvent = {
   readonly id: string;
   readonly timestamp: string;
   readonly skill: string;
-  readonly result: string;
+  readonly event: "loaded" | "completed";
+  readonly result: string | null;
   readonly summary: string;
 };
 

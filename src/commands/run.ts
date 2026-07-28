@@ -4,39 +4,51 @@
 import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
 import { ok } from "../types";
-import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId } from "../core/errors";
+import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId, validatePathInput } from "../core/errors";
 import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
-import { logRun, getLastRun, getRunHistory } from "../core/run-log";
+import { logRun, getLastRun, getRunHistory, isCompletedRecord } from "../core/run-log";
 import { appendLearning, type LearningEntry } from "../core/brand";
 import { writeStderr } from "../core/output";
 
+const VALID_RUN_RESULTS = ["success", "partial", "failed"] as const;
+type RunOutcome = typeof VALID_RUN_RESULTS[number];
+
 export const schema: CommandSchema = {
   name: "run",
-  description: "Load a skill for agent consumption — checks prerequisites, surfaces prior run context, and logs execution",
+  description: "Load a skill for agent consumption — logs a 'loaded' event by default; record real outcomes with --complete so plan/status stay honest",
   positional: { name: "skill", description: "Skill name to run", required: true },
   flags: [
     { name: "--learning", type: "string", required: false, description: "JSON learning entry to append to brand/learnings.md after run" },
+    { name: "--complete", type: "boolean", required: false, description: "Record a completed run (work actually happened) instead of a load event" },
+    { name: "--result", type: "string", required: false, description: "Outcome with --complete: success | partial | failed (default success)" },
+    { name: "--writes", type: "string", required: false, description: "Comma-separated files the agent produced (repeatable); each must exist inside the project" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream prerequisite check, skill-loaded, and complete events as NDJSON lines to stderr" },
   ],
   output: {
     skill: "string — resolved skill name",
     content: "string — full SKILL.md content",
     prerequisites: "PrerequisiteStatus — prerequisite check results",
-    loggedAt: "string — ISO timestamp of logged run",
-    priorRuns: "object — lastRun timestamp, runCount, and lastResult for this skill",
+    loggedAt: "string | null — ISO timestamp of logged run (null on --dry-run)",
+    event: "'loaded' | 'completed' — what was logged: load events never imply work",
+    result: "'success' | 'partial' | 'failed' | null — outcome with --complete; null on loads",
+    writes: "string[] | null — validated files recorded with --complete; null on loads",
+    priorRuns: "object — lastRun timestamp, lastEvent, runCount, and lastResult for this skill",
     learningAppended: "string | null — the table row appended to learnings.md, or null if --learning not provided",
   },
   examples: [
-    { args: "mktg run seo-content --json", description: "Load SEO content skill for agent" },
+    { args: "mktg run seo-content --json", description: "Load SEO content skill for agent (logs event: loaded)" },
     { args: "mktg run brand-voice --dry-run", description: "Preview without logging" },
+    { args: "mktg run seo-content --complete --writes marketing/content/x.md --result success --json", description: "Record completed work with validated writes" },
+    { args: "mktg skill history seo-content --json", description: "See load vs completion events for a skill" },
     { args: "mktg run seo-content --ndjson", description: "Stream prerequisite, load, and complete events to stderr" },
   ],
-  vocabulary: ["run", "execute", "load skill"],
+  vocabulary: ["run", "execute", "load skill", "complete", "record outcome"],
 };
 
 type PriorRunContext = {
   readonly lastRun: string | null;
+  readonly lastEvent: "loaded" | "completed" | null;
   readonly lastResult: string | null;
   readonly runCount: number;
 };
@@ -46,6 +58,9 @@ type RunResult = {
   readonly content: string;
   readonly prerequisites: PrerequisiteStatus;
   readonly loggedAt: string | null;
+  readonly event: "loaded" | "completed";
+  readonly result: "success" | "partial" | "failed" | null;
+  readonly writes: readonly string[] | null;
   readonly priorRuns: PriorRunContext;
   readonly learningAppended: string | null;
 };
@@ -54,9 +69,62 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   const positionalArgs = args.filter(a => !a.startsWith("--"));
   const skillName = positionalArgs[0];
   const ndjson = args.includes("--ndjson");
+  const wantComplete = args.includes("--complete");
 
   if (!skillName) {
     return invalidArgs("Missing skill name", ["Usage: mktg run <skill-name>", "mktg list --json to see available skills"], DOCS.skills);
+  }
+
+  // Parse --result / --writes (completion-only flags)
+  let resultArg: RunOutcome | undefined;
+  const writesRaw: string[] = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (a === "--result" && args[i + 1]) { resultArg = args[i + 1] as RunOutcome; i++; }
+    else if (a.startsWith("--result=")) { resultArg = a.slice(9) as RunOutcome; }
+    else if (a === "--writes" && args[i + 1]) { writesRaw.push(...args[i + 1]!.split(",")); i++; }
+    else if (a.startsWith("--writes=")) { writesRaw.push(...a.slice(9).split(",")); }
+  }
+  const writesList = writesRaw.map(w => w.trim()).filter(Boolean);
+
+  if (resultArg !== undefined && !VALID_RUN_RESULTS.includes(resultArg)) {
+    return invalidArgs(`Invalid --result '${resultArg}'`, [
+      `Valid values: ${VALID_RUN_RESULTS.join(" | ")}`,
+    ], DOCS.skills);
+  }
+  if (!wantComplete && (resultArg !== undefined || writesList.length > 0)) {
+    return invalidArgs("--result and --writes require --complete", [
+      "Usage: mktg run <skill> --complete [--result success] [--writes path1,path2]",
+      "A bare 'mktg run' logs event: loaded — completions must be explicit",
+    ], DOCS.skills);
+  }
+
+  // Validate --writes BEFORE any dependency lookup (manifest, install dir):
+  // static input errors must precede environment errors, so an agent gets
+  // INVALID_ARGS about its payload whether or not skills are installed.
+  // Every path must pass the sandbox pipeline AND exist — recording work
+  // that didn't happen is the exact lie this command exists to prevent.
+  const validatedWrites: string[] = [];
+  if (wantComplete && writesList.length > 0) {
+    const writeErrors: string[] = [];
+    for (const w of writesList) {
+      const check = validatePathInput(flags.cwd, w);
+      if (!check.ok) {
+        writeErrors.push(`'${w}': ${check.message}`);
+        continue;
+      }
+      if (!(await Bun.file(check.path).exists())) {
+        writeErrors.push(`'${w}': file does not exist`);
+        continue;
+      }
+      validatedWrites.push(w);
+    }
+    if (writeErrors.length > 0) {
+      return invalidArgs(`Invalid --writes: ${writeErrors.join("; ")}`, [
+        "Writes must be existing files inside the project (brand/, marketing/, .mktg/)",
+        "Create the files first, then record completion with the same command",
+      ], DOCS.skills);
+    }
   }
 
   // Lane 1 / Wave A audit fix: every other resource-name command in the
@@ -119,6 +187,7 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   const priorHistory = await getRunHistory(flags.cwd, resolved.name, 10000);
   const priorRuns: PriorRunContext = {
     lastRun: lastRun?.timestamp ?? null,
+    lastEvent: lastRun ? (isCompletedRecord(lastRun) ? "completed" : "loaded") : null,
     lastResult: lastRun?.result ?? null,
     runCount: priorHistory.length,
   };
@@ -157,12 +226,16 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     learningAppended = learningResult.row;
   }
 
-  // Log execution (unless dry-run)
+  // Log the event (unless dry-run). A bare run is a LOAD — never an outcome.
+  // Completions carry the explicit result + validated writes.
+  const event = wantComplete ? "completed" : "loaded";
+  const outcome: RunOutcome | null = wantComplete ? (resultArg ?? "success") : null;
   if (!flags.dryRun) {
     await logRun(flags.cwd, {
       skill: resolved.name,
       timestamp: now,
-      result: "success",
+      event,
+      ...(wantComplete ? { result: outcome ?? "success", writes: validatedWrites } : {}),
       brandFilesChanged: learningAppended ? ["learnings.md"] : [],
     });
   }
@@ -172,12 +245,15 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     content,
     prerequisites,
     loggedAt: flags.dryRun ? null : now,
+    event,
+    result: outcome,
+    writes: wantComplete ? validatedWrites : null,
     priorRuns,
     learningAppended,
   };
 
   if (ndjson) {
-    writeStderr(JSON.stringify({ type: "complete", data: { skill: resolved.name, result: "success" } }));
+    writeStderr(JSON.stringify({ type: "complete", data: { skill: resolved.name, event, ...(outcome ? { result: outcome } : {}) } }));
   }
 
   return ok(result);

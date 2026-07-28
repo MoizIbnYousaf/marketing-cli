@@ -458,9 +458,12 @@ const handleLog = async (args: readonly string[], flags: { cwd: string; dryRun: 
     ? args[1] as typeof VALID_RESULTS[number]
     : "success";
 
+  // `skill log` records an outcome, so it is always a completed event.
+  // Loads are logged exclusively by `mktg run` (event: "loaded").
   const record = {
     skill: name,
     timestamp: new Date().toISOString(),
+    event: "completed" as const,
     result: resultArg as "success" | "partial" | "failed",
     brandFilesChanged: [] as string[],
   };

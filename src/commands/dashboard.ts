@@ -40,7 +40,7 @@ import {
 import { handler as doctorHandler } from "./doctor";
 import { handler as planHandler } from "./plan";
 import { handler as statusHandler } from "./status";
-import { getRunHistory, type RunSummaryEntry } from "../core/run-log";
+import { getRunHistory, isCompletedRecord, type RunSummaryEntry } from "../core/run-log";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { invalidArgs, parseJsonInput, validatePathInput } from "../core/errors";
@@ -541,13 +541,18 @@ const buildOutputsResponse = async (flags: GlobalFlags): Promise<DashboardOutput
     id: `${record.skill}-${record.timestamp}-${index}`,
     timestamp: record.timestamp,
     skill: record.skill,
-    result: record.result,
-    summary: `${record.skill} finished with ${record.result}.`,
+    event: isCompletedRecord(record) ? ("completed" as const) : ("loaded" as const),
+    result: record.result ?? null,
+    summary: isCompletedRecord(record)
+      ? `${record.skill} completed with ${record.result ?? "unknown"}.`
+      : `${record.skill} loaded (no outcome recorded).`,
   }));
   const outputs = await discoverOutputs(flags.cwd);
 
-  const hasContentRun = history.some((record) => CONTENT_SKILLS.has(record.skill));
-  const hasDistributionRun = history.some((record) => DISTRIBUTION_SKILLS.has(record.skill));
+  // Readiness keys off completed work only — loads never signal readiness.
+  const completedHistory = history.filter(isCompletedRecord);
+  const hasContentRun = completedHistory.some((record) => CONTENT_SKILLS.has(record.skill));
+  const hasDistributionRun = completedHistory.some((record) => DISTRIBUTION_SKILLS.has(record.skill));
   const publishReadiness: DashboardReadiness = hasDistributionRun
     ? {
         state: "ready",

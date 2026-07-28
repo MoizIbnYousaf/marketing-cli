@@ -114,3 +114,107 @@ describe("mktg plan", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 });
+
+// ==================== Honesty: loads never unlock execute/distribute ====================
+
+const seedBrandTemplates = async (tmp: string): Promise<void> => {
+  const brandDir = join(tmp, "brand");
+  await mkdir(brandDir, { recursive: true });
+  await writeFile(join(brandDir, "voice-profile.md"), "real voice content — not the template " + "x".repeat(600));
+  await writeFile(join(brandDir, "audience.md"), BRAND_TEMPLATES["audience.md"]);
+};
+
+const seedRunLog = async (tmp: string, records: ReadonlyArray<Record<string, unknown>>): Promise<void> => {
+  await mkdir(join(tmp, ".mktg"), { recursive: true });
+  const lines = records.map(r => JSON.stringify(r)).join("\n") + "\n";
+  await writeFile(join(tmp, ".mktg", "runs.jsonl"), lines);
+};
+
+describe("plan honesty gates", () => {
+  test("load-only content run does NOT produce a distribute task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await seedRunLog(tmp, [
+      { skill: "seo-content", timestamp: "2026-07-20T10:00:00.000Z", event: "loaded", brandFilesChanged: [] },
+    ]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "distribute-content")).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("load-only content run still counts as never-completed for execute suggestions", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await seedRunLog(tmp, [
+      { skill: "seo-content", timestamp: "2026-07-20T10:00:00.000Z", event: "loaded", brandFilesChanged: [] },
+    ]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "run-seo-content")).toBe(true);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("completed content run unlocks the distribute task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await seedRunLog(tmp, [
+      { skill: "seo-content", timestamp: "2026-07-20T10:00:00.000Z", event: "completed", result: "success", writes: ["marketing/content/x.md"], brandFilesChanged: [] },
+    ]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "distribute-content")).toBe(true);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("marketing/ artifacts alone (no completed content run) unlock distribute", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await mkdir(join(tmp, "marketing", "content"), { recursive: true });
+    await writeFile(join(tmp, "marketing", "content", "article.md"), "# Real artifact");
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "distribute-content")).toBe(true);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("completed distribution run suppresses the distribute task", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await seedRunLog(tmp, [
+      { skill: "seo-content", timestamp: "2026-07-20T10:00:00.000Z", event: "completed", result: "success", writes: ["marketing/content/x.md"], brandFilesChanged: [] },
+      { skill: "content-atomizer", timestamp: "2026-07-20T11:00:00.000Z", event: "completed", result: "success", writes: ["marketing/social/a.md"], brandFilesChanged: [] },
+    ]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "distribute-content")).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("legacy load (result success, no writes) does NOT unlock distribute", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    await seedBrandTemplates(tmp);
+    await seedRunLog(tmp, [
+      { skill: "seo-content", timestamp: "2026-07-20T10:00:00.000Z", result: "success", brandFilesChanged: [] },
+    ]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.tasks.some((t: { id: string }) => t.id === "distribute-content")).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
+  test("health stays 'incomplete' when brand files exist but are all templates", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-plan-honest-"));
+    const brandDir = join(tmp, "brand");
+    await mkdir(brandDir, { recursive: true });
+    await writeFile(join(brandDir, "voice-profile.md"), BRAND_TEMPLATES["voice-profile.md"]);
+    await writeFile(join(brandDir, "audience.md"), BRAND_TEMPLATES["audience.md"]);
+    await writeFile(join(brandDir, "competitors.md"), BRAND_TEMPLATES["competitors.md"]);
+    await writeFile(join(brandDir, "positioning.md"), BRAND_TEMPLATES["positioning.md"]);
+    const { stdout } = await run(["plan", "--json", "--cwd", tmp]);
+    const parsed = JSON.parse(stdout);
+    // 4 files EXIST — the old health check called this "ready". Templates are not population.
+    expect(parsed.health).toBe("incomplete");
+    await rm(tmp, { recursive: true, force: true });
+  });
+});
