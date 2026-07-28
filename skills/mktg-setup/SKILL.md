@@ -200,6 +200,11 @@ test -d brand || mkdir -p brand
 
 ## Step 6 — Hand Off to /cmo
 
+**SEO backend handoff (before spawning agents):** run `mktg catalog info openseo --json --fields configured,missing_envs`. OpenSEO is the default SEO data plane (measured KD, volume, SERP, backlinks, GSC).
+
+- `configured: true` → tell the user: "OpenSEO is connected. After foundation, I'll link a project (`mktg seo link-project`) so keyword research uses measured metrics." After the foundation chain, if `.seo/openseo.json` is still missing, recommend `/openseo-project-setup` as the first SEO move.
+- `configured: false` → one line only, no blocking: "OpenSEO isn't set up — keyword metrics will be `unknown` until it is. Setup takes a minute: openseo.so → connect the MCP, or set OPENSEO_API_KEY." Never install anything or ask for keys inside the wizard.
+
 Tell the user clearly what's happening next. Tailor the closing line to their Studio choice:
 
 - **studio_enabled = yes** → "Recorded your preferences. Now I'm spawning 3 research agents in parallel — brand voice, audience, and competitors — to fill out your foundation. ~5 minutes. Then I'll auto-open the Studio dashboard."

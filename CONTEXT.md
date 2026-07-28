@@ -150,6 +150,20 @@ mktg seo sync-keywords --dry-run --json   # then --confirm
 
 **OpenSEO self-host (advanced).** Hosted MCP (`https://app.openseo.so/mcp`) is the default. To self-host: run OpenSEO via its Docker image (`ghcr.io/every-app/open-seo`) with your own DataForSEO key, then set `OPENSEO_API_BASE` to your instance and `OPENSEO_MCP_URL` to `https://<your-host>/mcp`. `mktg seo status` reports `selfhost_ready` when fully configured against a non-hosted base. WARNING: the Docker `local_noauth` mode disables auth — never expose it beyond localhost. Studio shows readiness + deep link on the Pulse tab (`GET /api/seo/status`).
 
+### 5c. The SEO loop end to end
+
+```text
+mktg doctor → mktg seo status (readiness)
+  → mktg seo link-project (bind .seo/openseo.json)
+  → openseo-keyword-research (measured KD/volume → brand/keyword-plan.md)
+  → openseo-keyword-clustering (marketing/seo/clusters/)
+  → seo-content / seo-machine (pages from validated targets)
+  → mktg seo sync-keywords --confirm (saved keywords → atomic plan section)
+  → off-page-seo + openseo-link-prospecting (.seo/backlink-targets.json)
+```
+
+No OpenSEO? Same loop on Exa/Firecrawl with every metric marked `unknown`. Never invented, either way.
+
 ### 6. Launch the studio dashboard
 
 Thin launcher for the bundled Studio dashboard (Bun API server + Next.js UI). The studio is a workspace member at `studio/` in this repo and ships inside the marketing-cli tarball, so `mktg studio` works on any machine that has the CLI installed. The launcher resolves `<repoRoot>/studio/bin/mktg-studio.ts` first, then a sibling `mktg-studio/` checkout, then `MKTG_STUDIO_BIN`, then `mktg-studio` on PATH.

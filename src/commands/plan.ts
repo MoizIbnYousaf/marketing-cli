@@ -8,6 +8,7 @@ import { ok, err, type CommandHandler, type CommandSchema, type BrandFile } from
 import { getBrandStatus, isTemplateContent } from "../core/brand";
 import { loadManifest } from "../core/skills";
 import { buildGraph } from "../core/skill-lifecycle";
+import { loadCatalogManifest, computeConfiguredStatus } from "../core/catalogs";
 import { getRunSummary, type RunSummaryEntry } from "../core/run-log";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
@@ -233,6 +234,35 @@ const buildTasks = async (
       blocked: false,
     });
   }
+
+  // 6. SEO backend awareness (OpenSEO is the default SEO data plane — S5).
+  // Two gaps are actionable: configured-but-unbound (link a project), and
+  // populated-plan-but-unmeasured (connect OpenSEO so metrics stop being
+  // "unknown"). Anything else is correctly silent.
+  try {
+    const catalogResult = await loadCatalogManifest();
+    const openseo = catalogResult.ok ? catalogResult.manifest.catalogs["openseo"] ?? null : null;
+    if (openseo) {
+      const openseoStatus = computeConfiguredStatus(openseo);
+      const bindingExists = await Bun.file(join(cwd, ".seo", "openseo.json")).exists();
+      const keywordPlanPopulated = templateState.get("keyword-plan.md") === false;
+      if (openseoStatus.configured && !bindingExists) {
+        emitTask({
+          id: "seo-link-project", order: tasks.length, category: "setup",
+          action: "Link an OpenSEO project to this repo", command: "mktg seo status --json",
+          reason: "OpenSEO is configured but no project is bound — linking unlocks keyword/rank sync",
+          blocked: false,
+        });
+      } else if (!openseoStatus.configured && keywordPlanPopulated) {
+        emitTask({
+          id: "seo-connect-openseo", order: tasks.length, category: "setup",
+          action: "Connect OpenSEO for measured SEO metrics", command: "mktg catalog info openseo --json --fields missing_envs,mcp",
+          reason: "keyword-plan.md is populated but its metrics are unmeasured — OpenSEO adds KD, volume, SERP, backlinks, GSC",
+          blocked: false,
+        });
+      }
+    }
+  } catch { /* catalog issues are doctor's job, not plan's */ }
 
   // Health counts files with REAL content — templates don't count, so a
   // fresh scaffold can never report "ready". Files the populate section
