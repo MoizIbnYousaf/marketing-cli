@@ -178,6 +178,11 @@ describe("axis 3 — schema introspection", () => {
 describe("axis 4 — context window discipline", () => {
   test("/api/activity supports ?fields= dot-notation", async () => {
     const res = await fetch(`${BASE}/api/activity?fields=id,kind`);
+    if (!res.ok) {
+      // Diagnostic: the failure mode differs by environment (fresh DB vs
+      // seeded); surface the actual envelope instead of a bare boolean.
+      console.error(`[agent-dx] /api/activity?fields=id,kind -> ${res.status}: ${await res.text()}`);
+    }
     expect(res.ok).toBe(true);
     const body = (await res.json()) as { ok: boolean; data: unknown[] };
     expect(body.ok).toBe(true);
