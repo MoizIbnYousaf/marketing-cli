@@ -2364,6 +2364,86 @@
           "snapshot_at": "2026-07-28T00:30:08.274Z"
         }
       }
+    },
+    "manim-composer": {
+      "source": "external",
+      "category": "production",
+      "layer": "production",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [
+        "manimce-best-practices",
+        "manimgl-best-practices"
+      ],
+      "triggers": [
+        "plan manim video",
+        "compose animation",
+        "3b1b style",
+        "explainer video plan",
+        "scene planning"
+      ],
+      "review_interval_days": 90,
+      "env": []
+    },
+    "manimce-best-practices": {
+      "source": "external",
+      "category": "production",
+      "layer": "production",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "manim",
+        "manim community",
+        "manimce",
+        "math animation",
+        "from manim import"
+      ],
+      "review_interval_days": 90,
+      "env": []
+    },
+    "manimgl-best-practices": {
+      "source": "external",
+      "category": "production",
+      "layer": "production",
+      "tier": "nice-to-have",
+      "reads": [],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "manimgl",
+        "3b1b",
+        "3blue1brown",
+        "from manimlib import"
+      ],
+      "review_interval_days": 90,
+      "env": []
+    },
+    "text-to-speech": {
+      "source": "new",
+      "category": "production",
+      "layer": "production",
+      "tier": "must-have",
+      "reads": [
+        "voice-profile.md"
+      ],
+      "writes": [],
+      "depends_on": [],
+      "triggers": [
+        "tts",
+        "text to speech",
+        "voiceover",
+        "narration",
+        "elevenlabs",
+        "generate audio",
+        "speech synthesis"
+      ],
+      "review_interval_days": 90,
+      "env": [
+        "ELEVENLABS_API_KEY"
+      ]
     }
   },
   "redirects": {
