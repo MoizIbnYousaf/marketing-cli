@@ -1,5 +1,122 @@
 # Changelog
 
+## v0.7.0
+
+### feat
+
+- agent-contract hardening + AXI alignment + repo-wide drift cleanup
+- OpenSEO backend-awareness + onboarding handoff (OpenSEO S5 — native feel)
+- Pulse SEO readiness card + /api/seo/status bridge + self-host docs (OpenSEO S4)
+- mktg seo command group — binding, named readiness, keyword sync contract (OpenSEO S3)
+- adapt 7 OpenSEO workflow skills + Backend Selection rewiring (OpenSEO S2)
+- portable mktg route + dashboard JSON-only + studio resolve doctor check (M4)
+- research_adapters capability + mcp block + openseo catalog (OpenSEO S1) + sync/status honesty (P9-B)
+- per-item status truth enum + Studio label parity
+- one-shot activation envelope + rich prerequisites with --strict
+- honest run lifecycle — event loaded|completed, --complete/--writes/--result
+- add /axi as main AXI catalog router
+- first-class Exa agent-skills (search, contents, company, leads)
+- add seo-machine + off-page-seo (Exa-native SEO infrastructure) (#35)
+- chrome cleanup, IA consolidation, Pulse rebuild, primitives unification, perf hardening
+- shared manifest sync, skill count single-source, tarball strip
+- localhost-only studio API with token auth
+
+### fix
+
+- bundled skill install by default; ai-agent-skills delegation opt-in via MKTG_USE_AI_AGENT_SKILLS=1
+- freshness test uses 91d window; strip em-dashes from UI source (lint guard)
+- re-export normalizeSignalRow after signals route extract
+- thermo-review follow-ups — studio status type parity, catalog base_default, playbook drift lock, run.ts extraction
+- drop em-dash from dx comment (lint guard)
+- accept ?fields= masks on empty lists (fresh-DB parity)
+- replace em-dash in queue comment for CI lint guard
+- validate --writes before dependency lookups
+- raise tarball beforeAll timeout for larger skill tree
+- sync skill/agent count copy + calendar Today button typecheck
+- green CI for Exa port + wire foundation skills
+- e2e auth, queue, brand freshness + quality restructure (#36)
+- bump marketplace.json plugin versions to 0.6.0
+- sync plugin manifest versions to 0.5.7
+- cmo orchestration cleanup, frontmatter normalization, archetype schema
+- kill silent error swallow, fix success screen lie, clean up demo seed
+
+### refactor
+
+- split postiz adapter into focused modules
+- single --fields choke point + peel content/publish studio routes
+- extract shared project/brand assessment into project-assess
+- finish thermo quick-wins — args/monorepo, OpenSEO contract, SSRF, dead UI
+- extract wrapRoute handlers from server.ts
+- split publish.ts into focused core/publish modules
+- split skill-lifecycle.ts into focused modules
+- simplify pass — canonical args helpers, cast-free guard, shared template state, writer index
+
+### docs
+
+- pass-2 audit from 30 Grok reviewers + fix fields test
+- link OpenSEO tracker Phase 12 to PR #52
+- link OpenSEO tracker rows to PR #51
+- link OpenSEO tracker rows to PR #50
+- link OpenSEO tracker P5/P6 to PR #49
+- link plan tracker P6/P7/P8 to PR #47
+- link OpenSEO tracker rows to PR #46
+- link OpenSEO integration plan from docs index
+- plan OpenSEO as first-class SEO plane in mktg
+- link plan tracker P5 to PR #45
+- link plan tracker P2/P4 to PR #44
+- link plan tracker P1/P3 to PR #43
+- link CLI improvement plan from docs index
+- add full CLI improvement plan from dogfood findings
+- utilize offline skills into a real GTM pack
+- exercise all 64 marketing skills with per-skill artifacts
+- add launch copy artifacts from skill dogfood run
+- note Studio test script and cloud UI proxy gotchas
+- bump stale '51 skills' anti-pattern callout to 56
+
+### chore
+
+- drop unused CONTENT_REINDEX_BODY void in content routes
+- market mktg with real brand memory + launch artifacts
+- v0.6.0 — seo-machine + off-page-seo + Exa-native rebuild
+- release v0.5.7
+
+### test
+
+- diagnostic output for activity fields probe in CI
+- unique port for agent-dx suite (3993) — 3997 collides with mktg-bridge-routes
+- add lane 7 lighthouse + bundle assertions report
+- real end-to-end coverage across 9 lanes
+
+### ci
+
+- run studio tests + typecheck in pr-checks; fix time-of-day funnel flake
+
+### other
+
+- skills: add manim-composer, manimce/manimgl best practices, text-to-speech; update manifest
+- Merge pull request #54 from MoizIbnYousaf/cursor/thermo-repo-pass2-ccd8
+- Merge pull request #53 from MoizIbnYousaf/cursor/thermo-repo-quality-ccd8
+- Merge PR #52: feat(plan): OpenSEO backend-awareness + onboarding handoff (OpenSEO S5 — native feel)
+- Merge PR #51: feat(studio): Pulse SEO readiness card + /api/seo/status bridge + self-host docs (OpenSEO S4)
+- Merge PR #50: feat(seo): mktg seo command group — binding, named readiness, keyword sync contract (OpenSEO S3)
+- Merge PR #49: feat(skills): adapt 7 OpenSEO workflow skills + Backend Selection rewiring (OpenSEO S2)
+- Merge PR #39: Dogfood: utilize offline marketing skills into a real GTM pack
+- Merge PR #48: fix: thermo-review follow-ups + simplify pass
+- Merge PR #47: feat(cli): portable mktg route + dashboard JSON-only + studio resolve doctor check (M4)
+- Merge PR #46: feat(catalog): research_adapters capability + mcp block + openseo catalog (OpenSEO S1) + sync/status honesty
+- Merge PR #45: feat(publish): per-item status truth enum + Studio label parity (M3)
+- Merge PR #44: feat(cli): one-shot activation envelope + rich prerequisites with --strict (M2)
+- Merge PR #43: feat(cli): honest run lifecycle — event loaded|completed, --complete/--writes/--result (M1)
+- Merge PR #42: ci(studio): run studio tests + typecheck in CI; fix time-of-day funnel flake
+- Merge branch 'cursor/catalog-research-capability-ccd8' into cursor/portable-route-ccd8
+- Merge branch 'cursor/publish-truth-enum-ccd8' into cursor/catalog-research-capability-ccd8
+- Merge branch 'cursor/catalog-research-capability-ccd8' into cursor/portable-route-ccd8
+- Merge branch 'cursor/publish-truth-enum-ccd8' into cursor/catalog-research-capability-ccd8
+- Merge branch 'cursor/run-with-context-ccd8' into cursor/publish-truth-enum-ccd8
+- Merge branch 'cursor/honest-run-lifecycle-ccd8' into cursor/run-with-context-ccd8
+- Merge pull request #38 from MoizIbnYousaf/cursor/add-axi-router-skill-6c0e
+- Merge pull request #37 from MoizIbnYousaf/cursor/add-exa-agent-skills-6c0e
+
 ## Unreleased
 
 ### fix

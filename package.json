@@ -1,6 +1,6 @@
 {
   "name": "marketing-cli",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Agent-native marketing playbook: 76 skills, 6 research/review agents, brand memory that compounds, plus a local Studio dashboard (beta). One install, then /cmo in Claude Code walks you through a 4-question setup wizard. CLI for the agent, Studio for the human.",
   "type": "module",
   "workspaces": [
