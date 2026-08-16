@@ -77,6 +77,25 @@ describe("mktg compete", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 
+  test("bare `mktg compete` returns the watch list (offline, no scan) with a scan hint", async () => {
+    const tmp = await mkdtemp(join(tmpdir(), "mktg-comp-"));
+    // Track a URL that would fail/refuse to fetch if a scan were attempted;
+    // the bare command must never touch it — it only reads watchlist.json.
+    await run(["compete", "watch", "https://example.invalid", "--json", "--cwd", tmp]);
+    const { stdout, exitCode } = await run(["compete", "--json", "--cwd", tmp]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.results).toBeUndefined();
+    expect(parsed.total).toBe(1);
+    expect(parsed.urls[0].url).toBe("https://example.invalid");
+    expect(parsed.urls[0].lastScan).toBeNull();
+    expect(parsed.help.some((h: string) => h.includes("mktg compete scan --json"))).toBe(true);
+    // Snapshot dir holds only the watchlist — no snapshot was written.
+    const snap = Bun.file(join(tmp, ".mktg", "compete", "example.invalid.json"));
+    expect(await snap.exists()).toBe(false);
+    await rm(tmp, { recursive: true, force: true });
+  });
+
   test("scan returns empty when no competitors tracked", async () => {
     const tmp = await mkdtemp(join(tmpdir(), "mktg-comp-"));
     const { stdout, exitCode } = await run(["compete", "scan", "--json", "--cwd", tmp]);

@@ -89,7 +89,13 @@ const pickFromObject = (
   for (const field of fields) {
     if (field.includes(".")) {
       const value = getNestedValue(data, field);
-      if (value !== undefined) {
+      // An array of only-undefined leaves means the path traversed an array
+      // but the leaf key existed on no item — treat as unresolved (UNKNOWN_FIELD)
+      // rather than returning [null, null, ...] with exit 0.
+      const unresolved =
+        value === undefined ||
+        (Array.isArray(value) && value.length > 0 && value.every((v) => v === undefined));
+      if (!unresolved) {
         setNestedValue(result, field, value);
       } else {
         missing.push(field);
@@ -232,7 +238,9 @@ export const applyFieldsFilter = <T>(
 ): CommandResult<unknown> => {
   if (!result.ok || fields.length === 0) return result;
 
-  const filtered = filterFields(result.data, fields);
+  // `help[]` is part of the documented response shape, so it must be
+  // selectable (`--fields help`) — merge it before filtering.
+  const filtered = filterFields(withHelp(result.data, result.help), fields);
   if (filtered.ok) {
     // Preserve the display field if present — but display is rendered
     // pre-filter so we don't try to retrofit it onto the filtered shape.
@@ -240,7 +248,7 @@ export const applyFieldsFilter = <T>(
     return {
       ok: true,
       data: filtered.data,
-      exitCode: 0,
+      exitCode: result.exitCode,
       ...(result.display !== undefined && { display: result.display }),
     };
   }
@@ -273,6 +281,27 @@ export const applyFieldsFilter = <T>(
 };
 
 // ANSI helpers for TTY output
+/**
+ * Truncation marker that states the total size and how to recover the rest
+ * (spec P3). Use for every inline cut so agents can tell output was trimmed.
+ * `hint` names the flag/command that yields the full body.
+ */
+export const truncationHint = (totalChars: number, keptChars: number, hint: string): string =>
+  `[...truncated — ${totalChars} chars total, ${keptChars} shown; ${hint} for the complete body]`;
+
+/** Keep the head of `s` (cut at a line boundary when possible), appending a size-stating marker. */
+export const truncateHeadWithHint = (s: string, max: number, hint: string): { text: string; truncated: boolean } => {
+  if (s.length <= max) return { text: s, truncated: false };
+  const head = s.slice(0, max);
+  const lastNewline = head.lastIndexOf("\n");
+  const kept = lastNewline > 0 ? head.slice(0, lastNewline) : head;
+  return { text: `${kept}\n${truncationHint(s.length, kept.length, hint)}`, truncated: true };
+};
+
+/** Keep the tail of `s` (logs: the end is what diagnoses a failure), prepending a size-stating marker. */
+export const truncateTailWithHint = (s: string, max: number, hint: string): string =>
+  s.length <= max ? s : `${truncationHint(s.length, max, hint)}\n${s.slice(s.length - max)}`;
+
 export const dim = (s: string): string => (isTTY() ? `\x1b[2m${s}\x1b[0m` : s);
 export const bold = (s: string): string => (isTTY() ? `\x1b[1m${s}\x1b[0m` : s);
 export const green = (s: string): string => (isTTY() ? `\x1b[32m${s}\x1b[0m` : s);
@@ -308,20 +337,16 @@ export const formatOutput = <T>(
       }
       return lines.join("\n");
     }
-    return JSON.stringify(
-      { error: result.error, exitCode: result.exitCode },
-      null,
-      2,
-    );
+    return toJson({ error: result.error, exitCode: result.exitCode }, flags);
   }
 
   // Formatting only — `--fields` filtering lives in ONE place (cli.ts via
   // applyFieldsFilter) so UNKNOWN_FIELD can drive process.exitCode. Callers
   // that bypass cli.ts must applyFieldsFilter themselves before formatOutput.
-  const data: unknown = result.data;
+  const data: unknown = withHelp(result.data, result.help);
 
   if (flags.json || !isTTY()) {
-    const json = JSON.stringify(data, null, 2);
+    const json = toJson(data, flags);
     // Warn agents when response exceeds 10KB — large payloads can blow context windows
     if (json.length > 10_240) {
       writeStderr(`warning: response is ${Math.round(json.length / 1024)}KB — consider using --fields to reduce output size`);
@@ -330,11 +355,30 @@ export const formatOutput = <T>(
   }
 
   // Use display field for TTY-friendly output when provided
-  if (result.display) {
-    return result.display;
-  }
+  const body = result.display ? result.display : formatForTerminal(result.data);
+  return appendHelpFooter(body, result.help);
+};
 
-  return formatForTerminal(data);
+/** JSON serialization policy: compact (single line) by default so agents pay
+ * the fewest tokens; `--pretty` opts into 2-space indentation for humans. */
+export const toJson = (value: unknown, flags: Pick<GlobalFlags, "pretty">): string =>
+  flags.pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value);
+
+/** Merge `help[]` into a plain-object payload as a top-level "help" key. A
+ * payload that already carries its own `help` wins (never clobber data). Arrays
+ * and primitives are returned untouched — there is no envelope to extend. */
+export const withHelp = (data: unknown, help: readonly string[] | undefined): unknown => {
+  if (!help || help.length === 0 || !isObject(data) || "help" in data) return data;
+  return { ...data, help };
+};
+
+/** TTY footer listing next-command templates. Empty string when nothing to add. */
+export const formatHelpFooter = (help: readonly string[] | undefined): string =>
+  help && help.length > 0 ? ["", dim("Next:"), ...help.map((h) => `  ${h}`)].join("\n") : "";
+
+const appendHelpFooter = (body: string, help: readonly string[] | undefined): string => {
+  const footer = formatHelpFooter(help);
+  return footer ? `${body}\n${footer}` : body;
 };
 
 // Write to stdout (content) — agents and pipes read this

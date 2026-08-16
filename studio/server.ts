@@ -79,7 +79,7 @@ import {
   SKILL_RUN_BODY,
   TOAST_BODY,
 } from "./lib/schemas.ts";
-import { type RouteHttpHelpers } from "./server/http.ts";
+import { type RouteHttpHelpers, mapMktgErrorCode } from "./server/http.ts";
 import {
   ACTIVITY_LIST_ROUTE,
   ACTIVITY_LOG_BODY,
@@ -118,6 +118,7 @@ import {
   PUBLISH_BODY,
   PUBLISH_NATIVE_PROVIDER_BODY,
 } from "./server/routes/publish.ts";
+import { createPlanCompeteRoutes } from "./server/routes/plan.ts";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -125,6 +126,8 @@ import {
 
 const PORT = parseInt(process.env.STUDIO_PORT ?? "3001", 10);
 const STUDIO_CWD = resolveProjectRoot(process.cwd());
+const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
+  createPlanCompeteRoutes(STUDIO_CWD);
 
 const readEnvFile = (root: string): Record<string, string> => {
   const envPath = join(root, ".env.local");
@@ -503,22 +506,7 @@ function respondMktgError(
   result: { error: { code: string; message: string; suggestions: readonly string[] } },
   corsHeaders: Record<string, string>,
 ): Response {
-  const code: StudioErrorCode =
-    result.error.code === "AUTH_MISSING" || result.error.code === "AUTH_INVALID"
-      ? "UNAUTHORIZED"
-      : result.error.code === "RATE_LIMITED"
-        ? "RATE_LIMITED"
-        : result.error.code === "NOT_FOUND"
-          ? "NOT_FOUND"
-          : "UPSTREAM_FAILED";
-  const status =
-    code === "UNAUTHORIZED"
-      ? 401
-      : code === "NOT_FOUND"
-        ? 404
-        : code === "RATE_LIMITED"
-          ? 429
-          : 502;
+  const { code, status } = mapMktgErrorCode(result.error.code);
   const fix = result.error.suggestions?.[0] ?? undefined;
   return errResponse(code, result.error.message, status, fix, corsHeaders);
 }
@@ -574,6 +562,12 @@ const ROUTE_SCHEMA = [
   { method: "POST", path: "/api/signals/approve",         description: "Approve a signal", body: { id: "number" }, dryRun: true, errors: ["BAD_INPUT", "NOT_FOUND", "RATE_LIMITED"] },
   { method: "POST", path: "/api/signals/flag",            description: "Flag a signal with reason", body: { id: "number", reason: "string" }, dryRun: true, errors: ["BAD_INPUT", "NOT_FOUND", "RATE_LIMITED"] },
 
+  // Plan + compete (mktg CLI bridge; wrapRoute + mapMktgErrorCode)
+  { method: "GET",  path: "/api/plan",                    description: "Prioritized task queue (mktg plan --json)", params: ["fields"], errors: ["BAD_INPUT", "UPSTREAM_FAILED"] },
+  { method: "GET",  path: "/api/plan/next",               description: "Single highest-priority task, {task: PlanTask|null} (mktg plan next --json)", params: ["fields"], errors: ["BAD_INPUT", "UPSTREAM_FAILED"] },
+  { method: "GET",  path: "/api/compete",                 description: "Competitor watchlist {urls, total} (mktg compete list --json)", params: ["fields"], errors: ["BAD_INPUT", "UPSTREAM_FAILED"] },
+  { method: "GET",  path: "/api/compete/scan",            description: "Scan tracked competitors for changes {results, changed, new, errors} (mktg compete scan --json). Network call; slow.", params: ["fields"], errors: ["BAD_INPUT", "UPSTREAM_FAILED"] },
+
   // HQ audience summary
   { method: "GET",  path: "/api/audience/profiles",       description: "Parsed audience persona cards", params: ["groupId"] },
 
@@ -586,7 +580,7 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/research/active",         description: "Active research jobs", params: ["groupId"] },
 
   // Skills
-  { method: "GET",  path: "/api/skills",                  description: "All 50 skills from mktg list --json --routing" },
+  { method: "GET",  path: "/api/skills",                  description: "All installed skills from mktg list --json --routing" },
   { method: "GET",  path: "/api/skills/:name",            description: "Single skill detail" },
   { method: "POST", path: "/api/skill/run",               description: "Queue a skill execution via /cmo", body: { name: "string", args: "object?" }, dryRun: true, errors: ["BAD_INPUT", "RATE_LIMITED"] },
 
@@ -599,7 +593,7 @@ const ROUTE_SCHEMA = [
 
   // Setup / onboarding
   { method: "POST", path: "/api/init",                    description: "Initialize mktg project (mktg init)", body: { from: "string?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
-  { method: "POST", path: "/api/settings/env",            description: "Write API keys to .env.local", body: { "[key]": "string" }, dryRun: true, errors: ["BAD_INPUT", "RATE_LIMITED"] },
+  { method: "POST", path: "/api/settings/env",            description: "Write API keys to .env.local. Destructive — requires ?confirm=true", body: { "[key]": "string" }, dryRun: true, confirm: true, errors: ["BAD_INPUT", "CONFIRM_REQUIRED", "RATE_LIMITED"] },
   { method: "GET",  path: "/api/settings/env/status",     description: "Per-key set/unset map for known env vars (NEVER returns values)", params: ["fields"], errors: [] },
   { method: "POST", path: "/api/onboarding/foundation",   description: "Spawn 3 foundation research agents in parallel; emits foundation:progress + foundation:complete SSE events", body: { from: "string?", seed: "boolean?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
   { method: "GET",  path: "/api/onboarding/stream",       description: "SSE stream of foundation agent progress (filter on the global stream)" },
@@ -667,34 +661,13 @@ const ROUTE_SCHEMA = [
 // Each opt-in route has the same wire contract as before with one
 // uniformity change: success bodies are `{ok:true, data:T}` (no extra
 // top-level fields like `id` — those nest into `data`).
+//
+// Deliberately NOT wrapped (served inline below, bare shapes documented in
+// docs/cmo-api.md "T29 bare-shape exception"): /api/health (integration test
+// pins its shape), /api/opportunities, /api/briefs, /api/catalog/*.
 // ---------------------------------------------------------------------------
 
-const HEALTH_ROUTE = wrapRoute<undefined, {
-  version: string;
-  ts: string;
-  subscribers: number;
-}>({
-  method: "GET",
-  handler: async () => ({
-    ok: true,
-    data: {
-      version: "0.1.0",
-      ts: new Date().toISOString(),
-      subscribers: globalEmitter.size,
-    },
-  }),
-});
 
-const OPPORTUNITIES_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async () => ({
-    ok: true as const,
-    data: queryAll<Record<string, unknown>>(
-      "SELECT * FROM opportunities WHERE status = 'pending' ORDER BY priority DESC LIMIT 20",
-    ),
-  }),
-});
 
 const INTELLIGENCE_LATEST_ROUTE = wrapRoute({
   method: "GET",
@@ -707,16 +680,6 @@ const INTELLIGENCE_LATEST_ROUTE = wrapRoute({
   }),
 });
 
-const BRIEFS_ROUTE = wrapRoute({
-  method: "GET",
-  listResponse: true,
-  handler: async () => ({
-    ok: true as const,
-    data: queryAll<Record<string, unknown>>(
-      "SELECT * FROM briefs ORDER BY created_at DESC LIMIT 50",
-    ),
-  }),
-});
 
 const RESEARCH_ACTIVE_ROUTE = wrapRoute({
   method: "GET",
@@ -1127,6 +1090,11 @@ const server = Bun.serve({
     if (method === "GET" && url.pathname === "/api/signals") {
       return SIGNALS_LIST_ROUTE(req, corsHeaders);
     }
+    // Plan + compete — mktg CLI bridge (wrapRoute)
+    if (method === "GET" && url.pathname === "/api/plan") return PLAN_ROUTE(req, corsHeaders);
+    if (method === "GET" && url.pathname === "/api/plan/next") return PLAN_NEXT_ROUTE(req, corsHeaders);
+    if (method === "GET" && url.pathname === "/api/compete") return COMPETE_LIST_ROUTE(req, corsHeaders);
+    if (method === "GET" && url.pathname === "/api/compete/scan") return COMPETE_SCAN_ROUTE(req, corsHeaders);
     if (method === "GET" && url.pathname === "/api/signals/baseline") {
       return SIGNALS_BASELINE_ROUTE(req, corsHeaders);
     }
@@ -1323,7 +1291,7 @@ const server = Bun.serve({
           `Invalid navigation tab: ${body.data.tab}`,
           400,
           corsHeaders,
-          "Use one of: hq, content, publish, brand",
+          "Use one of: pulse, signals, publish, brand (legacy ids hq/content are normalised)",
         );
       }
 
@@ -1827,14 +1795,24 @@ const server = Bun.serve({
 
     // GET /api/settings/env/status — per-key set/unset map. NEVER returns values.
     if (method === "GET" && url.pathname === "/api/settings/env/status") {
-      const KNOWN = [
+      // Base set (always reported) ∪ every env var any skill/catalog declares
+      // (skills-manifest env_vars, surfaced by `mktg status` → integrations),
+      // so new catalogs/skills (OPENSEO_*, GEMINI_API_KEY, MKTG_X_*, …) show
+      // up here without a hand-maintained list.
+      const BASE_KNOWN = [
         "POSTIZ_API_KEY",
         "POSTIZ_API_BASE",
         "TYPEFULLY_API_KEY",
         "EXA_API_KEY",
         "FIRECRAWL_API_KEY",
         "RESEND_API_KEY",
-      ] as const;
+      ];
+      const known = new Set<string>(BASE_KNOWN);
+      const statusResult = await mktgStatus(STUDIO_CWD);
+      if (statusResult.ok && statusResult.data.integrations) {
+        for (const key of Object.keys(statusResult.data.integrations)) known.add(key);
+      }
+      const KNOWN = Array.from(known).sort();
       const envPath = join(STUDIO_CWD, ".env.local");
       const fileLines = existsSync(envPath)
         ? readFileSync(envPath, "utf-8").split("\n")
@@ -1842,7 +1820,7 @@ const server = Bun.serve({
       const inFile = new Set(
         fileLines.map((l) => l.split("=")[0]?.trim()).filter((k): k is string => Boolean(k)),
       );
-      const result = {} as Record<(typeof KNOWN)[number], "set" | "unset">;
+      const result = {} as Record<string, "set" | "unset">;
       for (const key of KNOWN) {
         result[key] = inFile.has(key) || Boolean(process.env[key]) ? "set" : "unset";
       }
@@ -1863,7 +1841,7 @@ const server = Bun.serve({
     }
 
     // -----------------------------------------------------------------------
-    // Catalog — wrapRoute migrated (T4)
+    // Catalog — served inline via respondList (NOT wrapRoute; bare-shape exception)
     // -----------------------------------------------------------------------
     if (method === "GET" && url.pathname === "/api/catalog/list") {
       const result = await mktgCatalogList();

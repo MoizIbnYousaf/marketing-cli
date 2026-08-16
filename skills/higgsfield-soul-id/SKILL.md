@@ -21,6 +21,10 @@ allowed-tools:
   - Write
   - Edit
   - Skill
+reads:
+  - brand/creative-kit.md
+writes:
+  - brand/assets.md
 author: Higgsfield AI (ported by moiz)
 license: MIT
 user-invocable: true
@@ -46,7 +50,7 @@ Train a face-faithful Soul Character model. Reusable across all Soul-powered ima
 
 ## On Activation
 
-1. Read `brand/visual-style.md` if present — check for brand character or persona notes.
+1. Read `brand/creative-kit.md` if present (written by `/visual-style`) — check for brand character or persona notes.
 2. Ask for the name to assign to the Soul (one word, used for later reference).
 3. Ask for photos (5–20 face photos, local paths or upload UUIDs).
 4. Confirm plan tier: Soul training requires Basic+ plan. Check `higgsfield account status`.

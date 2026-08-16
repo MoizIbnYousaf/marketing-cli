@@ -92,6 +92,14 @@ Never claim GSC is connected unless `get_search_console_performance` confirms it
 - **Forking state into a second project file** — because two project ids drift and every skill has to guess which is canonical. `.seo/openseo.json` is the single binding; update it, never duplicate it.
 - **Asking the user 15 questions before writing anything** — because setup should orient, not assign homework. Capture what is known, mark the rest `unknown`, and let research skills fill gaps on demand.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-project-setup --complete --writes <paths written> --result success --json
+```
+
 ## Progressive Enhancement
 
 | Level | Behavior |

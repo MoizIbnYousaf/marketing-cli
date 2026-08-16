@@ -13,9 +13,13 @@ Source of truth for what `brand/*.md` files must contain. Skills write to these 
 | landscape.md | Market snapshot | Claims, Players, Trends, Claims Blacklist | 14 days (content-grounding) / 90 days (general) | landscape-scan |
 | keyword-plan.md | What people search for | Primary, Secondary, Long-tail | 90 days | keyword-research |
 | creative-kit.md | Visual identity | Colors, Typography, Style anchors, Visual Brand Style | 180 days | visual-style |
-| stack.md | Marketing tools in use | Current tools, Integrations | 180 days | manual |
-| assets.md | Created assets log | Append-only | never stale | all skills |
-| learnings.md | What worked/didn't | Append-only | never stale | all skills |
+| stack.md | Marketing tools in use | Current tools, Integrations | 180 days | manual (`mktg init` scaffolds the template; no skill writes it — see note below) |
+| assets.md | Created assets log | Append-only | never stale | any skill that ships an asset (manifest `writes` lists them: e.g. seo-content, video-content, image-gen, higgsfield-soul-id) |
+| learnings.md | What worked/didn't | Append-only | never stale | skills whose SKILL.md appends post-run learnings (manifest `writes`: cmo, brand-voice, audience-research, competitive-intel, keyword-research, positioning-angles, landscape-scan, deepen-plan, seo-content, openseo) via `mktg brand append-learning` / `mktg run <skill> --learning` |
+
+> **Writer declarations are checked.** `skills-manifest.json` `reads`/`writes` (bare `x.md`) must match each SKILL.md's frontmatter `reads:`/`writes:` (`brand/x.md`). Run `bun scripts/check-brand-io.ts` to see drift; `tests/manifest-brand-io.test.ts` enforces it. `stack.md` has no skill writer: `mktg init` scaffolds the template and the user (or `/cmo` on request) hand-edits it. `brand/visual-style.md` is not a brand file — visual style lives in `creative-kit.md` > `## Visual Brand Style`, written by `/visual-style`.
+
+> **Non-templated companion:** `brand/cmo-preferences.md` is written by `mktg-setup` (the 4-question wizard) and read by `/cmo` on every activation (SKILL.md step 2d). It is a `config`-class file (90-day freshness) but is **not** one of the 10 templated memory files: `mktg init`/`doctor --fix` do not scaffold it, `mktg brand freshness` does not track it, and it is not in `BRAND_FILES`. When it is missing, `/cmo` routes to `mktg-setup`.
 
 ## Section contracts
 

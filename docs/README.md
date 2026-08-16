@@ -11,7 +11,6 @@ indexes under `skills/cmo/rules/`:
 | [skill-contract.md](skill-contract.md) | Skill format spec — frontmatter, body structure, manifest entry, validation |
 | [transcribe.md](transcribe.md) | `mktg transcribe` command — usage, flags, pipeline, dependencies |
 | [EXIT_CODES.md](EXIT_CODES.md) | Exit code reference — codes 0-6, constructors, agent usage |
-| [plans/2026-04-25-001-feat-cmo-studio-boot-session-plan.md](plans/2026-04-25-001-feat-cmo-studio-boot-session-plan.md) | CMO Studio boot session plan — command-driven, hook-free startup contract |
 | [cli-improvement-plan.md](cli-improvement-plan.md) | Phased CLI improvement plan — honest run lifecycle, plan/publish truth, portable route |
 | [openseo-integration-plan.md](openseo-integration-plan.md) | Plan to make OpenSEO the first-class SEO data plane inside mktg |
 
@@ -19,8 +18,7 @@ indexes under `skills/cmo/rules/`:
 
 | Directory | Contents |
 |-----------|----------|
-| `brainstorms/` | Marketing brainstorm session outputs |
-| `ideation/` | Feature and skill ideation notes |
-| `plans/` | Implementation plans (timestamped) |
-| `research/` | Research artifacts and findings |
+| `integration/` | Ecosystem integration notes and contracts |
+| `thermo/` | Thermo (release/health) reports |
 | `solutions/` | Past solutions and learnings |
+| `dogfood-*/`, `utilized-offline-*/` | Dated dogfood / offline-usage session logs |

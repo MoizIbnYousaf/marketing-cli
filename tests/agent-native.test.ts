@@ -99,7 +99,7 @@ describe("status JSON shape", () => {
   });
 
   test("brand is object with 9 keys", async () => {
-    await initHandler(["--yes"], flags);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -167,7 +167,7 @@ describe("health transitions", () => {
   });
 
   test("after init: health is incomplete (all files are templates)", async () => {
-    await initHandler(["--yes"], flags);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
     const result = await statusHandler([], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -176,7 +176,7 @@ describe("health transitions", () => {
   });
 
   test("after deleting voice-profile.md: health is incomplete", async () => {
-    await initHandler(["--yes"], flags);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
 
     // Delete voice-profile.md
     const voicePath = join(tempDir, "brand", "voice-profile.md");
@@ -190,7 +190,7 @@ describe("health transitions", () => {
   });
 
   test("after deleting entire brand/: health is needs-setup", async () => {
-    await initHandler(["--yes"], flags);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
 
     // Delete entire brand directory
     await rm(join(tempDir, "brand"), { recursive: true, force: true });
@@ -260,7 +260,7 @@ describe("multi-project switching", () => {
       cwd: tempDirB,
     };
 
-    await initHandler(["--yes"], flagsA);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flagsA);
 
     const resultB = await statusHandler([], flagsB);
     expect(resultB.ok).toBe(true);
@@ -283,8 +283,8 @@ describe("multi-project switching", () => {
       cwd: tempDirB,
     };
 
-    await initHandler(["--yes"], flagsA);
-    await initHandler(["--yes"], flagsB);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flagsA);
+    await initHandler(["--yes", "--skip-skills", "--skip-agents"], flagsB);
 
     const resultA = await statusHandler([], flagsA);
     const resultB = await statusHandler([], flagsB);
@@ -356,8 +356,8 @@ describe("idempotency", () => {
   });
 
   test("double init returns same result shape", async () => {
-    const result1 = await initHandler(["--yes"], flags);
-    const result2 = await initHandler(["--yes"], flags);
+    const result1 = await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
+    const result2 = await initHandler(["--yes", "--skip-skills", "--skip-agents"], flags);
 
     expect(result1.ok).toBe(true);
     expect(result2.ok).toBe(true);

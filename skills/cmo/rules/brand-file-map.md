@@ -4,6 +4,8 @@ When a `brand/*.md` file changes, some downstream skills become stale and should
 
 /cmo reads this on every "update brand" request and proactively flags regen candidates.
 
+> `brand/cmo-preferences.md` (written by `mktg-setup`, read by `/cmo` on activation) is a config file, not a templated memory file — no skills depend on it beyond `/cmo` routing itself, so it has no reverse-index section. If it changes, re-read it; nothing regenerates.
+
 ---
 
 ## `brand/voice-profile.md` — HIGH impact
@@ -150,13 +152,14 @@ Landscape drives the **Claims Blacklist** — any claim not grounded in current 
 
 ## `brand/stack.md` — LOW impact (integration alerts)
 
+No skill writes `stack.md` — `mktg init` scaffolds the template and it is hand-edited. Manifest readers: `cmo`, `seo-machine`, `seo-audit`, `document-review`, `marketing-demo`.
+
 **Skills affected:**
 
 | Skill | Why |
 |---|---|
 | `email-sequences` | ESP choice (Resend, Mailchimp, etc.) |
 | `send-email` | API wiring points. |
-| `typefully` | Social set IDs, connected accounts. |
 | `postiz` | Connected integrations baseline. |
 | `newsletter` | Platform selection (ConvertKit, Beehiiv, Substack). |
 | `agent-email-inbox` / `resend-inbound` | Domain + webhook config. |
@@ -177,6 +180,8 @@ Logs what worked, what didn't, what's been tried. `/cmo` reads this to:
 - Pick the next move based on past outcomes.
 
 Never regenerates any skill — but every post-skill reflection should append an entry via `mktg brand append-learning --input '{...}'`.
+
+**Declared writers** (manifest `writes`, matches each SKILL.md's feedback/learning step): `cmo`, `brand-voice`, `audience-research`, `competitive-intel`, `keyword-research`, `positioning-angles`, `landscape-scan`, `deepen-plan`, `seo-content`, `openseo`. Drift check: `bun scripts/check-brand-io.ts`.
 
 ---
 

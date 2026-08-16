@@ -4,10 +4,12 @@ description: "Define or extract a consistent brand voice that other skills can u
 category: foundation
 tier: must-have
 reads:
+  - brand/voice-profile.md
   - brand/positioning.md
   - brand/audience.md
 writes:
   - brand/voice-profile.md
+  - brand/learnings.md
 triggers:
   - what's my voice
   - analyze my brand

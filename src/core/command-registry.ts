@@ -13,6 +13,7 @@ export const COMMANDS: Record<string, CommandLoader> = {
   init: () => import("../commands/init"),
   doctor: () => import("../commands/doctor"),
   status: () => import("../commands/status"),
+  setup: () => import("../commands/setup"),
   list: () => import("../commands/list"),
   update: () => import("../commands/update"),
   schema: () => import("../commands/schema"),

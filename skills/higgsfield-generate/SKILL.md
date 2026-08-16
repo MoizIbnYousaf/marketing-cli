@@ -11,8 +11,11 @@ description: |
   "TV spot", "import product from URL", "create avatar for ad",
   "Seedance", "Kling", "Veo", "Soul gen", "Nano Banana", "Marketing Studio".
   Chain with higgsfield-soul-id when user wants a reusable face identity.
+  Owns AI-generated "marketing video" / "brand video" / ad creative.
   NOT for: training a Soul Character (use higgsfield-soul-id), product photoshoots
-  with mode-specific enhancer (use higgsfield-product-photoshoot), text/TTS.
+  with mode-specific enhancer (use higgsfield-product-photoshoot), text/TTS,
+  screen-recorded product demos (use marketing-demo), slides-to-MP4 assembly
+  (use video-content), Remotion code (use remotion-best-practices).
   Requires Higgsfield CLI installed and authed.
 argument-hint: "[prompt] [--model <name>] [--image <path-or-id>]"
 allowed-tools:
@@ -21,6 +24,10 @@ allowed-tools:
   - Write
   - Edit
   - Skill
+reads:
+  - brand/voice-profile.md
+  - brand/creative-kit.md
+writes: []
 author: Higgsfield AI (ported by moiz)
 license: MIT
 user-invocable: true
@@ -49,7 +56,7 @@ Submit jobs to any Higgsfield model. Wraps the `higgsfield` CLI. Covers generic 
 
 ## On Activation
 
-1. Read `brand/voice-profile.md`, `brand/visual-style.md`, and `brand/creative-kit.md` if present. Use brand context to inform model choice and prompt style where relevant. All files are optional — zero-context operation is fine.
+1. Read `brand/voice-profile.md` and `brand/creative-kit.md` if present (`creative-kit.md` is written by `/visual-style`). Use brand context to inform model choice and prompt style where relevant. All files are optional — zero-context operation is fine.
 2. Check CLI: `higgsfield account status`. If not on `$PATH`, surface install command (see Optional dependency section). If session expired, prompt auth.
 3. Pick a model from the workflow below. Ask one question at a time if context is missing.
 

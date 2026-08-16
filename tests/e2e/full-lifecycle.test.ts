@@ -221,7 +221,8 @@ describe("Phase 7: List provides complete routing data", () => {
   test("list returns all skills with routing metadata", async () => {
     const manifest = await loadManifest();
     const expectedSkillCount = Object.keys(manifest.skills).length;
-    const result = await listHandler([], flags);
+    // Routing metadata (triggers/layer) is opt-in: --routing implies --verbose
+    const result = await listHandler(["--routing"], flags);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 

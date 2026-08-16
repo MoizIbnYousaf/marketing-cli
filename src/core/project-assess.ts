@@ -26,7 +26,7 @@ export const PLAN_FOLLOWON_FILES: readonly BrandFile[] = [
 ];
 
 /** Brand file → skill name (no leading slash). Callers add "/" for display if needed. */
-export const SKILL_FOR_BRAND_FILE: Readonly<Record<string, string>> = {
+const SKILL_FOR_BRAND_FILE: Readonly<Record<string, string>> = {
   "voice-profile.md": "brand-voice",
   "positioning.md": "positioning-angles",
   "audience.md": "audience-research",
@@ -82,7 +82,7 @@ export const getProjectName = async (cwd: string): Promise<string> => {
   return cwd.split("/").pop() ?? "unknown";
 };
 
-export const assessHealth = (
+const assessHealth = (
   hasBrandDir: boolean,
   populated: number,
 ): ProjectHealth => {

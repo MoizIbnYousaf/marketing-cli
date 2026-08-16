@@ -76,6 +76,8 @@ Trend radar is not its own tab. Use:
 | Toast | `POST /api/toast` | Short transient user-visible confirmation. |
 | Brand refresh | `POST /api/brand/refresh` | Re-run/refresh foundation data when the user explicitly wants it. |
 | SEO readiness | `GET /api/seo/status` | OpenSEO readiness snapshot (named state, binding, .seo inventory, keyword-plan state, `openUrl` deep link) — drives the Pulse SEO readiness card. |
+| Next action | `GET /api/plan/next` | `mktg plan next --json` bridged; `{task: PlanTask\|null}` — drives the Pulse "Next actions" card. `GET /api/plan` returns the full queue. |
+| Competitor war-room | `GET /api/compete` | `mktg compete list --json` bridged; Signals tab war-room list (name, url, last change). `GET /api/compete/scan` runs `mktg compete scan --json` (network; slow). |
 
 ## Payload Patterns
 

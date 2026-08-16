@@ -1,8 +1,8 @@
 ---
 name: launch-strategy
 description: "When the user wants to plan a product launch, feature announcement, release strategy, or go-to-market plan. Also use when the user mentions 'launch plan', 'go to market', 'GTM', 'Product Hunt', 'beta launch', 'how do I launch', 'pre-launch', 'launch checklist', 'distribution plan', 'release strategy', 'feature announcement', or is about to ship something and needs a distribution plan. Even vague requests like 'I'm almost done building, what now?' or 'how do I get users?' should trigger this skill. Make sure to use this whenever someone is planning ANY kind of product or feature release, even if they don't say 'launch' explicitly — if they're thinking about getting something in front of users, this is the skill. This is the STRATEGIC planner — for operational platform submissions and directory launches, see /startup-launcher instead."
-category: growth
-tier: strategy
+category: strategy
+tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/positioning.md

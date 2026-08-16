@@ -1,9 +1,9 @@
 ---
 name: marketing-demo
 description: |
-  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, landing page video, hero video, product video, app preview video, or wants to show their product in action. Even if they just say 'show what it does', 'make a video of the app', 'I need a demo for my landing page', or 'record the app' — this is the skill. If someone has a working product and needs marketing assets that show it off, start here.
+  Record product demos and walkthroughs for marketing assets. Two modes: quick screenshot-stitch demos via ply + ffmpeg, or polished Remotion compositions. Use when the user mentions product demo, demo video, walkthrough video, feature showcase, screen recording, GIF demo, product tour, onboarding video, visual tutorial, feature walkthrough, landing page video, hero video, product video, app preview video, or wants to show their product in action. Even if they just say 'show what it does', 'make a video of the app', 'I need a demo for my landing page', or 'record the app' — this is the skill. If someone has a working product and needs marketing assets that show it off, start here. Owns screen-recorded product demos and walkthroughs. For an AI-generated marketing or brand video with no real product footage, see /higgsfield-generate; for Remotion code and `remotion render` issues, see /remotion-best-practices; for stitching existing slides into an MP4, see /video-content.
 category: creative
-layer: creative
+layer: execution
 tier: nice-to-have
 reads:
   - brand/creative-kit.md

@@ -76,7 +76,8 @@ describe("mktg ship-check --dry-run", () => {
     expect(res.data.mode).toBe("dry-run");
     expect(res.data.checks.length).toBe(8);
     expect(res.data.summaryPath).toBe("(dry-run — no file written)");
-    expect(res.data.verdict).toBe("🟢");
+    expect(res.data.verdict).toBe("pass");
+    expect(res.data.icon).toBe("🟢");
     // Commits populated from git even in dry-run
     expect(res.data.commits.marketingCli).toBeTruthy();
   });
@@ -102,7 +103,7 @@ describe("mktg ship-check — execute (partial: fast checks only)", () => {
   // This still exercises the full handler: verdict aggregation, summary
   // file write, commits capture, exit-code mapping.
 
-  test("full-skip execute writes summary file, returns 🟢, commits populated", async () => {
+  test("full-skip execute writes summary file, returns verdict pass, commits populated", async () => {
     // Skip every check so the test is deterministic regardless of real repo
     // state. This exercises the handler's end-to-end structure (verdict
     // aggregation, summary-file write, commits capture, summary path
@@ -118,7 +119,8 @@ describe("mktg ship-check — execute (partial: fast checks only)", () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
 
-    expect(res.data.verdict).toBe("🟢");
+    expect(res.data.verdict).toBe("pass");
+    expect(res.data.icon).toBe("🟢");
     expect(res.data.mode).toBe("execute");
     expect(res.data.summaryPath.startsWith(join(homedir(), ".mktg", "ship-check"))).toBe(true);
     expect(existsSync(res.data.summaryPath)).toBe(true);
@@ -127,15 +129,16 @@ describe("mktg ship-check — execute (partial: fast checks only)", () => {
     expect(res.data.commits.marketingCli).toBeTruthy();
 
     const onDisk = JSON.parse(await readFile(res.data.summaryPath, "utf-8")) as ShipCheckReport;
-    expect(onDisk.verdict).toBe("🟢");
+    expect(onDisk.verdict).toBe("pass");
     expect(onDisk.checks.length).toBe(8);
     expect(onDisk.checks.every((c) => c.verdict === "skipped")).toBe(true);
   }, 20_000);
 
-  test("verdict mapping: blocker fail → 🔴 exit 2 with summaryPath in err suggestions", async () => {
-    // Run the real git-clean checks (which currently fail because this commit
-    // is in flight); verify the handler returns err with exit 2 and the
-    // summary path is threaded into the suggestions.
+  test("verdict mapping: blocker fail → verdict 'block', exit 4, full report as data", async () => {
+    // Run the real git-clean checks; when the working tree is dirty the
+    // handler must return the FULL report (not an error envelope) with
+    // data.verdict === 'block' and exitCode 4 so blockers[] is readable
+    // straight from stdout.
     const res = await shipCheckHandler(
       [
         "--skip",
@@ -143,21 +146,43 @@ describe("mktg ship-check — execute (partial: fast checks only)", () => {
       ],
       baseFlags({ dryRun: false }),
     );
-    // If the working tree HAPPENS to be clean (unlikely while adding this
-    // file), this assertion inverts. Handle both paths gracefully.
-    if (res.ok) {
-      expect(res.data.verdict).toBe("🟢");
-      expect(existsSync(res.data.summaryPath)).toBe(true);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(existsSync(res.data.summaryPath)).toBe(true);
+    const onDisk = JSON.parse(await readFile(res.data.summaryPath, "utf-8")) as ShipCheckReport;
+    if (res.data.verdict === "block") {
+      expect(res.exitCode).toBe(4);
+      expect(res.data.icon).toBe("🔴");
+      expect(res.data.blockers.length).toBeGreaterThan(0);
+      expect(onDisk.verdict).toBe("block");
     } else {
-      expect(res.error.code).toBe("SHIP_CHECK_BLOCK");
-      expect(res.exitCode).toBe(2);
-      const pathHint = res.error.suggestions.find((s) => s.startsWith("Summary:"));
-      expect(pathHint).toBeDefined();
-      const summaryPath = pathHint!.replace(/^Summary:\s*/, "");
-      expect(existsSync(summaryPath)).toBe(true);
-      const onDisk = JSON.parse(await readFile(summaryPath, "utf-8")) as ShipCheckReport;
-      expect(onDisk.verdict).toBe("🔴");
-      expect(onDisk.blockers.length).toBeGreaterThan(0);
+      // Tree happens to be clean — pass/warn both exit 0.
+      expect(res.exitCode).toBe(0);
+      expect(["pass", "warn"]).toContain(res.data.verdict);
+      expect(onDisk.verdict).toBe(res.data.verdict);
+    }
+  }, 20_000);
+
+  test("verdict mapping: warnings only → verdict 'warn', exit 0 (non-blocking)", async () => {
+    // Skip every blocking check; keep version-tag-consistency (non-blocking,
+    // warns when no tag or a mismatch) and mktg-doctor (non-blocking). Whatever
+    // those report, the result must be exit 0 with verdict pass|warn — never
+    // block, never a non-zero exit.
+    const res = await shipCheckHandler(
+      [
+        "--skip",
+        "marketing-cli-clean,mktg-studio-clean,marketing-cli-typecheck,mktg-studio-typecheck,mktg-verify,mktg-doctor,studio-health",
+      ],
+      baseFlags({ dryRun: false }),
+    );
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.exitCode).toBe(0);
+    expect(["pass", "warn"]).toContain(res.data.verdict);
+    expect(res.data.blockers).toEqual([]);
+    if (res.data.verdict === "warn") {
+      expect(res.data.icon).toBe("🟡");
+      expect(res.data.warnings.length).toBeGreaterThan(0);
     }
   }, 20_000);
 });

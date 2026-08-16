@@ -19,24 +19,35 @@ mktg <command> [subcommand] [--json] [--dry-run] [--fields <dot.path>]
 
 | Flag | Purpose | Example |
 |------|---------|---------|
-| `--json` | Structured JSON output (auto-enabled when piped) | `mktg status --json` |
+| `--json` | Structured JSON output (auto-enabled when piped). Compact single-line by default | `mktg status --json` |
+| `--pretty` | Indent JSON output (2 spaces) for humans; agents should omit it | `mktg status --json --pretty` |
 | `--dry-run` | Preview mutations without writing | `mktg init --dry-run` |
-| `--fields` | Dot-notation field selection | `--fields "brand.populated,skills.count"` |
-| `--ndjson` | Newline-delimited JSON for list commands | `mktg list --ndjson` |
-| `--confirm` | Required for destructive operations | `mktg brand import --confirm` |
-| `--cwd` | Override working directory | `--cwd /path/to/project` |
+| `--fields` | Dot-notation field selection | `--fields "brandSummary.populated,skills.installed"` |
+| `--input` | Raw JSON payload for mutating commands (global) | `mktg brand append-learning --input '{...}'` |
+| `--ndjson` | Newline-delimited JSON for list commands (per-command) | `mktg list --ndjson` |
+| `--confirm` | Required for destructive operations (per-command) | `mktg brand import --confirm` |
+| `--verbose` | Full item shape on list commands (`list`, `catalog list`); default items are minimal (3–5 fields) | `mktg list --verbose --json` |
+| `--full` | Full schema dump for bare `mktg schema` / `mktg <group> --help --json` (default is a compact index) | `mktg schema --full --json` |
+| `--cwd` | Override working directory (must exist; otherwise `INVALID_ARGS`, exit 2) | `--cwd /path/to/project` |
+
+## Response conventions
+
+- **Compact JSON.** Every JSON response is one line (`JSON.stringify` with no indentation). Parse it; never assert on whitespace. `--pretty` restores 2-space indentation.
+- **`help[]`.** Success responses may carry a top-level `help` array of concrete next-command templates (e.g. `"mktg run <skill> --json"`, `"mktg brand freshness --json"`). `status`, `init`, `doctor`, `plan`, `skill info`, `list`, `compete list`, `catalog list`, `setup` populate it. It is selectable via `--fields help` and printed as a `Next:` footer in TTY. Prose fields (`nextActions`, `setup.nextSteps`) stay for compat.
+- **Home view.** Bare `mktg` (no command) returns a live snapshot, not static help: `{bin, description, cwd, version, health, brand:{populated,total}, skills:{installed,total}, help[]}` (`bin`/`cwd` collapse `$HOME` to `~`). `mktg --help` keeps the full command list.
+- **Ambient context.** `mktg setup --json` idempotently installs a Claude Code `SessionStart` hook (`./.claude/settings.json`; `--global` for `~/.claude/settings.json`) that runs `mktg status --fields health,brandSummary,nextActions --json`. Re-runs report `{installed:true, changed:false}`; `--dry-run` previews the settings file.
 
 ## Exit codes
 
 | Code | Meaning | Action |
 |------|---------|--------|
-| 0 | Success | Proceed |
-| 1 | Not found | Check resource name, use `mktg list` |
-| 2 | Invalid args | Check `mktg schema --json` for valid flags |
+| 0 | Success — including **findings that are not failures**: `ship-check` verdict `pass`/`warn`, `skill check-upstream` drift (`ok:false`, `summary.drifted>0`), `verify --dry-run` | Proceed; branch on the data fields, not `$?` |
+| 1 | Not found (e.g. `skill check-upstream <name>` with no upstream.json) | Check resource name, use `mktg list` |
+| 2 | Invalid args (incl. `UNKNOWN_FLAG` for unrecognised `--flags`, `UNKNOWN_FIELD` for bad `--fields`, `UNSUPPORTED_FLAG` when a flag exists but the selected `--adapter` does not support it) | Check `mktg schema <cmd> --json` for valid flags; follow the `Did you mean` / `Supported adapters` hint |
 | 3 | Dependency missing | Run `mktg doctor --json` for install hints |
-| 4 | Skill failed | Check skill prerequisites |
+| 4 | Execution failed — skill failed, `mktg cmo` TIMEOUT, `verify` SUITE_FAILED, `ship-check` verdict `block` (full report on stdout, `blockers[]` populated) | Check skill prerequisites; for TIMEOUT raise `--timeout`; for ship-check resolve `blockers[]` |
 | 5 | Network error | Retry or check connectivity |
-| 6 | Not implemented | Command exists in schema but isn't built yet |
+| 6 | Not implemented | Command exists in schema but isn't built yet (never used for "adapter doesn't support this flag" — that is exit 2 `UNSUPPORTED_FLAG`) |
 
 ## Usage patterns
 
@@ -57,13 +68,15 @@ and `skills/cmo/rules/studio-api-index.md`.
 ```bash
 mktg init --json
 # Creates brand/, installs skills + agents, runs doctor
+mktg setup --json
+# Installs the SessionStart hook so every Claude Code session opens with live mktg status
 ```
 
 ### 2. Check project health before acting
 
 ```bash
-mktg doctor --json --fields "checks,summary"
-mktg status --json --fields "brand.populated,skills.installed"
+mktg doctor --json --fields "passed,checks"
+mktg status --json --fields "brandSummary.populated,skills.installed"
 ```
 
 ### 3. Load a skill for execution
@@ -80,7 +93,7 @@ mktg run seo-content --with-context --budget 4000 --json
 
 mktg run postiz --strict --json
 # Prereqs cover skills, brand files, env vars (manifest env_vars), CLI tools,
-# and backing catalogs. --strict exits 3 (DEPENDENCY_MISSING) when any are
+# and backing catalogs. --strict exits 3 (MISSING_DEPENDENCY) when any are
 # unsatisfied; default stays warn-only (progressive enhancement).
 ```
 
@@ -96,7 +109,7 @@ mktg run brand-voice --complete --writes brand/voice-profile.md --result success
 ### 4. Get token-budgeted brand context
 
 ```bash
-mktg context --json --fields "voice,positioning,audience"
+mktg context --json --fields "summary,files"
 # Returns only the brand files you need, within token limits
 ```
 
@@ -204,6 +217,11 @@ mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' -
 # postiz) | sent (resend) | written-file (file) | failed | skipped.
 # A local queue write is never "sent"; an external draft is never "published".
 mktg publish --native-list-posts --json
+
+# Adapter-scoped flags: --list-integrations (mktg-native, postiz) and
+# --diagnose (postiz). Any other --adapter returns UNSUPPORTED_FLAG, exit 2,
+# with the supported list in suggestions — an argument error, not exit 6.
+mktg publish --adapter typefully --list-integrations --json   # → exit 2 UNSUPPORTED_FLAG
 ```
 
 Use Postiz or a browser profile when the user needs actual external network
@@ -244,7 +262,9 @@ posting and the native backend is only acting as the local queue.
 | Agent wants a JSON project overview | `mktg dashboard snapshot --json` |
 | Agent wants to preview the studio launch envelope | `mktg studio --dry-run --json` |
 | Agent wants to preview verification suites | `mktg verify --dry-run --json` |
-| Agent wants a release go/no-go verdict | `mktg ship-check --dry-run --json` first, then fresh run if approved |
+| Agent wants a release go/no-go verdict | `mktg ship-check --dry-run --json` first, then fresh run if approved. Branch on `data.verdict` (`pass`/`warn` → exit 0, `block` → exit 4 with `blockers[]`) |
+| Agent wants upstream-skill drift status | `mktg skill check-upstream --dry-run --json` (plan, no network), then `mktg skill check-upstream --json` — exit 0 even on drift; read `summary.drifted` / `skills[].in_sync` |
+| Agent wants the competitor watch list | bare `mktg compete --json` (offline, same as `compete list`); `mktg compete scan --json` to actually fetch |
 | Agent wants headless `/cmo` invocation | `mktg cmo --dry-run --json` first |
 
 ## Brand files

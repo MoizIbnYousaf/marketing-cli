@@ -11,7 +11,7 @@ import type { Server } from "bun";
 
 import type { GlobalFlags } from "../../src/types";
 import { handler } from "../../src/commands/publish";
-import { postizFetch } from "../../src/commands/publish";
+import { postizFetch } from "../../src/core/publish/postiz";
 
 // ─── License firewall (spec §8) — must run first; the strictest invariant. ───
 describe("License firewall — @postiz/node is AGPL-3.0 and must never be linked", () => {
@@ -319,12 +319,24 @@ describe("publish --list-integrations", () => {
     expect(result.exitCode).toBe(2);
   });
 
-  test("returns NOT_IMPLEMENTED exit 6 for non-postiz adapters", async () => {
+  test("returns UNSUPPORTED_FLAG exit 2 for adapters without a provider registry", async () => {
     const result = await handler(["--adapter", "typefully", "--list-integrations"], flags);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.error.code).toBe("NOT_IMPLEMENTED");
-    expect(result.exitCode).toBe(6);
+    expect(result.error.code).toBe("UNSUPPORTED_FLAG");
+    expect(result.exitCode).toBe(2);
+    expect(result.error.message).toContain("typefully");
+    const hint = result.error.suggestions.join(" ");
+    expect(hint).toMatch(/mktg-native/);
+    expect(hint).toMatch(/postiz/i);
+  });
+
+  test("--diagnose with a non-postiz adapter returns UNSUPPORTED_FLAG exit 2", async () => {
+    const result = await handler(["--adapter", "resend", "--diagnose"], flags);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("UNSUPPORTED_FLAG");
+    expect(result.exitCode).toBe(2);
     expect(result.error.suggestions.join(" ")).toMatch(/postiz/i);
   });
 

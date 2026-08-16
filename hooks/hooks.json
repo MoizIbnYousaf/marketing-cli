@@ -1,0 +1,15 @@
+{
+  "description": "Ambient marketing context: inject `mktg status` (health, brand summary, next actions) at the start of every Claude Code session. Mirrors what `mktg setup` writes into .claude/settings.json. Fails soft when mktg is not on PATH.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v mktg >/dev/null 2>&1 && mktg status --fields health,brandSummary,nextActions --json 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

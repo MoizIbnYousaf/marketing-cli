@@ -17,9 +17,10 @@ interface HealthResponse {
 interface CatalogEntry {
   name?: string
   configured?: boolean
-  healthy?: boolean
+  healthy?: boolean | null
+  /** Human-readable status from `mktg catalog status` (e.g. "unconfigured — missing: POSTIZ_API_KEY"). */
+  detail?: string
   error?: string | null
-  missing_envs?: string[]
 }
 
 interface CatalogStatusResponse {
@@ -112,7 +113,7 @@ export function DoctorSection() {
         {catalogs.map((c) => {
           const ok = c.configured === true && !c.error
           const hintParts: string[] = []
-          if (c.missing_envs?.length) hintParts.push(`Missing env: ${c.missing_envs.join(", ")}`)
+          if (c.detail) hintParts.push(c.detail)
           if (c.error) hintParts.push(c.error)
           return <div key={c.name ?? Math.random()}>{check(`Catalog · ${c.name ?? "unknown"}`, ok, hintParts.join(" · "))}</div>
         })}

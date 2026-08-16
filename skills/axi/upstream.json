@@ -1,7 +1,11 @@
 {
   "version": 1,
-  "fetched_at": "2026-07-18T08:00:00Z",
+  "fetched_at": "2026-08-15T00:00:00Z",
   "tool": "/mktg-steal",
+  "notes": [
+    "SKILL.md is a mktg router (On Activation / Routing Table / Anti-Patterns) — it does NOT mirror upstream SKILL.md verbatim; only references/upstream-axi-skill.md is a verbatim snapshot. The adapted-frontmatter note keeps skill-upgrade from overwriting it.",
+    "rules/catalog.md, rules/principles.md and rules/benchmarks.md are hand-synced markdown derived from the root-level upstream files listed under `derived` (last resync 2026-08-15 from the axi.md spec: added oracle-axi, cyber-mux, glab-axi; GitHub token figures; related work). check-upstream.sh scopes each source to upstream_root and lists the whole subtree, so the repo root cannot be a source without flagging every file as added — track the derived files' blob SHAs here and diff them manually on resync."
+  ],
   "sources": [
     {
       "name": "primary",
@@ -21,9 +25,21 @@
           "local": "SKILL.md",
           "upstream": ".agents/skills/axi/SKILL.md",
           "sha": "b7c5980346482bbb95e2658c8ab9854fe3e73de3",
-          "note": "adapted-frontmatter"
+          "note": "adapted-frontmatter",
+          "adaptation": "full rewrite as mktg router; not a mirror"
         }
       ]
     }
-  ]
+  ],
+  "derived": {
+    "repo": "kunchenguid/axi",
+    "branch": "main",
+    "commit_sha": "6620e2b6138a7fc146181dcbb59865f1b93b3e28",
+    "recorded_at": "2026-08-15T00:00:00Z",
+    "files": [
+      { "local": "rules/catalog.md", "upstream": "catalog.yaml", "sha": "239cf9674e71894b3a9a67891c6388db98dc8ed3", "note": "hand-synced markdown table" },
+      { "local": "rules/principles.md", "upstream": "principles.yaml", "sha": "3358007b283eaab5f1003961aa1f6c9d2213341c", "note": "hand-synced markdown" },
+      { "local": "rules/benchmarks.md", "upstream": "README.md", "sha": "00969d7faa30ad81c1f27725d243c2c94e220f5a", "note": "benchmark tables + related work, hand-synced from README / axi.md" }
+    ]
+  }
 }

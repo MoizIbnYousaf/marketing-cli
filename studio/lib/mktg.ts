@@ -405,6 +405,49 @@ export function mktgSeoStatus(opts: { cwd?: string } = {}): Promise<CommandResul
 }
 
 /**
+ * mktg compete list --json / mktg compete scan --json
+ * Competitor watchlist + change scan (war-room list in Signals tab).
+ */
+export type CompeteWatchEntry = {
+  readonly url: string;
+  readonly addedAt: string;
+  readonly lastScan: string | null;
+  readonly lastTitle: string | null;
+};
+
+export type CompeteListData = {
+  readonly urls: readonly CompeteWatchEntry[];
+  readonly total: number;
+  readonly message?: string;
+};
+
+export type CompeteScanResult = {
+  readonly url: string;
+  readonly status: "changed" | "unchanged" | "new" | "error";
+  readonly title: string;
+  readonly changes: readonly string[];
+  readonly suggestedSkill: string | null;
+};
+
+export type CompeteScanData = {
+  readonly results: readonly CompeteScanResult[];
+  readonly total: number;
+  readonly changed: number;
+  readonly new: number;
+  readonly errors: number;
+  readonly message?: string;
+  readonly help?: readonly string[];
+};
+
+export function mktgCompeteList(cwd?: string): Promise<CommandResult<CompeteListData>> {
+  return run<CompeteListData>(["compete", "list"], { cwd });
+}
+
+export function mktgCompeteScan(cwd?: string): Promise<CommandResult<CompeteScanData>> {
+  return run<CompeteScanData>(["compete", "scan"], { cwd });
+}
+
+/**
  * mktg publish --adapter <name> --list-integrations --json
  * Lists connected provider integrations for an adapter (postiz only for now).
  */
@@ -452,16 +495,9 @@ export function mktgPublishNativeListPosts(cwd?: string): Promise<CommandResult<
   return run<NativePostsData>(["publish", "--native-list-posts"], { cwd });
 }
 
-/**
- * mktg brand read <file> --json
- * Returns the raw markdown content of a brand file.
- */
-export function mktgBrandRead(
-  file: string,
-  cwd?: string,
-): Promise<CommandResult<{ content: string }>> {
-  return run<{ content: string }>(["brand", "read", file], { cwd });
-}
+// NOTE: there is no `mktg brand read` subcommand (brand SUBCOMMANDS =
+// export|import|update|freshness|diff|append-learning|claims|kit|delete|reset).
+// Brand file reads go through lib/brand-files.ts, not the CLI.
 
 /**
  * mktg schema [<cmd>] --json

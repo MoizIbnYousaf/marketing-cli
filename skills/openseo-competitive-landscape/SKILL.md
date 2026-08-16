@@ -73,6 +73,15 @@ Answer with measured data: who is winning this SEO market, what content works fo
 - **Stopping at "X is winning" without the why** — because a leader list with no content-theme or authority explanation gives the user nothing to act on. Every leader gets a "why they win" and a "where they're weak."
 - **Abandoning the analysis when backlinks are unavailable** — because SERP + domain evidence still answers "who and what." Degrade gracefully and name the missing tier.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-competitive-landscape --complete --writes <paths written> --result success --json
+```
+
+
 ---
 
 *Adapted from [every-app/open-seo](https://github.com/every-app/open-seo) `.agents/skills/competitive-landscape` (MIT). Workflow upstream; mktg brand-memory writes and fallback wiring added here.*

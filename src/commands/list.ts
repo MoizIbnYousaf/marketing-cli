@@ -5,24 +5,30 @@ import { join } from "node:path";
 import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory, type ExternalSkillEntry, type SkillRoutingEntry } from "../types";
 import { loadManifest, getInstallStatus, readSkillVersions, readExternalSkills } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
-import { bold, dim, green, red, yellow, isTTY, writeStdout } from "../core/output";
+import { bold, dim, green, red, yellow, isTTY, writeStdout, applyFieldsFilter } from "../core/output";
 
 export const schema: CommandSchema = {
   name: "list",
   description: "Show available skills and agents with install status",
   flags: [
     { name: "--ndjson", type: "boolean", required: false, default: false, description: "Output one JSON object per line (NDJSON streaming) — each skill is a separate line for incremental processing" },
-    { name: "--routing", type: "boolean", required: false, default: false, description: "Include routing metadata in skill entries (triggers, requires, unlocks, precedence) — used by /cmo for orchestration" },
+    { name: "--routing", type: "boolean", required: false, default: false, description: "Include routing metadata in skill entries (triggers, requires, unlocks, precedence) — used by /cmo for orchestration. Implies --verbose" },
+    { name: "--verbose", type: "boolean", required: false, default: false, description: "Include layer, triggers, installedVersion, latestVersion per skill (default items carry only name, category, tier, installed)" },
   ],
   output: {
-    "skills": "SkillEntry[] — all skills with status",
+    "skills": "SkillEntry[] — {name, category, tier, installed}; +layer/triggers/versions with --verbose",
     "agents": "AgentEntry[] — all agents with status",
+    "external_skills": "ExternalSkillListEntry[] — project-local external skills",
     "total": "number — total skill count",
     "installed": "number — installed skill count",
     "missing": "number — missing skill count",
+    "agentTotal": "number — agent count",
+    "externalTotal": "number — external skill count",
+    "help": "string[] — next-step hints",
   },
   examples: [
-    { args: "mktg list --json", description: "List all skills and agents" },
+    { args: "mktg list --json", description: "List all skills and agents (compact)" },
+    { args: "mktg list --verbose --json", description: "List skills with triggers, layer, versions" },
     { args: "mktg list --routing --json", description: "List skills with CMO routing metadata" },
     { args: "mktg list --fields total,installed", description: "Show counts only" },
   ],
@@ -33,11 +39,12 @@ type SkillEntry = {
   readonly name: string;
   readonly category: SkillCategory;
   readonly tier: "must-have" | "nice-to-have";
-  readonly layer: string;
   readonly installed: boolean;
-  readonly triggers: readonly string[];
-  readonly installedVersion: string | null;
-  readonly latestVersion: string | null;
+  // Verbose-only fields (--verbose / --routing / --fields naming them)
+  readonly layer?: string;
+  readonly triggers?: readonly string[];
+  readonly installedVersion?: string | null;
+  readonly latestVersion?: string | null;
   readonly routing?: SkillRoutingEntry;
 };
 
@@ -64,7 +71,12 @@ type ListResult = {
   readonly total: number;
   readonly installed: number;
   readonly missing: number;
+  readonly agentTotal: number;
+  readonly externalTotal: number;
+  readonly help: readonly string[];
 };
+
+const VERBOSE_FIELDS = new Set(["layer", "triggers", "installedVersion", "latestVersion"]);
 
 const CATEGORY_LABELS: Record<SkillCategory, string> = {
   foundation: "Foundation",
@@ -93,6 +105,12 @@ const CATEGORY_ORDER: readonly SkillCategory[] = [
 export const handler: CommandHandler<ListResult> = async (args, flags) => {
   const wantsNdjson = args.includes("--ndjson");
   const wantsRouting = args.includes("--routing");
+  // Verbose fields are opt-in; naming one via --fields (e.g. `triggers` or
+  // `skills.triggers`) also opts in so the filter never hits UNKNOWN_FIELD.
+  const wantsVerbose =
+    wantsRouting ||
+    args.includes("--verbose") ||
+    flags.fields.some((f) => VERBOSE_FIELDS.has(f.replace(/^skills\./, "")));
   const manifest = await loadManifest();
   const [installStatus, installedVersions, externalSkillsMap] = await Promise.all([
     getInstallStatus(manifest),
@@ -105,11 +123,15 @@ export const handler: CommandHandler<ListResult> = async (args, flags) => {
       name,
       category: meta.category,
       tier: meta.tier,
-      layer: meta.layer,
       installed: installStatus[name]?.installed ?? false,
-      triggers: meta.triggers,
-      installedVersion: installedVersions[name] ?? null,
-      latestVersion: meta.version ?? null,
+      ...(wantsVerbose
+        ? {
+            layer: meta.layer,
+            triggers: meta.triggers,
+            installedVersion: installedVersions[name] ?? null,
+            latestVersion: meta.version ?? null,
+          }
+        : {}),
       ...(wantsRouting && meta.routing ? { routing: meta.routing } : {}),
     }),
   );
@@ -148,11 +170,26 @@ export const handler: CommandHandler<ListResult> = async (args, flags) => {
     total: skills.length,
     installed: skills.filter((s) => s.installed).length,
     missing: skills.filter((s) => !s.installed).length,
+    agentTotal: agents.length,
+    externalTotal: externalSkillEntries.length,
+    help: [
+      ...(wantsVerbose ? [] : ["mktg list --verbose --json — add layer, triggers, versions per skill"]),
+      ...(wantsRouting ? [] : ["mktg list --routing --json — add CMO routing metadata"]),
+      "mktg list --fields name,installed --json — pick fields",
+    ],
   };
 
   // NDJSON mode: one JSON object per line for streaming consumption
   // Writes directly to stdout to bypass the envelope formatting — each line is a standalone JSON object
   if (wantsNdjson) {
+    // Honour --fields at the item level so `list --ndjson --fields name,tier`
+    // matches the --json pivot; a field missing on every item is UNKNOWN_FIELD.
+    if (flags.fields.length > 0) {
+      const probe = applyFieldsFilter(ok(skills), flags.fields);
+      if (!probe.ok) return probe;
+      for (const line of probe.data as unknown[]) writeStdout(JSON.stringify(line));
+      return ok(result, "");
+    }
     for (const skill of skills) {
       writeStdout(JSON.stringify(skill));
     }

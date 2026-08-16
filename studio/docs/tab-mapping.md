@@ -14,7 +14,7 @@ Pulse is the default landing surface.
 | What changed | Brand file watcher + SQLite activity |
 | Social highlights | Signal and publish summaries normalized by the server |
 | Audience summary | `brand/audience.md` when populated |
-| What to do next | `mktg plan next --json` plus `/api/opportunities/push` rows |
+| What to do next | `GET /api/plan/next` (`mktg plan next --json`) rendered as the top "Next actions" card; snapshot heuristics fill in when the plan is empty, plus `/api/opportunities/push` rows |
 
 Former Audience and Opportunities surfaces now live here. Do not add them back
 as primary tabs unless they become independently useful again.
@@ -35,8 +35,18 @@ moves into Publish.
 Route to Content with:
 
 ```json
-{"tab":"content"}
+{"tab":"signals"}   // "content" is a legacy alias, normalised to signals
 ```
+
+## Signals
+
+Signals is the "what matters" surface. Besides the signal feed it hosts the
+minimal competitor war-room.
+
+| Element | mktg source |
+|---|---|
+| Signal feed | `GET /api/signals` (SQLite `signals`) |
+| War-room list (name, url, last change) | `GET /api/compete` (`mktg compete list --json`), refresh via `GET /api/compete/scan` (`mktg compete scan --json`) |
 
 ## Publish
 

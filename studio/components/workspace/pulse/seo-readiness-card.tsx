@@ -3,19 +3,12 @@
 import useSWR from "swr"
 import { ExternalLink, SearchX } from "lucide-react"
 import { fetcher } from "@/lib/fetcher"
+import type { SeoStatusData } from "@/lib/mktg"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 
-type SeoStatus = {
-  catalog: { configured: boolean; missingEnvs: string[] }
-  readiness: "not_configured" | "mcp_client_only" | "api_ready" | "selfhost_ready"
-  project: { projectId: string; domain: string; updatedAt: string } | null
-  bindingCorrupt: boolean
-  state: { rankSnapshots: number; hasBacklinkOverview: boolean; keywordsSyncAt: string | null }
-  keywordPlan: "missing" | "template" | "populated"
-  openUrl: string
-}
+type SeoStatus = SeoStatusData
 
 const READINESS_COPY: Record<SeoStatus["readiness"], { label: string; tone: "ok" | "warn" | "muted" }> = {
   api_ready: { label: "API ready", tone: "ok" },

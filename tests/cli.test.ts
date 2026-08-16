@@ -106,20 +106,31 @@ describe("CLI flag combinations", () => {
     expect(exitCode).toBe(0);
   });
 
-  test("no arguments returns JSON help when piped (non-TTY auto-JSON)", async () => {
+  test("no arguments returns the JSON home view when piped (non-TTY auto-JSON)", async () => {
     const { stdout, exitCode } = await run([]);
-    // Piped subprocesses auto-enable JSON output
+    // Piped subprocesses auto-enable JSON output; bare `mktg` is the live home
+    // view (health + next commands), not the static command list (--help).
     const parsed = JSON.parse(stdout);
     expect(parsed).toHaveProperty("version");
-    expect(parsed).toHaveProperty("commands");
+    expect(parsed).toHaveProperty("health");
+    expect(Array.isArray(parsed.help)).toBe(true);
     expect(exitCode).toBe(0);
   });
 
-  test("--cwd with nonexistent directory still runs", async () => {
+  test("--help --json still returns the full command list", async () => {
+    const { stdout, exitCode } = await run(["--help", "--json"]);
+    const parsed = JSON.parse(stdout);
+    expect(parsed).toHaveProperty("commands");
+    expect(parsed.globalFlags).toContain("--pretty");
+    expect(exitCode).toBe(0);
+  });
+
+  test("--cwd with nonexistent directory returns INVALID_ARGS envelope", async () => {
     const { stdout, exitCode } = await run(["status", "--json", "--cwd", "/tmp/mktg-nonexistent-dir-xyz"]);
     const parsed = JSON.parse(stdout);
-    expect(parsed.health).toBe("needs-setup");
-    expect(exitCode).toBe(0);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
+    expect(parsed.error.message).toContain("--cwd");
+    expect(exitCode).toBe(2);
   });
 });
 

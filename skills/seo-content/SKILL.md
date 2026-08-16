@@ -6,16 +6,21 @@ description: >
   techniques, and adds schema markup. Use when someone needs a blog post,
   article, SEO page, or wants content that drives search traffic. Triggers on
   'SEO content', 'blog post', 'article', 'SERP', 'programmatic SEO', 'content
-  at scale', 'write a post about', 'rank for', or 'search-optimized content'.
-  Two modes: single article or programmatic SEO at scale.
+  at scale', 'template pages at scale', 'write a post about', 'rank for', or
+  'search-optimized content'. Two modes: single article or programmatic SEO at
+  scale. Owns programmatic SEO and content-at-scale generation. For a single
+  alternatives or vs/comparison page, see /competitor-alternatives; for a
+  multi-phase page roadmap with a persistent tracker, see /seo-machine.
 category: copy-content
 tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/keyword-plan.md
   - brand/audience.md
+  - brand/landscape.md
 writes:
-  - assets.md
+  - brand/assets.md
+  - brand/learnings.md
 triggers:
   - blog post
   - SEO article

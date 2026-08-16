@@ -8,10 +8,12 @@ import pkg from "../../package.json";
 const VERSION = pkg.version;
 
 const GLOBAL_FLAGS: readonly CommandFlag[] = [
-  { name: "--json", type: "boolean", required: false, default: false, description: "Machine-readable JSON output (always JSON when stdout is not a TTY)" },
+  { name: "--json", type: "boolean", required: false, default: false, description: "Machine-readable JSON output (always JSON when stdout is not a TTY; compact single-line by default)" },
+  { name: "--pretty", type: "boolean", required: false, default: false, description: "Indent JSON output with 2 spaces (default JSON is compact for agents)" },
   { name: "--dry-run", type: "boolean", required: false, default: false, description: "Validate without writing files or side effects" },
-  { name: "--fields", type: "string[]", required: false, default: [], description: "Limit output to these top-level fields (comma-separated)" },
+  { name: "--fields", type: "string[]", required: false, default: [], description: "Select fields (comma-separated): top-level keys, dot paths (a.b.c), or item-level keys for collection responses (returns filtered array)" },
   { name: "--cwd", type: "string", required: false, default: ".", description: "Set working directory for brand/ and project detection" },
+  { name: "--input", type: "string", required: false, default: "", description: "Raw JSON payload for mutating commands (e.g. dashboard action, brand append-learning, seo link-project)" },
 ];
 
 const EXIT_CODES: Record<number, string> = {
@@ -47,15 +49,20 @@ const loadSchemas = async (): Promise<Record<string, CommandSchema>> => {
 export const schema: CommandSchema = {
   name: "schema",
   description: "Introspect CLI commands, flags, and output shapes — the single source of truth for any agent using this CLI",
-  flags: [],
+  flags: [
+    { name: "--full", type: "boolean", required: false, default: false, description: "Bare `mktg schema`: include output maps, examples, vocabulary, and full subcommand schemas for every command (default is a compact index)" },
+  ],
   output: {
     "version": "string — CLI version (semver)",
-    "commands": "CommandSchema[] — full schema for every command including flags, positional args, subcommands, output shape, and examples",
+    "commands": "CommandSchema[] — compact index by default: name, description, flags, positional, responseSchema, subcommands[{name, description}]. Full schemas with --full or via `mktg schema <command>`",
     "globalFlags": "CommandFlag[] — global flags with name, type, default, and description",
     "exitCodes": "Record<number, string> — exit code meanings (0=success through 6=not implemented)",
+    "full": "boolean — whether commands[] carries the full schema (--full) or the compact index",
+    "help": "string[] — how to get full per-command detail",
   },
   examples: [
-    { args: "mktg schema --json", description: "Full CLI introspection — all commands, flags, exit codes" },
+    { args: "mktg schema --json", description: "Compact CLI index — all commands, flags, typed responseSchema, exit codes" },
+    { args: "mktg schema --full --json", description: "Full CLI introspection — every command with output maps, examples, and subcommand schemas" },
     { args: "mktg schema init --json", description: "Get init command schema only" },
     { args: "mktg schema skill info --json", description: "Get subcommand schema" },
   ],
@@ -130,19 +137,43 @@ const enrichSchema = (cmd: CommandSchema) => ({
   }),
 });
 
+// Compact index entry for the bare `mktg schema` listing: keeps the typed
+// responseSchema (what agents parse) but drops the prose output map,
+// examples, vocabulary, and nested subcommand detail (all reachable via
+// `mktg schema <command> [<sub>]` or `--full`).
+const compactSchema = (cmd: CommandSchema) => ({
+  name: cmd.name,
+  description: cmd.description,
+  flags: cmd.flags,
+  ...(cmd.positional && { positional: cmd.positional }),
+  responseSchema: parseOutputToResponseSchema(cmd.output),
+  ...(cmd.subcommands && {
+    subcommands: cmd.subcommands.map((sub) => ({ name: sub.name, description: sub.description })),
+  }),
+});
+
 export const handler: CommandHandler = async (args, _flags) => {
   const schemas = await loadSchemas();
+  const wantsFull = args.includes("--full");
 
   // Filter out --flags from args
   const positionalArgs = args.filter(a => !a.startsWith("--"));
 
-  // No args: return all schemas with full introspection
+  // No args: compact index by default; --full restores the complete dump
   if (positionalArgs.length === 0) {
     return ok({
       version: VERSION,
-      commands: Object.values(schemas).map(enrichSchema),
+      commands: Object.values(schemas).map((cmd): unknown => (wantsFull ? enrichSchema(cmd) : compactSchema(cmd))),
       globalFlags: GLOBAL_FLAGS,
       exitCodes: EXIT_CODES,
+      full: wantsFull,
+      help: wantsFull
+        ? ["mktg schema <command> --json — single command schema"]
+        : [
+            "mktg schema <command> --json — full schema (output map, examples, subcommands) for one command",
+            "mktg schema <command> <subcommand> --json — subcommand schema",
+            "mktg schema --full --json — full schemas for every command",
+          ],
     });
   }
 

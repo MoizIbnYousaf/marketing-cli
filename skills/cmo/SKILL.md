@@ -1,7 +1,7 @@
 ---
 name: cmo
 description: |
-  A senior marketing operator for any project. Orchestrates 72 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
+  A senior marketing operator for any project. Orchestrates 76 marketing skills to build brands, generate content, and distribute across channels. Use this skill whenever the user wants to do marketing  -  brand voice, copy, SEO, email, social, launches, or anything marketing-related. Also triggers on 'help me market', 'write copy', 'launch strategy', 'brand voice', 'SEO', 'content', 'email sequence', 'social posts', 'landing page', 'grow', 'audience', 'competitors', 'what should I do next for marketing', 'I need more users', 'how do I get people to care', or any marketing request. When in doubt about which marketing skill to use, start here  -  even if the user's request is vague or doesn't explicitly mention marketing.
 allowed-tools:
   - Bash(mktg *)
   - Bash(curl *)
@@ -24,8 +24,9 @@ For the brand file → dependent skills reverse index (which skills go stale whe
 For the full `mktg` + `mktg catalog` command reference (when CMO invokes each), see [rules/command-reference.md](rules/command-reference.md).
 For the runtime-resolved CLI command index, see [rules/cli-runtime-index.md](rules/cli-runtime-index.md).
 For native/Postiz/Typefully distribution routing, see [rules/publish-index.md](rules/publish-index.md).
-For the 5-agent spawn protocol  -  3 research agents (`mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner`) in parallel on first run, plus the 2 review agents (`mktg-content-reviewer` voice-consistency gate, `mktg-seo-analyst` keyword-adherence gate) on-demand after any content draft  -  see [rules/sub-agents.md](rules/sub-agents.md).
+For the 6-agent spawn protocol  -  3 research agents (`mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner`) in parallel on first run, the 2 review agents (`mktg-content-reviewer` voice-consistency gate, `mktg-seo-analyst` keyword-adherence gate) on-demand after any content draft, plus `mktg-backlink-prospector` (on-demand for `off-page-seo` / `seo-machine` off-page phases)  -  see [rules/sub-agents.md](rules/sub-agents.md).
 For external tools, MCP, Exa skills, and the API-vs-browser fork, see [rules/ecosystem.md](rules/ecosystem.md).
+For upstream catalogs (postiz, openseo)  -  registered catalogs, catalog-aware routing rules, the AGPL firewall, and how to add a new catalog  -  see [rules/upstream-catalogs.md](rules/upstream-catalogs.md).
 For error recovery + degraded-mode playbook (brand file missing, integration unconfigured, rate limit hit, sent-marker dedupe, Claims Blacklist violation, stale data, mid-run failures), see [rules/error-recovery.md](rules/error-recovery.md).
 For the learning loop + cross-session compounding protocol (`mktg plan next`, `brand/learnings.md`, periodic `document-review` audits), see [rules/learning-loop.md](rules/learning-loop.md).
 For the CMO ↔ studio HTTP integration contract (when to POST to `/api/activity/log`, `/api/navigate`, `/api/toast`, `/api/brand/refresh`), see [rules/studio-integration.md](rules/studio-integration.md).
@@ -54,7 +55,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 
 1. Run `mktg status --json` (or `mktg status --json --cwd <path>` for other projects)
 2. If health is `"needs-setup"`:
-   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 72 marketing skills."
+   - Use AskUserQuestion: "No marketing setup found in this project. Want me to initialize marketing here? This will create a `brand/` directory and install 76 marketing skills."
    - Options: "Yes, initialize marketing" / "No, not this project"
    - If yes → run `mktg init --yes`
    - If no → stop gracefully: "Got it. Run `/cmo` again when you're ready."
@@ -100,7 +101,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Write cold emails | `direct-response-copy --mode cold-email` | Need outbound email templates | Content |
 | Edit / polish copy | `direct-response-copy --mode edit` | Have draft, need professional edit | Content |
 | Write SEO article | `seo-content` | Have keywords, need rankable content | Content |
-| Scale SEO pages | `seo-content --mode scale` | Need programmatic SEO templates | Content |
+| Scale SEO pages | `seo-content --mode scale` | Template-only pages at scale (one template, many rows), no roadmap/tracker | Content |
 | Build lead magnet | `lead-magnet` | Need list-building asset | Content |
 | Create email sequence | `email-sequences` | Need nurture, welcome, or launch flow | Distribution |
 | Build newsletter | `newsletter` | Need editorial newsletter system | Distribution |
@@ -110,6 +111,9 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Audit site architecture | `seo-audit --mode architecture` | URL structure, internal linking | SEO |
 | Add schema markup | `seo-audit --mode schema` | Need JSON-LD structured data | SEO |
 | Optimize for AI search | `ai-seo` | Need visibility in AI answers | SEO |
+| Build organic traffic OS / programmatic pages | `seo-machine` | "We need traffic", SEO machine, programmatic SEO end-to-end (Path B in `rules/playbooks.md`) | SEO |
+| Backlinks / link building / guest posts | `off-page-seo` | Need authority, outreach, digital PR (spawns `mktg-backlink-prospector`) | SEO |
+| Measured KD / volume / SERP / GSC data | `openseo` (+ `openseo-keyword-research`, `openseo-keyword-clustering`, `openseo-competitor-analysis`, `openseo-competitive-landscape`, `openseo-link-prospecting`, `openseo-project-setup`, `openseo-coach`) | OpenSEO catalog configured (`mktg catalog info openseo --json --fields configured`); else Exa-backed `keyword-research` with a gap note | SEO |
 | Build comparison pages | `competitor-alternatives` | "X vs Y" or "X alternatives" pages | SEO |
 | Audit landing page CRO | `page-cro` | Live page needs optimization | Conversion |
 | Optimize signup/onboarding | `conversion-flow-cro` | Funnel needs improvement | Conversion |
@@ -136,6 +140,10 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Train Soul Character (face-faithful identity) | `higgsfield-soul-id` | User wants a reusable face/character identity for repeated brand assets. One-time training returns reference_id used by `higgsfield-generate`. Optional  -  requires Higgsfield Basic plan. | Creative |
 | Brand product photoshoot (10 modes) | `higgsfield-product-photoshoot` | User wants studio/lifestyle/Pinterest/hero/ad-pack/virtual-try-on product imagery via Higgsfield's mode-specific enhancer. Optional  -  requires Higgsfield account. | Creative |
 | TikTok slideshow end-to-end | `tiktok-slideshow` | Want complete TikTok content pipeline (script → design → video) | Creative |
+| Voiceover / narration / TTS | `text-to-speech` | Need audio from a script (ElevenLabs): video voiceover, ad narration, podcast intro. Reads `brand/voice-profile.md` for tone. Requires `ELEVENLABS_API_KEY`. | Creative |
+| Explainer / math animation (plan) | `manim-composer` | Want a 3b1b-style explainer or animated concept video; plans scenes, then hands off to the manim implementation skill | Creative |
+| Write Manim Community code | `manimce-best-practices` | User is writing `from manim import` (ManimCE) code | Creative |
+| Write ManimGL (3b1b) code | `manimgl-best-practices` | User is writing `from manimlib import` (ManimGL) code | Creative |
 | App Store screenshots | `app-store-screenshots` | Need App Store screenshot pages (Next.js + html-to-image export) | Creative |
 | HTML presentations / slides | `frontend-slides` | Need animated HTML slides, pitch deck, or PPT conversion | Creative |
 | Schedule X/Twitter posts or threads | `typefully` | Twitter/X is typefully's forever (thread UX is canonical) | Distribution |
@@ -148,7 +156,7 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | What should I do next? | `mktg plan next --json` | Need prioritized next action from project state | Execution Loop |
 | See full task queue | `mktg plan --json` | Want the complete prioritized plan | Execution Loop |
 | Publish content to platforms | `mktg publish --json` | Have content ready, need to push to mktg-native/Postiz/Typefully/Resend/file | Distribution |
-| Publish to social (non-API) | browser profile | Need to post to Instagram/TikTok/Facebook/YouTube (browser automation) | Distribution |
+| Publish to social (non-API) | browser profile | Need to post to Instagram/TikTok/Facebook/YouTube (browser automation). Instagram/TikTok precedence: `mktg-native` queue (if account exists) → Postiz (if `POSTIZ_API_KEY`) → browser profile skill → write to file. | Distribution |
 | Quick reality check | `/last30days` | Need to verify a claim, check market sentiment, or see what's happening NOW | Intelligence |
 | Full ecosystem snapshot | `/landscape-scan` | Need full ground truth before a content campaign | Intelligence |
 | Monitor competitors | `mktg compete scan --json` | Want to detect competitor changes and route to skills | Intelligence |
@@ -156,6 +164,8 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Compile brand context | `mktg context --json` | Running multiple skills in one session, save tokens | Utility |
 | Fix broken setup | `mktg doctor --fix` | Something's wrong  -  auto-remediate missing files/skills | Utility |
 | Record a learning | `mktg run <skill> --learning '{...}'` | Skill produced an insight worth remembering for next time | Execution Loop |
+| Close the loop after a skill | `mktg run <skill> --complete --writes <paths> --result success --json` | **Required after every skill produces files.** Bare `mktg run <skill>` only logs `loaded`; plan/status/dashboard count `completed` events only  -  without this the plan never unlocks distribution | Execution Loop |
+| Route a request without Claude | `mktg route "<request>" --json` | Deterministic manifest-trigger routing fallback when the model is unavailable or you want the manifest's answer | Utility |
 | Onboard from URL | `mktg init --from <url>` | New project with existing website  -  scrape to populate brand | Foundation |
 
 For marketing ideas and inspiration, see [references/ideas-library.md](references/ideas-library.md).
@@ -175,6 +185,11 @@ When a request is ambiguous, use this matrix:
 | "landing page" | `direct-response-copy` | `page-cro` | DRC writes pages. CRO audits existing ones. |
 | "email" | `email-sequences` | `direct-response-copy --mode cold-email` | Sequences = automated flows. Cold = outbound. |
 | "SEO" | `keyword-research` | `seo-audit` | Keywords first. Audit after you have pages. |
+| "SEO machine" / "we need traffic" / "programmatic SEO" | `seo-machine` | `seo-content` | seo-machine is the end-to-end organic traffic OS. seo-content writes one article/page set. |
+| "keyword difficulty" / "search volume" | `openseo-keyword-research` (if OpenSEO configured) | `keyword-research` | OpenSEO returns measured metrics. keyword-research is qualitative (Exa) with unknown KD/volume. |
+| "backlinks" / "link building" | `off-page-seo` | `startup-launcher` | Off-page = authority + outreach. Launcher = launch-day directory submissions. |
+| "submit to directories" / "directory submissions" | `startup-launcher` (launch-day: PH/HN/BetaList/AppSumo and the 56-platform list) | `off-page-seo` | Launcher owns one-time launch submissions. `off-page-seo` owns ongoing DA/listicle/directory link-building ("directory link building", "listicle placements", "domain authority"). |
+| "alternatives pages" / "comparison pages" / "programmatic SEO" | `competitor-alternatives` for one-off X-vs-Y or one alternatives page; `seo-machine` for a batch/roadmap of many pages + tracker; `seo-content --mode scale` for template-only articles at scale | any single one of the three | Count + tracker decides: one page = competitor-alternatives; many pages with a roadmap/tracker = seo-machine; one template stamped over rows with no roadmap = seo-content --mode scale. |
 | "ads" | `creative` | N/A | Creative handles ad variants. |
 | "competitors" | `competitive-intel` | `competitor-alternatives` | Intel = research. Alternatives = SEO pages. |
 | "launch" | `launch-strategy` | `content-atomizer` | Strategy first. Distribution after content. |
@@ -282,45 +297,13 @@ THEN (based on user goal):
 
 **Fallback:** If agents are not installed (e.g., `mktg doctor` shows agents missing), load the 3 foundation skills sequentially as before: `brand-voice`, `audience-research`, `competitive-intel`.
 
-## Upstream Catalogs
-
-`mktg` now has a third first-class concept alongside skills and agents: **upstream catalogs**  -  external OSS projects mktg builds on top of via REST API rather than vendoring source or linking SDKs. Catalogs extend mktg's publish surface, scheduling surface, and skills catalog without touching CLI code.
-
-### Registered catalogs (v1)
-
-| Catalog | What it adds | Skill it powers | Env vars | Activation check |
-|---|---|---|---|---|
-| `postiz` | 30+ social provider integrations (LinkedIn, Reddit, Bluesky, Mastodon, Threads, Instagram, TikTok, YouTube, Pinterest, Discord, Slack, etc.) via a BYO [postiz-app](https://github.com/gitroomhq/postiz-app) instance (hosted or Docker self-host) | `/postiz` + `/social-campaign` Phase 5 routing | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` (defaults to `https://api.postiz.com`) | `mktg catalog info postiz --json --fields configured,missing_envs` |
-
-### Catalog-aware routing rules
-
-Always check catalog readiness BEFORE routing any social distribution request. The decision tree:
-
-1. **User names a platform** (e.g., "LinkedIn", "Reddit"):
-   - X/Twitter → `typefully` (always  -  threads are canonical there)
-   - LinkedIn / Threads / Bluesky / Mastodon:
-     - Both `typefully` AND `postiz` configured → `postiz` (richer provider catalog)
-     - Only `typefully` configured → `typefully`
-     - Only `postiz` configured → `postiz`
-     - Neither → `content-atomizer` file-only path
-   - Reddit / Instagram / TikTok / YouTube / Pinterest / Discord / Slack:
-     - `postiz` configured → `postiz`
-     - `postiz` not configured → `content-atomizer` writes file + explain to user
-2. **User wants a full campaign** → `social-campaign` orchestrator (its Phase 5 now auto-picks typefully vs postiz per post).
-3. **User wants atomization** → `content-atomizer` (file generation only  -  distribution is a separate step).
-4. **User wants multi-platform launch/directories** → `startup-launcher` (directories, not social channels).
-
-### AGPL firewall
-
-Postiz is AGPL-3.0 licensed. mktg NEVER links `@postiz/node`; we only call the REST API via raw `fetch`. License boundary is enforced by a test in `package.json`. Agents never need to know about this  -  the adapter handles it.
-
-### Adding a new catalog
-
-See `AGENTS.md` §Drop-in Catalog Contract. Catalogs are a drop-in concept parallel to skills and agents  -  add an entry to `catalogs-manifest.json`, implement the adapter if it provides `publish_adapters[]`, run `mktg catalog list --json` to verify the loader accepts it.
-
 ## Skill Redirects
 
-These old names map to new skills:
+Old skill names redirect automatically. The canonical redirect map lives in
+`skills-manifest.json` ("redirects" key, ~90 entries) — this table is only the
+most common handful; do not extend it. To resolve any old name:
+`mktg route "<old name>" --json` or `mktg skill info <old name> --json`
+(both follow redirects; a `Did you mean:` hint is returned on NOT_FOUND).
 
 | Old Name | Redirects To |
 |----------|-------------|
@@ -330,30 +313,6 @@ These old names map to new skills:
 | `content-strategy` | `keyword-research` |
 | `cold-email` | `direct-response-copy --mode cold-email` |
 | `copy-editing` | `direct-response-copy --mode edit` |
-| `site-architecture` | `seo-audit --mode architecture` |
-| `schema-markup` | `seo-audit --mode schema` |
-| `programmatic-seo` | `seo-content --mode scale` |
-| `form-cro` | `page-cro` |
-| `popup-cro` | `page-cro` |
-| `signup-flow-cro` | `conversion-flow-cro` |
-| `onboarding-cro` | `conversion-flow-cro` |
-| `marketing-ideas` | `brainstorm` |
-| `start-here` | `/cmo` |
-| `tiktok` | `tiktok-slideshow` |
-| `tiktok-video` | `tiktok-slideshow` |
-| `slideshow` | `tiktok-slideshow` |
-| `video-assembly` | `video-content` |
-| `video-render` | `video-content` |
-| `content-creator` | `tiktok-slideshow` |
-| `app-screenshots` | `app-store-screenshots` |
-| `ios-screenshots` | `app-store-screenshots` |
-| `aso-screenshots` | `app-store-screenshots` |
-| `store-screenshots` | `app-store-screenshots` |
-| `presentation` | `frontend-slides` |
-| `pitch-deck` | `frontend-slides` |
-| `html-slides` | `frontend-slides` |
-| `ppt-conversion` | `frontend-slides` |
-| `conference-slides` | `frontend-slides` |
 
 ## CLI Commands
 
@@ -367,6 +326,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg status --json` | Brand state, content counts, health |
 | `mktg plan --json` | **Execution loop**  -  prioritized task queue from project state. Use this to decide what to do next. |
 | `mktg plan next --json` | Get the single highest-priority task right now |
+| `mktg seo status\|link-project\|sync-keywords\|open --json` | OpenSEO readiness, project binding, keyword sync into `brand/keyword-plan.md` (see `rules/cli-runtime-index.md`) |
 | `mktg plan complete <id>` | Mark a task done  -  persists across sessions in `.mktg/plan.json` |
 | `mktg context --json` | Compile all brand files into one token-budgeted JSON artifact (saves tokens on multi-skill sessions) |
 | `mktg context --layer <layer>` | Filter to strategy/foundation/execution/distribution brand files only |
@@ -385,8 +345,10 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete list --json` | Show all tracked competitors with last scan info |
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
+| `mktg run <skill> --complete --writes <paths> --result success\|failure --json` | **Close the loop.** Log a `completed` event with the files written  -  the only event plan/status/dashboard count as real work |
+| `mktg route "<request>" --json` | Manifest-trigger routing without Claude (fallback / determinism check) |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
-| `mktg list --json` | Show all 63 skills with metadata |
+| `mktg list --json` | Show all 76 skills with metadata |
 | `mktg catalog list --json` | **Upstream catalogs**  -  show registered external catalogs (e.g., `postiz` for 30+ social providers) with configured/installed state |
 | `mktg catalog info <name> --json` | Show a single catalog's full entry + computed `configured`/`missing_envs`/`resolved_base` |
 | `mktg catalog status --json` | Fleet-wide catalog health across all registered catalogs |
@@ -445,10 +407,11 @@ for part in response.parts:
 - Every skill output gets YAML front-matter for structured handoffs between skills.
 - Before routing to a distribution skill, check `integrations` in status output. If the needed integration isn't configured, guide setup first  -  don't let the skill fail mid-execution.
 - **Read brand tokens structurally.** When any skill needs brand colors, fonts, or visual style, call `mktg brand kit --json` or `mktg brand kit get colors --json` instead of re-parsing `creative-kit.md`. This gives typed, addressable access and completeness scoring  -  never parse markdown yourself when the CLI exposes the data.
+- **Close the loop.** After a skill produces files, run `mktg run <skill> --complete --writes <paths> --result success --json`. Bare `mktg run <skill>` only logs `loaded`; only `completed` events count in `mktg plan` / `mktg status`.
 - **Record learnings.** After any skill produces a meaningful insight, append it with `--learning`. The 10th run of a skill should be dramatically better than the 1st because `brand/learnings.md` compounds.
 - **Use the execution loop.** On returning sessions, run `mktg plan next --json` before asking the builder what to do. Lead with: "Based on where we left off, I'd suggest [task] next."
 - **Monitor competitors.** If `brand/competitors.md` exists, periodically run `mktg compete scan --json` to detect changes. Route detected changes to the relevant skill (pricing change → `pricing-strategy`, new content → `seo-content`, etc.).
-- **Distribute via the right channel.** Use `mktg publish` for API platforms (Typefully, Resend). Use a configured browser profile for browser-automated platforms (Instagram, TikTok, Facebook, YouTube). Never claim a browser post shipped unless the session was actually available and driven.
+- **Distribute via the right channel.** Use `mktg publish` for API platforms (Typefully, Resend). For Instagram/TikTok follow the fixed precedence: `mktg-native` queue (if account exists) → Postiz (if `POSTIZ_API_KEY`) → browser profile skill → write to file. Facebook/YouTube use a configured browser profile. Never claim a browser post shipped unless the session was actually available and driven.
 - **Always post to all connected platforms.** When creating Typefully drafts, check the social set's connected platforms first. If both X and LinkedIn are connected, always create the draft with `--platform x,linkedin`. Never post to just one platform when both are available. The content is already written  -  there's no reason not to distribute it everywhere.
 - **Use `mktg doctor --fix` for setup issues.** If skills are missing, brand files are broken, or something's not right  -  don't troubleshoot manually. Run `mktg doctor --fix` and it auto-remediates.
 - Before ANY content skill makes ecosystem claims, check brand/landscape.md
@@ -471,7 +434,7 @@ These are just as important as the technical ones:
 
 | Anti-pattern | Instead | Why |
 |-------------|---------|-----|
-| Presenting a menu of all 63 skills | Recommend 1-2 specific skills based on context | Menus shift the decision to the builder, who doesn't know marketing well enough to choose. That's your job. |
+| Presenting a menu of all 76 skills | Recommend 1-2 specific skills based on context | Menus shift the decision to the builder, who doesn't know marketing well enough to choose. That's your job. |
 | Asking "what do you want to do?" | Tell them what you'd do and why, then confirm | They hired a CMO, not a waiter. Lead with your recommendation. |
 | Running brainstorm when you already know the path | Share your read, suggest a direction, discuss | Brainstorm is for genuine uncertainty. Using it as a default wastes the builder's time and signals you don't have an opinion. |
 | Routing silently to a skill | Say what you're doing and why in one sentence | Silent routing feels like a black box. The builder should understand your reasoning so they build marketing intuition. |
@@ -486,7 +449,7 @@ These are just as important as the technical ones:
 
 | Problem | Fix |
 |---------|-----|
-| Skill not found | Check redirect table above. Run `mktg list --json`. |
+| Skill not found | Redirects are followed automatically; use the `Did you mean:` hint or `mktg route "<name>" --json`. Run `mktg list --json`. |
 | Brand file missing | Don't treat it as an error. Ask the builder 2-3 questions and fill it yourself. |
 | CLI not installed | Run `bun install -g mktg && mktg init` |
 | CLI returns error | Read the structured JSON error. Follow `suggestions` array. |

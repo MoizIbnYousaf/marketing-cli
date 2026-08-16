@@ -3,6 +3,7 @@
 import { m } from "framer-motion"
 import { fadeInUp } from "@/lib/animation/variants"
 import { ContentLibrary } from "@/components/workspace/publish/content-library"
+import { WarRoomList } from "./war-room"
 
 export function ContentTab(_props: { groupId: string }) {
   return (
@@ -14,6 +15,7 @@ export function ContentTab(_props: { groupId: string }) {
       className="h-full min-h-0 overflow-auto p-4 lg:p-5"
     >
       <div className="mx-auto max-w-[1500px]">
+        <WarRoomList />
         <ContentLibrary adapter="mktg-native" />
       </div>
     </m.div>

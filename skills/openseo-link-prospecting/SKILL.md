@@ -87,6 +87,15 @@ Record only contact details actually found, each with its source URL.
 - **Prospecting without a linkable asset and reason** — because "please link to my homepage" converts at ~0%. No asset + reason, no outreach.
 - **Skipping competitor/paid-placement flags** — because pitching a direct competitor or a pay-to-play listicle wastes the user's outreach capital and can backfire publicly. Flag both in the target list.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-link-prospecting --complete --writes <paths written> --result success --json
+```
+
+
 ---
 
 *Adapted from [every-app/open-seo](https://github.com/every-app/open-seo) `.agents/skills/link-prospecting` (MIT). Workflow upstream; mktg artifact paths, off-page-seo handoff, and contact-attribution discipline added here.*

@@ -18,12 +18,11 @@ import type { PublishManifest } from "../../lib/types/mktg.ts";
 import { queryAll, execute } from "../../lib/sqlite.ts";
 import { globalEmitter } from "../../lib/sse.ts";
 import { rejectControlChars, validateResourceId } from "../../lib/validators.ts";
-import type { StudioErrorCode } from "../../lib/output.ts";
 import {
   PUBLISH_BODY,
   PUBLISH_NATIVE_PROVIDER_BODY,
 } from "../../lib/schemas.ts";
-import { safeJsonParse, type RouteHttpHelpers } from "../http.ts";
+import { safeJsonParse, mapMktgErrorCode, type RouteHttpHelpers } from "../http.ts";
 
 export { PUBLISH_BODY, PUBLISH_NATIVE_PROVIDER_BODY };
 
@@ -265,20 +264,9 @@ export async function tryPublishRoutes(
     });
 
     if (!result.ok) {
-      const code: StudioErrorCode =
-        result.error.code === "AUTH_MISSING" || result.error.code === "AUTH_INVALID"
-          ? "UNAUTHORIZED"
-          : result.error.code === "RATE_LIMITED"
-            ? "RATE_LIMITED"
-            : "UPSTREAM_FAILED";
+      const { code, status } = mapMktgErrorCode(result.error.code);
       const fix = result.error.suggestions?.[0] ?? undefined;
-      return h.errResponse(
-        code,
-        result.error.message,
-        code === "UNAUTHORIZED" ? 401 : 502,
-        fix,
-        corsHeaders,
-      );
+      return h.errResponse(code, result.error.message, status, fix, corsHeaders);
     }
 
     const data = result.data;

@@ -1,6 +1,6 @@
 ---
 name: seo-machine
-description: "Build an organic-traffic operating system for any site or app: a multi-phase, resumable engine that ships programmatic landing pages (alternatives, comparisons, use-cases, playbooks) on top of real keyword research. Use when the user says 'SEO machine', 'build organic traffic', 'rank on Google', 'we need traffic', 'alternatives pages', 'comparison pages', '/for/ pages', 'programmatic SEO', or 'build an SEO engine'. Distinct from `seo-audit` (one-off diagnostic) and `seo-content` (single-article writer): this skill owns research, planning, page generation, internal linking, off-page checklist, and the persistent phase tracker across the whole run. Resumable — every invocation continues the last run."
+description: "Build an organic-traffic operating system for any site or app: a multi-phase, resumable engine that plans and ships a BATCH ROADMAP of landing pages (use-cases, playbooks, /for/ pages, roundups) on top of real keyword research, with a persistent phase tracker. Use when the user says 'SEO machine', 'build organic traffic', 'rank on Google', 'we need traffic', 'SEO roadmap', 'batch of pages', 'pages roadmap', or 'build an SEO engine'. Distinct from `seo-audit` (one-off diagnostic) and `seo-content` (single-article writer): this skill owns the multi-page roadmap, run sequencing, page generation, internal linking, and the persistent phase tracker across the whole run. For a single alternatives or vs/comparison page, see /competitor-alternatives; for programmatic SEO templates and content at scale, see /seo-content; for off-page link building, see /off-page-seo. Resumable — every invocation continues the last run."
 category: seo
 tier: nice-to-have
 reads:
@@ -18,9 +18,10 @@ triggers:
   - seo machine
   - build organic traffic
   - rank in google
-  - alternatives pages
-  - comparison pages
-  - programmatic seo playbook
+  - seo roadmap
+  - batch of alternatives pages
+  - batch of pages
+  - pages roadmap
   - we need traffic
 ---
 

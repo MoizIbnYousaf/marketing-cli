@@ -36,6 +36,18 @@ describe("catalog list", () => {
     const postiz = parsed.catalogs.find((c: { name: string }) => c.name === "postiz");
     expect(postiz).toBeDefined();
     expect(postiz.license).toBe("AGPL-3.0");
+    expect(typeof postiz.configured).toBe("boolean");
+    // Compact default: no auth/transport detail on list items
+    expect(postiz.auth).toBeUndefined();
+    expect(postiz.transport).toBeUndefined();
+  });
+
+  test("--verbose restores the full CatalogEntry per item", async () => {
+    const { stdout, exitCode } = await runCli(["catalog", "list", "--verbose", "--json"]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    const postiz = parsed.catalogs.find((c: { name: string }) => c.name === "postiz");
+    expect(postiz).toBeDefined();
     expect(postiz.transport).toBe("http");
     expect(postiz.sdk_reference).toBeNull();
     expect(postiz.auth.header_format).toBe("bare");
@@ -297,7 +309,8 @@ describe("axis 3 (schema introspection): declared output shape matches real outp
   });
 
   test("every data-returning subcommand has non-empty output map (A3-G1 mitigation)", async () => {
-    const { stdout, exitCode } = await runCli(["schema", "--json"]);
+    // Bare `mktg schema` is a compact index; --full carries subcommand output maps
+    const { stdout, exitCode } = await runCli(["schema", "--full", "--json"]);
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     const catalog = parsed.commands.find((c: { name: string }) => c.name === "catalog");
@@ -309,15 +322,14 @@ describe("axis 3 (schema introspection): declared output shape matches real outp
 
   test("catalog list output shape matches schema", async () => {
     const [schemaRes, listRes] = await Promise.all([
-      runCli(["schema", "--json"]),
+      runCli(["schema", "catalog", "--json"]),
       runCli(["catalog", "list", "--json"]),
     ]);
     expect(schemaRes.exitCode).toBe(0);
     expect(listRes.exitCode).toBe(0);
     const schema = JSON.parse(schemaRes.stdout);
     const list = JSON.parse(listRes.stdout);
-    const catalogSchema = schema.commands.find((c: { name: string }) => c.name === "catalog");
-    const listSchema = catalogSchema.subcommands.find((s: { name: string }) => s.name === "list");
+    const listSchema = schema.subcommands.find((s: { name: string }) => s.name === "list");
     // Top-level declared fields must all be present in the actual response
     const declaredTop = Object.keys(listSchema.output).filter(k => !k.includes("."));
     for (const field of declaredTop) {

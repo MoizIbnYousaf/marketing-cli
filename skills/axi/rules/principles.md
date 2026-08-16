@@ -56,7 +56,7 @@ Secondary: installable Agent Skill generated from the same home-view guidance (`
 
 ### 8. Content first
 
-No-args shows live state + `bin` + one-line `description`, not a usage manual.
+No-args shows live state, `bin: <absolute executable path, $HOME collapsed to ~>` and a one-sentence `description`, not a usage manual.
 
 ### 9. Contextual disclosure
 

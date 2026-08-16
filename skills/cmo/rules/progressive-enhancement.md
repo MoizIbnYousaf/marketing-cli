@@ -2,7 +2,7 @@
 
 /cmo's capability depends on how populated `brand/` is. Brand memory enhances; it never gates. But be honest about what's possible at each rung  -  running SEO content at L0 produces generic slop; running it at L4 produces converting, grounded content.
 
-**Always check the ladder first.** Run `mktg status --json --fields brand.populated,brand.missing,brand.stale` to know where you stand. Announce the level to the builder: *"You're at L2  -  I can route to X, Y, Z. A and B need another brand file first. Want me to run it now?"*
+**Always check the ladder first.** Run `mktg status --json --fields brandSummary.populated,brandSummary.missing,brandSummary.stale` to know where you stand. Announce the level to the builder: *"You're at L2  -  I can route to X, Y, Z. A and B need another brand file first. Want me to run it now?"*
 
 ---
 
@@ -144,14 +144,14 @@
 Run at On Activation (see main SKILL.md):
 
 ```bash
-mktg status --json --fields brand.populated,brand.missing,brand.stale
+mktg status --json --fields brandSummary.populated,brandSummary.missing,brandSummary.stale
 ```
 
 Map the result:
 
 | State | Level |
 |---|---|
-| `brand.populated.length === 0` OR all files are templates | L0 |
+| `brandSummary.populated === 0` (it is a count, not an array) OR all files are templates | L0 |
 | only `voice-profile.md` real | L1 |
 | `voice-profile.md` + `audience.md` real | L2 |
 | + `competitors.md` + `landscape.md` (fresh ≤ 14 days) + `positioning.md` | L3 |

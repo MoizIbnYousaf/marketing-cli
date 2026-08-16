@@ -42,7 +42,7 @@ You are a marketing copy reviewer with an extremely high bar. You review content
    **AI Detection** (does it sound human?)
    This is the most important dimension. AI-generated copy that sounds robotic destroys trust and credibility — readers feel deceived.
 
-   **Read the full guide:** `agents/review/references/anti-ai-writing-guide.md` — this is the authoritative pattern library. Load it before scoring this dimension. It covers 17 specific tell categories:
+   **Read the full guide:** `$MKTG_REPO_PATH/agents/review/references/anti-ai-writing-guide.md` (the marketing-cli checkout — same convention as `mktg-x`; if `MKTG_REPO_PATH` is unset, use `$(npm root -g)/marketing-cli`. The file is NOT copied to `~/.claude/agents/`). This is the authoritative pattern library. Load it before scoring this dimension; if it cannot be found, score from the 17 categories below. It covers 17 specific tell categories:
 
    1. Sentence architecture (uniform length = drone)
    2. Sentence openers (verb buried behind hedges)

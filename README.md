@@ -4,15 +4,15 @@
 
 <p align="center">
   <a href="https://github.com/MoizIbnYousaf/marketing-cli/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-10b981" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/skills-72-10b981" alt="72 Skills">
-  <img src="https://img.shields.io/badge/agents-5-10b981" alt="5 Agents">
+  <img src="https://img.shields.io/badge/skills-76-10b981" alt="76 Skills">
+  <img src="https://img.shields.io/badge/agents-6-10b981" alt="6 Agents">
   <a href="https://www.npmjs.com/package/marketing-cli"><img src="https://img.shields.io/npm/v/marketing-cli?color=10b981" alt="npm"></a>
   <img src="https://img.shields.io/badge/tests-2,624-10b981" alt="2,624 tests">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript Strict">
 </p>
 
 <p align="center">
-  <b>One package. One install. CLI for the agent, Studio for the human. 72 skills, 6 research agents, brand memory that compounds.</b>
+  <b>One package. One install. CLI for the agent, Studio for the human. 76 skills, 6 research/review agents, brand memory that compounds.</b>
 </p>
 
 ---
@@ -25,7 +25,7 @@ One npm package, two surfaces. The CLI is the agent surface, the Studio dashboar
 
 | Surface | What it is | Path |
 |---|---|---|
-| `mktg` CLI | 72 skills, 6 agents, brand memory, `/cmo` orchestration | (root) |
+| `mktg` CLI | 76 skills, 6 agents, brand memory, `/cmo` orchestration | (root) |
 | Studio dashboard | Local Next.js + Bun API: pulse, signals, brand visualizer, publish queue | [`studio/`](studio/) |
 
 `npm i -g marketing-cli` installs both. The repo uses a bun workspace because Studio is a Next.js app with its own build, but at install time it is one package, one tarball.
@@ -34,7 +34,7 @@ One npm package, two surfaces. The CLI is the agent surface, the Studio dashboar
 
 You ask your agent for marketing help. It writes generic copy and forgets your audience by tomorrow. The skills it would use aren't installed; the brand files don't exist; the agent learns this halfway through, when something fails mid-execution. Every session is the first session.
 
-`marketing-cli` fixes that. Install once and your agent inherits 72 skills, 6 research agents, and a brand memory that compounds. Session 10 starts where session 9 ended. Every conversation builds on the last.
+`marketing-cli` fixes that. Install once and your agent inherits 76 skills, 6 research/review agents, and a brand memory that compounds. Session 10 starts where session 9 ended. Every conversation builds on the last.
 
 ---
 
@@ -56,9 +56,9 @@ You ask your agent for marketing help. It writes generic copy and forgets your a
 
 | | |
 |---|---|
-| **`mktg` CLI** | 22 commands, 21/21 Agent DX score, JSON-by-default |
-| **72 marketing skills** | The playbook, copied to `~/.claude/skills/` |
-| **5 research + review agents** | Parallel sub-agents in `~/.claude/agents/` |
+| **`mktg` CLI** | 24 commands, 21/21 Agent DX score, JSON-by-default |
+| **76 marketing skills** | The playbook, copied to `~/.claude/skills/` |
+| **6 research + review agents** | Parallel sub-agents in `~/.claude/agents/` |
 | **10 brand memory files** | Persistent marketing memory in your project's `brand/` (10 templates plus `SCHEMA.md`), created by `mktg init` |
 | **`/cmo` orchestrator** | The brain that routes every request to the right skill |
 | **Studio dashboard** | Local Next.js + Bun API dashboard at `studio/`, launched via `mktg studio` |
@@ -97,7 +97,7 @@ mktg orchestrates; it doesn't reimplement. When a good tool already exists, we c
 npm i -g marketing-cli
 ```
 
-That's it. The global npm install copies the 72 skills into `~/.claude/skills/` and the 6 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
+That's it. The global npm install copies the 76 skills into `~/.claude/skills/` and the 6 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
 
 Then open Claude Code in your project and run:
 
@@ -179,7 +179,7 @@ Other marketing skill repos give you a folder of markdown files. mktg is infrast
 | | mktg | Other skill repos |
 |---|---|---|
 | **Install** | `npm i -g marketing-cli && mktg init` | `git clone` then manually copy files |
-| **CLI** | 22 commands, JSON output, exit codes, `--dry-run` | None |
+| **CLI** | 24 commands, JSON output, exit codes, `--dry-run` | None |
 | **Memory** | 10 brand files that compound across sessions | Stateless. Starts from scratch every time. |
 | **Health checks** | `mktg doctor` with pass/warn/fail diagnostics | None |
 | **Skill lifecycle** | Dependency DAG, freshness tracking, versioning | Flat directory of markdown |
@@ -223,7 +223,7 @@ Foundation research launches 3 agents **in parallel**: brand voice extraction, a
 
 ---
 
-## Skills (50)
+## Skills (76)
 
 Organized by marketing layer. Foundation builds up to distribution.
 
@@ -232,7 +232,7 @@ Organized by marketing layer. Foundation builds up to distribution.
 
 | Skill | What it does |
 |-------|-------------|
-| **cmo** | Orchestrates all 72 skills. Routing table, disambiguation, guardrails. |
+| **cmo** | Orchestrates all 76 skills. Routing table, disambiguation, guardrails. |
 | **axi** | AXI catalog router — gh-axi, chrome-devtools-axi, principles, AXI vs MCP. |
 | **brand-voice** | Define or extract brand voice from existing content |
 | **audience-research** | Build buyer personas with parallel web research |
@@ -258,7 +258,7 @@ Organized by marketing layer. Foundation builds up to distribution.
 </details>
 
 <details>
-<summary><b>Execution (19 skills)</b>: Copy, content, SEO, creative, conversion optimization</summary>
+<summary><b>Execution (23 skills)</b>: Copy, content, SEO, creative, conversion optimization</summary>
 
 | Skill | What it does |
 |-------|-------------|
@@ -273,6 +273,10 @@ Organized by marketing layer. Foundation builds up to distribution.
 | **slideshow-script** | Generate 5 narrative scripts for visual content |
 | **video-content** | Assemble videos from slides (ffmpeg + Remotion) |
 | **tiktok-slideshow** | End-to-end: script, design, video |
+| **text-to-speech** | ElevenLabs voiceover / narration from a script, tuned by `brand/voice-profile.md` |
+| **manim-composer** | Plan 3b1b-style explainer / math animation videos (scene planning) |
+| **manimce-best-practices** | Manim Community (`from manim import`) coding rules |
+| **manimgl-best-practices** | ManimGL / 3b1b (`from manimlib import`) coding rules |
 | **app-store-screenshots** | App Store screenshot pages (Next.js export) |
 | **frontend-slides** | Animated HTML presentations and pitch decks |
 | **seo-audit** | Technical SEO, site architecture, schema markup |
@@ -347,8 +351,9 @@ The 3 research agents run **in parallel**. Results write back to `brand/` so eve
 |---------|---------|
 | `mktg init` | Scaffold `brand/` plus install skills plus install agents |
 | `mktg status` | Project marketing state snapshot |
+| `mktg setup` | Install a Claude Code SessionStart hook that injects `mktg status` into every session |
 | `mktg doctor` | Health checks: brand files, skills, agents, CLI tools, integrations |
-| `mktg list` | Show all 72 skills with install status and metadata |
+| `mktg list` | Show all 76 skills with install status and metadata |
 | `mktg update` | Re-install skills from latest package version |
 | `mktg schema` | Introspect all commands, flags, and output shapes |
 | `mktg skill` | Inspect, validate, register, analyze, and chain external skills |
@@ -359,13 +364,16 @@ The 3 research agents run **in parallel**. Results write back to `brand/` so eve
 | `mktg plan` | Execution loop: prioritized task queue from project state |
 | `mktg publish` | Distribution pipeline: push content to platforms |
 | `mktg compete` | Competitor change monitor: detect changes, route to skills |
-| `mktg dashboard` | Local dashboard: project health, next moves, skill catalog |
+| `mktg dashboard` | JSON-only project snapshot (deprecated for humans — use `mktg studio`) |
+| `mktg route` | Deterministic manifest-trigger routing: which skill for a request, no model needed |
+| `mktg seo` | OpenSEO readiness: `status`, `link-project`, `sync-keywords`, `open` |
 | `mktg catalog` | Upstream catalog registry: list, inspect, sync, status |
 | `mktg transcribe` | Audio/video to transcript via whisper.cpp (YouTube, TikTok, podcasts, local files) |
 | `mktg studio` | Launch the bundled Studio dashboard (Next.js + Bun API) from the in-repo `studio/` subfolder |
 | `mktg verify` | Orchestrated test-suite runner across the mktgmono ecosystem |
 | `mktg ship-check` | Aggregated go/no-go verdict across ecosystem surfaces |
 | `mktg cmo` | Headless `/cmo` entry point with structured output for agents |
+| `mktg release` | Version bump + changelog + git tag (+ optional npm/GitHub publish) |
 
 Every command ships `--json`, `--dry-run`, and `--fields`. The live contract is `mktg schema --json`. `/cmo` keeps operator indexes in:
 
@@ -403,10 +411,10 @@ $ mktg doctor --json | jq '.checks[] | select(.name | startswith("integration"))
 src/
 ├── cli.ts              # Entry point, command router
 ├── types.ts            # All shared TypeScript types
-├── commands/           # 20 top-level commands (init, doctor, status, list, update, schema, skill, brand, run, transcribe, context, plan, publish, compete, dashboard, catalog, studio, verify, ship-check, cmo)
+├── commands/           # 24 top-level commands (init, doctor, status, setup, list, update, schema, skill, brand, run, transcribe, context, plan, publish, compete, dashboard, catalog, studio, verify, ship-check, cmo, route, seo, release)
 └── core/               # Shared modules (output, errors, brand, skills, agents, integrations)
 
-skills/                 # 63 SKILL.md files installed via ai-agent-skills or directly
+skills/                 # 76 SKILL.md files installed via ai-agent-skills or directly
 ├── cmo/                # Orchestrator with rules/ and references/
 ├── brand-voice/
 ├── direct-response-copy/
@@ -446,7 +454,7 @@ bun run build         # Build
 ### Project Structure
 
 - `src/`: CLI source (TypeScript, ~15,500 lines)
-- `skills/`: 63 SKILL.md files (manifest-backed)
+- `skills/`: 76 SKILL.md files (manifest-backed)
 - `agents/`: 6 agent definitions
 - `tests/`: 2,599 tests across 96 files (real file I/O, no mocks)
 - `docs/`: Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
@@ -472,7 +480,7 @@ Contributions welcome. The fastest ways to help:
 
 ## Acknowledgments
 
-- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills): the breadth skill collection that inspired many of mktg's 72 skills
+- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills): the breadth skill collection that inspired many of mktg's 76 skills
 - [Postiz](https://github.com/gitroomhq/postiz-app) by [@gitroomhq](https://github.com/gitroomhq): the upstream catalog for 30+ social provider integrations (LinkedIn, Reddit, Bluesky, Mastodon, Threads, Instagram, TikTok, YouTube, Pinterest, Discord, Slack, etc.). mktg connects via REST API; license stays firewalled.
 - [last30days-skill](https://github.com/mvanhorn/last30days-skill) by [@mvanhorn](https://github.com/mvanhorn): live research across Reddit, X, YouTube, Hacker News, GitHub, and the web. `/cmo` chains it before any market claim, so the playbook stays grounded in what's actually happening this month, not training-data folklore.
 - [`@steipete/summarize`](https://github.com/steipete/summarize) by [@steipete](https://github.com/steipete): the text-compression CLI that mktg's `summarize` skill wraps with rules and budgets.

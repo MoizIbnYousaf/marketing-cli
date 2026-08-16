@@ -1,12 +1,19 @@
 ---
 name: text-to-speech
 description: Convert text to speech using ElevenLabs voice AI. Use when generating audio from text, creating voiceovers, building voice apps, or synthesizing speech in 70+ languages.
-license: MIT
-compatibility: Requires internet access and an ElevenLabs API key (ELEVENLABS_API_KEY).
-metadata: {"openclaw": {"requires": {"env": ["ELEVENLABS_API_KEY"]}, "primaryEnv": "ELEVENLABS_API_KEY"}}
 ---
 
+> Requires internet access and an ElevenLabs API key (`ELEVENLABS_API_KEY`). Adapted from the upstream ElevenLabs skill (MIT).
+
 # ElevenLabs Text-to-Speech
+
+## Brand context (read first)
+
+Before generating narration or voiceover for a project, read `brand/voice-profile.md`
+(injected by `mktg run text-to-speech --with-context`). Use its tone, pacing, and
+vocabulary rules to choose the voice, model, and stability/style settings, and to
+rewrite the script so it sounds like the brand. Close the loop with
+`mktg run text-to-speech --complete --writes <audio paths> --result success --json`.
 
 Generate natural speech from text - supports 70+ languages, multiple models for quality vs latency tradeoffs.
 
@@ -218,6 +225,13 @@ response = client.text_to_speech.convert.with_raw_response(
 audio = response.parse()
 print(f"Characters used: {response.headers.get('x-character-count')}")
 ```
+
+## Anti-Patterns
+
+- **Generating narration without reading `brand/voice-profile.md`** — the voice, pacing, and vocabulary must match the brand; generic defaults sound off-brand.
+- **Hardcoding one voice ID for every project** — pick the voice per brand tone; list voices first.
+- **Skipping text normalization** — numbers, dates, and abbreviations get mispronounced; normalize before synthesis.
+- **Not closing the loop** — run `mktg run text-to-speech --complete --writes <audio paths> --result success --json` so the audio counts as work in `mktg plan` / `mktg status`.
 
 ## References
 

@@ -28,19 +28,19 @@ const manifestSkillNames = Object.keys(manifest.skills).sort();
 
 describe("mktg list provides complete skill inventory", () => {
   test("returns exit code 0", async () => {
-    const { exitCode } = await run(["list", "--json"]);
+    const { exitCode } = await run(["list", "--routing", "--json"]);
     expect(exitCode).toBe(0);
   });
 
   test("returns valid JSON array of skills", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills).toBeDefined();
     expect(Array.isArray(parsed.skills)).toBe(true);
   });
 
   test("lists all skills from manifest", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     const parsed = JSON.parse(stdout);
     const listNames = parsed.skills.map((s: { name: string }) => s.name).sort();
     expect(listNames.length).toBe(manifestSkillNames.length);
@@ -63,7 +63,7 @@ describe("every skill has CMO-routable metadata", () => {
   }>;
 
   test("load list output", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     skills = JSON.parse(stdout).skills;
     expect(skills.length).toBeGreaterThan(0);
   });
@@ -115,7 +115,7 @@ describe("CMO can filter skills by category", () => {
   let skills: Array<{ name: string; category: string }>;
 
   test("load skills", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     skills = JSON.parse(stdout).skills;
   });
 
@@ -149,7 +149,7 @@ describe("CMO can route by execution layer", () => {
   let skills: Array<{ name: string; layer: string }>;
 
   test("load skills", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     skills = JSON.parse(stdout).skills;
   });
 
@@ -180,7 +180,7 @@ describe("CMO can match user intent to skill triggers", () => {
   let skills: Array<{ name: string; triggers: string[] }>;
 
   test("load skills", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     skills = JSON.parse(stdout).skills;
   });
 
@@ -254,13 +254,13 @@ describe("manifest redirects support CMO disambiguation", () => {
 
 describe("skill count consistency", () => {
   test("list count matches manifest count", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills.length).toBe(Object.keys(manifest.skills).length);
   });
 
   test("at least 40 skills exist", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills.length).toBeGreaterThanOrEqual(40);
   });
@@ -272,7 +272,7 @@ describe("CMO can identify must-have skills for priority routing", () => {
   let skills: Array<{ name: string; tier: string }>;
 
   test("load skills", async () => {
-    const { stdout } = await run(["list", "--json"]);
+    const { stdout } = await run(["list", "--routing", "--json"]);
     skills = JSON.parse(stdout).skills;
   });
 

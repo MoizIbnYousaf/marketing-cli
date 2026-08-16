@@ -51,7 +51,7 @@ endpoints. Skip them when they don't apply — don't be noisy.
 | **Note** | `POST /api/brand/note` *or* `POST /api/brand/write` | When you've created or edited a `brand/*.md` file. `/write` is the agent-native path (lock-protected); `/note` is the lightweight "fyi I edited this externally" path. |
 | **Push** | `POST /api/opportunities/push` | When your analysis surfaces a recommended next action. Set `priority` 0-100 — be honest about urgency. |
 | **Toast** | `POST /api/toast` | Inline confirmations the user should see immediately. `level: "success" \| "info" \| "warn" \| "error"`. |
-| **Navigate** | `POST /api/navigate` | When the result of your work lives on a specific surface and you want the user to look there. Valid tabs: `pulse`, `signals`, `publish`, `brand`. Use `{"tab":"signals","filter":{"mode":"radar"}}` for Trend radar. Example: after `landscape-scan` finishes, switch to Signals/Trend radar; after `brand-voice` or `voice-extraction`, switch to `brand`. |
+| **Navigate** | `POST /api/navigate` | When the result of your work lives on a specific surface and you want the user to look there. Valid tabs: `pulse`, `signals`, `publish`, `brand`. Use `{"tab":"signals"}` for Trend radar (`filter.mode` is dropped server-side; do not send it). Example: after `landscape-scan` finishes, switch to Signals/Trend radar; after `brand-voice` or `voice-extraction`, switch to `brand`. |
 
 ### Copy-paste recipes
 
@@ -80,7 +80,7 @@ curl -fsS -X POST "$STUDIO/api/toast" \
 # Navigate
 curl -fsS -X POST "$STUDIO/api/navigate" \
   -H 'content-type: application/json' \
-  -d '{"tab":"signals","filter":{"mode":"radar"}}'
+  -d '{"tab":"signals"}'
 ```
 
 ## 3. Brand files are first-class
@@ -146,7 +146,7 @@ curl -fsS -X POST "$STUDIO/api/opportunities/push" -H 'content-type: application
   -d '{"skill":"competitor-alternatives","reason":"Fresh landscape — write 3 X vs Y pages","priority":75}'
 
 curl -fsS -X POST "$STUDIO/api/navigate" -H 'content-type: application/json' \
-  -d '{"tab":"signals","filter":{"mode":"radar"}}'
+  -d '{"tab":"signals"}'
 
 curl -fsS -X POST "$STUDIO/api/toast" -H 'content-type: application/json' \
   -d '{"level":"success","message":"Landscape refreshed — see Trend radar"}'

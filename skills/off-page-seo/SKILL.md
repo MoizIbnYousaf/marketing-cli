@@ -1,6 +1,6 @@
 ---
 name: off-page-seo
-description: "Backlink + distribution checklist that expands a site's KD ceiling beyond what on-page work alone can earn. Use when the user mentions 'backlinks', 'off-page SEO', 'directory submissions', 'guest posts', 'outreach targets', 'link building', 'submit to directories', 'get listed in listicles', 'Product Hunt launch backlinks', or asks 'how do I get more domain authority'. Generates a prioritized, researched target list across directories, listicles, and guest-post candidates — does NOT submit anything on the user's behalf. Pairs with `mktg-backlink-prospector` agent for parallel research. Distinct from `seo-machine` (on-page programmatic) and `seo-audit` (technical diagnostic). The off-page half of the SEO operation."
+description: "Ongoing link-building campaigns that raise domain authority and expand a site's KD ceiling beyond what on-page work alone can earn. Use when the user mentions 'off-page SEO', 'link building', 'directory link building', 'backlink campaign', 'listicle placements', 'guest posts', 'outreach targets', 'get listed in listicles', or asks 'how do I get more domain authority'. Generates a prioritized, researched target list across directories, listicles, and guest-post candidates — does NOT submit anything on the user's behalf. Pairs with `mktg-backlink-prospector` agent for parallel research. For a launch-day push (submit to directories, Product Hunt, BetaList), see /startup-launcher. For measured backlink data — referring domains, backlink counts, rank tracking — see /openseo. Distinct from `seo-machine` (on-page programmatic) and `seo-audit` (technical diagnostic). The off-page half of the SEO operation."
 category: seo
 tier: nice-to-have
 reads:
@@ -10,13 +10,13 @@ reads:
   - brand/voice-profile.md
 writes: []
 triggers:
-  - backlinks
   - off-page seo
-  - directory submissions
+  - link building
+  - directory link building
+  - backlink campaign
   - guest posts
   - outreach targets
-  - link building
-  - submit to directories
+  - listicle placements
   - get listed in listicles
   - domain authority
 ---

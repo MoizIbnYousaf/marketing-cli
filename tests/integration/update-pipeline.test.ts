@@ -179,6 +179,9 @@ describe("Update dry-run mode", () => {
     // But the file should still have the modification (not overwritten)
     const stillModified = await Bun.file(skillFilePath).text();
     expect(stillModified).toContain("<!-- dry-run-test -->");
+
+    // Restore so later tests (idempotency) start from a clean install.
+    await writeFile(skillFilePath, original);
   });
 });
 

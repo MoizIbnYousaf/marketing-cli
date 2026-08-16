@@ -5,7 +5,7 @@
 // table is the portable floor both should agree on.
 
 import type { SkillsManifest } from "../types";
-import { jaccardSimilarity, tokenize } from "./skill-lifecycle";
+import { tokenize } from "./skill-lifecycle";
 
 export type RouteConfidence = "high" | "medium" | "low" | "none";
 
@@ -50,7 +50,31 @@ export const PLAYBOOKS: ReadonlyArray<{
 
 const EXACT_HIT_SCORE = 3;
 const SIMILARITY_HIT_SCORE = 1;
+// Trigger-coverage threshold: share of the trigger's content tokens that
+// appear in the prompt. Asymmetric on purpose — a longer natural sentence
+// ("write a landing page for my saas") must not be penalised for filler
+// tokens the way symmetric Jaccard penalises it.
 const SIMILARITY_THRESHOLD = 0.6;
+const STOPWORDS = new Set([
+  "a", "an", "the", "my", "our", "your", "for", "to", "of", "on", "in", "with", "and", "or",
+  "me", "us", "i", "we", "you", "it", "this", "that", "some", "please", "help", "can", "could",
+  "would", "want", "need", "like", "do", "make", "write", "create", "build", "get", "give", "up",
+]);
+
+const contentTokens = (tokens: ReadonlySet<string>): Set<string> => {
+  const out = new Set<string>();
+  for (const t of tokens) if (!STOPWORDS.has(t)) out.add(t);
+  return out;
+};
+
+/** |trigger ∩ prompt| / |trigger| over content tokens (0 when trigger is all stopwords). */
+const triggerCoverage = (trigger: ReadonlySet<string>, prompt: ReadonlySet<string>): number => {
+  const t = contentTokens(trigger);
+  if (t.size === 0) return 0;
+  let hit = 0;
+  for (const tok of t) if (prompt.has(tok)) hit++;
+  return hit / t.size;
+};
 const MAX_CANDIDATES = 3;
 const MAX_MATCHED_TRIGGERS = 5;
 
@@ -103,7 +127,7 @@ export const routePrompt = (
         if (matched.length < MAX_MATCHED_TRIGGERS) matched.push(trigger);
         continue;
       }
-      const similarity = jaccardSimilarity(tokenize(normalizedTrigger), promptTokens);
+      const similarity = triggerCoverage(tokenize(normalizedTrigger), promptTokens);
       if (similarity >= SIMILARITY_THRESHOLD) {
         score += SIMILARITY_HIT_SCORE;
         if (matched.length < MAX_MATCHED_TRIGGERS) matched.push(trigger);

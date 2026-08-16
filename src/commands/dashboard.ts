@@ -370,7 +370,7 @@ const buildSnapshot = async (flags: GlobalFlags): Promise<DashboardSnapshot | Co
   if (!doctorResult.ok) return doctorResult;
 
   const status = statusResult.data as unknown as StatusPayload;
-  const doctor = doctorResult.data as DoctorPayload;
+  const doctor = doctorResult.data as unknown as DoctorPayload;
   const passes = doctor.checks.filter((check) => check.status === "pass").length;
   const warns = doctor.checks.filter((check) => check.status === "warn").length;
   const fails = doctor.checks.filter((check) => check.status === "fail").length;
@@ -925,6 +925,6 @@ export const handler: CommandHandler = async (args, flags) => {
 
   return invalidArgs(`Unknown dashboard subcommand: ${subcommand}`, [
     "Valid subcommands: snapshot, plan, outputs, publish, system, compete, action",
-    "Or run 'mktg dashboard' to launch the local dashboard",
+    "Use 'mktg studio' for the UI (bare 'mktg dashboard' is deprecated)",
   ]);
 };

@@ -266,10 +266,10 @@ Switch the dashboard to a tab.
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `tab` | enum | yes | `pulse` \| `content` \| `publish` \| `brand` |
+| `tab` | enum | yes | `pulse` \| `signals` \| `publish` \| `brand` |
 | `filter` | object | no | Tab-specific filter to apply on arrival |
 
-Legacy callers that send `signals`, `trends`, `audience`, or `opportunities` are remapped before SSE emit: `signals` and `trends` open `content`; `audience` and `opportunities` open `pulse`.
+Legacy callers that send `hq`, `content`, `trends`, `audience`, or `opportunities` are remapped before SSE emit: `content` and `trends` open `signals`; `hq`, `audience` and `opportunities` open `pulse`. `filter.mode` is dropped server-side (the tab decides its own view).
 
 **Example**
 
@@ -563,7 +563,11 @@ Read endpoints /cmo can hit before deciding what to do next.
 | `GET /api/opportunities` | Pending recommendations |
 | `GET /api/intelligence/latest` | Most recent briefs |
 | `GET /api/research/active` | Running research jobs |
-| `GET /api/skills` | All 50 skills + routing metadata |
+| `GET /api/plan` | Prioritized task queue (`mktg plan --json`): `{tasks, health, completedCount, summary}` |
+| `GET /api/plan/next` | The one thing to do now (`mktg plan next --json`): `{task: PlanTask \| null}` — feeds the Pulse "Next actions" card |
+| `GET /api/compete` | Competitor watchlist (`mktg compete list --json`): `{urls: [{url, addedAt, lastScan, lastTitle}], total}` — feeds the Signals war-room list |
+| `GET /api/compete/scan` | Scan tracked competitors (`mktg compete scan --json`): `{results: [{url, status, title, changes, suggestedSkill}], changed, new, errors}`. Slow (network) |
+| `GET /api/skills` | All installed skills (76 today) + routing metadata |
 | `GET /api/catalog/list` | Upstream catalogs (postiz, etc.) |
 
 ### `GET /api/schema`
@@ -611,7 +615,7 @@ Enums surface too — `POST /api/navigate`:
 
 ```bash
 curl -s "http://localhost:3001/api/schema?route=/api/navigate" | jq '.routes[0].inputSchema.properties.tab'
-# → {"type":"string","enum":["pulse","content","publish","brand"]}
+# → {"type":"string","enum":["pulse","signals","publish","brand","hq","content"]}   (hq/content = legacy aliases)
 ```
 
 Unknown paths 404 with the structured error envelope:
@@ -669,7 +673,7 @@ A typical /cmo turn that runs a skill and updates the dashboard:
 3. POST /api/brand/note       {"file":"brand/landscape.md","excerpt":"…first 4-6 lines…"}
 4. POST /api/activity/log     {"kind":"skill-run","skill":"landscape-scan","summary":"Done — 18 sources, 5 new claims","filesChanged":["brand/landscape.md"]}
 5. POST /api/opportunities/push {"skill":"competitor-alternatives","reason":"You now have a fresh landscape — write 3 'X vs Y' pages","priority":75}
-6. POST /api/navigate         {"tab":"content"}
+6. POST /api/navigate         {"tab":"signals"}
 7. POST /api/toast            {"level":"success","message":"Launch creative is ready in Content"}
 ```
 

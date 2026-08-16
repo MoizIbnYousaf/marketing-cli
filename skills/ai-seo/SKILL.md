@@ -2,7 +2,7 @@
 name: ai-seo
 description: "Optimize content for AI search engines — ChatGPT, Perplexity, Claude, Gemini, and AI Overviews. Covers entity optimization, structured data, citation-worthy formatting, and platform-specific strategies. Use when someone wants visibility in AI-generated answers, says 'AI SEO', 'AI search', 'LLM optimization', 'ChatGPT ranking', 'Perplexity citations', 'AI Overviews', or wants their content cited by AI assistants. The new SEO frontier — if you're only optimizing for Google, you're already behind."
 category: seo
-tier: core
+tier: nice-to-have
 reads:
   - brand/voice-profile.md
   - brand/keyword-plan.md

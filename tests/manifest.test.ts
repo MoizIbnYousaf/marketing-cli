@@ -299,7 +299,11 @@ describe("Integration env_vars", () => {
       if (meta.source === "third-party") {
         expect(meta.env_vars).toBeDefined();
         expect(Array.isArray(meta.env_vars)).toBe(true);
-        expect(meta.env_vars!.length).toBeGreaterThan(0);
+        // Local-toolchain third-party skills legitimately need no credentials;
+        // everything else must declare at least one env var.
+        const NO_CREDENTIAL_SKILLS = new Set(["manim-composer", "manimce-best-practices", "manimgl-best-practices"]);
+        if (!NO_CREDENTIAL_SKILLS.has(name)) expect(meta.env_vars!.length).toBeGreaterThan(0);
+        for (const v of meta.env_vars!) expect(typeof v).toBe("string");
       }
     }
   });

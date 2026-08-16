@@ -271,13 +271,31 @@ export const findAiAgentSkillsBinary = (): string | null => {
   return null;
 };
 
+// Upper bound for the ai-agent-skills delegation (it sparse-clones from
+// GitHub). Beyond this we surface a structured failure and fall back to the
+// bundled direct install instead of hanging silently.
+export const AI_AGENT_SKILLS_TIMEOUT_MS = 120_000;
+const delegateTimeoutMs = (): number => {
+  const raw = Number(process.env.MKTG_SKILL_INSTALL_TIMEOUT_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : AI_AGENT_SKILLS_TIMEOUT_MS;
+};
+
 export const installSkillsWithAiAgentSkills = async (
   manifest: SkillsManifest,
   dryRun: boolean = false,
-): Promise<{ installed: string[]; skipped: string[]; failed: Array<{ name: string; reason: string }>; delegated: boolean; binary: string | null }> => {
+): Promise<{ installed: string[]; skipped: string[]; failed: Array<{ name: string; reason: string }>; delegated: boolean; binary: string | null; upToDate: boolean }> => {
   const binary = findAiAgentSkillsBinary();
   if (!binary) {
-    return { installed: [], skipped: [], failed: [], delegated: false, binary: null };
+    return { installed: [], skipped: [], failed: [], delegated: false, binary: null, upToDate: false };
+  }
+
+  // Cheap idempotency: when every manifest skill is already present in the
+  // install dir, skip the network-bound delegation entirely. Re-running
+  // `mktg init` then costs a directory scan, not a GitHub sparse-clone.
+  const status = await getInstallStatus(manifest);
+  const names = getSkillNames(manifest);
+  if (names.length > 0 && names.every((n) => status[n]?.installed)) {
+    return { installed: names, skipped: [], failed: [], delegated: true, binary, upToDate: true };
   }
 
   const args = ["mktg"];
@@ -290,25 +308,40 @@ export const installSkillsWithAiAgentSkills = async (
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     env: process.env,
+    timeout: delegateTimeoutMs(),
+    killSignal: "SIGKILL",
   });
 
+  if (result.error && (result.error as NodeJS.ErrnoException).code === "ETIMEDOUT") {
+    return {
+      installed: [],
+      skipped: [],
+      failed: [{ name: "_delegate", reason: `SKILL_INSTALL_TIMEOUT: ai-agent-skills did not finish within ${Math.round(delegateTimeoutMs() / 1000)}s` }],
+      delegated: false,
+      binary,
+      upToDate: false,
+    };
+  }
+
   if (result.status !== 0) {
-    const detail = (result.stderr || result.stdout || `exit ${result.status ?? 1}`).trim();
+    const detail = (result.error?.message || result.stderr || result.stdout || `exit ${result.status ?? 1}`).trim();
     return {
       installed: [],
       skipped: [],
       failed: [{ name: "_delegate", reason: detail }],
       delegated: false,
       binary,
+      upToDate: false,
     };
   }
 
   return {
-    installed: getSkillNames(manifest),
+    installed: names,
     skipped: [],
     failed: [],
     delegated: true,
     binary,
+    upToDate: false,
   };
 };
 
@@ -493,4 +526,35 @@ export const resolveManifest = async (cwd: string): Promise<SkillsManifest> => {
   } catch {
     return packageManifest;
   }
+};
+
+// Levenshtein edit distance — small, dependency-free; used only for
+// "did you mean" hints on NOT_FOUND so agents can self-correct typos
+// without a full `mktg list --json` round-trip.
+const editDistance = (a: string, b: string): number => {
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0]!;
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j]!;
+      prev[j] = Math.min(prev[j]! + 1, prev[j - 1]! + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diag = tmp;
+    }
+  }
+  return prev[b.length]!;
+};
+
+/** Top-N closest skill names (by prefix/substring, then edit distance ≤ 3). */
+export const suggestSkillNames = (manifest: SkillsManifest, query: string, limit = 3): string[] => {
+  const q = query.toLowerCase();
+  const scored = getSkillNames(manifest)
+    .map((name) => {
+      const n = name.toLowerCase();
+      const d = n.startsWith(q) || n.includes(q) ? 0 : editDistance(q, n);
+      return { name, d };
+    })
+    .filter((s) => s.d <= 3)
+    .sort((a, b) => a.d - b.d || a.name.localeCompare(b.name));
+  return scored.slice(0, limit).map((s) => s.name);
 };

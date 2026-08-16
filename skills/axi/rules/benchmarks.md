@@ -1,7 +1,7 @@
 # AXI Benchmark Snapshot
 
 Source: [axi.md](https://axi.md) / [kunchenguid/axi](https://github.com/kunchenguid/axi).
-Agent model in published runs: Claude Sonnet 4.6 (harness accepts `--model`; other models not published).
+Agent and judge model in published runs: Claude Sonnet 4.6 (harness accepts `--model`; other models not published).
 
 ## Browser automation (490 runs)
 
@@ -31,13 +31,24 @@ Mechanisms: specialized extractors (`tables --url`), combined ops (`open`, `fill
 | GitHub MCP + ToolSearch | 82% | $0.147 | 41.1s | 8 |
 | GitHub MCP (eager) | 87% | $0.148 | 34.2s | 6 |
 
-Complex tasks widen the gap (e.g. `ci_failure_investigation`: AXI ~$0.065 vs MCP ~$0.758).
+Complex tasks widen the gap (e.g. `ci_failure_investigation`: AXI ~$0.065 vs MCP ~$0.758, ~12×).
+
+Input tokens per task: MCP conditions avg ~185K vs ~79K for `gh-axi` (~2.3× / ~57% fewer). No token figure is published for the browser bench.
 
 ## Caveats (from upstream)
 
-- Public sites / read-mostly tasks in the browser suite
-- Single published agent model
+- Public sites only; read-only tasks
+- Single model (Sonnet 4.6, agent + judge)
 - LLM judge for success
-- Principles are domain-general; evaluation focuses on browser + GitHub
+- Domain-specific: principles are domain-general, but evaluation covers browser + GitHub only
+
+## Related work
+
+- Mao & Pradhan (Smithery, Mar 2026) — MCP vs CLI, 756 runs
+- Jones & Kelly (Anthropic, Nov 2025) — code execution with MCP
+- Varda & Pai (Cloudflare, Sep 2025) — Code Mode
+- Atlassian — mcp-compressor
+
+Cite these when explaining the MCP-compressed / Code Mode conditions.
 
 Use these numbers when explaining routing choices to humans — don't invent stats.

@@ -14,7 +14,7 @@ import {
  getCharLimit,
  type PublishIntegration,
 } from "@/lib/types/publish"
-import type { PublishManifest } from "@/lib/types/mktg"
+import type { AdapterItemResult, PublishManifest } from "@/lib/types/mktg"
 
 type Mode = "draft" | "schedule" | "now"
 
@@ -89,10 +89,9 @@ export function PostComposer({
            // PublishItemStatus (src/types.ts): CLI-owned vocabulary, keep 1:1
            status: "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped"
            detail: string
- /** Server-side follow-up: per-item post type so the UI
- * can stop inferring from `mode`. Optional until the
- * marketing-cli adapter starts emitting it. */
- postType?: "now" | "scheduled" | "draft"
+ // Mirrors AdapterItemResult.postType (studio/lib/types/mktg.ts /
+ // src/types.ts PublishPostType). The CLI emits it per item.
+ postType?: AdapterItemResult["postType"]
  }>
  }>
  }
@@ -122,17 +121,17 @@ export function PostComposer({
  const failedCount = json.data?.failed ?? 0
  const adapterResult = json.data?.adapters?.[0]
  const postTypeCounts = (adapterResult?.results ?? []).reduce<
- Record<"now" | "scheduled" | "draft" | "unknown", number>
+ Record<"now" | "schedule" | "draft" | "update" | "unknown", number>
  >(
  (acc, r) => {
  const t = r.postType ?? "unknown"
  acc[t] = (acc[t] ?? 0) + 1
  return acc
  },
- { now: 0, scheduled: 0, draft: 0, unknown: 0 },
+ { now: 0, schedule: 0, draft: 0, update: 0, unknown: 0 },
  )
  const hasExplicitPostType =
- postTypeCounts.now + postTypeCounts.scheduled + postTypeCounts.draft > 0
+ postTypeCounts.now + postTypeCounts.schedule + postTypeCounts.draft + postTypeCounts.update > 0
 
  const providerWord = `provider${successCount === 1 ? "" : "s"}`
  let message: string
@@ -140,15 +139,17 @@ export function PostComposer({
 
  if (hasExplicitPostType) {
  // Server knows what actually happened. Use the modal bucket.
- const buckets = (["draft", "scheduled", "now"] as const).filter(
+ const buckets = (["draft", "schedule", "now", "update"] as const).filter(
  (b) => postTypeCounts[b] > 0,
  )
  const label =
  buckets.length === 1
  ? buckets[0] === "draft"
  ? "saved as draft"
- : buckets[0] === "scheduled"
+ : buckets[0] === "schedule"
  ? "scheduled"
+ : buckets[0] === "update"
+ ? "updated"
  : "published"
  : "submitted with mixed post types"
  message = `Post ${label} on ${successCount} ${providerWord}`

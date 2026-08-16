@@ -2,7 +2,7 @@
 name: pricing-strategy
 description: "When the user wants help with pricing decisions, packaging, monetization strategy, or subscription models. Also use when the user mentions 'pricing', 'price', 'monetization', 'freemium', 'Van Westendorp', 'how much should I charge', 'pricing tiers', 'good-better-best', 'SaaS pricing', 'subscription model', 'free vs paid', 'packaging', 'pricing page', 'annual vs monthly', or is deciding between free and paid models. Make sure to use this whenever someone is making ANY pricing decision — even questions like 'should I charge for this?' or 'is freemium right for us?' or 'my conversion rate is low, is it the price?' are pricing strategy questions. Covers value-based pricing, tier structure, price psychology, and competitor benchmarking."
 category: strategy
-tier: strategy
+tier: must-have
 reads:
   - brand/positioning.md
   - brand/audience.md

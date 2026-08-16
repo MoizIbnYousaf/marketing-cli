@@ -29,6 +29,8 @@ export const schema: CommandSchema = {
   output: {
     "passed": "boolean — true if no checks failed",
     "checks": "Array<{name, status, detail, fix?}> — individual check results with optional remediation command",
+    "summary": "{total, passed, warned, failed} — aggregate check counts",
+    "summaryText": "string — one-line aggregate, e.g. '21 passed, 15 warned, 0 failed'",
     "fixes": "Array<{check, action, result, detail}> — fix results (only present with --fix)",
   },
   examples: [
@@ -50,9 +52,18 @@ type Check = {
   readonly fix?: string;
 };
 
+type DoctorSummary = {
+  readonly total: number;
+  readonly passed: number;
+  readonly warned: number;
+  readonly failed: number;
+};
+
 type DoctorResult = {
   readonly passed: boolean;
   readonly checks: readonly Check[];
+  readonly summary: DoctorSummary;
+  readonly summaryText: string;
   readonly fixes?: readonly FixEntry[];
 };
 
@@ -363,6 +374,15 @@ const runAllChecks = async (cwd: string, liveUpstream = false) => {
 };
 
 // TTY display
+const summarizeChecks = (checks: readonly Check[]): DoctorSummary => ({
+  total: checks.length,
+  passed: checks.filter((c) => c.status === "pass").length,
+  warned: checks.filter((c) => c.status === "warn").length,
+  failed: checks.filter((c) => c.status === "fail").length,
+});
+
+const formatSummary = (s: DoctorSummary): string => `${s.passed} passed, ${s.warned} warned, ${s.failed} failed`;
+
 const printChecks = (sections: ReturnType<typeof runAllChecks> extends Promise<infer T> ? T : never, fixes?: readonly FixEntry[]) => {
   writeStderr("");
   writeStderr(`  ${bold("mktg doctor")}`);
@@ -396,12 +416,13 @@ const printChecks = (sections: ReturnType<typeof runAllChecks> extends Promise<i
     writeStderr("");
   }
 
-  const all = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs];
-  const passed = !all.some(c => c.status === "fail");
-  if (passed) {
-    writeStderr(`  ${green(bold("All checks pass"))}`);
+  const all = [...sections.brand, ...sections.skills, ...sections.agents, ...sections.graph, ...sections.clis, ...sections.externalSkills, ...sections.integrations, ...sections.catalogs, ...sections.upstream, ...sections.studio];
+  const summary = summarizeChecks(all);
+  const counts = dim(`(${formatSummary(summary)})`);
+  if (summary.failed === 0) {
+    writeStderr(`  ${green(bold("All checks pass"))} ${counts}`);
   } else {
-    writeStderr(`  ${red(bold("Issues found"))} — run ${dim("mktg doctor --fix")} to auto-fix`);
+    writeStderr(`  ${red(bold("Issues found"))} ${counts} — run ${dim("mktg doctor --fix")} to auto-fix`);
   }
   writeStderr("");
 };
@@ -481,6 +502,13 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
 
   if (isTTY() && !flags.json) printChecks(sections, fixes);
 
-  const data: DoctorResult = fixes ? { passed, checks: allChecks, fixes } : { passed, checks: allChecks };
-  return ok(data);
+  const summary = summarizeChecks(allChecks);
+  const summaryText = formatSummary(summary);
+  const data: DoctorResult = fixes
+    ? { passed, checks: allChecks, summary, summaryText, fixes }
+    : { passed, checks: allChecks, summary, summaryText };
+  const help = passed
+    ? ["mktg status --json", "mktg plan --json"]
+    : ["mktg doctor --fix --json", "mktg doctor --configure --json", "mktg doctor --fields checks.name,checks.status,checks.fix --json"];
+  return ok(data, undefined, help);
 };

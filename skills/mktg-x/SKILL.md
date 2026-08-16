@@ -130,8 +130,8 @@ mktg-x is the **only** auth-walled source path in mktg's multimedia digestion sy
 **How source digestion calls mktg-x (canonical flow):**
 
 1. User asks mktg to read `https://x.com/levelsio/status/1234567890`
-2. `scripts/detect-source-type.sh` returns `{"type":"tweet","normalized":"<url>"}`
-3. The `source-extractor` sub-agent picks the **tweet** branch and invokes mktg-x via the Skill tool
+2. The calling agent detects the source type from the URL shape (`x.com/<user>/status/<id>` or `twitter.com/...` → tweet); there is no separate detection script in this repo
+3. The agent doing source extraction picks the **tweet** branch and invokes mktg-x via the Skill tool
 4. **Fallback path:** if the Skill tool isn't available, the extractor runs `bun run "$MKTG_REPO_PATH/skills/mktg-x/scripts/fetch-x.ts" <mode> "<url>"` directly — the script is the canonical engine, the SKILL.md just wraps it
 5. mktg-x's JSON output becomes the **"Copy / Prose"** section of the grounding memo. Media URLs go under a **"Media"** subsection
 6. If mktg-x fails (expired token, deleted tweet, suspended account, rate limit), the extractor returns an error extract with a suggestion to run `mktg doctor` or paste tweet text directly. It does NOT fall back to firecrawl.

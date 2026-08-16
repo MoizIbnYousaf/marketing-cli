@@ -49,10 +49,22 @@ if (!skillKeys.includes("cmo")) {
 const totalSkillCount = skillKeys.length;
 const marketingSkillCount = totalSkillCount - 1;
 
+const agentsManifestPath = path.join(REPO_ROOT, "agents-manifest.json");
+const agentsManifest = JSON.parse(fs.readFileSync(agentsManifestPath, "utf-8"));
+const agentKeys =
+  agentsManifest.agents && typeof agentsManifest.agents === "object"
+    ? Object.keys(agentsManifest.agents)
+    : null;
+if (!agentKeys || agentKeys.length === 0) {
+  console.error("[derive-counts] agents-manifest.json has no .agents entries — refusing to run.");
+  process.exit(1);
+}
+const agentCount = agentKeys.length;
+
 // Canonical strings derived from the counts.
-const PLUGIN_DESCRIPTION = `Agent-native marketing playbook CLI: ${totalSkillCount} skills, 5 research/review agents, brand memory, and /cmo orchestration.`;
-const PACKAGE_DESCRIPTION = `Agent-native marketing playbook: ${totalSkillCount} skills, 5 research agents, brand memory that compounds, plus a local Studio dashboard (beta). One install, then /cmo in Claude Code walks you through a 4-question setup wizard. CLI for the agent, Studio for the human.`;
-const CODEX_LONG_DESCRIPTION = `Install one CLI and give your agent ${marketingSkillCount} marketing skills, 5 research/review agents, persistent brand memory, native publishing workflows, and a local marketing studio.`;
+const PLUGIN_DESCRIPTION = `Agent-native marketing playbook CLI: ${totalSkillCount} skills, ${agentCount} research/review agents, brand memory, and /cmo orchestration.`;
+const PACKAGE_DESCRIPTION = `Agent-native marketing playbook: ${totalSkillCount} skills, ${agentCount} research/review agents, brand memory that compounds, plus a local Studio dashboard (beta). One install, then /cmo in Claude Code walks you through a 4-question setup wizard. CLI for the agent, Studio for the human.`;
+const CODEX_LONG_DESCRIPTION = `Install one CLI and give your agent ${marketingSkillCount} marketing skills, ${agentCount} research/review agents, persistent brand memory, native publishing workflows, and a local marketing studio.`;
 
 // ---------------------------------------------------------------------------
 // JSON field patches

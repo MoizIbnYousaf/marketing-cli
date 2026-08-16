@@ -172,7 +172,7 @@ Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestio
 
 **Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"*  -  short-horizon, one-shot, no roadmap.
 
-**Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"alternatives pages"*, *"comparison pages"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"*  -  multi-phase, ship dozens of pages, persistent roadmap.
+**Path B triggers:** *"SEO machine"*, *"build organic traffic"*, *"programmatic SEO"*, *"batch of alternatives pages"*, *"comparison pages roadmap"*, *"/for/ pages"*, *"we need traffic"*, *"build an SEO engine"*  -  multi-phase, ship dozens of pages, persistent roadmap.
 
 ### Path A  -  Short-horizon authority push
 
@@ -321,7 +321,7 @@ See `rules/studio-integration.md` for the full POST contract.
 | "make a video", "TikTok" | **Video Content** |
 | "email system", "inbound email", "Resend setup" | **Email Infrastructure** |
 | "rank on Google", "AI search", "compete for [topic]", "one article" | **SEO Authority Build  -  Path A** |
-| "SEO machine", "build organic traffic", "programmatic SEO", "alternatives pages", "we need traffic" | **SEO Authority Build  -  Path B (seo-machine)** |
+| "SEO machine", "build organic traffic", "programmatic SEO", "batch of alternatives pages", "we need traffic" | **SEO Authority Build  -  Path B (seo-machine)** |
 | "start a newsletter", "subscribers" | **Newsletter Launch** |
 | "show me the dashboard", "launch the studio", "visual mode" | **Studio Launch** |
 | "spawn the research team", "parallel research", "do this across agents" | **Agent Team Coordination** |

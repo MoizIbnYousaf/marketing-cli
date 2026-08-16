@@ -2,8 +2,8 @@
 name: email-sequences
 description: |
   Build automated email flows that nurture, convert, and retain. Creates complete sequences for welcome, nurture, launch, re-engagement, and onboarding with subject lines, body copy, timing, and A/B test plans. Use when someone needs email automation, a drip campaign, welcome series, launch emails, post-purchase emails, abandoned cart recovery, or says 'email sequence', 'drip campaign', 'welcome series', 'onboarding emails', 'nurture flow', 'automated emails', 'email marketing', 'retention emails', or 'lifecycle emails'. Even if they just say 'set up emails' or 'email strategy' without specifying 'sequence', this is likely the right skill. Includes deliverability rules and spam avoidance.
-category: email
-tier: core
+category: distribution
+tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/audience.md

@@ -183,7 +183,12 @@ describe("mktg seo sync-keywords", () => {
     const before = await readFile(join(tmp, "brand", "keyword-plan.md"), "utf-8");
     const preview = JSON.parse((await run(["seo", "sync-keywords", "--dry-run", "--json", "--cwd", tmp])).stdout);
     expect(preview.action).toBe("preview");
+    expect(preview.dryRun).toBe(true);
     expect(preview.keywords).toBe(2);
+    const noConfirm = JSON.parse((await run(["seo", "sync-keywords", "--json", "--cwd", tmp])).stdout);
+    expect(noConfirm.action).toBe("preview");
+    expect(noConfirm.needsConfirm).toBe(true);
+    expect(noConfirm.dryRun).toBeUndefined();
     expect(await readFile(join(tmp, "brand", "keyword-plan.md"), "utf-8")).toBe(before);
 
     const merged = JSON.parse((await run(["seo", "sync-keywords", "--confirm", "--json", "--cwd", tmp])).stdout);

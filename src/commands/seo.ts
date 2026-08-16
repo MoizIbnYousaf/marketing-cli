@@ -183,7 +183,7 @@ const statusSchema: CommandSchema = {
   description: "SEO readiness snapshot: OpenSEO catalog config, project binding, .seo state inventory, and keyword-plan state. All local state — no network calls",
   flags: [],
   output: {
-    catalog: "{configured, missingEnvs, mcp} — OpenSEO catalog state",
+    catalog: "{registered, configured, missingEnvs, mcp, resolvedBase} — OpenSEO catalog state",
     readiness: "'not_configured' | 'mcp_client_only' | 'api_ready' | 'selfhost_ready' — named readiness (integration plan Phase 2)",
     project: "SeoBinding | null — .seo/openseo.json binding (projectId, domain, mcpUrl)",
     bindingCorrupt: "boolean — true when the binding file exists but fails validation",
@@ -199,13 +199,16 @@ const linkSchema: CommandSchema = {
   name: "link-project",
   description: "Bind this repo to an OpenSEO project id (.seo/openseo.json). Idempotent: same project is a no-op; relinking to a different project requires --confirm",
   flags: [
-    { name: "--confirm", type: "boolean", required: false, description: "Required to write or relink the binding" },
+    { name: "--confirm", type: "boolean", required: false, description: "Required only when relinking to a DIFFERENT projectId (first link and same-project domain/mcpUrl changes write without it)" },
   ],
   output: {
     linked: "boolean — true when the binding was written",
     unchanged: "boolean — true when the existing binding already matched",
     binding: "SeoBinding — resulting binding (after state on write, preview on dry-run)",
     previousProjectId: "string | null — project being replaced when relinking",
+    needsConfirm: "boolean? — true when relinking to a different project without --confirm (nothing written)",
+    hint: "string? — next step when needsConfirm is true",
+    dryRun: "boolean? — true when --dry-run previewed the write",
   },
   examples: [
     { args: 'mktg seo link-project --input \'{"projectId":"proj_123","domain":"example.com"}\' --dry-run --json', description: "Preview binding" },
@@ -223,9 +226,13 @@ const syncSchema: CommandSchema = {
   output: {
     keywords: "number — keywords in the sync payload",
     added: "number — new keywords not already in the plan's sync section",
-    action: "'preview' | 'merged' | 'noop' — what happened",
+    action: "'preview' | 'merged' — what happened",
+    replacesExistingSection: "boolean — true when an earlier 'OpenSEO Sync' section will be/was replaced",
     section: "string — the 'OpenSEO Sync (date)' markdown section (preview or written)",
     keywordPlan: "string — path merged into (brand/keyword-plan.md)",
+    needsConfirm: "boolean? — true on preview (nothing written)",
+    dryRun: "boolean? — true when the preview came from --dry-run",
+    hint: "string? — next step when needsConfirm is true",
   },
   examples: [
     { args: "mktg seo sync-keywords --dry-run --json", description: "Preview the merge without writing" },
@@ -438,6 +445,7 @@ const handleSyncKeywords = async (flags: { cwd: string; dryRun: boolean; confirm
       section,
       keywordPlan: "brand/keyword-plan.md",
       needsConfirm: true,
+      ...(flags.dryRun ? { dryRun: true } : {}),
       hint: "Re-run with --confirm to merge",
     });
   }

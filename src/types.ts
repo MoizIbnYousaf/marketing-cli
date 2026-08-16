@@ -4,6 +4,8 @@
 // Global flags every command receives
 export type GlobalFlags = {
   readonly json: boolean;
+  /** Indent JSON output (2 spaces). Default JSON is compact (single line) for agents. */
+  readonly pretty?: boolean;
   readonly dryRun: boolean;
   readonly fields: readonly string[];
   readonly cwd: string;
@@ -29,8 +31,10 @@ export type MktgError = {
 };
 
 // Discriminated union for command results
+// `help` — optional list of concrete next-command templates (e.g. "mktg run <skill> --json").
+// formatOutput emits it as a top-level "help" key in JSON and a footer in TTY.
 export type CommandResult<T = unknown> =
-  | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string }
+  | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string; readonly help?: readonly string[] }
   | { readonly ok: false; readonly error: MktgError; readonly exitCode: ExitCode };
 
 export type PublishPostType = "draft" | "schedule" | "now" | "update";
@@ -51,11 +55,12 @@ export type PublishItemStatus = "queued-local" | "draft-external" | "sent" | "wr
 export const TERMINAL_PUBLISH_STATUSES: readonly PublishItemStatus[] = ["queued-local", "draft-external", "sent", "written-file"];
 
 // Result constructors
-export const ok = <T>(data: T, display?: string): CommandResult<T> => ({
+export const ok = <T>(data: T, display?: string, help?: readonly string[]): CommandResult<T> => ({
   ok: true,
   data,
   exitCode: 0,
   ...(display !== undefined && { display }),
+  ...(help !== undefined && help.length > 0 && { help }),
 });
 
 export const err = (
@@ -344,6 +349,9 @@ export type CommandSchema = {
   readonly output: Readonly<Record<string, string>>;
   readonly examples: readonly { readonly args: string; readonly description: string }[];
   readonly vocabulary?: readonly string[];
+  /** When true, cli.ts does not reject `--flags` absent from this schema
+   * (for commands that forward argv to a subprocess, e.g. studio). */
+  readonly passthroughFlags?: boolean;
 };
 
 // --- Skill lifecycle types ---

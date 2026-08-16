@@ -2,8 +2,8 @@
 name: newsletter
 description: |
   Design, write, and grow editorial newsletters with consistent voice and format. Creates newsletter strategy, templates, and growth playbook. Use when someone wants to start a newsletter, improve an existing one, grow subscribers, write a newsletter issue, plan newsletter content, or set up on Substack, Beehiiv, Ghost, or ConvertKit. Triggers on 'newsletter', 'editorial', 'weekly email', 'subscriber growth', 'newsletter template', 'email digest', 'Substack', 'Beehiiv', 'newsletter strategy', 'newsletter issue', 'recurring email', or 'email content'. Even if they just say 'I want to email my audience regularly' or 'start a weekly email', this is the skill. Covers curated, editorial, and hybrid formats with referral programs, platform guidance, and engagement metrics.
-category: email
-tier: core
+category: distribution
+tier: nice-to-have
 reads:
   - brand/voice-profile.md
   - brand/audience.md

@@ -25,7 +25,7 @@ If the user wants something different, they'll say so — but proposing the plan
 Also run on returning activation:
 
 ```bash
-mktg status --json --fields brand.populated,brand.stale,integrations
+mktg status --json --fields brandSummary.populated,brandSummary.stale,integrations
 ```
 
 — to detect anything that drifted since last time (stale brand files, newly-unconfigured integrations).
@@ -41,6 +41,8 @@ The last 10 learnings inform what NOT to try again.
 ---
 
 ## After any meaningful action
+
+First, close the run: `mktg run <skill> --complete --writes <paths> --result success --json`. Only `completed` events count in `mktg plan` / `mktg status`; a bare `mktg run <skill>` is just `loaded`.
 
 Every successful campaign, every failed experiment, every strategic decision worth remembering writes to `brand/learnings.md`:
 

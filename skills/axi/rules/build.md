@@ -11,7 +11,7 @@ Use when the user wants a new agent-facing CLI, or a review of an existing one a
 5. **Empty states** — explicit zero-result lines on success.
 6. **Errors** — stdout structured errors; idempotent mutations; no prompts; unknown flags exit 2 with valid list.
 7. **Ambient** — `setup hooks` for Claude Code + Codex + OpenCode; ship Agent Skill as secondary.
-8. **Content first** — no-args home view with `bin`, `description`, live data, `help[]`.
+8. **Content first** — no-args home view with `bin` (absolute executable path, `$HOME` collapsed to `~`), one-sentence `description`, live data, `help[]`.
 9. **Contextual disclosure** — next-step command templates; parameterize runtime values.
 10. **`--help`** — concise per subcommand.
 

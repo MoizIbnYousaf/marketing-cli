@@ -1,8 +1,8 @@
 ---
 name: video-content
-description: "Three-tier video pipeline: ffmpeg Quick (5s, instant) → ffmpeg Enhanced with Ken Burns (15s, polished) → Remotion Animated (60-90s, production-grade). Takes static slides from Paper MCP or any PNGs and assembles them into platform-ready video. Make sure to use this skill whenever the user has slides, images, or PNGs and wants to turn them into video — even if they just say 'make a video from these', 'animate my slides', 'I have images and need a TikTok', or 'stitch these together'. Also use when they mention ffmpeg video assembly, Remotion rendering, Ken Burns effects, or any slides-to-video pipeline. Works with any PNG source — Paper exports, Canva, screenshots, anything."
+description: "Three-tier video pipeline: ffmpeg Quick (5s, instant) → ffmpeg Enhanced with Ken Burns (15s, polished) → Remotion Animated (60-90s, production-grade). Takes static slides from Paper MCP or any PNGs and assembles them into platform-ready video. Make sure to use this skill whenever the user has slides, images, or PNGs and wants to turn them into video — even if they just say 'make a video from these', 'animate my slides', 'I have images and need a TikTok', or 'stitch these together'. Also use when they mention ffmpeg video assembly, Remotion-animated slide assembly, Ken Burns effects, or any slides-to-video pipeline. Owns the slides→MP4 assembly pipeline; for writing, debugging, or running `remotion render` on Remotion code itself, see /remotion-best-practices; for screen-recorded product demos, see /marketing-demo. Works with any PNG source — Paper exports, Canva, screenshots, anything."
 category: creative
-tier: core
+tier: nice-to-have
 reads:
   - marketing/handoffs/*-handoff.yaml
   - marketing/content-specs/*.yaml
@@ -20,7 +20,6 @@ triggers:
   - video content
   - assemble video
   - ffmpeg video
-  - remotion render
 allowed-tools:
   - Bash(mktg status *)
   - Bash(ffmpeg *)

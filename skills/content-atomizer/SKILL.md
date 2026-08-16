@@ -2,8 +2,8 @@
 name: content-atomizer
 description: |
   Take one piece of long-form content and atomize it into 10-20 platform-specific posts across 8 platforms (Twitter/X, LinkedIn, Instagram, Reddit, TikTok, YouTube, Threads, Bluesky). Turns blog posts, podcasts, videos, and newsletters into native social content for each platform. Use this skill whenever someone has existing content they want to distribute — even if they don't say 'atomize' explicitly. Triggers include: 'repurpose this', 'turn this into posts', 'social content from my blog', 'I wrote an article and want to promote it', 'cross-post this', 'content distribution', 'break this down for social', 'I have a podcast episode', 'turn this video into clips', 'make social posts from this', 'content calendar from this article', or any request to get more mileage from existing content.
-category: content
-tier: core
+category: distribution
+tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/audience.md

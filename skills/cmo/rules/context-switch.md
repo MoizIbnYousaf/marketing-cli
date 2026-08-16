@@ -72,7 +72,7 @@ If the target directory has no `brand/` (i.e., `mktg status --json` returns `hea
 
 1. **Ask the user if they have a public URL for the project.**
    - YES → offer `mktg init --from <url> --yes`. This scrapes the URL via firecrawl + chains foundation skills to auto-populate `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md` with real data. Roughly 90 seconds, end-to-end.
-   - NO → offer `mktg init --yes`. Scaffolds `brand/` with templates + installs all 50 skills + 5 agents + catalogs. User fills in brand files via the Full Product Launch playbook.
+   - NO → offer `mktg init --yes`. Scaffolds `brand/` with templates + installs all skills + agents + catalogs. User fills in brand files via the Full Product Launch playbook.
 2. Confirm the project name that landed matches the user's intent (`mktg status --json` after init returns `project.name`).
 3. Route based on the ladder (see `rules/progressive-enhancement.md`) — a fresh init is L0.
 

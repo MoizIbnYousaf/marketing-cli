@@ -24,9 +24,16 @@
 // skill content; T10 (`mktg skill upgrade`) will do the actual update.
 //
 // Exit codes (this command):
-//   0 = every checked skill is in-sync
-//   1 = drift detected on at least one skill
-//   2 = environment error (named skill missing upstream.json, every script crashed, etc.)
+//   0 = checks ran (in-sync OR drifted — drift is a finding, not an error;
+//       branch on data.ok / data.summary.drifted / skills[].in_sync).
+//       Also 0 for --dry-run (plan only, zero network) and the empty case.
+//   1 = NOT_FOUND — the named skill has no upstream.json
+//   2 = INVALID_ARGS (bad skill name) or environment error when EVERY script
+//       crashed (gh/jq missing, bad upstream.json) and nothing could be checked
+//
+// --dry-run returns the plan: which skills carry upstream.json, the script
+// path each would invoke, whether it exists, and its source counts. No script
+// is spawned and no network call is made.
 
 import { join } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
@@ -43,8 +50,8 @@ import { writeStdout } from "../core/output";
 
 // ---------------------------------------------------------------------------
 // Types — shape returned by the handler. `ok` here mirrors HTTP-style success:
-// `true` means no drift was found; the CLI process exit code reflects the same
-// signal (0 vs 1) so script wrappers can branch on `$?`.
+// `true` means no drift was found. The process exit code is 0 for both
+// in-sync and drifted runs — branch on `ok` / `summary.drifted`, not `$?`.
 // ---------------------------------------------------------------------------
 
 export type SkillCheckUpstreamEntry = {
@@ -54,11 +61,33 @@ export type SkillCheckUpstreamEntry = {
   readonly source_count: number;
   readonly last_checked_at: string;
   readonly error?: string;
+  /** Present when `error` is set — how to fix the environment failure. */
+  readonly remediation?: string;
 };
 
 export type SkillCheckUpstreamResult = {
   readonly skills: readonly SkillCheckUpstreamEntry[];
-  readonly summary: { readonly total: number; readonly in_sync: number; readonly drifted: number };
+  readonly summary: { readonly total: number; readonly in_sync: number; readonly drifted: number; readonly errored: number };
+  readonly ok: boolean;
+};
+
+/** --dry-run plan entry — what WOULD run for one skill. Nothing is spawned. */
+export type SkillCheckUpstreamPlanEntry = {
+  readonly name: string;
+  readonly upstream_json: string;
+  readonly script: string;
+  readonly script_exists: boolean;
+  /** Number of upstream sources declared in upstream.json. */
+  readonly source_count: number;
+  /** Total tracked files across all sources. */
+  readonly file_count: number;
+};
+
+export type SkillCheckUpstreamPlan = {
+  readonly dry_run: true;
+  readonly network: false;
+  readonly skills: readonly SkillCheckUpstreamPlanEntry[];
+  readonly summary: { readonly total: number; readonly with_script: number; readonly missing_script: number };
   readonly ok: boolean;
 };
 
@@ -73,6 +102,14 @@ export const checkUpstreamSubcommand: CommandSchema = {
   description:
     "Check provenance drift across skills with upstream.json — runs each skill's scripts/check-upstream.sh and aggregates results",
   flags: [
+    {
+      name: "--dry-run",
+      type: "boolean",
+      required: false,
+      default: false,
+      description:
+        "Return the plan only: skills with upstream.json, the check-upstream.sh path each would run, and source/file counts. Zero scripts spawned, zero network.",
+    },
     {
       name: "--all",
       type: "boolean",
@@ -100,11 +137,14 @@ export const checkUpstreamSubcommand: CommandSchema = {
       "SkillCheckUpstreamEntry[] — per-skill drift results: {name, in_sync, drift_count, source_count, last_checked_at}",
     "summary.total": "number — count of skills with upstream.json that were checked",
     "summary.in_sync": "number — skills where every recorded SHA still matches upstream",
-    "summary.drifted": "number — skills with at least one drifted file",
-    ok: "boolean — true when summary.drifted === 0 (no drift detected anywhere)",
+    "summary.drifted": "number — skills with at least one drifted file (errored skills are NOT counted here)",
+    "summary.errored": "number — skills whose check-upstream.sh failed (env/auth/network); see skills[].error + remediation",
+    ok: "boolean — true when summary.drifted === 0 and summary.errored === 0 (drift exits 0; branch on this field, not the exit code)",
+    dry_run: "true — only present with --dry-run; skills[] then carries {name, upstream_json, script, script_exists, source_count, file_count}",
   },
   examples: [
-    { args: "mktg skill check-upstream --json", description: "Check every upstream skill" },
+    { args: "mktg skill check-upstream --json", description: "Check every upstream skill (exit 0 even when drift is found; read summary.drifted)" },
+    { args: "mktg skill check-upstream --dry-run --json", description: "Plan only — list skills + scripts that would run, no network" },
     {
       args: "mktg skill check-upstream remotion-best-practices --json",
       description: "Check a single named skill",
@@ -173,6 +213,21 @@ const countManifestFiles = async (upstreamJsonPath: string): Promise<number> => 
     return sources.reduce((acc, src) => acc + (Array.isArray(src.files) ? src.files.length : 0), 0);
   } catch {
     return 0;
+  }
+};
+
+// Source + file counts for the --dry-run plan. Malformed upstream.json → 0/0.
+const readManifestCounts = async (upstreamJsonPath: string): Promise<{ sources: number; files: number }> => {
+  try {
+    const raw = await readFile(upstreamJsonPath, "utf-8");
+    const parsed = JSON.parse(raw) as { sources?: Array<{ files?: unknown[] }> };
+    const sources = Array.isArray(parsed.sources) ? parsed.sources : [];
+    return {
+      sources: sources.length,
+      files: sources.reduce((acc, src) => acc + (Array.isArray(src.files) ? src.files.length : 0), 0),
+    };
+  } catch {
+    return { sources: 0, files: 0 };
   }
 };
 
@@ -249,13 +304,21 @@ const checkSkill = async (skillName: string, skillsDir: string): Promise<SkillCh
   try {
     parsed = JSON.parse(stdout);
   } catch {
+    // Surface the script's real cause (last stderr line) — the script header
+    // documents exit 2 = preflight failure (missing gh/jq, manifest, gh API).
+    const stderrLines = (proc.stderr ?? "").trim().split("\n").filter((l) => l.trim().length > 0);
+    const cause = stderrLines.length > 0 ? stderrLines[stderrLines.length - 1]! : "no stderr output";
+    const remediation = proc.status === 2
+      ? "Preflight failure — run `gh auth login`, install `jq`, and check network access; then re-run"
+      : "Run `bash scripts/check-upstream.sh` inside the skill dir to see the raw output";
     return {
       name: skillName,
       in_sync: false,
       drift_count: 0,
       source_count,
       last_checked_at,
-      error: `check-upstream.sh did not emit valid JSON (exit ${proc.status ?? "?"})`,
+      error: `check-upstream.sh did not emit valid JSON (exit ${proc.status ?? "?"}): ${cause}`,
+      remediation,
     };
   }
 
@@ -287,7 +350,7 @@ const checkSkill = async (skillName: string, skillsDir: string): Promise<SkillCh
 // Handler — entry point invoked from src/commands/skill.ts dispatch.
 // ---------------------------------------------------------------------------
 
-export const handler: CommandHandler<SkillCheckUpstreamResult> = async (args, flags) => {
+export const handler: CommandHandler<SkillCheckUpstreamResult | SkillCheckUpstreamPlan> = async (args, flags) => {
   const positional = args.filter((a) => !a.startsWith("--"));
   const wantsNdjson = args.includes("--ndjson");
   const requestedName = positional[0];
@@ -330,6 +393,33 @@ export const handler: CommandHandler<SkillCheckUpstreamResult> = async (args, fl
     targets = allUpstreamSkills;
   }
 
+  // --dry-run: describe the plan, spawn nothing, touch no network.
+  if (flags.dryRun) {
+    const planned: SkillCheckUpstreamPlanEntry[] = [];
+    for (const name of targets) {
+      const skillDir = join(skillsDir, name);
+      const script = join(skillDir, "scripts", "check-upstream.sh");
+      const upstream_json = join(skillDir, "upstream.json");
+      const counts = await readManifestCounts(upstream_json);
+      planned.push({
+        name,
+        upstream_json,
+        script,
+        script_exists: await fileExists(script),
+        source_count: counts.sources,
+        file_count: counts.files,
+      });
+    }
+    const withScript = planned.filter((p) => p.script_exists).length;
+    return ok({
+      dry_run: true,
+      network: false,
+      skills: planned,
+      summary: { total: planned.length, with_script: withScript, missing_script: planned.length - withScript },
+      ok: true,
+    });
+  }
+
   const entries: SkillCheckUpstreamEntry[] = [];
   for (const name of targets) {
     const entry = await checkSkill(name, skillsDir);
@@ -340,20 +430,20 @@ export const handler: CommandHandler<SkillCheckUpstreamResult> = async (args, fl
   }
 
   const inSync = entries.filter((e) => e.in_sync).length;
-  const drifted = entries.length - inSync;
+  const errored = entries.filter((e) => e.error !== undefined).length;
+  // Errored entries are environment failures, not drift — keep them out of
+  // `drifted` so an auth failure does not masquerade as upstream drift.
+  const drifted = entries.length - inSync - errored;
   const result: SkillCheckUpstreamResult = {
     skills: entries,
-    summary: { total: entries.length, in_sync: inSync, drifted },
-    ok: drifted === 0,
+    summary: { total: entries.length, in_sync: inSync, drifted, errored },
+    ok: drifted === 0 && errored === 0,
   };
 
-  // Determine the process exit code per the task spec:
-  //   0 = no drift
-  //   1 = drift detected (one or more skills out of sync)
-  //   2 = environment failure with no successful checks
-  // The discriminated union forces ok:true → exitCode:0, so we cast through
-  // when we need the {data, exitCode:1|2} combination. cli.ts only inspects
-  // `ok`, `data`, and `exitCode` at runtime, so the cast is safe.
+  // Exit code (see file header): only the all-errored case is non-zero —
+  // nothing could be checked, so the caller has an environment problem, not
+  // a drift finding. The discriminated union forces ok:true → exitCode:0, so
+  // we cast through; cli.ts only inspects `ok`, `data`, `exitCode` at runtime.
   const allErrored = entries.length > 0 && entries.every((e) => e.error !== undefined);
   if (allErrored) {
     return {
@@ -362,16 +452,9 @@ export const handler: CommandHandler<SkillCheckUpstreamResult> = async (args, fl
       exitCode: 2,
     } as unknown as CommandResult<SkillCheckUpstreamResult>;
   }
-  if (drifted > 0) {
-    return {
-      ok: true,
-      data: result,
-      exitCode: 1,
-    } as unknown as CommandResult<SkillCheckUpstreamResult>;
-  }
 
-  // Empty case (no skills with upstream.json) and the all-clean case both
-  // hit this path with exit 0 — empty is intentionally not an error so CI
-  // can run the command unconditionally without special-casing first runs.
+  // Drift, partial errors, the empty case, and all-clean all exit 0 — drift
+  // is a finding surfaced via data.ok=false / summary.drifted / skills[].in_sync,
+  // never a process failure. CI gates on `--fields summary.drifted`.
   return ok(result);
 };

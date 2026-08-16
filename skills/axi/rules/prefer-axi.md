@@ -31,8 +31,8 @@ Is there only an MCP server?
 
 | Domain | AXI | vs raw CLI | vs MCP |
 |---|---|---|---|
-| Browser (490 runs) | `chrome-devtools-axi` | Lower cost/turns than agent-browser | ~57% fewer input tokens vs eager MCP |
-| GitHub (425 runs) | `gh-axi` | 100% vs 86% success | ~66% cheaper than GitHub MCP |
+| Browser (490 runs) | `chrome-devtools-axi` | Lower cost/turns than agent-browser | Fewer turns (4.5 vs 6.2–7.6) and lower cost vs all MCP variants |
+| GitHub (425 runs) | `gh-axi` | 100% vs 86% success | ~66% cheaper; ~57% fewer input tokens (79K vs 185K) than GitHub MCP |
 
 Details: [benchmarks.md](benchmarks.md).
 

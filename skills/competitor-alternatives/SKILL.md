@@ -1,13 +1,14 @@
 ---
 name: competitor-alternatives
-description: "Creates high-converting 'X vs Y' and 'X alternatives' SEO pages that capture comparison search traffic. Researches competitors, writes honest comparison content, and adds schema markup (FAQPage, ItemList). Use when someone needs alternatives pages, comparison content, or says 'alternatives page', 'vs page', 'comparison', 'competitor alternatives', 'X vs Y page', or wants to capture competitor brand search traffic with SEO content. Also trigger when someone wants to rank for competitor brand names, capture competitor search traffic, create a compare page, or build a competitive content hub. Even if they just say 'how do we compete with X' or 'we need to show up when people search for [competitor]', this skill applies."
+description: "Creates high-converting 'X vs Y' and 'X alternatives' SEO pages that capture comparison search traffic. Researches competitors, writes honest comparison content, and adds schema markup (FAQPage, ItemList). Use when someone needs alternatives pages, comparison content, or says 'alternatives page', 'vs page', 'comparison', 'competitor alternatives', 'X vs Y page', or wants to capture competitor brand search traffic with SEO content. Also trigger when someone wants to rank for competitor brand names, capture competitor search traffic, create a compare page, or build a competitive content hub. Even if they just say 'how do we compete with X' or 'we need to show up when people search for [competitor]', this skill applies. Owns the individual alternatives / vs / comparison page. For a batch roadmap of many pages with a phase tracker, see /seo-machine. For programmatic SEO and templated content at scale, see /seo-content."
 category: seo
-tier: core
+tier: nice-to-have
 reads:
   - brand/competitors.md
   - brand/positioning.md
   - brand/voice-profile.md
   - brand/audience.md
+  - brand/landscape.md
 writes:
   - campaigns/comparisons/vs/{competitor}-vs-{product}.md
   - campaigns/comparisons/alternatives/{competitor}-alternatives.md

@@ -11,17 +11,17 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 72 marketing skills (70 playbook + `/cmo` + `/axi`), 6 agents, 22 commands, 2 upstream catalogs. The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 76 marketing skills (74 playbook + `/cmo` + `/axi`), 6 agents (4 research + 2 review), 24 commands, 2 upstream catalogs (postiz, openseo). The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
-| `mktg` CLI | 22 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
+| `mktg` CLI | 24 commands | Infrastructure: setup, health, skill management, catalog registry, verification, and orchestration |
 | `/cmo` skill | 1 orchestrator | Routes every marketing request to the right skill |
 | `/axi` skill | 1 orchestrator | Routes agent-tool work to AXI-catalog CLIs (gh-axi, chrome-devtools-axi, …) |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
-| Marketing skills | 62 | The playbook, installed to `~/.claude/skills/` |
+| Marketing skills | 76 total (74 playbook + `/cmo` + `/axi`) | The playbook, installed to `~/.claude/skills/` |
 | Marketing agents | 6 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
-| Upstream catalogs | 1 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled) |
+| Upstream catalogs | 2 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled; openseo = SEO data plane via research_adapters + MCP) |
 | Studio dashboard | 1 | Next.js + Bun API workspace member at `studio/`, bundled in the tarball, launched via `mktg studio` |
 
 ## Repo Layout
@@ -39,23 +39,29 @@ This is a bun-workspaces monorepo with one publishable package: `marketing-cli`.
 src/
 ├── cli.ts              # Entry point, command router, global flag parsing
 ├── types.ts            # All shared TypeScript types
-├── commands/           # One file per command (init, doctor, status, list, etc.)
+├── commands/           # One file per command (init, doctor, status, setup, list, etc.)
 ├── core/
-│   ├── output.ts       # JSON/TTY formatting, --fields filtering
+│   ├── output.ts       # JSON/TTY formatting, --fields filtering, size warnings
+│   ├── args.ts         # Canonical --flag value parsing (flagValue/flagValues)
+│   ├── project-assess.ts # Project health/next-step assessment (status/plan)
+│   ├── url-validation.ts # SSRF guard: public-URL validation, one-hop redirect, size cap
+│   ├── publish/postiz/ # Postiz raw-fetch client, markers, media, adapter, admin (single client; studio imports it)
 │   ├── errors.ts       # Structured errors, exit codes 0-6, sandboxPath()
 │   ├── brand.ts        # Brand dir management + freshness assessment
 │   ├── skills.ts       # Skill registry, install, integrity verification
 │   ├── skill-add.ts    # External skill chaining (mktg skill add)
 │   ├── agents.ts       # Agent registry, install to ~/.claude/agents/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
-skills/                  # 72 SKILL.md files installed to ~/.claude/skills/
+skills/                  # 76 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
 agents/                  # 6 agent .md files installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
-catalogs-manifest.json   # Upstream catalog registry (postiz v1; parallel to skills/agents)
+catalogs-manifest.json   # Upstream catalog registry (postiz v1, openseo; parallel to skills/agents)
 studio/                  # Studio dashboard workspace member (ships inside the tarball)
 ├── app/                 # Next.js dashboard
 ├── server.ts            # Bun API server
+├── server/http.ts       # HTTP helpers for the API
+└── server/routes/       # activity, brand, content, publish, signals
 ├── bin/mktg-studio.ts   # Local launcher (mktg studio resolves this first)
 ├── components/          # React UI
 └── package.json         # Workspace package.json: Next.js deps + build scripts (no separate publish)
@@ -207,7 +213,7 @@ is documented for /cmo in `skills/cmo/rules/publish-index.md`.
 |---|---|---|---|---|---|
 | `postiz` | [gitroomhq/postiz-app](https://github.com/gitroomhq/postiz-app) | AGPL-3.0 (firewalled via raw HTTP) | `https://api.postiz.com` (hosted, Stripe-gated) | Docker self-host (6 containers: Postgres + Redis + Temporal + Elasticsearch + app + worker) | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` |
 
-**Adding a catalog:** see `AGENTS.md` §Drop-in Catalog Contract. Catalogs extend mktg's `publish` adapters (social, email), scheduling (future), and skills catalog without CLI code changes; they drop in via `catalogs-manifest.json`.
+**Adding a catalog:** see `AGENTS.md` §Drop-in Catalog Contract. Catalogs extend mktg's `publish` adapters (social, email), `research_adapters` + `mcp` blocks (openseo: SEO data plane, `OPENSEO_MCP_URL` override), scheduling (future), and skills catalog without CLI code changes; they drop in via `catalogs-manifest.json`.
 
 **Distinct from Ecosystem.** The `Ecosystem` table below lists **local CLIs** mktg shells out to (ffmpeg, firecrawl, gh). Catalogs are **remote services** with REST APIs. Different trust model, different install story, different version pinning.
 

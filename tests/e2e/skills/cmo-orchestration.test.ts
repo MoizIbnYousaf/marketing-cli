@@ -198,6 +198,8 @@ describe("E2E: every routing-table skill name resolves to a real skill in the ma
         "threads", "facebook",
         "colors", "typography", "visual", "visualBrandStyle",
         "brandSummary", "studio_enabled", "mode",
+        // run-log event names in the close-the-loop rows
+        "loaded", "completed",
         "selected", "distribution",
       ]);
       if (nonSkills.has(candidate)) continue;

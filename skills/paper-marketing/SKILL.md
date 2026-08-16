@@ -16,7 +16,7 @@ description: >
   on "paper marketing", "instagram design", "TikTok design", "slideshow
   design", "create carousel", or "social graphics".
 category: creative
-tier: core
+tier: nice-to-have
 reads:
   - brand/voice-profile.md
   - brand/creative-kit.md

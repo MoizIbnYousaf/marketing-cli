@@ -2,7 +2,7 @@
 name: slideshow-script
 description: "Generate 5 different narrative scripts for visual slideshows from a single positioning angle. Each script uses a different storytelling framework (AIDA, PAS, BAB, Star-Story-Solution, Stat-Flip) producing genuinely different stories, not layout variations. Make sure to use this skill whenever the user wants slideshow scripts, TikTok content scripts, carousel copy, narrative frameworks for visual content, or says anything about writing scripts for slides or social media storytelling. Even 'write me some TikTok content' or 'I need carousel copy' should trigger this. Outputs structured YAML content specs that chain directly to /paper-marketing for visual design."
 category: creative
-tier: core
+tier: nice-to-have
 reads:
   - brand/positioning.md
   - brand/audience.md

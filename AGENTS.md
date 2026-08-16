@@ -63,6 +63,7 @@ Add a new marketing skill without touching CLI code.
 | Progressive enhancement | Work at L0 (zero context), improve at L4 (full brand) |
 | Voice file reference | Always `voice-profile.md`, never `voice.md` |
 | Brand file paths | Always use `brand/` prefix in frontmatter reads |
+| Frontmatter ↔ manifest | Frontmatter `reads:`/`writes:` use `brand/x.md`; `skills-manifest.json` uses bare `x.md`. Brand entries must match after prefix strip (non-brand outputs like `marketing/...` are ignored) — `bun scripts/check-brand-io.ts` prints drift, `tests/manifest-brand-io.test.ts` enforces it. |
 
 ### CORRECT vs WRONG
 

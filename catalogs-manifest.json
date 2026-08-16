@@ -38,7 +38,7 @@
         "credential_envs": ["OPENSEO_API_KEY"],
         "header_format": "bearer"
       },
-      "skills": ["openseo"],
+      "skills": ["openseo", "openseo-coach", "openseo-competitive-landscape", "openseo-competitor-analysis", "openseo-keyword-clustering", "openseo-keyword-research", "openseo-link-prospecting", "openseo-project-setup"],
       "mcp": {
         "url_env": "OPENSEO_MCP_URL",
         "default_url": "https://app.openseo.so/mcp"

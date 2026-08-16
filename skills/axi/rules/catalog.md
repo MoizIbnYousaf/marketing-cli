@@ -53,6 +53,9 @@ npm i -g chrome-devtools-axi && chrome-devtools-axi setup hooks
 | `kubernetes-axi` | thatdudealso | Kubernetes | [thatdudealso/kubernetes-axi](https://github.com/thatdudealso/kubernetes-axi) |
 | `redis-axi` | thatdudealso | Redis | [thatdudealso/redis-axi](https://github.com/thatdudealso/redis-axi) |
 | `celery-axi` | thatdudealso | Celery | [thatdudealso/celery-axi](https://github.com/thatdudealso/celery-axi) |
+| `oracle-axi` | thatdudealso | Oracle DB | [thatdudealso/oracle-axi](https://github.com/thatdudealso/oracle-axi) |
+| `cyber-mux` | unional | Terminal mux (tmux / herdr / WezTerm) | [unional/cyber-mux](https://github.com/unional/cyber-mux) |
+| `glab-axi` | karotkriss | GitLab | [karotkriss/glab-axi](https://github.com/karotkriss/glab-axi) |
 
 ## Routing notes for /axi
 
@@ -60,3 +63,5 @@ npm i -g chrome-devtools-axi && chrome-devtools-axi setup hooks
 2. Community AXIs: check the repo README for `npx`/`skills add` entrypoints — patterns match official ones when they ship as AXI SDK CLIs.
 3. `specops` demonstrates an AXI **embedded in a skill** (not only as a global npm binary) — useful when packaging internal tools.
 4. Marketing distribution / brand / SEO stays on `/cmo` even if a community AXI overlaps a channel (e.g. Slack).
+5. `cyber-mux` overlaps the local `/tmux` and `/herdr` skills — those stay the default for Moiz's session workflow; the owner decides precedence per task.
+6. `glab-axi` is the GitLab counterpart of `gh-axi`; do not fall back to raw `glab` / MCP when it fits.

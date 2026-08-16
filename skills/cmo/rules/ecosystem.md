@@ -15,7 +15,7 @@
 | `remotion` | Programmatic React video compositions | Polished animated video with precise timing, typography, and brand-calibrated visual system. | `video-content` (tier 3) |
 | `whisper-cli` (whisper.cpp) | Speech-to-text | Transcribe audio/video for atomization. Source for `content-atomizer` on podcasts, videos, voicemails. | `mktg transcribe` |
 | `yt-dlp` | Media download | Pull YouTube/TikTok/podcast sources for transcription. | `mktg transcribe` |
-| `gh` | GitHub CLI | Fallback when `gh-axi` is unavailable. Prefer AXI for agent GitHub work. | `startup-launcher`, `app-store-changelog` |
+| `gh` | GitHub CLI | Fallback when `gh-axi` is unavailable. Prefer AXI for agent GitHub work. | `startup-launcher` |
 | `gh-axi` | Agent-ergonomic GitHub CLI (AXI) | Issues, PRs, CI runs, releases — prefer over raw `gh` / GitHub MCP. | `/axi` router |
 | `chrome-devtools-axi` | Agent-ergonomic browser CLI (AXI) | Navigate/click/fill/extract with combined ops + `--query`. Prefer over eager chrome-devtools-mcp. | `/axi` router |
 | `summarize` (steipete/summarize) | Token-bounded text compression | Compress long pasted content before passing to downstream skills. | `/summarize` skill directly |
@@ -70,7 +70,7 @@ When a platform has no usable API, /cmo routes to the browser. Multiple browser 
 
 **CMO routes to OpenSEO when:** any metrics-bearing SEO request arrives and `mktg catalog info openseo --json --fields configured` returns true. SEO playbook skills (`keyword-research`, `seo-audit`, `off-page-seo`, `ai-seo`, `seo-machine`, `competitor-alternatives`) have Backend Selection sections that prefer OpenSEO when ready.
 
-**Wired via:** `.mcp.json` at the repo root (`openseo` server, hosted MCP `https://app.openseo.so/mcp`, `OPENSEO_MCP_URL` override for self-host) and `OPENSEO_API_KEY` for non-interactive automation (`mktg doctor` surfaces catalog readiness). Cost discipline: bulk research + `save_keywords` require confirmation (DataForSEO credit).
+**Wired via:** `.mcp.json` at the repo root (`openseo` server, hosted MCP `https://app.openseo.so/mcp` hardcoded; for self-host edit that URL — the `OPENSEO_MCP_URL` env only drives `mktg catalog` readiness/`mcp.url_env`, not `.mcp.json`) and `OPENSEO_API_KEY` for non-interactive automation (`mktg doctor` surfaces catalog readiness). Cost discipline: bulk research + `save_keywords` require confirmation (DataForSEO credit).
 
 ---
 
@@ -121,22 +121,21 @@ For every distribution request, /cmo picks one of two paths. Get this wrong and 
 | Facebook | **Browser only** (no postiz, no Typefully) | browser profile |
 | Any transactional email | API | `send-email` (Resend) |
 | Any marketing email sequence | API | `email-sequences` (to the project's configured ESP from `stack.md`) |
-| Any App Store marketing | Hybrid  -  `asc` CLI for metadata, browser profile for screenshots upload | `app-store-screenshots`, `app-store-changelog` |
+| Any App Store marketing | Hybrid  -  `asc` CLI for metadata, browser profile for screenshots upload | `app-store-screenshots` |
 
-**Decision flow:**
+**Decision flow (Instagram / TikTok / Reddit  -  fixed precedence, identical in `SKILL.md` §Catalog-aware routing and `publish-index.md`):**
 
-1. Is the platform in the native rollout (`x`, `tiktok`, `instagram`, `reddit`, `linkedin`)?
-   - YES → use `mktg publish --adapter mktg-native` for local queue/history and Studio-native workflow.
-2. Does the user need real external network posting now?
-   - YES → check Postiz/Typefully/browser availability before claiming anything shipped.
-3. Is the user's `POSTIZ_API_KEY` set?
-   - YES → use Postiz for supported external social providers; keep Typefully reserved for X/threads specialist flows and fallback.
-   - NO → fall back to Typefully for X/LinkedIn/Threads/Bluesky/Mastodon where it fits; fall back to browser profile or file for Reddit/IG/TikTok.
-4. Is this an X thread?
-   - YES → always Typefully (thread UX is canonical there).
-5. Does `brand/stack.md` specify a browser profile?
-   - YES → use that profile for browser path.
-   - NO → ask for the browser profile to use before external posting.
+1. `mktg publish --adapter mktg-native` queue  -  if a native account exists for the platform (`--adapter mktg-native --list-integrations`).
+2. Postiz  -  if `POSTIZ_API_KEY` is configured (`mktg catalog info postiz`).
+3. Browser profile skill  -  profile from `brand/stack.md`; if none is specified, ask for one before external posting.
+4. Write to file (`file` adapter) and tell the user external posting is still pending.
+
+Other platforms:
+
+- X thread → always Typefully (thread UX is canonical there); `mktg-native` for the local queue.
+- LinkedIn / Threads / Bluesky / Mastodon → Postiz if configured, else Typefully, else file.
+- Facebook → browser profile only. YouTube → Postiz if configured, else browser profile.
+- Never claim anything shipped externally until the chosen path actually ran.
 
 ---
 
@@ -153,7 +152,7 @@ Anytime a user asks for something that an ecosystem tool does, don't call the to
 | "transcribe this video" | `mktg transcribe` | …pipe `yt-dlp \| whisper-cli` manually. |
 | "make a video from slides" | `video-content` | …shell out to ffmpeg inline. |
 | "summarize this" | `/summarize` | …ask the LLM to compress; use the `summarize` CLI for token-bounded output. |
-| "post to Instagram" | `postiz` (if configured) else configured browser profile | …tell the user to do it manually. |
+| "post to Instagram" / "post to TikTok" | `mktg-native` queue (if account exists) → `postiz` (if `POSTIZ_API_KEY`) → browser profile skill → file | …tell the user to do it manually. |
 | "research this market" | `landscape-scan` | …call `exa-search` alone; landscape-scan does the full chain with Claims Blacklist. |
 
 ---

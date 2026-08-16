@@ -18,7 +18,9 @@
         "learnings.md",
         "landscape.md"
       ],
-      "writes": [],
+      "writes": [
+        "learnings.md"
+      ],
       "depends_on": [],
       "triggers": [
         "marketing",
@@ -124,9 +126,9 @@
         "requires": [],
         "unlocks": [
           "cmo",
-          "mktg-brand-researcher",
-          "mktg-audience-researcher",
-          "mktg-competitive-scanner"
+          "brand-voice",
+          "audience-research",
+          "competitive-intel"
         ],
         "precedence": "first-run"
       }
@@ -137,10 +139,13 @@
       "layer": "foundation",
       "tier": "must-have",
       "reads": [
-        "voice-profile.md"
+        "voice-profile.md",
+        "positioning.md",
+        "audience.md"
       ],
       "writes": [
-        "voice-profile.md"
+        "voice-profile.md",
+        "learnings.md"
       ],
       "depends_on": [],
       "triggers": [
@@ -181,7 +186,8 @@
         "landscape.md"
       ],
       "writes": [
-        "positioning.md"
+        "positioning.md",
+        "learnings.md"
       ],
       "depends_on": [
         "brand-voice",
@@ -224,7 +230,8 @@
         "voice-profile.md"
       ],
       "writes": [
-        "audience.md"
+        "audience.md",
+        "learnings.md"
       ],
       "depends_on": [],
       "triggers": [
@@ -264,7 +271,8 @@
         "audience.md"
       ],
       "writes": [
-        "competitors.md"
+        "competitors.md",
+        "learnings.md"
       ],
       "depends_on": [],
       "triggers": [
@@ -304,7 +312,8 @@
         "landscape.md"
       ],
       "writes": [
-        "keyword-plan.md"
+        "keyword-plan.md",
+        "learnings.md"
       ],
       "depends_on": [
         "audience-research",
@@ -351,7 +360,8 @@
         "landscape.md"
       ],
       "writes": [
-        "landscape.md"
+        "landscape.md",
+        "learnings.md"
       ],
       "depends_on": [
         "competitive-intel"
@@ -388,7 +398,7 @@
         "launch",
         "product launch",
         "go to market",
-        "Product Hunt",
+        "Product Hunt plan",
         "launch plan"
       ],
       "review_interval_days": 90,
@@ -421,8 +431,7 @@
       "reads": [
         "audience.md",
         "competitors.md",
-        "positioning.md",
-        "landscape.md"
+        "positioning.md"
       ],
       "writes": [],
       "depends_on": [
@@ -464,7 +473,8 @@
         "voice-profile.md",
         "positioning.md",
         "audience.md",
-        "landscape.md"
+        "landscape.md",
+        "creative-kit.md"
       ],
       "writes": [],
       "depends_on": [
@@ -477,7 +487,9 @@
         "landing page copy",
         "cold email",
         "copy editing",
-        "headlines"
+        "headlines",
+        "landing page",
+        "homepage copy"
       ],
       "review_interval_days": 60,
       "version": "1.0.0",
@@ -510,7 +522,10 @@
         "audience.md",
         "landscape.md"
       ],
-      "writes": [],
+      "writes": [
+        "assets.md",
+        "learnings.md"
+      ],
       "depends_on": [
         "brand-voice",
         "keyword-research"
@@ -520,7 +535,7 @@
         "blog post",
         "article",
         "SERP",
-        "programmatic SEO",
+        "template pages at scale",
         "content at scale"
       ],
       "review_interval_days": 30,
@@ -551,8 +566,7 @@
       "reads": [
         "voice-profile.md",
         "audience.md",
-        "keyword-plan.md",
-        "landscape.md"
+        "keyword-plan.md"
       ],
       "writes": [],
       "depends_on": [
@@ -595,8 +609,7 @@
       "tier": "must-have",
       "reads": [
         "voice-profile.md",
-        "audience.md",
-        "landscape.md"
+        "audience.md"
       ],
       "writes": [],
       "depends_on": [
@@ -636,8 +649,7 @@
       "reads": [
         "voice-profile.md",
         "audience.md",
-        "positioning.md",
-        "landscape.md"
+        "positioning.md"
       ],
       "writes": [],
       "depends_on": [
@@ -676,8 +688,7 @@
       "tier": "nice-to-have",
       "reads": [
         "voice-profile.md",
-        "audience.md",
-        "landscape.md"
+        "audience.md"
       ],
       "writes": [],
       "depends_on": [
@@ -743,7 +754,10 @@
       "layer": "execution",
       "tier": "nice-to-have",
       "reads": [
-        "keyword-plan.md"
+        "keyword-plan.md",
+        "voice-profile.md",
+        "stack.md",
+        "audience.md"
       ],
       "writes": [],
       "depends_on": [],
@@ -793,13 +807,14 @@
         "competitive-intel"
       ],
       "triggers": [
-        "backlinks",
+        "backlink campaign",
         "off-page seo",
-        "directory submissions",
+        "directory link building",
+        "directory backlinks",
         "guest posts",
         "outreach targets",
         "link building",
-        "submit to directories",
+        "listicle placements",
         "get listed in listicles",
         "domain authority"
       ],
@@ -826,9 +841,12 @@
       "triggers": [
         "build organic traffic",
         "rank in google",
-        "alternatives pages",
-        "comparison pages",
-        "programmatic seo playbook",
+        "seo machine",
+        "seo roadmap",
+        "programmatic SEO",
+        "batch of alternatives pages",
+        "batch of pages",
+        "pages roadmap",
         "we need traffic"
       ],
       "review_interval_days": 30,
@@ -842,7 +860,9 @@
       "reads": [
         "competitors.md",
         "positioning.md",
-        "landscape.md"
+        "landscape.md",
+        "voice-profile.md",
+        "audience.md"
       ],
       "writes": [],
       "depends_on": [
@@ -851,7 +871,8 @@
       "triggers": [
         "alternatives page",
         "vs page",
-        "comparison",
+        "comparison page",
+        "x vs y page",
         "competitor alternatives"
       ],
       "review_interval_days": 60,
@@ -970,7 +991,11 @@
       "category": "knowledge",
       "layer": "foundation",
       "tier": "nice-to-have",
-      "reads": [],
+      "reads": [
+        "positioning.md",
+        "audience.md",
+        "voice-profile.md"
+      ],
       "writes": [],
       "depends_on": [],
       "triggers": [
@@ -1057,7 +1082,9 @@
         "keyword-plan.md",
         "landscape.md"
       ],
-      "writes": [],
+      "writes": [
+        "learnings.md"
+      ],
       "depends_on": [
         "audience-research",
         "competitive-intel",
@@ -1122,7 +1149,6 @@
         "walkthrough video",
         "feature showcase",
         "record demo",
-        "marketing video",
         "screen recording",
         "GIF demo",
         "product tour"
@@ -1201,7 +1227,8 @@
       "layer": "execution",
       "tier": "nice-to-have",
       "reads": [
-        "creative-kit.md"
+        "creative-kit.md",
+        "assets.md"
       ],
       "writes": [
         "assets.md"
@@ -1214,8 +1241,7 @@
         "render video",
         "video content",
         "assemble video",
-        "ffmpeg video",
-        "remotion render"
+        "ffmpeg video"
       ],
       "review_interval_days": 60,
       "version": "1.0.0",
@@ -1354,8 +1380,7 @@
       "tier": "must-have",
       "reads": [
         "voice-profile.md",
-        "audience.md",
-        "stack.md"
+        "audience.md"
       ],
       "writes": [],
       "depends_on": [
@@ -1472,8 +1497,7 @@
         "voice-profile.md",
         "positioning.md",
         "audience.md",
-        "competitors.md",
-        "landscape.md"
+        "competitors.md"
       ],
       "writes": [],
       "depends_on": [
@@ -1484,9 +1508,10 @@
         "startup launcher",
         "submit to directories",
         "launch on Product Hunt",
+        "Product Hunt launch",
+        "Product Hunt",
         "submit to BetaList",
         "multi-platform launch",
-        "launch campaign",
         "directory submissions",
         "AppSumo campaign",
         "Hacker News launch",
@@ -1570,9 +1595,7 @@
       "reads": [
         "voice-profile.md"
       ],
-      "writes": [
-        "voice-profile.md"
-      ],
+      "writes": [],
       "depends_on": [],
       "triggers": [
         "steal this voice",
@@ -1635,9 +1658,6 @@
         "get content from",
         "download website",
         "web scrape",
-        "search the web",
-        "find article",
-        "research a topic",
         "pull content from",
         "grab content from",
         "scrape url",
@@ -1779,9 +1799,7 @@
         "audience.md",
         "positioning.md"
       ],
-      "writes": [
-        "assets.md"
-      ],
+      "writes": [],
       "depends_on": [],
       "triggers": [
         "cmo-remotion",
@@ -1951,7 +1969,10 @@
         "web_search_exa",
         "open-ended web research",
         "discover competitors online",
-        "find recent news about"
+        "find recent news about",
+        "search the web",
+        "research a topic",
+        "find article"
       ],
       "review_interval_days": 30,
       "version": "0.1.0",
@@ -2108,7 +2129,8 @@
         "keyword-plan.md"
       ],
       "writes": [
-        "keyword-plan.md"
+        "keyword-plan.md",
+        "learnings.md"
       ],
       "depends_on": [],
       "triggers": [
@@ -2366,9 +2388,9 @@
       }
     },
     "manim-composer": {
-      "source": "external",
-      "category": "production",
-      "layer": "production",
+      "source": "third-party",
+      "category": "creative",
+      "layer": "execution",
       "tier": "nice-to-have",
       "reads": [],
       "writes": [],
@@ -2384,12 +2406,13 @@
         "scene planning"
       ],
       "review_interval_days": 90,
-      "env": []
+      "env_vars": [],
+      "version": "1.0.0"
     },
     "manimce-best-practices": {
-      "source": "external",
-      "category": "production",
-      "layer": "production",
+      "source": "third-party",
+      "category": "creative",
+      "layer": "execution",
       "tier": "nice-to-have",
       "reads": [],
       "writes": [],
@@ -2402,12 +2425,13 @@
         "from manim import"
       ],
       "review_interval_days": 90,
-      "env": []
+      "env_vars": [],
+      "version": "1.0.0"
     },
     "manimgl-best-practices": {
-      "source": "external",
-      "category": "production",
-      "layer": "production",
+      "source": "third-party",
+      "category": "creative",
+      "layer": "execution",
       "tier": "nice-to-have",
       "reads": [],
       "writes": [],
@@ -2419,12 +2443,13 @@
         "from manimlib import"
       ],
       "review_interval_days": 90,
-      "env": []
+      "env_vars": [],
+      "version": "1.0.0"
     },
     "text-to-speech": {
       "source": "new",
-      "category": "production",
-      "layer": "production",
+      "category": "creative",
+      "layer": "execution",
       "tier": "must-have",
       "reads": [
         "voice-profile.md"
@@ -2441,9 +2466,10 @@
         "speech synthesis"
       ],
       "review_interval_days": 90,
-      "env": [
+      "env_vars": [
         "ELEVENLABS_API_KEY"
-      ]
+      ],
+      "version": "1.0.0"
     }
   },
   "redirects": {
@@ -2507,15 +2533,19 @@
     "programmatic seo playbook": "seo-machine",
     "/for/ pages": "seo-machine",
     "we need traffic": "seo-machine",
-    "alternatives-pages": "seo-machine",
-    "comparison-pages": "seo-machine",
+    "alternatives-pages": "competitor-alternatives",
+    "comparison-pages": "competitor-alternatives",
+    "batch-alternatives-pages": "seo-machine",
+    "seo-roadmap": "seo-machine",
     "backlinks": "off-page-seo",
     "off-page seo": "off-page-seo",
-    "directory submissions": "off-page-seo",
+    "directory submissions": "startup-launcher",
+    "directory link building": "off-page-seo",
+    "listicle placements": "off-page-seo",
     "guest posts": "off-page-seo",
     "outreach targets": "off-page-seo",
     "link building": "off-page-seo",
-    "submit to directories": "off-page-seo",
+    "submit to directories": "startup-launcher",
     "domain authority": "off-page-seo",
     "exa": "exa-search",
     "exa-web-search": "exa-search",

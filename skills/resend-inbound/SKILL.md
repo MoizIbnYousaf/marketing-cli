@@ -2,10 +2,9 @@
 name: resend-inbound
 description: Use when receiving emails with Resend - setting up inbound domains, processing email.received webhooks, retrieving email content/attachments, or forwarding received emails. Triggers on "inbound email", "receive email", "email webhook", "Resend inbound", "process incoming email", "email forwarding", "email.received", "MX records for email".
 category: distribution
-layer: distribution
+layer: execution
 tier: nice-to-have
-reads:
-  - brand/voice-profile.md
+reads: []
 writes: []
 depends-on: []
 triggers:

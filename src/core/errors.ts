@@ -33,6 +33,25 @@ export const networkError = (message: string, docs?: string): CommandResult<neve
 export const notImplemented = (command: string): CommandResult<never> =>
   err("NOT_IMPLEMENTED", `Command '${command}' is not yet implemented`, ["mktg --help"], 6);
 
+// A flag that exists but is not supported by the selected adapter/backend.
+// This is an argument problem (exit 2), NOT a missing feature (exit 6): the
+// caller can fix it by picking one of the supported adapters.
+export const unsupportedFlag = (
+  flag: string,
+  selected: string,
+  supported: readonly string[],
+  fix?: string,
+): CommandResult<never> =>
+  err(
+    "UNSUPPORTED_FLAG",
+    `${flag} is not supported by adapter '${selected}'`,
+    [
+      `Supported adapters for ${flag}: ${supported.join(", ")}`,
+      fix ?? `Try: --adapter ${supported[0] ?? "<name>"} ${flag}`,
+    ],
+    2,
+  );
+
 export const missingInput = (example: string): CommandResult<never> =>
   err(
     "MISSING_INPUT",

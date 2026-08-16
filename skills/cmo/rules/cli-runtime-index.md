@@ -10,8 +10,9 @@ Use these at the start of any deep CLI wiring task:
 
 ```bash
 mktg schema --json --fields commands.name,commands.flags,commands.subcommands
-mktg status --json --fields health,brandSummary,integrations,nextActions
+mktg status --json --fields health,brandSummary,integrations,nextActions,help
 mktg doctor --json --fields passed,checks
+mktg setup --dry-run --json   # SessionStart hook that injects status into every Claude Code session
 mktg list --routing --json --fields skills.name,skills.triggers,skills.requires,skills.unlocks
 ```
 
@@ -32,8 +33,8 @@ mktg studio --dry-run --json --intent cmo --session <id>
 mktg studio --open --intent cmo --session <id>
 ```
 
-The launcher resolves the sibling Studio checkout first, then
-`MKTG_STUDIO_BIN`, then PATH. The dry-run response's `urls.dashboard` is the
+The launcher resolves the in-repo `studio/` first, then the sibling
+`mktg-studio/` checkout, then `MKTG_STUDIO_BIN`, then PATH. The dry-run response's `urls.dashboard` is the
 canonical URL to show or open.
 
 ## Top-Level Commands
@@ -56,25 +57,27 @@ Current runtime command set:
 | `context` | Compile token-budgeted brand context. |
 | `plan` | Get or persist the prioritized execution loop. |
 | `publish` | Route content to native, Postiz, Typefully, Resend, or file adapters. |
-| `compete` | Watch, scan, list, and diff competitor pages. |
+| `compete` | Watch, scan, list, and diff competitor pages. Bare `mktg compete` returns the watch list (offline); `scan` is the only network subcommand. |
 | `dashboard` | JSON command-center contracts (snapshot/plan/outputs/publish/system/compete). Bare `mktg dashboard` is deprecated — the canonical human UI is `mktg studio`. |
 | `catalog` | Inspect and sync upstream service catalogs such as Postiz. |
 | `seo` | OpenSEO state contract: `status` (named readiness), `link-project` (idempotent binding), `sync-keywords` (atomic merge into brand/keyword-plan.md), `open`. |
 | `studio` | Launch or preview the companion local Studio, including CMO startup sessions. |
 | `verify` | Run ecosystem verification suites. |
-| `ship-check` | Aggregate go/no-go verdicts for release readiness. |
+| `ship-check` | Aggregate go/no-go verdicts for release readiness. `verdict` is `pass`/`warn` (exit 0) or `block` (exit 4, full report + `blockers[]`); `icon` carries 🟢/🟡/🔴. |
 | `cmo` | Invoke headless `/cmo` through the CLI with timeout and dry-run safety. |
+| `release` | Version bump + changelog + git tag (+ optional npm/GitHub publish). Dry-run by default; `--confirm` to write. |
 
 ## Subcommand Families
 
 | Family | Subcommands |
 |---|---|
-| `skill` | `info`, `validate`, `graph`, `check`, `register`, `evaluate`, `unregister`, `add`, `history`, `log` |
+| `skill` | `info`, `validate`, `graph`, `check`, `register`, `evaluate`, `unregister`, `add`, `history`, `log`, `check-upstream` (honours `--dry-run`; drift exits 0 with `ok:false`), `upgrade` |
 | `brand` | `export`, `import`, `update`, `freshness`, `diff`, `append-learning`, `claims`, `kit`, `delete`, `reset` |
 | `plan` | `next`, `complete` |
 | `compete` | `scan`, `watch`, `list`, `diff` |
 | `dashboard` | `snapshot`, `action`, `plan`, `outputs`, `publish`, `system`, `compete` |
 | `catalog` | `list`, `info`, `sync`, `status`, `add` |
+| `seo` | `status`, `link-project`, `sync-keywords`, `open` |
 | `update` | flags: `--check` (npm version probe, read-only), `--upgrade` (run `npm i -g marketing-cli@latest`, honors `--dry-run`). Default = re-sync skills/agents. |
 
 ## Discovery Discipline

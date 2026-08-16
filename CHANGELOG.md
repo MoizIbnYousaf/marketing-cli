@@ -10,10 +10,53 @@
 - Port [exa-labs/agent-skills](https://github.com/exa-labs/agent-skills) as first-class mktg skills: `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` (with `build-with-exa/references/`).
 - Ship root `.mcp.json` for Exa MCP (search + fetch + advanced + agent tools); `EXA_API_KEY` on skill manifest surfaces via `mktg doctor`.
 - Wire Exa into `/cmo` routing + disambiguation, ecosystem/recency/safety rules, and all research/review agents.
+- `mktg run` lifecycle (#43): bare `mktg run <skill>` logs `event:"loaded"`; `--complete --writes <paths> --result success|failure` logs `completed`. `mktg plan` / `mktg status` / dashboard count `completed` events only. `--with-context` returns the activation envelope; `--strict` fails on missing prerequisites.
+- `PublishItemStatus` enum (`queued-local | draft-external | sent | written-file | failed | skipped`) as the per-item publish truth; `postType` emitted per item.
+- Catalog contract gains `research_adapters` + `mcp` blocks; register the `openseo` catalog (SEO data plane, `OPENSEO_MCP_URL` / `OPENSEO_API_KEY` readiness) — 2 catalogs now.
+- Add 7 `openseo-*` skills (project-setup, keyword-research, keyword-clustering, competitive-landscape, competitor-analysis, link-prospecting, coach) plus the `openseo` router skill; root `.mcp.json` ships an `openseo` MCP server entry.
+- `mktg route "<request>"` — deterministic manifest-trigger routing without a model; `mktg dashboard` deprecated for humans in favor of `mktg studio` (JSON only); `mktg doctor` studio check.
+- `mktg seo` (#50-52): `status` (readiness snapshot), `link-project` (`.seo/openseo.json` binding, `--confirm` only when relinking to a different project), `sync-keywords` (atomic OpenSEO Sync section in `brand/keyword-plan.md`), `open`. Studio `GET /api/seo/status` + Pulse SEO readiness card; `mktg plan` emits `seo-link-project` / `seo-connect-openseo` tasks; `/mktg-setup` hands off to `/openseo-project-setup`.
+- Add `text-to-speech` (ElevenLabs voiceover/narration, reads `brand/voice-profile.md`), `manim-composer`, `manimce-best-practices`, `manimgl-best-practices` skills; `/cmo` routes voiceover/narration and explainer/math-animation requests to them.
+- `src/cli.ts` HELP lists `route`, `seo`, `release`, and `--input`.
+
+#### Agent contract (breaking where noted)
+
+- JSON output is **compact by default** (one line, fewest tokens); `--pretty` opts into 2-space indentation for humans.
+- Success envelopes now carry `help[]` — the next-step hints an agent should read. Selectable via `--fields help`; a payload with its own `help` key is never clobbered.
+- Bare `mktg` renders a home view (health, brand summary, next actions) instead of dumping raw help.
+- New `mktg setup` — installs a Claude Code `SessionStart` hook (`mktg status --fields health,brandSummary,nextActions --json`) so every session starts with ambient marketing context. Idempotent (`changed:false` on re-run), project-scoped by default, `--global` and `--dry-run` supported.
+- **BREAKING** `mktg ship-check` returns `verdict: pass | warn | block` plus an `icon` field (🟢/🟡/🔴). Exit 0 for `pass` and `warn` (was 1), exit 4 for `block` (was 2). `block` returns the FULL report as data (`blockers[]`), not an error envelope.
+- **BREAKING** `mktg publish` `UNSUPPORTED_FLAG` (flag exists but the selected `--adapter` does not support it) is exit 2 `invalid args` (was 6 `not implemented`); suggestions list the adapters that do support it.
+- `mktg skill check-upstream` gains `--dry-run` (returns the plan — `dry_run:true`, `skills[].script`, `source_count` — with zero network). Detected drift now exits 0 (`ok:false`, `summary.drifted`, `skills[].in_sync:false`) — drift is a finding, not a process failure. New `summary.errored`; exit 2 only when EVERY script crashed.
+- Bare `mktg compete` is now `list` (offline watch list: `urls[]`, `total`, `help[]`); the network scan stays behind `mktg compete scan`.
+- **BREAKING** Unrecognised flags return `UNKNOWN_FLAG` (exit 2) with a `Did you mean` hint instead of being silently ignored. Bad `--fields` paths return `UNKNOWN_FIELD` (exit 2).
+- `mktg list` / `mktg catalog list` return **minimal default items** (`{name, category, tier, installed}` / `{name, version_pinned, license, configured, capabilities}`); `--verbose` restores the full entries.
+- `mktg schema` (bare) returns a compact command index; `--full` returns output maps, examples, vocabulary, and every subcommand schema.
+- `mktg doctor` returns `summary {total, passed, warned, failed}` + `summaryText` alongside the checks.
+- `docs/EXIT_CODES.md` documents the findings-vs-failures split (exit 0 with a signal in data).
+
+#### Skills, scripts, and Studio
+
+- `higgsfield-generate` reads `brand/creative-kit.md` (written by `/visual-style`) so generation inherits brand visual context.
+- `scripts/check-brand-io.ts` + `tests/manifest-brand-io.test.ts` — verify every skill's declared `reads`/`writes` brand files match `skills-manifest.json`.
+- `/cmo` skill routing table gains rows and disambiguation entries for the new commands and namespaces.
+- Studio API: `GET /api/plan`, `GET /api/plan/next`, `GET /api/compete` (watchlist), plus the Content tab war-room view.
+
+### refactor
+
+- Split `src/commands/publish.ts` into `src/core/publish/postiz/{client,markers,media,adapter,admin}` (barrel `src/core/publish/postiz/index.ts`); the command file no longer re-exports Postiz internals. Studio `lib/postiz.ts` imports the same client — one Postiz client, no drift.
+- Split skill lifecycle into `src/core/skill-*.ts`; canonical `flagValue`/`flagValues` in `src/core/args.ts`.
+- `wrapRoute` rate limiting is perimeter-only (no double-counting on nested routes).
+
+### fix
+
+- SSRF: `fetchWithSizeCap` follows at most one redirect hop and re-validates the target host (private/loopback targets and second hops are rejected). Covered by `tests/url-validation-redirect.test.ts`.
+- `mktg skill graph` no longer crashes on skills outside the five layers (new skills mapped to `execution`/`creative`).
+- Studio post-composer buckets `postType` on the CLI vocabulary (`schedule`, `update`), so scheduled publishes are no longer reported as drafts.
 
 ### counts
 
-- 58 → 64 skills (2 orchestrators `/cmo` + `/axi`, plus Exa quintet and playbook skills).
+- 58 → 76 skills (2 orchestrators `/cmo` + `/axi`, Exa quintet, 8 OpenSEO skills, text-to-speech + 3 manim skills); 1 → 2 catalogs (postiz, openseo); 21 → 24 commands (`route`, `seo`, `release`, `ship-check`, `setup`).
 
 ## v0.6.0
 

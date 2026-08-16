@@ -90,8 +90,8 @@ chips (CLI enum parity), never as network-published.
 | Platform | Default route | Fallback route | Notes |
 |---|---|---|---|
 | X | `mktg-native` for local queue; `typefully` for real threads | Postiz if connected, then file | X thread UX remains Typefully-specialist. |
-| TikTok | `mktg-native` for local queue | Postiz if connected, then browser profile, then file | Browser path is account/session dependent. |
-| Instagram | `mktg-native` for local queue | Postiz if connected, then browser profile, then file | Browser path is account/session dependent. |
+| TikTok | `mktg-native` queue (if account exists) | Postiz (if `POSTIZ_API_KEY`), then browser profile skill, then file | Fixed precedence; same order in `SKILL.md` and `ecosystem.md`. Browser path is account/session dependent. |
+| Instagram | `mktg-native` queue (if account exists) | Postiz (if `POSTIZ_API_KEY`), then browser profile skill, then file | Fixed precedence; same order in `SKILL.md` and `ecosystem.md`. Browser path is account/session dependent. |
 | Reddit | `mktg-native` for local queue | Postiz if connected, then browser profile, then file | Respect subreddit rules and manual review. |
 | LinkedIn | `mktg-native` for local queue | Postiz or Typefully if connected, then file | Personal vs company page must be explicit. |
 

@@ -121,7 +121,7 @@ describe("E2E: mktg list --json shows all skills", () => {
   });
 
   test("every skill in list has required metadata fields", async () => {
-    const result = await run(["list", "--json"]);
+    const result = await run(["list", "--verbose", "--json"]);
     const data = parseJson(result.stdout) as { skills: Array<Record<string, unknown>> };
 
     for (const skill of data.skills) {

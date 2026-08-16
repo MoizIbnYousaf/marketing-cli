@@ -29,9 +29,13 @@ export const schema: CommandSchema = {
     "agents": "{installed, total} — agent counts",
     "content": "{totalFiles, byDir} — content file counts with breakdown",
     "integrations": "Record<string, IntegrationEntry> — env var readiness for third-party skills",
+    "integrationsSummary": "{configured: string[], missing: string[]} — env vars set vs unset (compact view of integrations)",
+    "brandAttention": "string[] — brand files that are not current (template, missing, or stale); empty when all current",
     "recentActivity": "Record<string, {lastRun, result|null, event: 'loaded'|'completed', daysSince}> — per-skill run history (loads never imply outcomes)",
+    "recentActivityCount": "number — number of skills with run history (0 = nothing has run yet)",
     "nextActions": "string[] — prioritized suggestions for what the agent should do next",
     "health": "'ready' | 'incomplete' | 'needs-setup' — overall project marketing readiness",
+    "help": "string[] — concrete next-command templates (mktg init --json, mktg run <skill> --json, mktg brand freshness --json)",
   },
   examples: [
     { args: "mktg status --json", description: "Full project state snapshot" },
@@ -68,8 +72,11 @@ type StatusResult = {
   readonly skills: { readonly installed: number; readonly total: number };
   readonly agents: { readonly installed: number; readonly total: number };
   readonly integrations: Record<string, IntegrationEntry>;
+  readonly integrationsSummary: { readonly configured: readonly string[]; readonly missing: readonly string[] };
+  readonly brandAttention: readonly string[];
   readonly content: ContentSummary;
   readonly recentActivity: Record<string, ActivityEntry>;
+  readonly recentActivityCount: number;
   readonly nextActions: readonly string[];
   readonly health: "ready" | "incomplete" | "needs-setup";
 };
@@ -149,6 +156,14 @@ const buildNextActions = (
   return actions;
 };
 
+// Concrete command templates that mirror nextActions (agents copy these verbatim).
+const buildHelp = (health: StatusResult["health"], brandAttention: readonly string[]): string[] => {
+  if (health === "needs-setup") return ["mktg init --json", "mktg doctor --json", "mktg list --json"];
+  const help = ["mktg plan --json", "mktg run <skill> --json", "mktg brand freshness --json"];
+  if (brandAttention.length > 0) help.unshift("mktg context --json");
+  return help;
+};
+
 export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
   const cwd = flags.cwd;
   const manifest = await loadManifest();
@@ -199,14 +214,24 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
       total: agentTotal,
     },
     integrations,
+    integrationsSummary: {
+      configured: integrationStatuses.filter((s) => s.configured).map((s) => s.envVar),
+      missing: integrationStatuses.filter((s) => !s.configured).map((s) => s.envVar),
+    },
+    brandAttention: Object.entries(brand)
+      .filter(([, e]) => e.freshness !== "current")
+      .map(([file]) => file),
     content: contentSummary,
     recentActivity,
+    recentActivityCount: Object.keys(recentActivity).length,
     nextActions,
     health,
   };
 
+  const help = buildHelp(health, result.brandAttention);
+
   if (flags.json || !isTTY()) {
-    return ok(result);
+    return ok(result, undefined, help);
   }
 
   // TTY display
@@ -291,5 +316,5 @@ export const handler: CommandHandler<StatusResult> = async (_args, flags) => {
     lines.push("");
   }
 
-  return ok(result, lines.join("\n"));
+  return ok(result, lines.join("\n"), help);
 };

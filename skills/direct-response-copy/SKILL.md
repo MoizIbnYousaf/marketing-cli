@@ -1,17 +1,16 @@
 ---
 name: direct-response-copy
 description: "Write copy that converts. Use when writing landing pages, emails, sales copy, headlines, CTAs, social posts, cold emails, or any persuasive text. Triggers on 'copy', 'copywriting', 'sales copy', 'landing page copy', 'cold email', 'headlines', 'write me a page', 'make this convert', 'rewrite this copy', or any request involving persuasive writing. Three modes: Generate (write from scratch), Edit (improve existing copy with Seven Sweeps), Cold Email (outbound sequences). If someone has text that needs to sell harder, this is the skill."
-category: copy
-tier: core
+category: copy-content
+tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/positioning.md
   - brand/audience.md
   - brand/creative-kit.md
+  - brand/landscape.md
 writes:
   - marketing/campaigns/{name}/*.md
-  - brand/assets.md
-  - brand/learnings.md
 triggers:
   - write copy
   - landing page

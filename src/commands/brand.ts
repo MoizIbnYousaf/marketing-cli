@@ -33,8 +33,18 @@ export const schema: CommandSchema = {
     name,
     description,
     flags: name === "import"
-      ? [{ name: "--file", type: "string" as const, required: true, description: "Path to brand bundle JSON" }]
-      : [],
+      ? [
+          { name: "--file", type: "string" as const, required: true, description: "Path to brand bundle JSON" },
+          { name: "--confirm", type: "boolean" as const, required: true, description: "Confirm overwrite of brand/ files" },
+        ]
+      : name === "delete"
+        ? [{ name: "--confirm", type: "boolean" as const, required: true, description: "Confirm deletion (omit with --dry-run to preview)" }]
+        : name === "reset"
+          ? [
+              { name: "--confirm", type: "boolean" as const, required: true, description: "Confirm wiping .mktg/ execution state" },
+              { name: "--include-learnings", type: "boolean" as const, required: false, description: "Also clear learnings.md entries" },
+            ]
+          : [],
     output: {},
     examples: [{ args: `mktg brand ${name} --json`, description }],
   })),

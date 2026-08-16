@@ -127,6 +127,13 @@ Apply these principles when composing scenes:
 - **Acknowledge difficulty** - "This might seem confusing at first..."
 - **Celebrate insight** - Make the "aha moment" feel earned
 
+## Anti-Patterns
+
+- **Writing Manim code before the scene plan exists** — compose first (this skill), then hand off to `manimce-best-practices` or `manimgl-best-practices` for implementation.
+- **Mixing ManimCE and ManimGL APIs in one plan** — pick one engine per video and say which in the plan.
+- **Explaining with text walls instead of motion** — every scene needs a visual transformation, not a slide.
+- **Not closing the loop** — run `mktg run manim-composer --complete --writes <plan path> --result success --json` when the plan is written.
+
 ## References
 
 - [references/narrative-patterns.md](references/narrative-patterns.md) - Common 3b1b narrative structures

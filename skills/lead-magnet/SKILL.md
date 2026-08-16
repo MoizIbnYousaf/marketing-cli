@@ -2,8 +2,8 @@
 name: lead-magnet
 description: |
   Create high-converting free resources that capture emails and build trust. Produces complete lead magnets (ebooks, checklists, templates, toolkits, quizzes) with landing page copy, thank-you page, and follow-up email sequence. Use when someone needs a list-building asset, wants to grow their email list, needs an opt-in incentive, a content upgrade, a gated download, or top-of-funnel content. Triggers on 'lead magnet', 'ebook', 'checklist', 'template', 'free resource', 'opt-in', 'grow my list', 'email capture', 'content upgrade', 'list building', 'gated content', or 'free download'. Even if someone just says 'I need something to capture emails' or 'how do I get more subscribers', this is the skill. Every lead magnet passes a 4-gate quality test before shipping.
-category: content
-tier: core
+category: copy-content
+tier: must-have
 reads:
   - brand/voice-profile.md
   - brand/audience.md

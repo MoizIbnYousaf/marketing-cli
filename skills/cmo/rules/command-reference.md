@@ -16,7 +16,9 @@ routing, see `rules/publish-index.md`.
 | Command | CMO uses this when… |
 |---|---|
 | `mktg status --json` | Always at activation. Returns brand state, health (`ready`/`incomplete`/`needs-setup`), integrations configured. This is the first read. |
-| `mktg status --json --fields brand.populated,brand.missing,brand.stale` | To snap to the progressive enhancement ladder (see `rules/progressive-enhancement.md`). |
+| `mktg status --json --fields brandSummary.populated,brandSummary.missing,brandSummary.stale` | To snap to the progressive enhancement ladder (see `rules/progressive-enhancement.md`). |
+| `mktg status --json --fields health,help` | `help[]` carries copy-ready next-command templates (mirrors `nextActions` prose). Most commands emit `help[]`; JSON is compact single-line (`--pretty` to indent). |
+| `mktg setup --json` | Once per project (idempotent): installs a Claude Code `SessionStart` hook that injects `mktg status --fields health,brandSummary,nextActions --json` into every session. `--global` for `~/.claude/settings.json`, `--dry-run` to preview. |
 | `mktg doctor --json` | On setup + whenever a skill fails unexpectedly (missing tools, broken integrations). |
 | `mktg doctor --fix --dry-run --json` | Preview auto-remediations before running them. |
 | `mktg doctor --fix --json` | Auto-create missing brand files, install missing skills, patch integrations. |
@@ -52,7 +54,7 @@ routing, see `rules/publish-index.md`.
 | `mktg plan --save --json` | Stream-persist the plan for long-running orchestration. |
 | `mktg run <skill> --json` | Direct skill invocation (bypasses the usual Claude Code slash-command flow). Use when the orchestration layer needs programmatic control. Logs `event:"loaded"` — a load is NOT work; `mktg plan` ignores loads for execute/distribute gates. |
 | `mktg run <skill> --with-context --budget 4000 --json` | One-shot activation: skill body + non-template brand context (declared reads win, layer matrix fallback) in a single call. Prefer this over separate `run` + `context` calls. |
-| `mktg run <skill> --strict --json` | Fail fast (exit 3 DEPENDENCY_MISSING) when skills/brand/envs/tools/catalogs are unsatisfied. Default is warn-only. |
+| `mktg run <skill> --strict --json` | Fail fast (exit 3 MISSING_DEPENDENCY) when skills/brand/envs/tools/catalogs are unsatisfied. Default is warn-only. |
 | `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work. |
 | `mktg run <skill> --learning '{...}'` | Run a skill + record the learning atomically. |
 | `mktg skill history <skill> --json` | Load vs completion history for a skill. |
@@ -81,6 +83,7 @@ routing, see `rules/publish-index.md`.
 
 | Command | CMO uses this when… |
 |---|---|
+| `mktg compete --json` | Bare command = the watch list (same as `compete list`; offline, no fetch). `help[]` points at `mktg compete scan --json` for the real scan. |
 | `mktg compete list --json` | See all tracked competitor URLs. |
 | `mktg compete watch <url> --json` | Add a competitor to the monitoring loop. |
 | `mktg compete scan --json` | Run the scan — detect changes since last snapshot. |
@@ -98,7 +101,7 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 | `mktg catalog list --json` | Survey registered catalogs. |
 | `mktg catalog info <name> --json --fields configured,missing_envs` | Per-catalog readiness check. Returns full `CatalogEntry` plus computed `configured`, `missing_envs`, `resolved_base`. |
 | `mktg catalog status --json` | Fleet-wide health across all registered catalogs (`configured`, `healthy`, `detail` per catalog). |
-| `mktg catalog sync --dry-run --json` | Check for upstream version drift (compares pinned version against GitHub releases). v1 is read-only. |
+| `mktg catalog sync --dry-run --json` | Reports each catalog's pinned version. Upstream drift detection is NOT implemented in v1: `to_version` is always `null`, `changed: false`, and each item carries `error: "upstream version check not yet implemented"`. Read-only. |
 | `mktg catalog add <name> --confirm --json` | Register a new catalog. Destructive-guarded. |
 
 **Routing impact:** before routing to any skill backed by a catalog (e.g., `postiz`), CMO runs `catalog info <name>` to confirm `configured: true`. If not, surface the exact fix using `missing_envs`.
@@ -109,13 +112,13 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 
 | Command | CMO uses this when… |
 |---|---|
-| `mktg list --json` | Full skill registry with metadata (all 50 skills). |
-| `mktg list --routing --json` | Just the routing fields — triggers, categories, layers. Cheap to read, used to verify routing decisions. |
+| `mktg list --json` | Skill registry, compact items ({name, category, tier, installed}). Add `--verbose` for layer, triggers, versions. |
+| `mktg list --routing --json` | Routing fields — triggers, requires, unlocks, precedence (implies --verbose). Used to verify routing decisions. |
 | `mktg schema --json` | All commands with response shapes. Used when the orchestrator needs to programmatically understand the CLI surface. |
 | `mktg schema <command> --json` | Detailed schema for one command including `responseSchema` + examples. |
 | `mktg skill info <name> --json` | Skill metadata: dependencies, reverse dependencies, install status. |
 | `mktg skill validate <path> --json` | Validate a SKILL.md against platform + mktg specs (used by `create-skill`). |
-| `mktg skill graph --json` | Dependency DAG across all 50 skills. Used when planning a multi-skill chain. |
+| `mktg skill graph --json` | Dependency DAG across all skills. Used when planning a multi-skill chain. |
 | `mktg skill check <name> --json` | Check if a skill's prerequisites are satisfied (brand files present, deps installed). |
 
 ---
@@ -124,7 +127,7 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 
 | Command | CMO uses this when… |
 |---|---|
-| `mktg init --yes` | Fresh project. Creates `brand/` + installs 50 skills + 5 agents + 1 catalog. |
+| `mktg init --yes` | Fresh project. Creates `brand/` + installs all skills + agents + catalogs. |
 | `mktg init --from <url> --yes` | Zero-to-CMO in 90 seconds. Scrapes URL, auto-populates `voice-profile.md`, `positioning.md`, `audience.md`, `competitors.md` with real data. Use when the project has a live website. |
 | `mktg update --json` | Refresh skills/agents/catalogs from the package. Run after `npm update`. |
 | `mktg update --check --json` | Read-only probe: ask the npm registry for the latest `marketing-cli` version and compare to the installed one. Returns `{ current, latest, upgradeAvailable, upgradeCommand }`. Use this before suggesting an upgrade. |
@@ -138,7 +141,9 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 | `mktg verify --dry-run --json` | Preview ecosystem verification suites before running them. |
 | `mktg verify --suite <name> --json` | Run a targeted verification suite. |
 | `mktg ship-check --dry-run --json` | Preview the release go/no-go checks. |
-| `mktg ship-check --fresh true --json` | Run the fresh aggregate ship verdict. |
+| `mktg ship-check --fresh true --json` | Run the fresh aggregate ship verdict. Branch on `data.verdict`: `pass`/`warn` exit 0 (warnings are non-blocking), `block` exit 4 with `blockers[]` in the same report. |
+| `mktg skill check-upstream --dry-run --json` | Plan only: which upstream skills + scripts would run, source/file counts. Zero network. |
+| `mktg skill check-upstream --json` | Run drift detection. Exit 0 even when drift is found — read `summary.drifted` / `skills[].in_sync`. Exit 1 only for a named skill with no upstream.json. |
 | `mktg cmo --dry-run --json` | Preview headless `/cmo` invocation without launching Claude. |
 | `mktg cmo --timeout <seconds> --json` | Run `/cmo` through the CLI with a hard wall-clock cap. |
 
@@ -166,7 +171,7 @@ Not `mktg` subcommands, but /cmo knows when to suggest them (see `CLAUDE.md` §E
 
 **Always `--dry-run` before mutating.** Every destructive command (`brand delete`, `brand reset`, `skill unregister`, `publish`, `catalog add`) requires either `--dry-run` to preview or `--confirm` to execute. Never skip this.
 
-**Use `--fields` aggressively.** Most commands return rich responses; CMO only needs the slice relevant to the current routing decision. Example: `mktg status --json --fields brand.populated,integrations` trims 20KB down to 500 bytes.
+**Use `--fields` aggressively.** Most commands return rich responses; CMO only needs the slice relevant to the current routing decision. Example: `mktg status --json --fields brandSummary,integrations` trims 20KB down to 500 bytes.
 
 **Stream when it's a list.** `--ndjson` on `mktg plan`, `mktg compete scan`, `mktg publish` — lets CMO react to each item without waiting for the batch.
 

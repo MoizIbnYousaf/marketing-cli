@@ -12,7 +12,7 @@
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { loadManifest, updateSkills } from "../core/skills";
 import { loadAgentManifest, updateAgents } from "../core/agents";
-import { bold, dim, green, yellow, red, isTTY } from "../core/output";
+import { bold, dim, green, yellow, red, isTTY, truncateTailWithHint } from "../core/output";
 import pkg from "../../package.json";
 
 export const schema: CommandSchema = {
@@ -245,7 +245,7 @@ export const setUpgradeRunner = (
 // Truncate captured npm output to a sane size. Full transcripts can be many
 // MB — agents only need a tail to diagnose failure.
 const truncate = (s: string, max = 4000): string =>
-  s.length <= max ? s : s.slice(s.length - max);
+  truncateTailWithHint(s, max, "run the npm command directly");
 
 // ---------------------------------------------------------------------------
 // Sync mode (existing behavior, factored out)

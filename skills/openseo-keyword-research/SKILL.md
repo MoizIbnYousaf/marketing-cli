@@ -77,6 +77,14 @@ Turn seed topics into a prioritized, MEASURED keyword opportunity set and land i
 - **Skipping the GSC-first pass when GSC is connected** — because striking-distance terms (positions 5–20) are provably the cheapest wins in SEO and they're free to read. Discovery research before first-party data is wasted spend.
 - **Overwriting a populated `keyword-plan.md` without confirmation** — because that file is brand memory other skills build on (`seo-content`, `seo-machine`). Merge; confirm destructive rewrites.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-keyword-research --complete --writes <paths written> --result success --json
+```
+
 ## Progressive Enhancement
 
 | Level | Behavior |

@@ -54,3 +54,34 @@ export type RouteHttpHelpers = {
     corsHeaders: Record<string, string>,
   ) => Response;
 };
+
+// ---------------------------------------------------------------------------
+// CLI error → Studio error mapping (single source; used by server.ts
+// respondMktgError and server/routes/publish.ts).
+//
+// The mktg CLI emits: INVALID_ARGS, MISSING_INPUT, UNKNOWN_FIELD, UNKNOWN_FLAG,
+// NOT_FOUND, NOT_IMPLEMENTED, MISSING_DEPENDENCY, NETWORK_ERROR, SKILL_FAILED,
+// TIMEOUT, IO_ERROR, UNHANDLED_ERROR. Client-side mistakes must NOT surface as
+// 502 UPSTREAM_FAILED — that hides a bad request behind an "upstream" label.
+// ---------------------------------------------------------------------------
+export function mapMktgErrorCode(cliCode: string): { code: StudioErrorCode; status: number } {
+  switch (cliCode) {
+    case "INVALID_ARGS":
+    case "MISSING_INPUT":
+    case "UNKNOWN_FIELD":
+    case "UNKNOWN_FLAG":
+    case "NOT_IMPLEMENTED":
+      return { code: "BAD_INPUT", status: 400 };
+    case "NOT_FOUND":
+      return { code: "NOT_FOUND", status: 404 };
+    case "AUTH_MISSING":
+    case "AUTH_INVALID":
+      return { code: "UNAUTHORIZED", status: 401 };
+    case "RATE_LIMITED":
+      return { code: "RATE_LIMITED", status: 429 };
+    default:
+      // MISSING_DEPENDENCY, NETWORK_ERROR, SKILL_FAILED, TIMEOUT, IO_ERROR,
+      // SPAWN_ERROR, PARSE_ERROR, UNHANDLED_ERROR
+      return { code: "UPSTREAM_FAILED", status: 502 };
+  }
+}

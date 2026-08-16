@@ -1,9 +1,9 @@
 ---
 name: creative
 description: |
-  Generate visual asset briefs, ad copy variants, AI image prompts, video scripts, and storyboards. Full creative production system with 5 specialized modes: product photos, product video, social graphics, talking heads, and ad creative. Make sure to use this skill whenever the user mentions any visual or creative marketing need — ad creative, image prompts, video scripts, thumbnails, banners, social graphics, product photography, storyboards, or marketing visuals of any kind. Even if they just say 'I need images for my campaign' or 'make something visual', this is the skill. Includes platform-specific dimensions, AI anti-slop techniques, and Remotion composition templates.
+  Generate visual asset briefs, ad copy variants, AI image prompts, video scripts, and storyboards. Full creative production system with 5 specialized modes: product photos, product video, social graphics, talking heads, and ad creative. Make sure to use this skill whenever the user mentions any visual or creative marketing need — ad creative, image prompts, video scripts, thumbnails, banners, social graphics, product photography, storyboards, or marketing visuals of any kind. Even if they just say 'I need images for my campaign' or 'make something visual', this is the skill. Owns thumbnail and banner briefs plus the creative direction. Includes platform-specific dimensions, AI anti-slop techniques, and Remotion composition templates. For rendering the actual image file, see /image-gen; for AI-generated marketing/brand videos, see /higgsfield-generate; for stitching slides into an MP4, see /video-content.
 category: creative
-tier: core
+tier: nice-to-have
 reads:
   - brand/voice-profile.md
   - brand/creative-kit.md

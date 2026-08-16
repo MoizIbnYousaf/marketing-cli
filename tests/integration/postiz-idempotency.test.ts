@@ -11,7 +11,7 @@ import type { Server } from "bun";
 
 import type { GlobalFlags } from "../../src/types";
 import { handler } from "../../src/commands/publish";
-import { sentMarkerKey, loadSentMarker, persistSentMarker } from "../../src/commands/publish";
+import { sentMarkerKey, loadSentMarker, persistSentMarker } from "../../src/core/publish/postiz";
 
 // ─── Test HTTP server (shared across describe blocks) ───
 type RouteResponse = { status: number; body?: unknown; headers?: Record<string, string> };

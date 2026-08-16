@@ -39,7 +39,7 @@ export const schema: CommandSchema = {
 
 type InitResult = {
   readonly brand: { created: string[]; skipped: string[] };
-  readonly skills: { installed: string[]; skipped: string[]; failed: string[] };
+  readonly skills: { installed: string[]; skipped: string[]; failed: string[]; upToDate?: boolean };
   readonly agents: { installed: string[]; skipped: string[]; failed: string[] };
   readonly doctor: { passed: boolean; checks?: readonly any[] };
   readonly setup: {
@@ -217,6 +217,7 @@ const getInput = async (
   args: readonly string[],
   flags: ReturnType<typeof parseInitFlags>,
   projectName: string,
+  globalJson = false,
 ): Promise<CommandResult<InitInput>> => {
   // JSON input from flag
   if (flags.jsonInput) {
@@ -232,7 +233,10 @@ const getInput = async (
   // in 0.1.0: the one-line install from the README exited with a structured
   // error. Defaults resolve to the detected project name + "launch" goal;
   // the user can always override with --json after the fact.
-  if (flags.yes || !isTTY()) {
+  // Also never prompt when --json / OUTPUT_FORMAT=json / CI is set: an agent
+  // driving the CLI from a PTY (tmux, herdr) must not block on stdin.
+  const nonInteractive = globalJson || process.env.OUTPUT_FORMAT === "json" || !!process.env.CI;
+  if (flags.yes || nonInteractive || !isTTY()) {
     return ok({ business: projectName, goal: "launch" });
   }
 
@@ -294,7 +298,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   }
 
   // Get user input
-  const inputResult = await getInput(args, initFlags, project.name);
+  const inputResult = await getInput(args, initFlags, project.name, flags.json);
   if (!inputResult.ok) return inputResult;
   const input = inputResult.data;
   const projectName = input.business ?? project.name;
@@ -325,7 +329,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   }
 
   // Step 2: Install skills
-  let skillsResult = { installed: [] as string[], skipped: [] as string[], failed: [] as string[] };
+  let skillsResult: InitResult["skills"] = { installed: [], skipped: [], failed: [] };
   if (!initFlags.skipSkills) {
     if (isTTY() && !flags.json) {
       writeStderr(`${stepLabel()} Installing marketing skills...`);
@@ -338,9 +342,14 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
           installed: delegated.installed,
           skipped: delegated.skipped,
           failed: delegated.failed.map(({ name, reason }) => `${name}:${reason}`),
+          upToDate: delegated.upToDate,
         };
         if (isTTY() && !flags.json) {
-          writeStderr(`  ${green("✓")} ${skillsResult.installed.length} skills installed via ai-agent-skills`);
+          writeStderr(
+            delegated.upToDate
+              ? `  ${green("✓")} ${skillsResult.installed.length} skills already installed (up to date)`
+              : `  ${green("✓")} ${skillsResult.installed.length} skills installed via ai-agent-skills`,
+          );
         }
       } else {
         if (delegated.binary && delegated.failed.length > 0 && isTTY() && !flags.json) {
@@ -505,6 +514,13 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
     writeStderr("");
   }
 
+  // help[] mirrors setup.nextSteps as concrete command templates (agents copy verbatim).
+  const help = [
+    "mktg status --json",
+    ...(setup.brandTemplateCount > 0 ? ["mktg run brand-voice --json"] : []),
+    ...(setup.integrations.missing.length > 0 ? ["mktg doctor --configure --json"] : []),
+    "mktg plan --json",
+  ];
   return ok({
     brand: brandResult,
     skills: skillsResult,
@@ -521,5 +537,5 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
         filesPopulated: scrapeResult.populated,
       },
     }),
-  });
+  }, undefined, help);
 };

@@ -3,7 +3,8 @@ name: axi
 description: >
   Agent eXperience Interface (AXI) router — the main entry point for agent-ergonomic
   CLIs. Use whenever the agent needs GitHub, browser automation, human review, quota
-  routing, Slack, Notion, AWS/Docker/K8s, databases, or any AXI-catalog tool; when
+  routing, Slack, Notion, AWS/Docker/K8s, databases, GitLab (glab-axi), Oracle DB
+  (oracle-axi), tmux/herdr/WezTerm sessions (cyber-mux), or any AXI-catalog tool; when
   choosing AXI vs MCP vs raw CLI; when building or reviewing an agent-facing CLI; or
   when the user says axi, gh-axi, chrome-devtools-axi, TOON output, agent ergonomics,
   or "prefer AXI". When in doubt about which external tool interface to use, start here.
@@ -84,6 +85,9 @@ This skill is the **main router** for the AXI catalog (official + community). It
 | Kubernetes workloads | `kubernetes-axi` | community | Cloud |
 | Redis | `redis-axi` | community | Data |
 | Celery queues | `celery-axi` | community | Cloud |
+| Oracle DB | `oracle-axi` | community | Data |
+| tmux / herdr / WezTerm sessions | `cyber-mux` | community (overlaps `/tmux`, `/herdr`) | Terminal |
+| GitLab issues / MRs / pipelines | `glab-axi` | community | VCS |
 | Design / review agent CLI ergonomics | (this skill → principles) | read rules | Meta |
 | Marketing playbook (brand, content, publish) | `/cmo` | `mktg` skills | Out of scope |
 
@@ -100,7 +104,7 @@ Full URLs + one-liners: [rules/catalog.md](rules/catalog.md).
 | "automate Instagram/TikTok login post" | `/cmo` + browser profile / `mktg publish` | `chrome-devtools-axi` alone | Marketing distribution is `/cmo`'s job |
 | "help me market / write copy / SEO" | `/cmo` | `/axi` | AXI routes tools; CMO routes marketing skills |
 | "build a CLI for my agent" | `/axi` principles + build | MCP-first design | Principled CLI beats MCP on the published benches |
-| "use MCP for GitHub/browser" | Prefer matching AXI first | Eager MCP schemas | MCP schema overhead ~2.3× input tokens in browser bench |
+| "use MCP for GitHub/browser" | Prefer matching AXI first | Eager MCP schemas | MCP schema overhead ~2.3× input tokens in GitHub bench (185K vs 79K) |
 | "what's my Cursor/Claude quota" | `quota-axi` | guessing from UI | Local-first usage windows for routing-aware agents |
 | "review this HTML with humans" | `lavish-axi` | paste into chat | Annotation loop back to the agent |
 

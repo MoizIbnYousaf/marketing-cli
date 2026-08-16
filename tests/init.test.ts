@@ -3,10 +3,36 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, stat, writeFile, chmod } from "node:fs/promises";
+import { mkdtemp, rm, stat, writeFile, chmod, rename } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { GlobalFlags } from "../src/types";
 import { handler } from "../src/commands/init";
+import { loadManifest, getSkillNames, getSkillsInstallDir } from "../src/core/skills";
+
+// Delegation is skipped when every manifest skill is already installed (cheap
+// idempotent re-run). To exercise the delegate path on a machine that already
+// has skills, temporarily move one installed skill aside; restore in finally.
+const withOneSkillMissing = async <T>(fn: () => Promise<T>): Promise<T> => {
+  const manifest = await loadManifest();
+  const dir = join(getSkillsInstallDir(), getSkillNames(manifest)[0]!);
+  const aside = `${dir}.mktg-test-aside`;
+  let moved = false;
+  try {
+    await rename(dir, aside);
+    moved = true;
+  } catch (e) {
+    console.log("RENAME FAILED", (e as Error).message);
+  }
+  try {
+    return await fn();
+  } finally {
+    if (moved) {
+      // If something reinstalled the skill meanwhile, keep the fresh copy.
+      if (await Bun.file(join(dir, "SKILL.md")).exists()) await rm(aside, { recursive: true, force: true });
+      else await rename(aside, dir);
+    }
+  }
+};
 
 let tempDir: string;
 let flags: GlobalFlags;
@@ -186,7 +212,7 @@ describe("Init delegates skill installation to ai-agent-skills when available", 
     const shimDir = await createAiAgentSkillsShim(`#!/bin/sh\nprintf '%s\\n' \"$@\" > ${logFile}\nexit 0\n`);
 
     try {
-      const result = await handler(["--yes", "--skip-brand", "--skip-agents"], flags);
+      const result = await withOneSkillMissing(() => handler(["--yes", "--skip-brand", "--skip-agents"], flags));
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
@@ -196,6 +222,7 @@ describe("Init delegates skill installation to ai-agent-skills when available", 
       expect(logged).toContain("json");
       expect(result.data.skills.installed.length).toBeGreaterThan(40);
       expect(result.data.skills.failed).toHaveLength(0);
+      expect(result.data.skills.upToDate).toBe(false);
     } finally {
       await rm(shimDir, { recursive: true, force: true });
     }
@@ -207,7 +234,7 @@ describe("Init delegates skill installation to ai-agent-skills when available", 
 
     try {
       const dryFlags = { ...flags, dryRun: true };
-      const result = await handler(["--yes", "--skip-brand", "--skip-agents"], dryFlags);
+      const result = await withOneSkillMissing(() => handler(["--yes", "--skip-brand", "--skip-agents"], dryFlags));
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
@@ -216,6 +243,46 @@ describe("Init delegates skill installation to ai-agent-skills when available", 
       expect(logged).toContain("--dry-run");
       expect(result.data.skills.installed.length).toBeGreaterThan(40);
     } finally {
+      await rm(shimDir, { recursive: true, force: true });
+    }
+  });
+
+  test("re-run with every skill installed skips delegation (cheap idempotent)", async () => {
+    const manifest = await loadManifest();
+    const dir = getSkillsInstallDir();
+    const allPresent = (await Promise.all(getSkillNames(manifest).map((n) => Bun.file(join(dir, n, "SKILL.md")).exists()))).every(Boolean);
+    if (!allPresent) return; // machine without a full install — nothing to assert
+    const logFile = join(tempDir, "ai-agent-skills-skip.log");
+    const shimDir = await createAiAgentSkillsShim(`#!/bin/sh\nprintf '%s\\n' \"$@\" > ${logFile}\nexit 0\n`);
+    try {
+      const result = await handler(["--yes", "--skip-brand", "--skip-agents"], flags);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.skills.upToDate).toBe(true);
+      expect(result.data.skills.installed.length).toBeGreaterThan(40);
+      // The delegate binary was only probed for --version, never asked to install
+      const logged = (await Bun.file(logFile).exists()) ? await Bun.file(logFile).text() : "";
+      expect(logged).not.toContain("--format");
+    } finally {
+      await rm(shimDir, { recursive: true, force: true });
+    }
+  });
+
+  test("hung delegate is bounded by a timeout and reports SKILL_INSTALL_TIMEOUT", async () => {
+    // Shim answers --version, then hangs on the install call. With a 1s
+    // timeout the delegate must be killed and reported as a structured
+    // failure (init then falls back to the bundled direct install).
+    const shimDir = await createAiAgentSkillsShim(`#!/bin/sh\ncase "$1" in --version) echo 1.0.0; exit 0;; esac\nsleep 600\n`);
+    process.env.MKTG_SKILL_INSTALL_TIMEOUT_MS = "1000";
+    try {
+      const { installSkillsWithAiAgentSkills } = await import("../src/core/skills");
+      const start = Date.now();
+      const res = await withOneSkillMissing(async () => installSkillsWithAiAgentSkills(await loadManifest(), true));
+      expect(Date.now() - start).toBeLessThan(10_000);
+      expect(res.delegated).toBe(false);
+      expect(res.failed[0]?.reason).toContain("SKILL_INSTALL_TIMEOUT");
+    } finally {
+      delete process.env.MKTG_SKILL_INSTALL_TIMEOUT_MS;
       await rm(shimDir, { recursive: true, force: true });
     }
   });

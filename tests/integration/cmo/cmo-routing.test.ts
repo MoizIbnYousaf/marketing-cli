@@ -100,8 +100,8 @@ describe("CMO routing: dependency graph consistency", () => {
 });
 
 describe("CMO routing: mktg list provides routing data", () => {
-  test("mktg list --json returns all skills with triggers", async () => {
-    const result = await run(["list", "--json"]);
+  test("mktg list --routing --json returns all skills with triggers", async () => {
+    const result = await run(["list", "--routing", "--json"]);
     expect(result.exitCode).toBe(0);
 
     const data = JSON.parse(result.stdout) as {

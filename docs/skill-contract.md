@@ -113,7 +113,7 @@ After the frontmatter, the SKILL.md body follows this structure:
 ### 3. Brand Memory Reference
 
 ```markdown
-For brand memory protocol, see /cmo [rules/brand-memory.md](../cmo/rules/brand-memory.md).
+For brand memory protocol, see /cmo [rules/brand-memory.md](../skills/cmo/rules/brand-memory.md).
 ```
 
 ### 4. On Activation

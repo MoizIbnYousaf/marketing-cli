@@ -38,7 +38,7 @@ const parseJSON = (stdout: string): any => {
 
 describe("Schema Contract: mktg schema is the complete agent contract", () => {
   it("schema command returns valid JSON", async () => {
-    const { stdout, exitCode } = await run("schema");
+    const { stdout, exitCode } = await run("schema --full");
     expect(exitCode).toBe(0);
     const data = parseJSON(stdout);
     expect(data).toBeDefined();
@@ -48,7 +48,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("schema lists all 10 top-level commands", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -62,7 +62,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("each command has required schema fields", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -81,7 +81,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("update command schema documents all output fields including agentError", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -96,7 +96,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("run command schema documents priorRuns", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -110,7 +110,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("every command has at least one example", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -124,7 +124,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("skill and brand commands have subcommands", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -140,7 +140,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("flag definitions have type information", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
     const commands = data.data?.commands ?? data.commands;
 
@@ -154,7 +154,7 @@ describe("Schema Contract: mktg schema is the complete agent contract", () => {
   });
 
   it("schema output is self-describing for agent consumption", async () => {
-    const { stdout } = await run("schema");
+    const { stdout } = await run("schema --full");
     const data = parseJSON(stdout);
 
     // Agent can enumerate all commands

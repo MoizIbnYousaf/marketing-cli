@@ -84,10 +84,13 @@ const parseNamePositional = (
 export const listSchema: CommandSchema = {
   name: "list",
   description: "List registered catalogs from catalogs-manifest.json",
-  flags: [],
+  flags: [
+    { name: "--verbose", type: "boolean", required: false, default: false, description: "Full CatalogEntry per item (repo_url, docs_url, auth, transport, sdk_reference, skills, mcp). Default items carry name, version_pinned, license, configured, capabilities" },
+  ],
   output: {
-    "catalogs": "CatalogEntry[] — registered catalogs in manifest order",
+    "catalogs": "CatalogListItem[] — registered catalogs in manifest order; default {name, version_pinned, license, configured, capabilities}, full CatalogEntry with --verbose or `mktg catalog info <name>`",
     "catalogs.*.name": "string — catalog identifier",
+    "catalogs.*.configured": "boolean — all auth envs set in process.env",
     "catalogs.*.repo_url": "string — upstream GitHub repo URL",
     "catalogs.*.docs_url": "string — upstream documentation URL",
     "catalogs.*.license": "string — SPDX license identifier",
@@ -106,7 +109,8 @@ export const listSchema: CommandSchema = {
     "total": "number — total catalogs registered",
   },
   examples: [
-    { args: "mktg catalog list --json", description: "Full catalog list" },
+    { args: "mktg catalog list --json", description: "Compact catalog list" },
+    { args: "mktg catalog list --verbose --json", description: "Full CatalogEntry per catalog" },
     { args: "mktg catalog list --fields catalogs.name --json", description: "Just catalog names" },
   ],
   vocabulary: ["catalog list", "list catalogs", "upstream"],
@@ -234,23 +238,48 @@ export const schema: CommandSchema = {
 // Handlers
 // ---------------------------------------------------------------------------
 
-type ListResult = {
-  readonly catalogs: readonly CatalogEntry[];
-  readonly installed: number;
-  readonly total: number;
+type CatalogListItem = Pick<CatalogEntry, "name" | "version_pinned" | "license" | "capabilities"> & {
+  readonly configured: boolean;
 };
 
-const handleList = async (): Promise<CommandResult<ListResult>> => {
+type ListResult = {
+  readonly catalogs: readonly (CatalogListItem | (CatalogEntry & { readonly configured: boolean }))[];
+  readonly installed: number;
+  readonly total: number;
+  readonly help: readonly string[];
+};
+
+// Field names that only exist on the verbose item shape; naming one via
+// --fields (e.g. `catalogs.auth`) opts into --verbose so the filter never
+// hits UNKNOWN_FIELD.
+const VERBOSE_CATALOG_FIELDS = new Set(["repo_url", "docs_url", "transport", "sdk_reference", "auth", "skills", "mcp", "research_adapters"]);
+
+const handleList = async (args: readonly string[], flags: GlobalFlags): Promise<CommandResult<ListResult>> => {
   const result = await loadCatalogManifest();
   if (!result.ok) return loadErrorToResult(result);
 
-  const catalogs = Object.values(result.manifest.catalogs);
+  const wantsVerbose =
+    args.includes("--verbose") ||
+    flags.fields.some((f) => VERBOSE_CATALOG_FIELDS.has(f.replace(/^catalogs\./, "").split(".")[0]!));
+
+  const entries = Object.values(result.manifest.catalogs);
   let installed = 0;
-  for (const c of catalogs) {
+  const catalogs = entries.map((c) => {
     const { configured } = computeConfiguredStatus(c);
     if (configured) installed++;
-  }
-  return ok({ catalogs, installed, total: catalogs.length });
+    return wantsVerbose
+      ? { ...c, configured }
+      : { name: c.name, version_pinned: c.version_pinned, license: c.license, configured, capabilities: c.capabilities };
+  });
+  return ok({
+    catalogs,
+    installed,
+    total: catalogs.length,
+    help: [
+      ...(wantsVerbose ? [] : ["mktg catalog list --verbose --json — full CatalogEntry per item"]),
+      "mktg catalog info <name> --json — full record incl. configured/missing_envs",
+    ],
+  });
 };
 
 type InfoResult = CatalogEntry & {
@@ -499,7 +528,7 @@ export const handler: CommandHandler = async (args, flags) => {
   }
 
   switch (sub) {
-    case "list": return handleList();
+    case "list": return handleList(args, flags);
     case "info": return handleInfo(args);
     case "sync": return handleSync(args);
     case "status": return handleStatus();

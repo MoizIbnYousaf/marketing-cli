@@ -18,7 +18,15 @@ export const schema: CommandSchema = {
       flags: [
         { name: "--ndjson", type: "boolean", required: false, description: "Stream each scan result as a NDJSON line to stderr" },
       ],
-      output: { results: "ScanResult[] — per-URL scan results with diff status" },
+      output: {
+        results: "ScanResult[] — per-URL scan results with diff status",
+        total: "number — number of competitors scanned",
+        changed: "number — competitors with detected changes",
+        new: "number — first-scan baselines captured",
+        errors: "number — competitors that failed to fetch",
+        message: "string? — set when nothing is tracked",
+        help: "string[] — next-step commands",
+      },
       examples: [
         { args: "mktg compete scan --json", description: "Scan all tracked competitors" },
         { args: "mktg compete scan --ndjson", description: "Stream each scan result as a NDJSON line to stderr" },
@@ -29,14 +37,14 @@ export const schema: CommandSchema = {
       description: "Add a competitor URL to track",
       flags: [],
       positional: { name: "url", description: "Competitor URL to track", required: true },
-      output: { added: "string — URL added to watchlist" },
+      output: { added: "string — URL added to watchlist", dryRun: "boolean? — true when --dry-run (nothing written)" },
       examples: [{ args: "mktg compete watch https://competitor.com", description: "Start tracking" }],
     },
     {
       name: "list",
       description: "Show all tracked competitor URLs",
       flags: [],
-      output: { urls: "WatchEntry[] — tracked URLs with last scan info" },
+      output: { urls: "WatchEntry[] — tracked URLs with last scan info", total: "number — tracked URL count", message: "string? — set when nothing is tracked", help: "string[] — next-step commands" },
       examples: [{ args: "mktg compete list --json", description: "List tracked competitors" }],
     },
     {
@@ -50,9 +58,13 @@ export const schema: CommandSchema = {
   ],
   flags: [],
   output: {
-    results: "ScanResult[] — scan results (default: runs scan)",
+    urls: "WatchEntry[] — bare `mktg compete` returns the watch list (same as `compete list`; read-only, offline — never a network scan)",
+    total: "number — tracked URL count",
+    message: "string? — set when nothing is tracked",
+    help: "string[] — next-step commands (e.g. 'mktg compete scan --json' to actually fetch)",
   },
   examples: [
+    { args: "mktg compete --json", description: "Show the watch list (offline; no fetch). Run `mktg compete scan --json` to detect changes" },
     { args: "mktg compete scan --json", description: "Scan all tracked competitors" },
     { args: "mktg compete watch https://competitor.com", description: "Add competitor to track" },
   ],
@@ -262,7 +274,9 @@ const handleScan = async (cwd: string, dryRun: boolean, ndjson = false): Promise
 export const handler: CommandHandler = async (args, flags) => {
   const cwd = flags.cwd;
   const positionalArgs = args.filter(a => !a.startsWith("--"));
-  const subcommand = positionalArgs[0] ?? "scan";
+  // Bare `mktg compete` is read-only: it returns the watch list (offline).
+  // Network scans are opt-in via the explicit `scan` subcommand.
+  const subcommand = positionalArgs[0] ?? "list";
 
   if (subcommand === "watch") {
     const url = positionalArgs[1];
@@ -272,7 +286,7 @@ export const handler: CommandHandler = async (args, flags) => {
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
       return err("INVALID_ARGS", "URL must start with http:// or https://", [], 2);
     }
-    if (flags.dryRun) return ok({ added: url });
+    if (flags.dryRun) return ok({ added: url, dryRun: true });
     const watchlist = await loadWatchlist(cwd);
     if (watchlist.entries.some(e => e.url === url)) {
       return ok({ added: url, note: "Already tracked" });
@@ -293,7 +307,14 @@ export const handler: CommandHandler = async (args, flags) => {
       }
       writeStderr("");
     }
-    return ok({ urls: watchlist.entries });
+    return ok({
+      urls: watchlist.entries,
+      total: watchlist.entries.length,
+      ...(watchlist.entries.length === 0 && { message: "No competitors tracked — run mktg compete watch <url>" }),
+      help: watchlist.entries.length === 0
+        ? ["mktg compete watch <url> — start tracking a competitor", "mktg compete scan --json — fetch + detect changes (network)"]
+        : ["mktg compete scan --json — fetch + detect changes (network)", "mktg compete diff <url> --json — detailed changes for one competitor"],
+    });
   }
 
   if (subcommand === "diff") {
@@ -317,7 +338,7 @@ export const handler: CommandHandler = async (args, flags) => {
     return ok({ diff });
   }
 
-  // Default: scan
+  // scan (explicit subcommand only — never the bare-command default)
   const ndjson = args.includes("--ndjson");
   const results = await handleScan(cwd, flags.dryRun, ndjson);
 
@@ -336,5 +357,17 @@ export const handler: CommandHandler = async (args, flags) => {
     writeStderr("");
   }
 
-  return ok({ results });
+  const total = results.length;
+  const count = (status: ScanResult["status"]) => results.filter((r) => r.status === status).length;
+  return ok({
+    results,
+    total,
+    changed: count("changed"),
+    new: count("new"),
+    errors: count("error"),
+    ...(total === 0 && { message: "No competitors tracked — run mktg compete watch <url>" }),
+    help: total === 0
+      ? ["mktg compete watch <url> — start tracking a competitor", "mktg compete list --json — show tracked URLs"]
+      : ["mktg compete diff <url> --json — detailed changes for one competitor", "mktg compete list --json — show tracked URLs"],
+  });
 };

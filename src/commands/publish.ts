@@ -4,7 +4,7 @@
 
 import { join } from "node:path";
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
-import { rejectControlChars, validatePathInput, parseJsonInput } from "../core/errors";
+import { rejectControlChars, validatePathInput, parseJsonInput, unsupportedFlag } from "../core/errors";
 import { isTTY, writeStdout, bold, dim, green, yellow, red } from "../core/output";
 import { hasFlag, flagValue } from "../core/args";
 import {
@@ -27,7 +27,7 @@ import {
   PRESENTATION_ADAPTER_ORDER,
 } from "../core/publish/registry";
 
-export { postizFetch, sentMarkerKey, loadSentMarker, persistSentMarker } from "../core/publish/postiz";
+
 export { BUILTIN_PUBLISH_ADAPTERS } from "../core/publish/registry";
 
 export const schema: CommandSchema = {
@@ -39,8 +39,8 @@ export const schema: CommandSchema = {
     { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file)" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream progress as NDJSON lines" },
     { name: "--list-adapters", type: "boolean", required: false, description: "List available adapters with env var requirements and configured status" },
-    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Returns NOT_IMPLEMENTED for adapters without one." },
-    { name: "--diagnose", type: "boolean", required: false, description: "Run adapter connection diagnostics. Currently supports --adapter postiz." },
+    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
+    { name: "--diagnose", type: "boolean", required: false, description: "Run adapter connection diagnostics. Supported adapters: postiz. Others return UNSUPPORTED_FLAG (exit 2)." },
     { name: "--native-account", type: "boolean", required: false, description: "Show or auto-provision the local mktg-native workspace account and API key" },
     { name: "--native-upsert-provider", type: "boolean", required: false, description: "Create or update a local mktg-native provider using --input JSON" },
     { name: "--native-list-posts", type: "boolean", required: false, description: "List locally stored mktg-native posts in queue/history order" },
@@ -143,15 +143,10 @@ export const handler: CommandHandler<
     if (args[i] === "--adapter" && args[i + 1]) { flagValueIndices.add(i + 1); break; }
   }
 
-  // --list-integrations: adapter-scoped live query. Only postiz implements it today.
+  // --diagnose: adapter-scoped connection diagnostics. Only postiz implements it today.
   if (hasFlag(args, "--diagnose")) {
     if (adapterFilter && adapterFilter !== "postiz") {
-      return err(
-        "NOT_IMPLEMENTED",
-        "--diagnose currently supports only --adapter postiz",
-        ["Try: mktg publish --adapter postiz --diagnose --json"],
-        6,
-      );
+      return unsupportedFlag("--diagnose", adapterFilter, ["postiz"], "Try: mktg publish --adapter postiz --diagnose --json");
     }
     return ok(await diagnosePostiz());
   }
@@ -168,14 +163,11 @@ export const handler: CommandHandler<
       return ok((await listNativeIntegrations(flags.cwd)).data);
     }
     if (adapterFilter !== "postiz") {
-      return err(
-        "NOT_IMPLEMENTED",
-        `Adapter '${adapterFilter}' does not expose integrations.`,
-        [
-          "This flag is only supported by adapters that back their own provider registry.",
-          "Try --adapter mktg-native or --adapter postiz.",
-        ],
-        6,
+      return unsupportedFlag(
+        "--list-integrations",
+        adapterFilter,
+        ["mktg-native", "postiz"],
+        "Try: mktg publish --adapter mktg-native --list-integrations --json (or --adapter postiz)",
       );
     }
     const res = await listPostizIntegrations();

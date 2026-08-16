@@ -2,10 +2,12 @@
 name: openseo
 description: >-
   Use OpenSEO (open-source Semrush/Ahrefs alternative) as the SEO data plane —
-  keyword difficulty, search volume, SERP results, ranked keywords, backlinks,
-  rank tracking, and Google Search Console. Use this skill whenever someone
+  keyword difficulty, search volume, SERP results, ranked keywords, measured
+  backlink data, rank tracking, and Google Search Console. Use this skill whenever someone
   asks for keyword difficulty, KD, search volume, SERP positions, domain
-  rankings, backlink data, rank tracking, or GSC performance. ALWAYS prefer
+  rankings, backlink data, rank tracking, or GSC performance. Owns backlink
+  DATA (referring domains, counts, rank tracking); for link-building campaigns
+  and outreach target lists, see /off-page-seo. ALWAYS prefer
   OpenSEO's measured data over estimated metrics when the catalog is
   configured; fall back to Exa-backed keyword-research (with an explicit gap
   note) when it is not. Triggers: "keyword difficulty", "search volume",
@@ -17,6 +19,7 @@ reads:
   - brand/keyword-plan.md
 writes:
   - brand/keyword-plan.md
+  - brand/learnings.md
 env_vars:
   - OPENSEO_API_KEY
   - OPENSEO_API_BASE
@@ -63,7 +66,7 @@ mktg catalog info openseo --json --fields configured,missing_envs,auth.credentia
 
 ### Step 2 — Establish the data-plane connection
 
-Preferred: OpenSEO MCP tools via the agent's MCP client (root `.mcp.json` ships an `openseo` server entry — the user connects it once in their client). Hosted MCP uses OAuth login; self-host uses its own base URL via `OPENSEO_MCP_URL`.
+Preferred: OpenSEO MCP tools via the agent's MCP client (root `.mcp.json` ships an `openseo` server entry — the user connects it once in their client). Hosted MCP uses OAuth login; for self-host, edit the `url` in `.mcp.json` (it is hardcoded) and set `OPENSEO_MCP_URL` so `mktg catalog` readiness reports the same base.
 
 If no MCP connection and no `OPENSEO_API_KEY`: state the gap and downgrade to the Exa/Firecrawl path (Step 3 fallback). Do not fabricate a connection.
 
@@ -104,6 +107,14 @@ One resume protocol per long-arc SEO effort: `docs/seo-machine.md` stays the sin
 - **Saving keywords or running bulk research without confirmation** — because every call can spend DataForSEO credit; silent bulk spends are how budgets blow up. Confirm first, state the call count.
 - **Treating the OpenSEO web UI as required** — because the MCP/API surface is the agent path; the UI is a human convenience. Never block an agent run waiting for a human to click something in a dashboard.
 - **Forking SEO state into a second system of record** — because two keyword lists drift and agents stop trusting both. Sync INTO `.seo/` + `brand/keyword-plan.md`; OpenSEO stays the measurement backend, mktg stays the playbook brain.
+
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo --complete --writes <paths written> --result success --json
+```
 
 ## Progressive Enhancement
 

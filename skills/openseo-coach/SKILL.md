@@ -83,6 +83,15 @@ Then offer 2–4 concrete options, never a menu of ten. Example openers:
 - **Pretending OpenSEO browses pages or finds contacts** — because it doesn't; web/search/browser tools do that part (see `openseo-link-prospecting`'s split). Misattribution teaches the user a wrong mental model that breaks later.
 - **Coaching toward a workflow the data can't support** — because recommending measured-KD research with no OpenSEO connection sets the user up for a wall. Check readiness first; name the fallback explicitly.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-coach --complete --writes <paths written> --result success --json
+```
+
+
 ---
 
 *Adapted from [every-app/open-seo](https://github.com/every-app/open-seo) `.agents/skills/seo-coach` (MIT). Coaching content upstream; mktg routing, readiness checks, and cost framing added here.*

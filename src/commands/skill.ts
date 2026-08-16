@@ -2,7 +2,7 @@
 import { type CommandHandler, type CommandSchema, type CommandResult, ok } from "../types";
 import { isKeyOf } from "../core/routing";
 import { invalidArgs, notFound, rejectControlChars, detectDoubleEncoding } from "../core/errors";
-import { resolveManifest, loadManifest } from "../core/skills";
+import { resolveManifest, loadManifest, suggestSkillNames } from "../core/skills";
 import {
   getSkillInfo,
   validateSkill as validateSkillContent,
@@ -240,12 +240,20 @@ const handleInfo = async (args: readonly string[], flags: { cwd: string }): Prom
 
   const manifest = await resolveManifest(flags.cwd);
   const info = await getSkillInfo(name, manifest);
-  if (!info) return notFound(`Skill '${name}'`, [
-    "mktg list --json to see all available skills",
-    "Check spelling — redirects are followed automatically",
-  ]);
+  if (!info) {
+    const candidates = suggestSkillNames(manifest, name);
+    return notFound(`Skill '${name}'`, [
+      ...(candidates.length > 0 ? [`Did you mean: ${candidates.join(", ")}?`] : []),
+      "mktg list --json to see all available skills",
+      "Check spelling — redirects are followed automatically",
+    ]);
+  }
 
-  return ok(info);
+  return ok(info, undefined, [
+    `mktg run ${info.name} --json`,
+    `mktg skill check ${info.name} --json`,
+    ...(info.installed ? [] : ["mktg update --json"]),
+  ]);
 };
 
 const handleValidate = async (args: readonly string[], flags: { cwd: string }): Promise<CommandResult> => {

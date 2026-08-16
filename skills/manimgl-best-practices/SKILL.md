@@ -48,11 +48,11 @@ Read individual rule files for detailed explanations and code examples:
 
 Complete, tested example files demonstrating common patterns:
 
-- [examples/basic_animations.py](examples/basic_animations.py) - Basic shapes, text, and animations
-- [examples/math_visualization.py](examples/math_visualization.py) - LaTeX equations and mathematical content
-- [examples/graph_plotting.py](examples/graph_plotting.py) - Axes, functions, and graphing
-- [examples/3d_visualization.py](examples/3d_visualization.py) - 3D scenes with camera control and surfaces
-- [examples/updater_patterns.py](examples/updater_patterns.py) - Dynamic animations with updaters
+- [examples/simple_test.py](examples/simple_test.py) - Minimal scene: basic shapes, text, and animations
+- [examples/equation_transforms.py](examples/equation_transforms.py) - LaTeX equations and mathematical content
+- [examples/linear_regression.py](examples/linear_regression.py) - Axes, functions, and graphing
+- [examples/three_d_surfaces.py](examples/three_d_surfaces.py) - 3D scenes with camera control and surfaces
+- [examples/vector_fields.py](examples/vector_fields.py) - Dynamic animations with updaters and flow fields
 
 ## Scene Templates
 

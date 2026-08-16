@@ -62,6 +62,7 @@ export const schema: CommandSchema = {
   name: "studio",
   description:
     "Launch the mktg-studio dashboard (Bun API server + Next.js UI). Prefers a local sibling checkout, falls back to mktg-studio on PATH.",
+  passthroughFlags: true,
   flags: [
     {
       name: "--open",

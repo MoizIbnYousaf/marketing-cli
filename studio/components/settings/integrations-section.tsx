@@ -27,9 +27,9 @@ interface IntegrationsResponse {
 interface CatalogEntry {
   name?: string
   configured?: boolean
-  healthy?: boolean
-  missing_envs?: string[]
-  capabilities?: string[]
+  healthy?: boolean | null
+  /** Human-readable status from `mktg catalog status` (e.g. "unconfigured — missing: POSTIZ_API_KEY"). */
+  detail?: string
   error?: string | null
 }
 
@@ -254,7 +254,7 @@ export function IntegrationsSection() {
             <ul className="space-y-1">
               {catalogEntries.map((c) => {
                 const configured = c.configured === true
-                const missing = c.missing_envs ?? []
+                const detail = c.detail ?? ""
                 return (
                   <li
                     key={c.name ?? Math.random()}
@@ -267,14 +267,9 @@ export function IntegrationsSection() {
                         />
                         <p className="text-sm font-medium">{c.name ?? "unknown"}</p>
                       </div>
-                      {c.capabilities && c.capabilities.length > 0 && (
-                        <p className="mt-1 ml-4 text-[11px] text-muted-foreground">
-                          {c.capabilities.slice(0, 6).join(" · ")}
-                        </p>
-                      )}
-                      {missing.length > 0 && (
-                        <p className="mt-1 ml-4 font-mono text-[11px] text-amber-600">
-                          Missing env: {missing.join(", ")}
+                      {detail && (
+                        <p className={`mt-1 ml-4 font-mono text-[11px] ${configured ? "text-muted-foreground" : "text-amber-600"}`}>
+                          {detail}
                         </p>
                       )}
                       {c.error && (

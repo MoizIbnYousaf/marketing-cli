@@ -23,6 +23,10 @@ allowed-tools:
   - Write
   - Edit
   - Skill
+reads:
+  - brand/voice-profile.md
+  - brand/creative-kit.md
+writes: []
 author: Higgsfield AI (ported by moiz)
 license: MIT
 user-invocable: true
@@ -51,7 +55,7 @@ Brand-image generation via the `higgsfield product-photoshoot create` command. T
 
 ## On Activation
 
-1. Read `brand/voice-profile.md`, `brand/visual-style.md`, and `brand/creative-kit.md` if present. Use brand colors, aesthetic language, and platform preferences to inform mode selection and interview answers.
+1. Read `brand/voice-profile.md` and `brand/creative-kit.md` if present. Use brand colors, aesthetic language (`creative-kit.md` > `## Visual Brand Style`, written by `/visual-style`), and platform preferences to inform mode selection and interview answers.
 2. Check CLI: `higgsfield account status`. If not on `$PATH`, surface install command. If session expired, prompt auth.
 3. Run the pre-generation interview (see below) — at most 4 questions before submitting.
 

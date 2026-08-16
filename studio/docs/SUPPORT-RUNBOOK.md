@@ -185,7 +185,7 @@ If still stuck after 30 s, click Skip → /dashboard, then trigger the three age
 **Cause:** Claude Code doesn't see the `cmo` skill in `~/.claude/skills/cmo/SKILL.md`. Either it wasn't installed, or Claude Code's skill index is stale.
 **Fix:**
 ```sh
-mktg init --yes                       # re-installs all 50 skills including cmo
+mktg init --yes                       # re-installs all bundled skills (76) including cmo
 ls ~/.claude/skills/cmo/              # should list SKILL.md + rules/
 # then fully restart Claude Code (Cmd+Q, reopen) to pick up new skills
 ```

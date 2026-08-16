@@ -228,8 +228,9 @@ const buildTasks = async (
       if (openseoStatus.configured && !bindingExists) {
         emitTask({
           id: "seo-link-project", order: tasks.length, category: "setup",
-          action: "Link an OpenSEO project to this repo", command: "mktg seo status --json",
-          reason: "OpenSEO is configured but no project is bound — linking unlocks keyword/rank sync",
+          action: "Link an OpenSEO project to this repo",
+          command: "mktg seo link-project --input '{\"projectId\":\"<id>\",\"domain\":\"<domain>\"}' --json",
+          reason: "OpenSEO is configured but no project is bound — linking unlocks keyword/rank sync (check with `mktg seo status --json`; /openseo-project-setup finds the id)",
           blocked: false,
         });
       } else if (!openseoStatus.configured && keywordPlanPopulated) {
@@ -316,5 +317,10 @@ export const handler: CommandHandler<PlanResult | { completed: string } | { task
     writeStdout("");
   }
 
-  return ok(result);
+  const help = [
+    "mktg plan next --json",
+    "mktg plan complete <task-id> --json",
+    ...(tasks[0]?.command ? [tasks[0].command] : []),
+  ];
+  return ok(result, undefined, help);
 };

@@ -248,7 +248,9 @@ describe("plan OpenSEO backend awareness (S5)", () => {
       { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" },
     );
     const parsed = JSON.parse(stdout);
-    expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-link-project")).toBe(true);
+    const linkTask = parsed.tasks.find((t: { id: string }) => t.id === "seo-link-project");
+    expect(linkTask).toBeDefined();
+    expect(linkTask.command).toContain("mktg seo link-project");
     await rm(tmp, { recursive: true, force: true });
   });
 

@@ -3,7 +3,7 @@
 // module existed, ~12 command files hand-rolled the same loop; new parsing
 // should live here, and older call sites migrate opportunistically.
 
-/** Last value for a flag: `--flag value` or `--flag=value`. Undefined when absent. */
+/** First value for a flag: `--flag value` or `--flag=value`. Undefined when absent. Use flagValues for repeats. */
 export const flagValue = (args: readonly string[], name: string): string | undefined => {
   const prefix = `${name}=`;
   for (let i = 0; i < args.length; i++) {

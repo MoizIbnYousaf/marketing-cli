@@ -15,9 +15,12 @@
 import "./core/runtime-compat";
 
 import type { GlobalFlags, CommandResult, CommandSchema } from "./types";
-import { formatOutput, writeStdout, writeStderr, isTTY, applyFieldsFilter } from "./core/output";
+import { formatOutput, writeStdout, applyFieldsFilter, toJson } from "./core/output";
 import { COMMANDS } from "./core/command-registry";
 import { applyEnvLocal } from "./core/env-local";
+import { buildHomeView } from "./core/home-view";
+import { existsSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 import pkg from "../package.json";
 
 const VERSION = pkg.version;
@@ -33,7 +36,8 @@ Commands:
   doctor     Health checks + skill updates (--fix to auto-remediate)
   plan       Execution loop — prioritized task queue from project state
   status     Project marketing state snapshot
-  dashboard  Local dashboard — snapshot, actions, launch
+  setup      Install a Claude Code SessionStart hook that injects mktg status into every session
+  dashboard  JSON command-center (snapshot, plan, outputs, publish, system, compete, action); UI via mktg studio
   catalog    Upstream catalog registry (list, info, sync, status, add)
   list       Show available skills
   update     Force-update skills
@@ -54,9 +58,10 @@ Commands:
   cmo        Invoke /cmo via headless Claude Code subprocess — returns structured CmoResponse for agent consumption
 
 Flags:
-  --json           Machine-readable JSON output
+  --json           Machine-readable JSON output (compact single-line by default)
+  --pretty         Indent JSON output (2 spaces) for human reading
   --dry-run        Validate without writing
-  --fields <f,f>   Limit output fields (comma-separated)
+  --fields <f,f>   Select fields: top-level keys, dot paths (a.b.c), or item keys for collections
   --cwd <path>     Set working directory
   --input <json>   Raw JSON payload for mutating commands
   --help, -h       Show this help
@@ -67,6 +72,7 @@ Environment:
   NO_COLOR=1           Disable ANSI color codes
 
 Note: JSON output is automatic when stdout is piped (non-TTY).
+      Bare 'mktg' prints a live home view (health, brand, skills, next commands).
 
 Run 'mktg <command> --help' for command-specific usage.`;
 
@@ -75,6 +81,7 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
   // OUTPUT_FORMAT=json env var or non-TTY pipe auto-enables JSON
   let json = process.env.OUTPUT_FORMAT === "json" ||
     (typeof process.stdout.isTTY !== "boolean" || !process.stdout.isTTY);
+  let pretty = false;
   let dryRun = false;
   let fields: string[] = [];
   let cwd = process.cwd();
@@ -87,6 +94,8 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
 
     if (arg === "--json") {
       json = true;
+    } else if (arg === "--pretty") {
+      pretty = true;
     } else if (arg === "--dry-run") {
       dryRun = true;
     } else if (arg === "--fields" && argv[i + 1]) {
@@ -111,12 +120,13 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
     }
   }
 
-  return { command, args, flags: { json, dryRun, fields, cwd, jsonInput } };
+  return { command, args, flags: { json, pretty, dryRun, fields, cwd, jsonInput } };
 };
 
 // Format a command schema as readable help text
-const formatSchemaAsHelp = (schema: CommandSchema): string => {
-  const lines: string[] = [`mktg ${schema.name} — ${schema.description}`];
+const formatSchemaAsHelp = (schema: CommandSchema, parent?: string): string => {
+  const title = parent ? `mktg ${parent} ${schema.name}` : `mktg ${schema.name}`;
+  const lines: string[] = [`${title} — ${schema.description}`];
 
   if (schema.subcommands && schema.subcommands.length > 0) {
     lines.push("", "Subcommands:");
@@ -142,7 +152,74 @@ const formatSchemaAsHelp = (schema: CommandSchema): string => {
     }
   }
 
+  if (!parent && schema.subcommands && schema.subcommands.length > 0) {
+    lines.push("", `Run 'mktg ${schema.name} <subcommand> --help' or 'mktg schema ${schema.name} <subcommand> --json' for subcommand flags.`);
+  }
+
   return lines.join("\n");
+};
+
+const GLOBAL_FLAG_NAMES = new Set(["--json", "--pretty", "--dry-run", "--fields", "--cwd", "--input", "--help", "-h", "--version", "-v"]);
+// The only single-dash aliases the CLI understands (-y is init's --yes).
+const KNOWN_SHORT_FLAGS = new Set(["-h", "-v", "-y"]);
+
+// Root-level (no command) unknown flags: anything dash-prefixed that is not a
+// global flag. `mktg --bogus` must exit 2, not print help and exit 0.
+const findUnknownRootFlags = (args: readonly string[]): string[] =>
+  args.filter((arg) => {
+    if (!arg.startsWith("-")) return false;
+    const name = arg.includes("=") ? arg.slice(0, arg.indexOf("=")) : arg;
+    return !GLOBAL_FLAG_NAMES.has(name);
+  });
+
+const normalizeFlagName = (name: string): string => (name.startsWith("--") ? name : `--${name}`);
+
+// Levenshtein for "did you mean" flag hints (tiny inputs, no perf concern)
+const editDistance = (a: string, b: string): number => {
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let diag = prev[0]!;
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = prev[j]!;
+      prev[j] = Math.min(prev[j]! + 1, prev[j - 1]! + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+      diag = tmp;
+    }
+  }
+  return prev[b.length]!;
+};
+
+// Diff the leftover `--flags` in args against the command schema (top-level +
+// every subcommand's flags + global flags). Returns the unknown flags plus
+// "did you mean" hints. Commands with `passthroughFlags: true` are exempt.
+const findUnknownFlags = (
+  schema: CommandSchema,
+  args: readonly string[],
+): { unknown: string[]; hints: string[] } => {
+  if (schema.passthroughFlags) return { unknown: [], hints: [] };
+  const known = new Set<string>(GLOBAL_FLAG_NAMES);
+  for (const f of schema.flags) known.add(normalizeFlagName(f.name));
+  for (const sub of schema.subcommands ?? []) for (const f of sub.flags) known.add(normalizeFlagName(f.name));
+  const unknown: string[] = [];
+  const hints: string[] = [];
+  for (const arg of args) {
+    if (arg === "--") break;
+    // Short flags (-x) are unsupported except the documented aliases; negative
+    // numbers and bare "-" (stdin) are values, not flags.
+    if (!arg.startsWith("--")) {
+      if (/^-[A-Za-z]/.test(arg) && !KNOWN_SHORT_FLAGS.has(arg)) unknown.push(arg);
+      continue;
+    }
+    const name = arg.includes("=") ? arg.slice(0, arg.indexOf("=")) : arg;
+    if (known.has(name)) continue;
+    unknown.push(name);
+    const closest = Array.from(known)
+      .filter((k) => k.startsWith("--"))
+      .map((k) => ({ k, d: editDistance(name, k) }))
+      .sort((a, b) => a.d - b.d)[0];
+    if (closest && closest.d <= 3) hints.push(`Did you mean ${closest.k}?`);
+  }
+  return { unknown, hints };
 };
 
 const run = async () => {
@@ -160,9 +237,35 @@ applyEnvLocal(flags.cwd);
     return;
   }
 
-  // --help / no command → show global help (but NOT if a command is specified)
+  // --help → full command list; bare `mktg` → live home view (content-first).
   const wantsHelp = args.includes("--help") || args.includes("-h");
   if (!command || command === "--help" || command === "-h") {
+    const unknownRoot = findUnknownRootFlags(args);
+    if (unknownRoot.length > 0) {
+      const rootFlagResult: CommandResult<never> = {
+        ok: false,
+        error: {
+          code: "UNKNOWN_FLAG",
+          message: `Unknown flag${unknownRoot.length > 1 ? "s" : ""}: ${unknownRoot.join(", ")}`,
+          suggestions: [`Global flags: ${Array.from(GLOBAL_FLAG_NAMES).join(", ")}`, "mktg --help", "mktg schema --json"],
+        },
+        exitCode: 2,
+      };
+      writeStdout(formatOutput(rootFlagResult, flags));
+      finish(2);
+      return;
+    }
+    if (!command && !wantsHelp) {
+      // Content-first home view: what state am I in and what do I run next.
+      // Invalid --cwd degrades to health "unknown" rather than exiting non-zero.
+      const home = applyFieldsFilter(
+        await buildHomeView(flags, VERSION, resolve(process.argv[1] ?? "mktg")),
+        flags.fields,
+      );
+      writeStdout(formatOutput(home, flags));
+      finish(home.exitCode);
+      return;
+    }
     if (flags.json) {
       const schemas = await Promise.all(
         Object.keys(COMMANDS).map(async (name) => {
@@ -175,9 +278,9 @@ applyEnvLocal(flags.cwd);
       const structured = {
         version: VERSION,
         commands: schemas,
-        globalFlags: ["--json", "--dry-run", "--fields", "--cwd"],
+        globalFlags: ["--json", "--pretty", "--dry-run", "--fields", "--cwd", "--input"],
       };
-      writeStdout(JSON.stringify(structured, null, 2));
+      writeStdout(toJson(structured, flags));
     } else {
       writeStdout(HELP);
     }
@@ -215,17 +318,72 @@ applyEnvLocal(flags.cwd);
 
   try {
     const mod = await loader();
+    const schema = (mod as { schema?: CommandSchema }).schema;
 
-    // Per-command --help: delegate to command schema
+    // Per-command --help: delegate to command schema. When the first positional
+    // names a subcommand, print that subcommand's schema instead of the parent.
     if (wantsHelp) {
-      const schema = (mod as { schema?: CommandSchema }).schema;
       if (schema) {
+        const subName = args.find((a) => !a.startsWith("-"));
+        const sub = subName ? schema.subcommands?.find((s) => s.name === subName) : undefined;
         if (flags.json) {
-          writeStdout(JSON.stringify(schema, null, 2));
+          // Group commands: emit a compact index (subcommand names + descriptions)
+          // rather than every subcommand's full flag/output map. --full or
+          // `mktg schema <cmd> --json` yields the complete schema.
+          const isGroup = !sub && (schema.subcommands?.length ?? 0) > 0 && !args.includes("--full");
+          const payload = isGroup
+            ? {
+                name: schema.name,
+                description: schema.description,
+                flags: schema.flags,
+                ...(schema.positional && { positional: schema.positional }),
+                subcommands: schema.subcommands!.map((s) => ({ name: s.name, description: s.description })),
+                examples: schema.examples,
+                help: [`mktg ${schema.name} <subcommand> --help`, `mktg schema ${schema.name} --json`, `mktg ${schema.name} --help --full`],
+              }
+            : (sub ?? schema);
+          writeStdout(toJson(payload, flags));
         } else {
-          writeStdout(formatSchemaAsHelp(schema));
+          writeStdout(sub ? formatSchemaAsHelp(sub, schema.name) : formatSchemaAsHelp(schema));
         }
         finish(0);
+        return;
+      }
+    }
+
+    // --cwd must be an existing directory — otherwise brand/ detection and
+    // every relative path silently resolve against nothing.
+    if (!existsSync(flags.cwd) || !statSync(flags.cwd).isDirectory()) {
+      const cwdResult: CommandResult<never> = {
+        ok: false,
+        error: {
+          code: "INVALID_ARGS",
+          message: `--cwd is not an existing directory: ${flags.cwd}`,
+          suggestions: ["Pass an absolute path to a project directory", "Omit --cwd to use the current directory"],
+        },
+        exitCode: 2,
+      };
+      writeStdout(formatOutput(cwdResult, flags));
+      finish(2);
+      return;
+    }
+
+    // Reject unknown --flags (typos like --dryrun / --confrim would otherwise
+    // fall through to the non-dry-run / non-confirm path).
+    if (schema) {
+      const { unknown, hints } = findUnknownFlags(schema, args);
+      if (unknown.length > 0) {
+        const flagResult: CommandResult<never> = {
+          ok: false,
+          error: {
+            code: "UNKNOWN_FLAG",
+            message: `Unknown flag${unknown.length > 1 ? "s" : ""} for 'mktg ${command}': ${unknown.join(", ")}`,
+            suggestions: [...hints, `mktg schema ${command} --json`, `mktg ${command} --help`],
+          },
+          exitCode: 2,
+        };
+        writeStdout(formatOutput(flagResult, flags));
+        finish(2);
         return;
       }
     }
@@ -239,26 +397,23 @@ applyEnvLocal(flags.cwd);
     // silently returning {} with exit 0.
     const result = applyFieldsFilter(rawResult, flags.fields);
 
-    // Handle display for TTY commands that build their own output
-    if (result.ok && result.display && isTTY() && !flags.json) {
-      writeStdout(result.display);
-      finish(result.exitCode);
-      return;
-    }
-
+    // formatOutput renders `display` for TTY (plus the help[] footer) and
+    // compact JSON (with top-level "help") for agents.
     writeStdout(formatOutput(result, flags));
     finish(result.exitCode);
     return;
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";
-    const result = {
+    const result: CommandResult<never> = {
+      ok: false,
       error: {
         code: "UNHANDLED_ERROR",
         message,
         suggestions: ["Report this bug"],
       },
+      exitCode: 1,
     };
-    writeStdout(JSON.stringify(result, null, 2));
+    writeStdout(formatOutput(result, flags));
     finish(1);
     return;
   }

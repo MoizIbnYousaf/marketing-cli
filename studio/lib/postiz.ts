@@ -1,44 +1,20 @@
 // lib/postiz.ts
 // AGPL-safe thin Postiz API client -- raw fetch only.
 // NEVER import from @postiz/* -- AGPL-3.0 firewall.
-// Mirrors mktg CLI's postizFetch at ~/projects/mktgmono/marketing-cli/src/commands/publish.ts:263
+// Shares the mktg CLI's client (src/core/publish/postiz/client.ts) -- one Postiz client, no drift.
 // Auth: bare Authorization header (NO "Bearer " prefix) per
 //   postiz apps/backend/src/services/auth/public.auth.middleware.ts:16-20
 
-const POSTIZ_DEFAULT_BASE = "https://api.postiz.com";
-
-const postizBaseCandidates = (rawBase: string): readonly string[] => {
-  const base = rawBase.replace(/\/+$/, "");
-  const candidates = [base];
-
-  try {
-    const url = new URL(base);
-    const path = url.pathname.replace(/\/+$/, "");
-    if (url.hostname !== "api.postiz.com" && path !== "/api" && !path.endsWith("/api")) {
-      url.pathname = `${path}/api`.replace(/\/{2,}/g, "/");
-      candidates.push(url.toString().replace(/\/+$/, ""));
-    }
-  } catch {
-    // Keep invalid URL handling in fetch; this helper only adds self-host fallbacks.
-  }
-
-  return [...new Set(candidates)];
-};
+import {
+  postizFetch,
+  POSTIZ_DEFAULT_BASE,
+  type PostizError,
+  type PostizResult,
+} from "../../src/core/publish/postiz";
 
 // ─── Error types ──────────────────────────────────────────────────────────
 
-export type PostizError =
-  | { readonly kind: "auth-missing" }
-  | { readonly kind: "auth-invalid"; readonly msg: string }
-  | { readonly kind: "subscription-required"; readonly msg: string }
-  | { readonly kind: "rate-limited"; readonly retryAfterSeconds: number | null; readonly msg: string }
-  | { readonly kind: "bad-request"; readonly status: number; readonly msg: string }
-  | { readonly kind: "server-error"; readonly status: number; readonly msg: string }
-  | { readonly kind: "network"; readonly detail: string };
-
-export type PostizResult<T> =
-  | { readonly ok: true; readonly data: T; readonly status: number }
-  | { readonly ok: false; readonly error: PostizError; readonly status: number | null };
+export type { PostizError, PostizResult };
 
 // ─── Domain types inferred from postiz-api-reference.md ──────────────────
 // Source: ~/projects/mktgmono/marketing-cli/docs/integration/postiz-api-reference.md §1.1-1.2
@@ -94,128 +70,6 @@ export type CreatePostDto = {
   }[];
 };
 
-// ─── Core fetch helper ────────────────────────────────────────────────────
-
-type PostizFetchInit = {
-  readonly method: "GET" | "POST" | "DELETE" | "PUT";
-  readonly headers?: Record<string, string>;
-  readonly body?: Record<string, unknown> | FormData;
-};
-
-/**
- * Raw fetch helper for all Postiz API calls.
- * Mirrors mktg CLI's postizFetch exactly.
- * Timeout: 15s via AbortSignal.timeout.
- * Auth: bare Authorization: <key> (NO "Bearer " prefix).
- * Base URL: POSTIZ_API_BASE env var, defaults to https://api.postiz.com.
- */
-export async function postizFetch<T>(
-  path: string,
-  init: PostizFetchInit,
-): Promise<PostizResult<T>> {
-  const apiKey = process.env.POSTIZ_API_KEY;
-  const base = process.env.POSTIZ_API_BASE ?? POSTIZ_DEFAULT_BASE;
-
-  if (!apiKey) {
-    return { ok: false, error: { kind: "auth-missing" }, status: null };
-  }
-
-  const headers: Record<string, string> = {
-    ...(init.headers ?? {}),
-    Authorization: apiKey, // bare -- NO "Bearer " prefix
-  };
-
-  let body: string | FormData | undefined;
-  if (init.body instanceof FormData) {
-    body = init.body;
-    // Do NOT set Content-Type -- runtime sets multipart/form-data boundary automatically
-  } else if (init.body !== undefined) {
-    body = JSON.stringify(init.body);
-    headers["Content-Type"] = "application/json";
-  }
-
-  let lastNetworkError: unknown;
-  const candidates = postizBaseCandidates(base);
-
-  for (const [index, candidate] of candidates.entries()) {
-    const isLast = index === candidates.length - 1;
-    let res: Response;
-    try {
-      const fetchInit: RequestInit = {
-        method: init.method,
-        headers,
-        signal: AbortSignal.timeout(15000),
-        ...(body !== undefined ? { body } : {}),
-      };
-      res = await fetch(`${candidate}${path}`, fetchInit);
-    } catch (e) {
-      lastNetworkError = e;
-      if (!isLast) continue;
-      return {
-        ok: false,
-        error: { kind: "network", detail: e instanceof Error ? e.message : String(e) },
-        status: null,
-      };
-    }
-
-    if (res.ok) {
-      try {
-        const data = (await res.json()) as T;
-        return { ok: true, data, status: res.status };
-      } catch {
-        if (!isLast) continue;
-        return {
-          ok: false,
-          error: { kind: "bad-request", msg: "Invalid JSON response from Postiz", status: res.status },
-          status: res.status,
-        };
-      }
-    }
-
-    if (res.status === 404 && !isLast) continue;
-
-    const errBody = (await res.json().catch(() => ({}))) as { msg?: unknown };
-    const msg = typeof errBody.msg === "string" ? errBody.msg : `HTTP ${res.status}`;
-
-    if (res.status === 401) {
-      if (msg === "No subscription found") {
-        return { ok: false, error: { kind: "subscription-required", msg }, status: 401 };
-      }
-      return { ok: false, error: { kind: "auth-invalid", msg }, status: 401 };
-    }
-
-    if (res.status === 429) {
-      const retryAfter = res.headers.get("retry-after");
-      const retryAfterSeconds =
-        retryAfter && /^\d+$/.test(retryAfter) ? Number(retryAfter) : null;
-      return {
-        ok: false,
-        error: { kind: "rate-limited", retryAfterSeconds, msg },
-        status: 429,
-      };
-    }
-
-    if (res.status >= 400 && res.status < 500) {
-      return {
-        ok: false,
-        error: { kind: "bad-request", msg, status: res.status },
-        status: res.status,
-      };
-    }
-
-    return {
-      ok: false,
-      error: { kind: "server-error", status: res.status, msg },
-      status: res.status,
-    };
-  }
-
-  return {
-    ok: false,
-    error: { kind: "network", detail: lastNetworkError instanceof Error ? lastNetworkError.message : String(lastNetworkError ?? "Unknown network error") },
-    status: null,
-  };
-}
 
 // ─── Error to human-readable string ──────────────────────────────────────
 

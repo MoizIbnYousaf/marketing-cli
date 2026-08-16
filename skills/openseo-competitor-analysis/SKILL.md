@@ -77,6 +77,15 @@ Start with: snapshot, biggest lesson, best opportunity to beat them. Then:
 - **Recommending "copy what they do"** — because imitation pages lose to the original on authority and freshness. Recommend a stronger angle on the same intent, never a replica.
 - **Separating evidence from inference nowhere** — because "they rank for X" (evidence) and "their content strategy is Y" (inference) carry different confidence and must read differently in `brand/competitors.md`.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-competitor-analysis --complete --writes <paths written> --result success --json
+```
+
+
 ---
 
 *Adapted from [every-app/open-seo](https://github.com/every-app/open-seo) `.agents/skills/competitor-analysis` (MIT). Workflow upstream; mktg brand-memory writes and handoff wiring added here.*

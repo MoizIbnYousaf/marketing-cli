@@ -5,14 +5,21 @@
 // version/tag consistency, studio runtime (if reachable). Returns a
 // structured ShipCheckReport with a 🟢/🟡/🔴 verdict.
 //
-// Verdict mapping:
-//   🟢 every blocking check passed                → exit 0
-//   🟡 non-blocking warnings present              → exit 1 (SHIP_CHECK_WARN)
-//   🔴 one or more blocking checks failed         → exit 2 (SHIP_CHECK_BLOCK)
+// Verdict mapping (data.verdict + data.icon, process exit code):
+//   pass  🟢 every blocking check passed          → exit 0
+//   warn  🟡 non-blocking warnings present        → exit 0 (warnings never block;
+//                                                   inspect data.warnings[])
+//   block 🔴 one or more blocking checks failed   → exit 4 (execution failed;
+//                                                   inspect data.blockers[])
+//
+// Warnings are a finding, not an error, so they share exit 0 with pass —
+// agents branch on data.verdict. Blockers return the FULL report on stdout
+// (not an error envelope) with exit 4 so the blockers[] list is directly
+// readable without opening the summary file.
 //
 // Full report is written to ~/.mktg/ship-check/<iso-ts>.json regardless
 // of verdict so the structured data is retrievable even when the command
-// exits non-zero. The err() path surfaces the summary path in suggestions.
+// exits non-zero.
 //
 // Agent DX 21/21 notes:
 //  - Axis 1: structured ShipCheckReport envelope, no prose
@@ -57,10 +64,15 @@ export interface ShipCheck {
   readonly skipReason?: string;
 }
 
-export type ShipVerdict = "🟢" | "🟡" | "🔴";
+export type ShipVerdict = "pass" | "warn" | "block";
+export type ShipVerdictIcon = "🟢" | "🟡" | "🔴";
+
+export const VERDICT_ICON: Record<ShipVerdict, ShipVerdictIcon> = { pass: "🟢", warn: "🟡", block: "🔴" };
 
 export interface ShipCheckReport {
   readonly verdict: ShipVerdict;
+  /** Human glyph for `verdict` — 🟢 pass · 🟡 warn · 🔴 block. */
+  readonly icon: ShipVerdictIcon;
   readonly timestamp: string;
   readonly mktgmonoRoot: string;
   readonly checks: readonly ShipCheck[];
@@ -133,7 +145,8 @@ export const schema: CommandSchema = {
       description: "'true' (default) spawns mktg verify fresh. 'false' reads the most recent ~/.mktg/verify/<ts>.json summary — faster, but stale." },
   ],
   output: {
-    verdict: "'🟢' | '🟡' | '🔴' — 🟢 all green, 🟡 non-blocking warnings, 🔴 blockers present",
+    verdict: "'pass' | 'warn' | 'block' — pass: all green (exit 0); warn: non-blocking warnings, shipping allowed (exit 0); block: blockers present (exit 4)",
+    icon: "'🟢' | '🟡' | '🔴' — glyph for verdict (pass/warn/block)",
     timestamp: "string — ISO 8601 when the check completed",
     mktgmonoRoot: "string — absolute path to the monorepo root",
     checks: "ShipCheck[] — one entry per check with name, category, verdict, detail, evidence, blocking, durationMs",
@@ -148,11 +161,11 @@ export const schema: CommandSchema = {
     mode: "'dry-run' | 'execute'",
   },
   examples: [
-    { args: "mktg ship-check --json", description: "Full run, exit 0/1/2 mapped to verdict" },
+    { args: "mktg ship-check --json", description: "Full run — exit 0 for verdict pass|warn, exit 4 for verdict block" },
     { args: "mktg ship-check --dry-run --json", description: "Plan — list every check without running" },
     { args: "mktg ship-check --json --fresh=false", description: "Reuse the last mktg verify summary (fast; may be stale)" },
     { args: "mktg ship-check --json --skip studio-health,version-tag-consistency", description: "Skip the named optional checks" },
-    { args: "mktg ship-check --json --fields verdict,blockers", description: "CI-friendly: just the verdict + blockers" },
+    { args: "mktg ship-check --json --fields verdict,blockers", description: "CI-friendly: just the verdict + blockers (branch on verdict === 'block')" },
   ],
   vocabulary: ["ship-check", "ship-it", "go/no-go", "launch-readiness", "verdict"],
 };
@@ -450,15 +463,15 @@ const readHeadSha = async (repoPath: string): Promise<string | null> => {
 
 const aggregateVerdict = (checks: readonly ShipCheck[]): ShipVerdict => {
   const blockingFails = checks.filter((c) => c.blocking && c.verdict === "fail");
-  if (blockingFails.length > 0) return "🔴";
+  if (blockingFails.length > 0) return "block";
   const warnsOrNonBlockingFails = checks.filter((c) => c.verdict === "warn" || (!c.blocking && c.verdict === "fail"));
-  if (warnsOrNonBlockingFails.length > 0) return "🟡";
-  return "🟢";
+  if (warnsOrNonBlockingFails.length > 0) return "warn";
+  return "pass";
 };
 
 const printTty = (report: ShipCheckReport): void => {
   writeStderr("");
-  writeStderr(`  ${bold("mktg ship-check")}  ${report.verdict}`);
+  writeStderr(`  ${bold("mktg ship-check")}  ${report.icon} ${report.verdict}`);
   writeStderr("");
   for (const c of report.checks) {
     const icon =
@@ -522,7 +535,8 @@ export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
     }));
     const [mktgCliSha, studioSha] = await Promise.all([readHeadSha(cliRoot), readHeadSha(studioRoot)]);
     const report: ShipCheckReport = {
-      verdict: "🟢",
+      verdict: "pass",
+      icon: VERDICT_ICON.pass,
       timestamp,
       mktgmonoRoot,
       checks,
@@ -601,6 +615,7 @@ export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
 
   const report: ShipCheckReport = {
     verdict,
+    icon: VERDICT_ICON[verdict],
     timestamp,
     mktgmonoRoot,
     checks,
@@ -623,22 +638,17 @@ export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
 
   if (isTTY() && !flags.json) printTty(report);
 
-  // Map verdict to exit code per the spec
-  if (verdict === "🔴") {
-    return err(
-      "SHIP_CHECK_BLOCK",
-      `ship-check: 🔴 ${blockers.length} blocker(s) — ${blockers.slice(0, 3).join(" | ")}${blockers.length > 3 ? ` | +${blockers.length - 3}` : ""}`,
-      [`Summary: ${summaryPath}`, `Resolve each blocker, then re-run: mktg ship-check --json`],
-      2,
-    ) as unknown as CommandResult<ShipCheckReport>;
+  // Map verdict to exit code (see file header). block → exit 4 with the
+  // full report as data so blockers[] is readable straight from stdout.
+  // The CommandResult union pins ok:true to exitCode:0, so cast through —
+  // cli.ts only inspects ok/data/exitCode at runtime.
+  if (verdict === "block") {
+    return {
+      ok: true,
+      data: report,
+      exitCode: 4,
+    } as unknown as CommandResult<ShipCheckReport>;
   }
-  if (verdict === "🟡") {
-    return err(
-      "SHIP_CHECK_WARN",
-      `ship-check: 🟡 ${warnings.length} warning(s) — ${warnings.slice(0, 3).join(" | ")}${warnings.length > 3 ? ` | +${warnings.length - 3}` : ""}`,
-      [`Summary: ${summaryPath}`, `Non-blocking — shipping allowed. Review and decide.`],
-      1,
-    ) as unknown as CommandResult<ShipCheckReport>;
-  }
+  // pass and warn both exit 0 — warnings are non-blocking findings.
   return ok(report);
 };

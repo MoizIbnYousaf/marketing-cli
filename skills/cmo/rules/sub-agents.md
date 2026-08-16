@@ -1,12 +1,12 @@
 # Sub-Agent Orchestration
 
-/cmo spawns specialized sub-agents for parallel research and post-production review. Agents never call agents — /cmo is the only orchestrator. This file documents when and how to invoke each of the 5 agents in `agents-manifest.json`.
+/cmo spawns specialized sub-agents for parallel research and post-production review. Agents never call agents — /cmo is the only orchestrator. This file documents when and how to invoke each of the 6 agents in `agents-manifest.json`.
 
 **Canonical rule:** research agents spawn on first-run foundation building (3 in parallel). Review agents spawn on-demand after content lands.
 
 ---
 
-## The 5 Agents
+## The 6 Agents
 
 ### Research agents (parallel, spawned on FIRST RUN or on-demand)
 
@@ -154,7 +154,7 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 
 ## Never-Call-Other-Agents Invariant
 
-Each of the 5 agents is **isolated** — they never spawn other agents. If a research agent needs content-reviewer's output, that's a signal the workflow is wrong. CMO is the coordinator; the agents are specialists.
+Each of the 6 agents is **isolated** — they never spawn other agents. If a research agent needs content-reviewer's output, that's a signal the workflow is wrong. CMO is the coordinator; the agents are specialists.
 
 **Anti-pattern to watch:** agents trying to chain work. If `mktg-brand-researcher` asks for audience data mid-run, reject — audience research is a separate agent, run in parallel, merged by CMO afterwards.
 

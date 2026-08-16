@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { updateAgents, installAgents, getAgentNames } from "./agents";
-import type { AgentsManifest } from "../types";
+import { updateAgents, installAgents, getAgentNames } from "../src/core/agents";
+import type { AgentsManifest } from "../src/types";
 
 // Create an isolated temp dir that mimics the agent structure
 const setupFixture = async () => {

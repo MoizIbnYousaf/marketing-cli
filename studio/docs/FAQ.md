@@ -7,7 +7,7 @@ Pre-emptive answers to the questions we expect most often. For anything that loo
 ## Product
 
 ### What is Studio?
-A local-first marketing dashboard that runs on your machine. A Bun API server on `:3001` + a Next.js dashboard on `:3000`, driven by the `/cmo` skill in your Claude Code terminal. Studio ships inside `marketing-cli` and launches via `mktg studio`. You don't type in a chat window inside Studio; you talk to `/cmo` in Claude Code, `/cmo` runs 50 marketing skills, and Studio visualizes the state -- Pulse, Signals, Publish, Brand, and Settings.
+A local-first marketing dashboard that runs on your machine. A Bun API server on `:3001` + a Next.js dashboard on `:3000`, driven by the `/cmo` skill in your Claude Code terminal. Studio ships inside `marketing-cli` and launches via `mktg studio`. You don't type in a chat window inside Studio; you talk to `/cmo` in Claude Code, `/cmo` runs 76 marketing skills, and Studio visualizes the state -- Pulse, Signals, Publish, Brand, and Settings.
 
 ### What isn't Studio?
 - It is not a hosted SaaS. No cloud account, no login.
@@ -22,7 +22,7 @@ Solo builders, small teams, and founders who want to run their own marketing wit
 Separation of concerns. The Bun server owns SQLite, the `brand/` watcher, and the SSE stream. The Next dashboard is a pure UI that reads/writes through the API. Either can restart without bringing down the other.
 
 ### Why does `/cmo` live in Claude Code instead of the studio?
-Because the studio is not an LLM wrapper. `/cmo` has 2,400 lines of orchestration knowledge + routes to 50 skills; it needs a real agent runtime. Claude Code already has the auth, the tool loop, and the file-write primitives. The studio is eyes, `/cmo` is brain.
+Because the studio is not an LLM wrapper. `/cmo` has 2,400 lines of orchestration knowledge + routes to 76 skills; it needs a real agent runtime. Claude Code already has the auth, the tool loop, and the file-write primitives. The studio is eyes, `/cmo` is brain.
 
 ### Do I need Claude Code?
 For the full experience, yes. You can open the dashboard and use every read-only surface without it (browse signals, view brand files, read the publish queue). But every "do something smart" action -- generate content, refresh trends, rewrite voice -- runs `/cmo` under the hood.

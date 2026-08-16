@@ -89,11 +89,11 @@ doctor → status → route|cmo → run --with-context (loaded)
 
 ### Acceptance criteria
 
-- [ ] Bare `mktg run seo-content --json` → `event: "loaded"`, history entry is not counted as execution by plan
-- [ ] `mktg run seo-content --complete --writes marketing/content/x.md --result success --json` validates writes exist (sandboxPath), logs `completed`
-- [ ] Missing/invalid write paths → exit 2 with fix guidance (no silent success)
-- [ ] Integration tests cover load vs complete; plan fixture proves load alone doesn’t unlock distribute
-- [ ] `CONTEXT.md` §“Load a skill” wording matches reality
+- [x] Bare `mktg run seo-content --json` → `event: "loaded"`, history entry is not counted as execution by plan
+- [x] `mktg run seo-content --complete --writes marketing/content/x.md --result success --json` validates writes exist (sandboxPath), logs `completed`
+- [x] Missing/invalid write paths → exit 2 with fix guidance (no silent success)
+- [x] Integration tests cover load vs complete; plan fixture proves load alone doesn’t unlock distribute
+- [x] `CONTEXT.md` §“Load a skill” wording matches reality
 
 ### Invasiveness
 
@@ -122,10 +122,10 @@ doctor → status → route|cmo → run --with-context (loaded)
 
 ### Acceptance criteria
 
-- [ ] Single call returns skill body + non-template brand slices for declared `reads`
-- [ ] `--fields` can trim `context.files.*` / omit `content`
-- [ ] Budget overflow returns structured warning + truncated file list (no silent drop without signal)
-- [ ] Docs claim in CONTEXT.md becomes true when flag is used
+- [x] Single call returns skill body + non-template brand slices for declared `reads`
+- [x] `--fields` can trim `context.files.*` / omit `content`
+- [x] Budget overflow returns structured warning + truncated file list (no silent drop without signal)
+- [x] Docs claim in CONTEXT.md becomes true when flag is used
 
 ### Invasiveness
 
@@ -150,11 +150,11 @@ doctor → status → route|cmo → run --with-context (loaded)
 
 ### Acceptance criteria
 
-- [ ] Fixture: brand templates → plan says populate, not distribute
-- [ ] Fixture: load-only history → plan still recommends execute/content skills
-- [ ] Fixture: `marketing/content/**` present → distribute tasks appear
-- [ ] Schema documents ranking (no more “detection order only” lie)
-- [ ] Agent DX tests updated for new plan fields
+- [x] Fixture: brand templates → plan says populate, not distribute
+- [x] Fixture: load-only history → plan still recommends execute/content skills
+- [x] Fixture: `marketing/content/**` present → distribute tasks appear
+- [x] Schema documents ranking (no more “detection order only” lie)
+- [x] Agent DX tests updated for new plan fields
 
 ### Invasiveness
 
@@ -183,10 +183,10 @@ doctor → status → route|cmo → run --with-context (loaded)
 
 ### Acceptance criteria
 
-- [ ] `mktg run postiz --json` surfaces `POSTIZ_API_KEY` missing even without `--strict`
-- [ ] `mktg run postiz --strict --json` non-zero exit when key missing
-- [ ] Offline skill (e.g. `content-atomizer`) remains exit 0 with empty envs
-- [ ] Doctor and run remediation strings stay consistent (same install hints)
+- [x] `mktg run postiz --json` surfaces `POSTIZ_API_KEY` missing even without `--strict`
+- [x] `mktg run postiz --strict --json` non-zero exit when key missing
+- [x] Offline skill (e.g. `content-atomizer`) remains exit 0 with empty envs
+- [x] Doctor and run remediation strings stay consistent (same install hints)
 
 ### Invasiveness
 
@@ -207,6 +207,7 @@ doctor → status → route|cmo → run --with-context (loaded)
 | `sent` | Confirmed sent/scheduled on external network |
 | `written-file` | File adapter output under `.mktg/published/` |
 | `failed` | Error with detail |
+| `skipped` | Dry-run preview or idempotency skip (no send) |
 
 Additional:
 
@@ -216,10 +217,10 @@ Additional:
 
 ### Acceptance criteria
 
-- [ ] Native `--confirm` returns `queued-local`, never implies `sent`
-- [ ] Typefully/Postiz success maps to `draft-external` or `sent` based on API response
-- [ ] CONTEXT + publish-index document the enum
-- [ ] Integration tests lock the enum strings
+- [x] Native `--confirm` returns `queued-local`, never implies `sent`
+- [x] Typefully/Postiz success maps to `draft-external` or `sent` based on API response
+- [x] CONTEXT + publish-index document the enum
+- [x] Integration tests lock the enum strings
 
 ### Invasiveness
 
@@ -243,10 +244,10 @@ Reuse `/cmo` disambiguation tables where possible (single source in code or gene
 
 ### Acceptance criteria
 
-- [ ] `mktg route "write a show hn post" --json` → `startup-launcher` or `launch-strategy` with confidence
-- [ ] Works in CI without `claude` binary
-- [ ] `mktg cmo --dry-run` still previews spawn; live path unchanged
-- [ ] CMO skill docs point agents at `route` when Claude unavailable
+- [x] `mktg route "write a show hn post" --json` → `startup-launcher` or `launch-strategy` with confidence
+- [x] Works in CI without `claude` binary
+- [x] `mktg cmo --dry-run` still previews spawn; live path unchanged
+- [x] CMO skill docs point agents at `route` when Claude unavailable
 
 ### Invasiveness
 
@@ -267,9 +268,9 @@ Reuse `/cmo` disambiguation tables where possible (single source in code or gene
 
 ### Acceptance criteria
 
-- [ ] README / CONTEXT list one “open UI” command
-- [ ] Agents using dashboard get JSON snapshots without being told to open port 4311 as the product UI
-- [ ] Deprecation warning (if any) includes remove-by version
+- [x] README / CONTEXT list one “open UI” command
+- [x] Agents using dashboard get JSON snapshots without being told to open port 4311 as the product UI
+- [x] Deprecation warning (if any) includes remove-by version
 
 ### Invasiveness
 
@@ -289,8 +290,8 @@ Reuse `/cmo` disambiguation tables where possible (single source in code or gene
 
 ### Acceptance criteria
 
-- [ ] Fresh `npm i -g marketing-cli` (or bun link) → `mktg studio --dry-run` resolves without sibling checkout
-- [ ] Doctor fails clearly when studio assets missing from install
+- [x] Fresh `npm i -g marketing-cli` (or bun link) → `mktg studio --dry-run` resolves without sibling checkout
+- [x] Doctor fails clearly when studio assets missing from install
 
 ### Invasiveness
 

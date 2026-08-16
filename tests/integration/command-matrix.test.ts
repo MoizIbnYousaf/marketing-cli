@@ -38,6 +38,7 @@ const SMOKE_CASES: Record<string, SmokeCase> = {
   init: { args: (tmpCwd) => ["init", "--dry-run", "--json", "--cwd", tmpCwd], key: "brand" },
   doctor: { args: (tmpCwd) => ["doctor", "--json", "--cwd", tmpCwd], key: "checks" },
   status: { args: (tmpCwd) => ["status", "--json", "--cwd", tmpCwd], key: "health" },
+  setup: { args: (tmpCwd) => ["setup", "--dry-run", "--json", "--cwd", tmpCwd], key: "installed" },
   list: { args: () => ["list", "--json"], key: "skills" },
   update: { args: () => ["update", "--dry-run", "--json"], key: "skills" },
   schema: { args: () => ["schema", "status", "--json"], key: "name" },

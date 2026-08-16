@@ -399,7 +399,7 @@ export const handler: CommandHandler<CmoResponse> = async (args, flags) => {
           `Try a longer --timeout (max ${MAX_TIMEOUT_MS / 1000}s)`,
           `Use --dry-run first to verify the prompt routes correctly`,
         ],
-        5,
+        4,
       );
     }
 

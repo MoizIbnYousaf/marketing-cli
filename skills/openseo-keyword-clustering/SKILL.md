@@ -72,6 +72,15 @@ Summary first: cluster count, pages to create, pages to update, cannibalization 
 - **Retagging saved keywords without confirmation** — because tags are shared account state; a bulk retag can destroy someone else's organization. Confirm first.
 - **Producing clusters with no page assignment** — because a cluster without a target page is trivia. Every cluster ends in an existing URL, a new proposal, or an explicit do-not-target decision.
 
+## Close the loop
+
+After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
+
+```bash
+mktg run openseo-keyword-clustering --complete --writes <paths written> --result success --json
+```
+
+
 ---
 
 *Adapted from [every-app/open-seo](https://github.com/every-app/open-seo) `.agents/skills/keyword-clustering` (MIT). Workflow upstream; mktg artifact paths, brand-memory reads, and handoff wiring added here.*

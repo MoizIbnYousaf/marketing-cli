@@ -19,6 +19,13 @@ import { resolveProjectRoot } from "./project-root.ts";
 // Order matches the SCHEMA.md table in the mktg CLI; the studio sorts by this
 // order when listing so the UI is deterministic. `freshnessDays = null` means
 // "append-only, never stale" (assets.md, learnings.md).
+//
+// Review windows MIRROR the CLI: `mktg brand freshness --json` derives each
+// file's interval as min(review_interval_days) over its skills-manifest.json
+// writers (voice-profile 90, positioning 60, audience 60, competitors 30,
+// landscape 14, keyword-plan 30, creative-kit 60, stack 30). Keep this table
+// in sync with that output; the CLI is the source of truth. Note the CLI
+// emits "current" where Studio emits "fresh" — same meaning.
 
 export interface BrandFileSpec {
   name: string;
@@ -31,14 +38,14 @@ export interface BrandFileSpec {
 }
 
 export const BRAND_FILE_SPECS: readonly BrandFileSpec[] = [
-  { name: "voice-profile.md", skill: "brand-voice",         freshnessDays: 30,  purpose: "How the brand sounds" },
-  { name: "positioning.md",   skill: "positioning-angles",  freshnessDays: 30,  purpose: "Why the brand is different" },
-  { name: "audience.md",      skill: "audience-research",   freshnessDays: 30,  purpose: "Who the brand talks to" },
+  { name: "voice-profile.md", skill: "brand-voice",         freshnessDays: 90,  purpose: "How the brand sounds" },
+  { name: "positioning.md",   skill: "positioning-angles",  freshnessDays: 60,  purpose: "Why the brand is different" },
+  { name: "audience.md",      skill: "audience-research",   freshnessDays: 60,  purpose: "Who the brand talks to" },
   { name: "competitors.md",   skill: "competitive-intel",   freshnessDays: 30,  purpose: "Who the brand competes with" },
-  { name: "landscape.md",     skill: "landscape-scan",      freshnessDays: 90,  purpose: "Market snapshot" },
-  { name: "keyword-plan.md",  skill: "keyword-research",    freshnessDays: 90,  purpose: "What people search for" },
-  { name: "creative-kit.md",  skill: "visual-style",        freshnessDays: 180, purpose: "Visual identity" },
-  { name: "stack.md",         skill: null,                  freshnessDays: 180, purpose: "Marketing tools in use" },
+  { name: "landscape.md",     skill: "landscape-scan",      freshnessDays: 14,  purpose: "Market snapshot" },
+  { name: "keyword-plan.md",  skill: "keyword-research",    freshnessDays: 30,  purpose: "What people search for" },
+  { name: "creative-kit.md",  skill: "visual-style",        freshnessDays: 60, purpose: "Visual identity" },
+  { name: "stack.md",         skill: null,                  freshnessDays: 30, purpose: "Marketing tools in use" },
   { name: "assets.md",        skill: null,                  freshnessDays: null, purpose: "Created assets log (append-only)" },
   { name: "learnings.md",     skill: null,                  freshnessDays: null, purpose: "What worked/didn't (append-only)" },
 ] as const;

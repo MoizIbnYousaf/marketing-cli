@@ -6,6 +6,7 @@
 import { join } from "node:path";
 import { BRAND_FILES, type BrandFile } from "../types";
 import { isTemplateContent, getBrandStatus, CONTEXT_MATRIX } from "./brand";
+import { truncateHeadWithHint, truncationHint } from "./output";
 
 // Token estimation: ~4 chars per token
 export const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
@@ -13,12 +14,9 @@ export const estimateTokens = (text: string): number => Math.ceil(text.length / 
 // Truncate content to fit a token budget, preserving leading lines
 export const truncateToTokens = (content: string, maxTokens: number): { text: string; truncated: boolean } => {
   if (estimateTokens(content) <= maxTokens) return { text: content, truncated: false };
-  const charBudget = maxTokens * 4;
-  const truncated = content.slice(0, charBudget);
-  // Cut at last newline to avoid mid-line truncation
-  const lastNewline = truncated.lastIndexOf("\n");
-  const text = lastNewline > 0 ? truncated.slice(0, lastNewline) + "\n[...truncated]" : truncated + "\n[...truncated]";
-  return { text, truncated: true };
+  // Cut at last newline to avoid mid-line truncation; marker states the
+  // total size and how to get the rest (P3).
+  return truncateHeadWithHint(content, maxTokens * 4, "raise --budget or omit it");
 };
 
 // Priority order for truncation — most important files first
@@ -129,7 +127,7 @@ export const compileBrandContext = async (
     for (let i = 0; i < fileEntries.length; i++) {
       const [name, entry] = fileEntries[i]!;
       if (remainingTokens <= 0) {
-        fileEntries[i] = [name, { content: "[...truncated — budget exceeded]", tokens: 0, truncated: true, freshness: entry.freshness }];
+        fileEntries[i] = [name, { content: truncationHint(entry.content.length, 0, "raise --budget or omit it"), tokens: 0, truncated: true, freshness: entry.freshness }];
         budgetDropped.push(name);
         continue;
       }

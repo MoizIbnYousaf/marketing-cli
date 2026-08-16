@@ -41,6 +41,7 @@ import {
 } from "lucide-react"
 import { fadeInUp } from "@/lib/animation/variants"
 import { SeoReadinessCard } from "./seo-readiness-card"
+import { PlanNextCard, usePlanNext } from "./plan-next-card"
 import { dataFetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { computeFreshness, getFileLabel } from "@/lib/brand-editor"
@@ -282,10 +283,14 @@ function MidSection({
   actionsStale: boolean
   activityStale: boolean
 }) {
+  // /api/plan/next (mktg plan next --json) leads the stack; the snapshot
+  // heuristics below stay as fallback when the plan is empty or errored.
+  const { task } = usePlanNext()
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
       <Panel title="Next actions" icon={Layers3} stale={actionsStale}>
-        {actions.length === 0 ? (
+        {task ? <div className="mb-3"><PlanNextCard task={task} /></div> : null}
+        {actions.length === 0 && !task ? (
           <EmptyState
             icon={CheckCircle2}
             title="Nothing flagged today."
@@ -293,7 +298,7 @@ function MidSection({
           />
         ) : (
           <div className="space-y-3">
-            {actions.slice(0, 3).map((action) => (
+            {actions.slice(0, task ? 2 : 3).map((action) => (
               <ActionCard key={action.id} action={action} />
             ))}
           </div>

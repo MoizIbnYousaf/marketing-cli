@@ -227,8 +227,10 @@ describe("dist/cli.js runs cleanly under node (Bun polyfill regression)", () => 
       // init takes the JSON payload as the VALUE of --json (not a separate
       // --input flag). This is the syntax the handler's cli.ts:87 parser
       // accepts: `--json <body>` or `--json=<body>`.
+      // --skip-skills/--skip-agents: this test guards the brand/ write +
+      // freshness path, not skill install (which may delegate to network).
       const initResult = await runNode(
-        ["init", "--json", '{"business":"test","goal":"launch"}'],
+        ["init", "--skip-skills", "--skip-agents", "--json", '{"business":"test","goal":"launch"}'],
         run21Cwd,
         run21Home,
       );

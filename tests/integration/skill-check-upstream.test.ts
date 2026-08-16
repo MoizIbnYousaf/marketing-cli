@@ -6,6 +6,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile, rm, chmod } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -154,7 +155,7 @@ describe("empty workspace", () => {
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills).toEqual([]);
-    expect(parsed.summary).toEqual({ total: 0, in_sync: 0, drifted: 0 });
+    expect(parsed.summary).toEqual({ total: 0, in_sync: 0, drifted: 0, errored: 0 });
     expect(parsed.ok).toBe(true);
   });
 
@@ -198,7 +199,7 @@ describe("in-sync workspace", () => {
     expect(parsed.skills[0].in_sync).toBe(true);
     expect(parsed.skills[0].drift_count).toBe(0);
     expect(parsed.skills[0].source_count).toBe(1);
-    expect(parsed.summary).toEqual({ total: 1, in_sync: 1, drifted: 0 });
+    expect(parsed.summary).toEqual({ total: 1, in_sync: 1, drifted: 0, errored: 0 });
     expect(parsed.ok).toBe(true);
   });
 
@@ -226,7 +227,7 @@ describe("in-sync workspace", () => {
 // =========================================================================
 
 describe("drift detection", () => {
-  test("drifted skill → ok: false, drift_count > 0, exit 1", async () => {
+  test("drifted skill → ok: false, drift_count > 0, exit 0 (drift is a finding, not an error)", async () => {
     await makeSkill(scratchRoot, "drifted-fixture", {
       script: `#!/usr/bin/env bash\ncat <<'JSON'\n${driftEnvelope}\nJSON\nexit 1\n`,
     });
@@ -237,17 +238,17 @@ describe("drift detection", () => {
       "--cwd",
       scratchRoot,
     ]);
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills).toHaveLength(1);
     expect(parsed.skills[0].in_sync).toBe(false);
     // 1 added + 1 modified-without-note = 2
     expect(parsed.skills[0].drift_count).toBe(2);
-    expect(parsed.summary).toEqual({ total: 1, in_sync: 0, drifted: 1 });
+    expect(parsed.summary).toEqual({ total: 1, in_sync: 0, drifted: 1, errored: 0 });
     expect(parsed.ok).toBe(false);
   });
 
-  test("mixed in-sync + drifted skills → exit 1, only drifted counted", async () => {
+  test("mixed in-sync + drifted skills → exit 0, only drifted counted", async () => {
     await makeSkill(scratchRoot, "alpha-clean", {
       script: `#!/usr/bin/env bash\ncat <<'JSON'\n${inSyncEnvelope}\nJSON\nexit 0\n`,
     });
@@ -261,11 +262,96 @@ describe("drift detection", () => {
       "--cwd",
       scratchRoot,
     ]);
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills).toHaveLength(2);
-    expect(parsed.summary).toEqual({ total: 2, in_sync: 1, drifted: 1 });
+    expect(parsed.summary).toEqual({ total: 2, in_sync: 1, drifted: 1, errored: 0 });
     expect(parsed.ok).toBe(false);
+  });
+});
+
+// =========================================================================
+// --dry-run — plan only, zero spawn, zero network
+// =========================================================================
+
+describe("--dry-run", () => {
+  test("returns the plan (skills, script paths, counts) without running any script", async () => {
+    // The script writes a marker file if executed — dry-run must never spawn it.
+    const marker = join(scratchRoot, "RAN");
+    await makeSkill(scratchRoot, "plan-a", {
+      script: `#!/usr/bin/env bash\ntouch "${marker}"\ncat <<'JSON'\n${inSyncEnvelope}\nJSON\nexit 0\n`,
+      upstreamJson: {
+        version: 1,
+        sources: [
+          { name: "primary", files: [{ local: "a" }, { local: "b" }] },
+          { name: "secondary", files: [{ local: "c" }] },
+        ],
+      },
+    });
+    // Skill with upstream.json but no script → surfaced as script_exists:false.
+    await mkdir(join(scratchRoot, "skills", "plan-b"), { recursive: true });
+    await writeFile(join(scratchRoot, "skills", "plan-b", "upstream.json"), JSON.stringify({ version: 1, sources: [] }));
+
+    const { stdout, exitCode } = await runCli([
+      "skill",
+      "check-upstream",
+      "--dry-run",
+      "--json",
+      "--cwd",
+      scratchRoot,
+    ]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.dry_run).toBe(true);
+    expect(parsed.network).toBe(false);
+    expect(parsed.summary).toEqual({ total: 2, with_script: 1, missing_script: 1 });
+    const a = parsed.skills.find((x: { name: string }) => x.name === "plan-a");
+    expect(a.script).toBe(join(scratchRoot, "skills", "plan-a", "scripts", "check-upstream.sh"));
+    expect(a.upstream_json).toBe(join(scratchRoot, "skills", "plan-a", "upstream.json"));
+    expect(a.script_exists).toBe(true);
+    expect(a.source_count).toBe(2);
+    expect(a.file_count).toBe(3);
+    const b = parsed.skills.find((x: { name: string }) => x.name === "plan-b");
+    expect(b.script_exists).toBe(false);
+    // Proof nothing was spawned.
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  test("--dry-run with a named skill limits the plan to that skill", async () => {
+    await makeSkill(scratchRoot, "only-me", {
+      script: `#!/usr/bin/env bash\nexit 0\n`,
+    });
+    await makeSkill(scratchRoot, "not-me", {
+      script: `#!/usr/bin/env bash\nexit 0\n`,
+    });
+    const { stdout, exitCode } = await runCli([
+      "skill", "check-upstream", "only-me", "--dry-run", "--json", "--cwd", scratchRoot,
+    ]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.skills.map((x: { name: string }) => x.name)).toEqual(["only-me"]);
+  });
+});
+
+// =========================================================================
+// Partial environment failure — still exit 0 (finding, not process failure)
+// =========================================================================
+
+describe("partial errored", () => {
+  test("one errored + one in-sync → exit 0, summary.errored=1, ok:false", async () => {
+    await makeSkill(scratchRoot, "fine", {
+      script: `#!/usr/bin/env bash\ncat <<'JSON'\n${inSyncEnvelope}\nJSON\nexit 0\n`,
+    });
+    await makeSkill(scratchRoot, "broken", {
+      script: `#!/usr/bin/env bash\necho "not json"\nexit 2\n`,
+    });
+    const { stdout, exitCode } = await runCli([
+      "skill", "check-upstream", "--json", "--cwd", scratchRoot,
+    ]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ok).toBe(false);
+    expect(parsed.summary).toEqual({ total: 2, in_sync: 1, drifted: 0, errored: 1 });
   });
 });
 
@@ -528,8 +614,8 @@ describe("script failure modes", () => {
       "--cwd",
       scratchRoot,
     ]);
-    // Every skill errored → exit 2 (environment failure)
-    expect([1, 2]).toContain(exitCode);
+    // Every skill errored → exit 2 (environment failure — nothing could be checked)
+    expect(exitCode).toBe(2);
     const parsed = JSON.parse(stdout);
     const noScript = parsed.skills.find((s: { name: string }) => s.name === "no-script");
     expect(noScript).toBeDefined();
@@ -548,7 +634,7 @@ describe("script failure modes", () => {
       "--cwd",
       scratchRoot,
     ]);
-    expect([1, 2]).toContain(exitCode);
+    expect(exitCode).toBe(2);
     const parsed = JSON.parse(stdout);
     expect(parsed.skills[0].error).toContain("did not emit valid JSON");
     expect(parsed.skills[0].in_sync).toBe(false);

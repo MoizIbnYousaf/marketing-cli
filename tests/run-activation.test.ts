@@ -137,14 +137,14 @@ describe("run --strict + rich prerequisites", () => {
     expect(parsed.prerequisites.remediation.join(" ")).toContain("POSTIZ_API_KEY");
   });
 
-  test("postiz --strict exits 3 DEPENDENCY_MISSING when env vars are absent", async () => {
+  test("postiz --strict exits 3 MISSING_DEPENDENCY when env vars are absent", async () => {
     const { stdout, exitCode } = await run(
       ["run", "postiz", "--strict", "--json", "--cwd", tmpDir],
       { POSTIZ_API_KEY: undefined, POSTIZ_API_BASE: undefined },
     );
     expect(exitCode).toBe(3);
     const parsed = JSON.parse(stdout);
-    expect(parsed.error.code).toBe("DEPENDENCY_MISSING");
+    expect(parsed.error.code).toBe("MISSING_DEPENDENCY");
     expect(parsed.error.suggestions.join(" ")).toContain("POSTIZ_API_KEY");
     // No log written — the run never happened
     expect(await Bun.file(join(tmpDir, ".mktg", "runs.jsonl")).exists()).toBe(false);

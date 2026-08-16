@@ -2,11 +2,12 @@
 name: seo-audit
 description: "When the user wants to audit, review, or diagnose SEO issues, plan site architecture, or implement schema markup. Use when someone says 'SEO audit', 'technical SEO', 'site architecture', 'schema markup', 'internal linking', 'why isn't my site ranking', 'site health check', 'crawl issues', 'fix my SEO', 'my traffic dropped', 'rankings fell', or 'site not ranking'. Also trigger when someone wants to plan URL structure, design navigation, add structured data, or review any website for search performance. Three modes: Full Audit (comprehensive health check), Architecture (URL structure and internal linking), Schema (JSON-LD structured data). Covers crawlability, indexation, Core Web Vitals, and on-page factors."
 category: seo
-tier: core
+tier: nice-to-have
 reads:
   - brand/voice-profile.md
   - brand/stack.md
   - brand/audience.md
+  - brand/keyword-plan.md
 writes:
   - marketing/seo/audit-report.md
   - marketing/seo/site-architecture.md

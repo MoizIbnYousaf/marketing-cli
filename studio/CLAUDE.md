@@ -4,7 +4,7 @@
 
 ## Driver/Dashboard Contract
 
-- **Driver:** /cmo (Claude Code) runs in the user's terminal. It reads brand/ files, executes the 71 marketing skills, and calls the studio's HTTP API (POST `/api/activity/log`, `/api/navigate`, `/api/toast`, `/api/brand/refresh`, etc.) to keep the dashboard in sync.
+- **Driver:** /cmo (Claude Code) runs in the user's terminal. It reads brand/ files, executes the 75 marketing skills, and calls the studio's HTTP API (POST `/api/activity/log`, `/api/navigate`, `/api/toast`, `/api/brand/refresh`, etc.) to keep the dashboard in sync.
 - **Dashboard:** Next.js + Bun server. Subscribes to `/api/events` (SSE) for live updates. Renders primary surfaces (Pulse, Signals, Publish, Brand, Settings) + a right-hand Activity panel that shows the /cmo activity stream. Trend radar is a Signals mode; Audience summary and next actions live on Pulse.
 - **Activity panel:** Replaces the old chat slot. Lists skill runs, brand writes, publishes, navigates, and toasts  -  a live log of what /cmo is doing.
 - **AGPL firewall:** Never import `@postiz/*`. Raw fetch only over the network boundary.
@@ -115,7 +115,7 @@ This project follows the same agent-native contract as mktg itself:
 ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐
 │ Next.js 16 │────▶│ Bun.serve │────▶│ Claude Code (local) │
 │ Dashboard │◀─SSE│ (local server) │ │ ├── /cmo skill │
-│ │ │ SQLite │ │ ├── 71 marketing skills │
+│ │ │ SQLite │ │ ├── 75 marketing skills │
 │ 5 surfaces + │ │ brand/ watcher │ │ ├── mktg CLI (--json) │
 │ Activity panel │ │ Job queue │ │ └── Postiz adapter │
 └──────────────────┘ └──────────────────┘ └──────────────────────────┘
@@ -154,7 +154,7 @@ Tests: 2599 pass / 0 fail / 96 files
 │ ├── commands/
 │ │ ├── catalog.ts  -  mktg catalog list/info/sync/status/add (upstream catalogs)
 │ │ ├── publish.ts  -  mktg publish (4 adapters: typefully, resend, file, postiz)
-│ │ │ Lines 263-620: postizFetch + publishPostiz + sent-markers
+│ │ │ src/core/publish/postiz/: postizFetch + publishPostiz + sent-markers
 │ │ │ Line 617: BUILTIN_PUBLISH_ADAPTERS export
 │ │ │ Line 623: postiz entry in ADAPTERS registry
 │ │ ├── doctor.ts  -  mktg doctor (health checks, tool detection, catalog health)
@@ -180,11 +180,11 @@ Tests: 2599 pass / 0 fail / 96 files
 │ ├── skill-add.ts  -  external skill chaining (mktg skill add)
 │ ├── agents.ts  -  agent registry, install to ~/.claude/agents/
 │ └── transcribe.ts  -  whisper.cpp + yt-dlp + ffmpeg orchestration
-├── skills/  -  50 SKILL.md files (see §Skills below)
+├── skills/  -  76 SKILL.md files (see §Skills below)
 ├── agents/ - 6 agent .md files (see §Agents below)
-├── skills-manifest.json  -  72 skills: triggers, categories, layers, reads, writes, env_vars
+├── skills-manifest.json  -  76 skills: triggers, categories, layers, reads, writes, env_vars
 ├── agents-manifest.json - 6 agents: categories, files, reads, writes, tier
-├── catalogs-manifest.json  -  1 catalog (postiz): capabilities, auth, transport, license
+├── catalogs-manifest.json  -  2 catalogs (postiz, openseo): capabilities, auth, transport, license
 ├── brand/SCHEMA.md  -  schema for all 10 brand files
 ├── CLAUDE.md  -  198 lines: development contract
 ├── AGENTS.md  -  163 lines: drop-in skill/agent/catalog contracts
@@ -234,7 +234,7 @@ Rate limit: 30 POST /public/v1/posts per hour per org
 - NEVER fork/clone postiz source into this repo
 - NEVER import postiz TypeScript types (write own interfaces)
 - ALL interaction via raw fetch over the network boundary
-- The mktg CLI's `postizFetch` helper at `publish.ts:263` already does this correctly
+- The mktg CLI's `postizFetch` helper at `src/core/publish/postiz/client.ts` already does this correctly (studio/lib/postiz.ts imports it)
 
 **Endpoints the studio uses (via mktg CLI adapter or direct fetch):**
 
@@ -258,7 +258,7 @@ Rules: ~/projects/mktgmono/marketing-cli/skills/cmo/rules/ (14 files, ~1,900 lin
 ```
 
 **What /cmo knows:**
-- Routes to any of 72 skills based on user intent + brand state
+- Routes to any of 76 skills based on user intent + brand state
 - 10 named orchestration playbooks (Full Product Launch, Content Engine, Founder Voice Rebrand, Conversion Audit, Retention Recovery, Visual Identity, Video Content, Email Infrastructure, SEO Authority Build, Newsletter Launch)
 - L0-L4 progressive enhancement ladder (what's possible at each brand completeness level)
 - Error recovery + degraded-mode playbook (what to do when integrations fail)
@@ -410,7 +410,7 @@ Schema: ~/projects/mktgmono/marketing-cli/brand/SCHEMA.md
 ```
 ON LOAD:
  → mktg status --json → brief status / brand health
- → mktg plan next --json → "do this next" card
+ → GET /api/plan/next (mktg plan next --json) → "do this next" card (top of Next actions; snapshot heuristics fill when task is null)
  → Read brand/audience.md if populated → audience summary
  → SELECT recent activity / opportunities → notable changes + next actions
 
@@ -424,6 +424,9 @@ ON LOAD:
  → SELECT * FROM signals ORDER BY severity DESC → signal feed
  → Read brand/landscape.md + brand/competitors.md → Trend radar
  → mktg publish --adapter <adapter> --list-integrations --json → provider context
+ → GET /api/compete (mktg compete list --json) → war-room list (name, url, last change)
+ → GET /api/compete/scan (mktg compete scan --json) → "Scan now" refresh of the war-room
+
 
 ON "TREND RADAR":
  → Same Signals surface with mode=radar
@@ -611,7 +614,7 @@ components/workspace/skill-browser/  -  skill browser + execution trigger UI
 - Port signal severity + spike detection from Convex to local TypeScript
 
 ### Phase 5: Skill Browser + Onboarding (2-3 days)
-- Skill browser: `mktg list --json` → browse all 72 skills, one-click trigger
+- Skill browser: `mktg list --json` → browse all 76 skills, one-click trigger
 - Execution progress: running → result → files changed
 - Onboarding: detect fresh install (mktg status → needs-setup) → wizard → mktg init → foundation skills
 - First-run "wow moment": Pulse, Signals, Publish, Brand, and Settings populate as foundation skills complete
@@ -631,7 +634,7 @@ components/workspace/skill-browser/  -  skill browser + execution trigger UI
 >
 > **Dashboard layer (this repo)**: 5 workspace tabs (Pulse, Signals, Publish, Brand, Settings), Activity panel, signal severity scoring. Local-first  -  no cloud dependencies.
 >
-> **mktg** is the marketing brain  -  72 skills, /cmo orchestrator (2,400 lines of routing knowledge), brand memory (10 files that compound), upstream catalogs. This is the engine. Everything runs through `mktg --json` for infrastructure and /cmo for intelligence.
+> **mktg** is the marketing brain  -  76 skills, /cmo orchestrator (2,400 lines of routing knowledge), brand memory (10 files that compound), upstream catalogs. This is the engine. Everything runs through `mktg --json` for infrastructure and /cmo for intelligence.
 >
 > **postiz** is the distribution layer  -  30+ social providers via REST API. AGPL-firewalled. Call it, never fork it.
 >

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import type { CommandHandler, CommandSchema, PrerequisiteStatus } from "../types";
 import { ok, err } from "../types";
 import { invalidArgs, notFound, DOCS, parseJsonInput, rejectControlChars, validateResourceId } from "../core/errors";
-import { resolveManifest, getSkill, getSkillsInstallDir } from "../core/skills";
+import { resolveManifest, getSkill, getSkillsInstallDir, suggestSkillNames } from "../core/skills";
 import { checkPrerequisites } from "../core/skill-lifecycle";
 import { logRun, getLastRun, getRunHistory, isCompletedRecord } from "../core/run-log";
 import { compileBrandContext, filesForSkillActivation, type ContextFileEntry } from "../core/context-compiler";
@@ -32,7 +32,7 @@ export const schema: CommandSchema = {
     { name: "--writes", type: "string", required: false, description: "Comma-separated files the agent produced (repeatable); each must exist inside the project" },
     { name: "--with-context", type: "boolean", required: false, description: "One-shot activation: include non-template brand context selected from the skill's declared reads (or layer matrix)" },
     { name: "--budget", type: "string", required: false, description: "With --with-context: approximate token budget for context files (priority truncation)" },
-    { name: "--strict", type: "boolean", required: false, description: "Exit 3 (DEPENDENCY_MISSING) when any prerequisite (skills, brand files, envs, tools, catalogs) is unsatisfied" },
+    { name: "--strict", type: "boolean", required: false, description: "Exit 3 (MISSING_DEPENDENCY) when any prerequisite (skills, brand files, envs, tools, catalogs) is unsatisfied" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream prerequisite check, skill-loaded, and complete events as NDJSON lines to stderr" },
   ],
   output: {
@@ -149,7 +149,9 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
   const manifest = await resolveManifest(flags.cwd);
   const resolved = getSkill(manifest, skillName);
   if (!resolved) {
+    const candidates = suggestSkillNames(manifest, skillName);
     return notFound(`Skill '${skillName}'`, [
+      ...(candidates.length > 0 ? [`Did you mean: ${candidates.join(", ")}?`] : []),
       "mktg list --json to see all available skills",
       "Check spelling — redirects are followed automatically",
     ], DOCS.skills);
@@ -170,7 +172,7 @@ export const handler: CommandHandler<RunResult> = async (args, flags) => {
     }));
   }
   if (strict && !prerequisites.satisfied) {
-    return err("DEPENDENCY_MISSING", `Prerequisites not satisfied for '${resolved.name}' (--strict)`, [
+    return err("MISSING_DEPENDENCY", `Prerequisites not satisfied for '${resolved.name}' (--strict)`, [
       ...prerequisites.remediation,
       "Run without --strict to load anyway (progressive enhancement)",
     ], 3);
