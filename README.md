@@ -193,7 +193,7 @@ Other marketing skill repos give you a folder of markdown files. mktg is infrast
 
 Marketing skills tell an agent how to do specific work: write a landing page, run a competitive scan, atomize a thread for social. They work on their own.
 
-The CLI adds the surrounding infrastructure. `mktg init` bootstraps a project in one command: detects what you're building, scaffolds `brand/`, prefers `ai-agent-skills` as the installer when that's around and falls back to direct install when it isn't, then runs doctor to verify. `mktg status --json` returns a structured snapshot of your marketing state, and that's what `/cmo` reads on every activation to know what exists, what's stale, and what to suggest next. `mktg doctor --json` runs the health checks: skills installed, brand files populated, API keys set. The agent finds out before it tries, instead of failing mid-execution. `mktg update` versions the skills so improvements ship without touching your brand memory. `mktg schema --json` exposes every command, flag, and output shape at runtime, so agents introspect rather than hardcode.
+The CLI adds the surrounding infrastructure. `mktg init` bootstraps a project in one command: detects what you're building, scaffolds `brand/`, installs the bundled skills directly (sub-second, always version-correct; set `MKTG_USE_AI_AGENT_SKILLS=1` to delegate to the registry installer instead), then runs doctor to verify. `mktg status --json` returns a structured snapshot of your marketing state, and that's what `/cmo` reads on every activation to know what exists, what's stale, and what to suggest next. `mktg doctor --json` runs the health checks: skills installed, brand files populated, API keys set. The agent finds out before it tries, instead of failing mid-execution. `mktg update` versions the skills so improvements ship without touching your brand memory. `mktg schema --json` exposes every command, flag, and output shape at runtime, so agents introspect rather than hardcode.
 
 Skills know what to do. The CLI knows what's been done, what's stale, and what to do next. Together they make a feedback loop that gets sharper every session.
 
@@ -414,7 +414,7 @@ src/
 ├── commands/           # 24 top-level commands (init, doctor, status, setup, list, update, schema, skill, brand, run, transcribe, context, plan, publish, compete, dashboard, catalog, studio, verify, ship-check, cmo, route, seo, release)
 └── core/               # Shared modules (output, errors, brand, skills, agents, integrations)
 
-skills/                 # 76 SKILL.md files installed via ai-agent-skills or directly
+skills/                 # 76 SKILL.md files installed directly from the bundle
 ├── cmo/                # Orchestrator with rules/ and references/
 ├── brand-voice/
 ├── direct-response-copy/
@@ -432,7 +432,7 @@ agents-manifest.json    # Source of truth for agent metadata
 
 Every skill works at zero context. Brand memory enhances; it never gates. The CLI is agent-native by default: JSON output, structured errors, exit codes 0 through 6, `--dry-run`, and schema introspection. Errors carry a code, a hint, and a message that names the next step.
 
-The system bootstraps itself. `mktg init` installs everything on any machine, preferring `ai-agent-skills` as the installer when it's around and falling back to direct install when it isn't. Skills are drop-in: add a `SKILL.md` and a manifest entry, no CLI changes needed.
+The system bootstraps itself. `mktg init` installs everything on any machine from the bundled skill set (registry delegation available via `MKTG_USE_AI_AGENT_SKILLS=1`). Skills are drop-in: add a `SKILL.md` and a manifest entry, no CLI changes needed.
 
 Skills don't call other skills. They read and write files. `/cmo` orchestrates. There are no implicit chains. Foundation building spawns the 3 research agents simultaneously, not sequentially. Missing dependencies produce warnings, not blockers, so an agent always has a path forward.
 

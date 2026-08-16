@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### fix
+
+- **`mktg init` cold-start: bundled install is now the default** (was: delegate to `ai-agent-skills` whenever it was on PATH). The delegation sparse-cloned the public registry from GitHub (80s+ cold start) and could install a stale skill set when the registry lagged this package. Bundled direct install is sub-second and always version-correct. Set `MKTG_USE_AI_AGENT_SKILLS=1` to opt back into registry delegation.
+
+
 ### feat
 
 - add `/axi` skill — main AXI ([axi.md](https://axi.md)) catalog router (same role as `/cmo` for marketing). Routes GitHub → `gh-axi`, browser → `chrome-devtools-axi`, plus community AXIs; ships the 10 principles, prefer-AXI vs MCP decision tree, build/review checklist, and benchmark snapshot. Upstream provenance from `kunchenguid/axi`.

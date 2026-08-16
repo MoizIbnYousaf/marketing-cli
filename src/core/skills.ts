@@ -284,6 +284,16 @@ export const installSkillsWithAiAgentSkills = async (
   manifest: SkillsManifest,
   dryRun: boolean = false,
 ): Promise<{ installed: string[]; skipped: string[]; failed: Array<{ name: string; reason: string }>; delegated: boolean; binary: string | null; upToDate: boolean }> => {
+  // Delegation is OPT-IN (MKTG_USE_AI_AGENT_SKILLS=1). The bundled direct
+  // install ships every manifest skill inside the npm tarball, finishes in
+  // milliseconds, and is always version-correct. The ai-agent-skills path
+  // sparse-clones the public registry from GitHub: 80s+ cold, and the
+  // registry can lag this package by whole releases (observed: 53 vs 76
+  // skills), silently installing a stale set. Keep it available for users
+  // who deliberately manage skills through the registry toolchain.
+  if (process.env.MKTG_USE_AI_AGENT_SKILLS !== "1") {
+    return { installed: [], skipped: [], failed: [], delegated: false, binary: null, upToDate: false };
+  }
   const binary = findAiAgentSkillsBinary();
   if (!binary) {
     return { installed: [], skipped: [], failed: [], delegated: false, binary: null, upToDate: false };

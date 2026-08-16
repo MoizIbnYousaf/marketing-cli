@@ -46,6 +46,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   process.env.PATH = originalPath;
+  delete process.env.MKTG_USE_AI_AGENT_SKILLS;
   await rm(tempDir, { recursive: true, force: true });
 });
 
@@ -55,6 +56,8 @@ const createAiAgentSkillsShim = async (scriptBody: string): Promise<string> => {
   await writeFile(binPath, scriptBody, "utf8");
   await chmod(binPath, 0o755);
   process.env.PATH = `${binDir}:${originalPath ?? ""}`;
+  // Delegation is opt-in since the bundled install became the default path.
+  process.env.MKTG_USE_AI_AGENT_SKILLS = "1";
   return binDir;
 };
 
@@ -203,6 +206,25 @@ describe("Init installs agents", () => {
     expect(result.data.skills.installed).toHaveLength(0);
     // Agents should still install
     expect(result.data.agents.installed.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Init uses the bundled install by default (delegation is opt-in)", () => {
+  test("ignores ai-agent-skills on PATH without MKTG_USE_AI_AGENT_SKILLS=1", async () => {
+    const logFile = join(tempDir, "ai-agent-skills-optout.log");
+    const shimDir = await createAiAgentSkillsShim(`#!/bin/sh\nprintf '%s\\n' "$@" > ${logFile}\nexit 0\n`);
+    delete process.env.MKTG_USE_AI_AGENT_SKILLS;
+
+    try {
+      const result = await handler(["--yes", "--skip-brand", "--skip-agents"], flags);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      // Shim must never have been invoked; skills come from the bundle.
+      expect(await Bun.file(logFile).exists()).toBe(false);
+      expect(result.data.skills.installed.length).toBeGreaterThan(40);
+    } finally {
+      await rm(shimDir, { recursive: true, force: true });
+    }
   });
 });
 
