@@ -39,7 +39,7 @@
 
   <!-- Top-right meta tag -->
   <g transform="translate(1224, 56)" text-anchor="end" font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="13" fill="#5a6068">
-    <text>v0.3.2 · MIT · npm</text>
+    <text>v0.7.0 · MIT · npm</text>
   </g>
 
   <!-- Wordmark: marketing-cli -->
@@ -58,17 +58,17 @@
   <!-- Stats strip -->
   <g transform="translate(640, 392)" text-anchor="middle"
      font-family="'JetBrains Mono', 'SF Mono', monospace" font-size="15">
-    <text x="-385" y="0" fill="#d8ff3c" font-weight="700">50</text>
+    <text x="-385" y="0" fill="#d8ff3c" font-weight="700">76</text>
     <text x="-340" y="0" fill="#8a9098">skills</text>
     <text x="-280" y="0" fill="#2a323a">·</text>
-    <text x="-238" y="0" fill="#d8ff3c" font-weight="700">5</text>
+    <text x="-238" y="0" fill="#d8ff3c" font-weight="700">6</text>
     <text x="-200" y="0" fill="#8a9098">agents</text>
     <text x="-138" y="0" fill="#2a323a">·</text>
     <text x="-88" y="0" fill="#8a9098">brand memory</text>
     <text x="0" y="0" fill="#2a323a">·</text>
     <text x="60" y="0" fill="#8a9098">parallel research</text>
     <text x="170" y="0" fill="#2a323a">·</text>
-    <text x="232" y="0" fill="#d8ff3c" font-weight="700">2,599</text>
+    <text x="232" y="0" fill="#d8ff3c" font-weight="700">3,624</text>
     <text x="295" y="0" fill="#8a9098">tests</text>
     <text x="352" y="0" fill="#2a323a">·</text>
     <text x="395" y="0" fill="#8a9098">real CLI</text>
