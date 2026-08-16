@@ -134,6 +134,12 @@ Want to start there?
 - Node.js 18+ or [Bun](https://bun.sh)
 - [Claude Code](https://claude.ai/code) (or any agent that reads `~/.claude/skills/`)
 
+### Ambient context in 20 seconds
+
+`mktg init` scaffolds the project, bare `mktg` shows the live home view, and `mktg setup` installs a SessionStart hook so every agent session opens already knowing your marketing state:
+
+![mktg setup demo](setup-demo.gif)
+
 ## Agent Install Surfaces
 
 The npm package ships the same knowledge across multiple agent runtimes:
