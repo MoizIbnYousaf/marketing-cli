@@ -62,92 +62,92 @@
         "deltaPct": 0
       }
     ],
-    "windowEnd": "2026-05-08T06:04:07.966Z"
+    "windowEnd": "2026-08-16T02:18:08.082Z"
   },
   "brandHealth": {
-    "score": 44,
+    "score": 100,
     "files": [
       {
         "name": "voice-profile.md",
         "path": "brand/voice-profile.md",
         "bytes": 50,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "positioning.md",
         "path": "brand/positioning.md",
         "bytes": 26,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "audience.md",
         "path": "brand/audience.md",
         "bytes": 52,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "competitors.md",
         "path": "brand/competitors.md",
         "bytes": 26,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "landscape.md",
         "path": "brand/landscape.md",
         "bytes": 42,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "keyword-plan.md",
         "path": "brand/keyword-plan.md",
         "bytes": 27,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "creative-kit.md",
         "path": "brand/creative-kit.md",
         "bytes": 27,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "stack.md",
         "path": "brand/stack.md",
         "bytes": 20,
-        "mtime": "2026-05-08T06:04:07.795Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "assets.md",
         "path": "brand/assets.md",
         "bytes": 10,
-        "mtime": "2026-05-08T06:04:07.795Z",
+        "mtime": "2026-08-16T02:18:07.931Z",
         "freshness": "fresh"
       },
       {
         "name": "learnings.md",
         "path": "brand/learnings.md",
         "bytes": 13,
-        "mtime": "2026-05-08T06:04:07.795Z",
+        "mtime": "2026-08-16T02:18:07.932Z",
         "freshness": "fresh"
       }
     ],
-    "readyCount": 2,
+    "readyCount": 10,
     "totalSlots": 10
   },
   "actions": [
     {
-      "id": "brand-bootstrap",
-      "title": "Refresh brand files",
-      "detail": "8 files need attention.",
-      "href": "/dashboard?tab=brand",
-      "icon": "BookOpen",
+      "id": "system-calm",
+      "title": "Nothing flagged today.",
+      "detail": "When /cmo finds something worth your attention, it lands here.",
+      "href": "/dashboard?tab=signals",
+      "icon": "CheckCircle2",
       "tone": "green"
     }
   ],
@@ -163,7 +163,7 @@
       "contentPreview": "snap-e2e publish",
       "itemsPublished": 1,
       "itemsFailed": 0,
-      "createdAt": "2026-05-08 15:04:07"
+      "createdAt": "2026-08-16 11:18:08"
     },
     {
       "id": 41,
@@ -174,7 +174,7 @@
       "contentPreview": "snap-e2e publish",
       "itemsPublished": 1,
       "itemsFailed": 0,
-      "createdAt": "2026-05-07 15:04:07"
+      "createdAt": "2026-08-15 11:18:08"
     },
     {
       "id": 40,
@@ -185,9 +185,9 @@
       "contentPreview": "snap-e2e publish",
       "itemsPublished": 1,
       "itemsFailed": 0,
-      "createdAt": "2026-05-06 15:04:07"
+      "createdAt": "2026-08-14 11:18:08"
     }
   ],
-  "generatedAt": "2026-05-08T06:04:07.967Z",
+  "generatedAt": "2026-08-16T02:18:08.083Z",
   "staleSections": []
 }

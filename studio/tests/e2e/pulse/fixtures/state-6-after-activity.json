@@ -62,94 +62,86 @@
         "deltaPct": null
       }
     ],
-    "windowEnd": "2026-05-08T06:04:08.019Z"
+    "windowEnd": "2026-08-16T02:18:08.132Z"
   },
   "brandHealth": {
-    "score": 44,
+    "score": 100,
     "files": [
       {
         "name": "voice-profile.md",
         "path": "brand/voice-profile.md",
         "bytes": 50,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "positioning.md",
         "path": "brand/positioning.md",
         "bytes": 26,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "audience.md",
         "path": "brand/audience.md",
         "bytes": 52,
-        "mtime": "2026-05-08T06:04:07.793Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "competitors.md",
         "path": "brand/competitors.md",
         "bytes": 26,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "landscape.md",
         "path": "brand/landscape.md",
         "bytes": 42,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "keyword-plan.md",
         "path": "brand/keyword-plan.md",
         "bytes": 27,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "creative-kit.md",
         "path": "brand/creative-kit.md",
         "bytes": 27,
-        "mtime": "2026-05-08T06:04:07.794Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "stack.md",
         "path": "brand/stack.md",
         "bytes": 20,
-        "mtime": "2026-05-08T06:04:07.795Z",
-        "freshness": "template"
+        "mtime": "2026-08-16T02:18:07.931Z",
+        "freshness": "fresh"
       },
       {
         "name": "assets.md",
         "path": "brand/assets.md",
         "bytes": 10,
-        "mtime": "2026-05-08T06:04:07.795Z",
+        "mtime": "2026-08-16T02:18:07.931Z",
         "freshness": "fresh"
       },
       {
         "name": "learnings.md",
         "path": "brand/learnings.md",
         "bytes": 13,
-        "mtime": "2026-05-08T06:04:07.795Z",
+        "mtime": "2026-08-16T02:18:07.932Z",
         "freshness": "fresh"
       }
     ],
-    "readyCount": 2,
+    "readyCount": 10,
     "totalSlots": 10
   },
   "actions": [
-    {
-      "id": "brand-bootstrap",
-      "title": "Refresh brand files",
-      "detail": "8 files need attention.",
-      "href": "/dashboard?tab=brand",
-      "icon": "BookOpen",
-      "tone": "green"
-    },
     {
       "id": "stage-first-launch",
       "title": "Stage first launch post",
@@ -164,14 +156,14 @@
       "id": 1,
       "kind": "skill-run",
       "skill": "seo-content",
-      "summary": "snap-e2e SSE round-trip 1778220248015",
+      "summary": "snap-e2e SSE round-trip 1786846688128",
       "detail": null,
       "meta": null,
-      "createdAt": "2026-05-08 06:04:08"
+      "createdAt": "2026-08-16 02:18:08"
     }
   ],
   "recentMedia": [],
   "recentPublish": [],
-  "generatedAt": "2026-05-08T06:04:08.020Z",
+  "generatedAt": "2026-08-16T02:18:08.133Z",
   "staleSections": []
 }

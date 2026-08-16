@@ -25,7 +25,7 @@ import { resolveProjectRoot } from "./project-root.ts";
 // writers (voice-profile 90, positioning 60, audience 60, competitors 30,
 // landscape 14, keyword-plan 30, creative-kit 60, stack 30). Keep this table
 // in sync with that output; the CLI is the source of truth. Note the CLI
-// emits "current" where Studio emits "fresh" — same meaning.
+// emits "current" where Studio emits "fresh" - same meaning.
 
 export interface BrandFileSpec {
   name: string;

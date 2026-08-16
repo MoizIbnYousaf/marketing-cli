@@ -254,7 +254,7 @@ export type CatalogsManifest = {
   readonly catalogs: Record<string, CatalogEntry>;
 };
 
-// Mirrors `mktg catalog list --json` — raw manifest entries only. `configured`
+// Mirrors `mktg catalog list --json` - raw manifest entries only. `configured`
 // / `missing_envs` are NOT on list rows; use `mktg catalog info <name>` for those.
 export type CatalogListData = {
   readonly catalogs: readonly CatalogEntry[];
@@ -263,7 +263,7 @@ export type CatalogListData = {
 // Mirrors `mktg catalog status --json` (src/commands/catalog.ts StatusItem):
 // {name, configured, healthy, detail}. `healthy` is always null in v1 (no
 // reachability probes); `detail` carries the human-readable status, e.g.
-// "unconfigured — missing: POSTIZ_API_KEY".
+// "unconfigured - missing: POSTIZ_API_KEY".
 export type CatalogStatusData = {
   readonly catalogs: readonly {
     readonly name: string;

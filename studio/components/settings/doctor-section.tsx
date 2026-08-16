@@ -18,7 +18,7 @@ interface CatalogEntry {
   name?: string
   configured?: boolean
   healthy?: boolean | null
-  /** Human-readable status from `mktg catalog status` (e.g. "unconfigured — missing: POSTIZ_API_KEY"). */
+  /** Human-readable status from `mktg catalog status` (e.g. "unconfigured - missing: POSTIZ_API_KEY"). */
   detail?: string
   error?: string | null
 }

@@ -133,7 +133,9 @@ describe("computeFreshness", () => {
 
   test("stale content past window", () => {
     const long = "# Voice\n" + "x".repeat(2_000);
-    const f = computeFreshness("voice-profile.md", long, now - 60 * 86_400_000, now);
+    // voice-profile window is 90d (aligned to CLI manifest); use 91d so this
+    // stays past the window even if the constant moves within reason.
+    const f = computeFreshness("voice-profile.md", long, now - 91 * 86_400_000, now);
     expect(f.freshness).toBe("stale");
   });
 
