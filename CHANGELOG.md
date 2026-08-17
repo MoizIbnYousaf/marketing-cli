@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### feat
+
+- opt-in TOON output via global `--format <json|toon>` (AXI principle 1) — JSON stays the default contract, errors always stay JSON
+
 ## v0.7.0
 
 ### feat

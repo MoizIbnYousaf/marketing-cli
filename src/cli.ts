@@ -14,7 +14,8 @@
 // bun, it is a no-op because the real Bun global is already present.
 import "./core/runtime-compat";
 
-import type { GlobalFlags, CommandResult, CommandSchema } from "./types";
+import type { GlobalFlags, CommandResult, CommandSchema, OutputFormat } from "./types";
+import { OUTPUT_FORMATS } from "./types";
 import { formatOutput, writeStdout, applyFieldsFilter, toJson } from "./core/output";
 import { COMMANDS } from "./core/command-registry";
 import { applyEnvLocal } from "./core/env-local";
@@ -60,6 +61,7 @@ Commands:
 Flags:
   --json           Machine-readable JSON output (compact single-line by default)
   --pretty         Indent JSON output (2 spaces) for human reading
+  --format <fmt>   Success-output format: json (default) or toon (AXI token-efficient); errors stay JSON
   --dry-run        Validate without writing
   --fields <f,f>   Select fields: top-level keys, dot paths (a.b.c), or item keys for collections
   --cwd <path>     Set working directory
@@ -77,11 +79,18 @@ Note: JSON output is automatic when stdout is piped (non-TTY).
 Run 'mktg <command> --help' for command-specific usage.`;
 
 // Parse global flags from argv
-const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: string[]; flags: GlobalFlags } => {
+const parseGlobalFlags = (argv: string[]): {
+  command: string | undefined;
+  args: string[];
+  flags: GlobalFlags;
+  formatError: string | undefined;
+} => {
   // OUTPUT_FORMAT=json env var or non-TTY pipe auto-enables JSON
   let json = process.env.OUTPUT_FORMAT === "json" ||
     (typeof process.stdout.isTTY !== "boolean" || !process.stdout.isTTY);
   let pretty = false;
+  let format: OutputFormat = "json";
+  let formatError: string | undefined;
   let dryRun = false;
   let fields: string[] = [];
   let cwd = process.cwd();
@@ -96,6 +105,14 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
       json = true;
     } else if (arg === "--pretty") {
       pretty = true;
+    } else if (arg === "--format" || arg.startsWith("--format=")) {
+      const raw = arg.startsWith("--format=") ? arg.slice(9) : (argv[i + 1] ?? "");
+      if (!arg.startsWith("--format=") && argv[i + 1] !== undefined) i++;
+      if ((OUTPUT_FORMATS as readonly string[]).includes(raw)) {
+        format = raw as OutputFormat;
+      } else {
+        formatError = raw;
+      }
     } else if (arg === "--dry-run") {
       dryRun = true;
     } else if (arg === "--fields" && argv[i + 1]) {
@@ -120,7 +137,7 @@ const parseGlobalFlags = (argv: string[]): { command: string | undefined; args: 
     }
   }
 
-  return { command, args, flags: { json, pretty, dryRun, fields, cwd, jsonInput } };
+  return { command, args, flags: { json, pretty, format, dryRun, fields, cwd, jsonInput }, formatError };
 };
 
 // Format a command schema as readable help text
@@ -159,7 +176,7 @@ const formatSchemaAsHelp = (schema: CommandSchema, parent?: string): string => {
   return lines.join("\n");
 };
 
-const GLOBAL_FLAG_NAMES = new Set(["--json", "--pretty", "--dry-run", "--fields", "--cwd", "--input", "--help", "-h", "--version", "-v"]);
+const GLOBAL_FLAG_NAMES = new Set(["--json", "--pretty", "--format", "--dry-run", "--fields", "--cwd", "--input", "--help", "-h", "--version", "-v"]);
 // The only single-dash aliases the CLI understands (-y is init's --yes).
 const KNOWN_SHORT_FLAGS = new Set(["-h", "-v", "-y"]);
 
@@ -223,8 +240,30 @@ const findUnknownFlags = (
 };
 
 const run = async () => {
-const { command, args, flags } = parseGlobalFlags(process.argv.slice(2));
+const { command, args, flags, formatError } = parseGlobalFlags(process.argv.slice(2));
 applyEnvLocal(flags.cwd);
+
+  // Unknown --format value: fail loud (AXI principle 6) before any work runs.
+  if (formatError !== undefined) {
+    const formatResult: CommandResult<never> = {
+      ok: false,
+      error: {
+        code: "INVALID_ARGS",
+        message: formatError === ""
+          ? "--format requires a value"
+          : `Unknown --format value: '${formatError}'`,
+        suggestions: [
+          `Supported formats: ${OUTPUT_FORMATS.join(", ")} (default: json)`,
+          "mktg list --format toon",
+          "mktg schema --json",
+        ],
+      },
+      exitCode: 2,
+    };
+    writeStdout(formatOutput(formatResult, { ...flags, format: "json" }));
+    finish(2);
+    return;
+  }
 
   // --version
   if (args.includes("--version") || args.includes("-v")) {
@@ -278,7 +317,7 @@ applyEnvLocal(flags.cwd);
       const structured = {
         version: VERSION,
         commands: schemas,
-        globalFlags: ["--json", "--pretty", "--dry-run", "--fields", "--cwd", "--input"],
+        globalFlags: ["--json", "--pretty", "--format", "--dry-run", "--fields", "--cwd", "--input"],
       };
       writeStdout(toJson(structured, flags));
     } else {

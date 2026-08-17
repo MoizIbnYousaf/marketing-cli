@@ -5,6 +5,7 @@
 // Only cli.ts calls process.exit() — commands return CommandResult.
 
 import type { CommandResult, GlobalFlags } from "../types";
+import { encodeToon } from "./toon";
 
 export const isTTY = (): boolean =>
   typeof process.stdout.isTTY === "boolean" && process.stdout.isTTY;
@@ -344,6 +345,13 @@ export const formatOutput = <T>(
   // applyFieldsFilter) so UNKNOWN_FIELD can drive process.exitCode. Callers
   // that bypass cli.ts must applyFieldsFilter themselves before formatOutput.
   const data: unknown = withHelp(result.data, result.help);
+
+  // Opt-in TOON (AXI principle 1). Success only — structured errors stay JSON
+  // because the error envelope is part of the machine contract. `--pretty` is
+  // a no-op here; `--fields` already applied upstream in cli.ts.
+  if (flags.format === "toon") {
+    return encodeToon(data, result.help);
+  }
 
   if (flags.json || !isTTY()) {
     const json = toJson(data, flags);

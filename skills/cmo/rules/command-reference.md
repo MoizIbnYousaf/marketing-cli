@@ -17,6 +17,7 @@ routing, see `rules/publish-index.md`.
 |---|---|
 | `mktg status --json` | Always at activation. Returns brand state, health (`ready`/`incomplete`/`needs-setup`), integrations configured. This is the first read. |
 | `mktg status --json --fields brandSummary.populated,brandSummary.missing,brandSummary.stale` | To snap to the progressive enhancement ladder (see `rules/progressive-enhancement.md`). |
+| `mktg <command> --format toon` | Opt into TOON output (AXI principle 1, ~40% fewer tokens than JSON) for large successful reads like `mktg list` / `mktg catalog list`. Errors stay JSON; `--fields` applies first; `--pretty` is a no-op. Default remains JSON. |
 | `mktg status --json --fields health,help` | `help[]` carries copy-ready next-command templates (mirrors `nextActions` prose). Most commands emit `help[]`; JSON is compact single-line (`--pretty` to indent). |
 | `mktg setup --json` | Once per project (idempotent): installs a Claude Code `SessionStart` hook that injects `mktg status --fields health,brandSummary,nextActions --json` into every session. `--global` for `~/.claude/settings.json`, `--dry-run` to preview. |
 | `mktg doctor --json` | On setup + whenever a skill fails unexpectedly (missing tools, broken integrations). |

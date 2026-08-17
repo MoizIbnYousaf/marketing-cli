@@ -2,10 +2,18 @@
 // Every command and core module imports from here.
 
 // Global flags every command receives
+/** Output serialization for successful responses. JSON is the default
+ * contract; TOON (AXI principle 1) is strictly opt-in via `--format toon`. */
+export type OutputFormat = "json" | "toon";
+
+export const OUTPUT_FORMATS: readonly OutputFormat[] = ["json", "toon"];
+
 export type GlobalFlags = {
   readonly json: boolean;
   /** Indent JSON output (2 spaces). Default JSON is compact (single line) for agents. */
   readonly pretty?: boolean;
+  /** Success-response serialization. Defaults to "json"; errors are always JSON. */
+  readonly format?: OutputFormat;
   readonly dryRun: boolean;
   readonly fields: readonly string[];
   readonly cwd: string;

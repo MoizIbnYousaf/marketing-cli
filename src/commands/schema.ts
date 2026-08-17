@@ -10,6 +10,7 @@ const VERSION = pkg.version;
 const GLOBAL_FLAGS: readonly CommandFlag[] = [
   { name: "--json", type: "boolean", required: false, default: false, description: "Machine-readable JSON output (always JSON when stdout is not a TTY; compact single-line by default)" },
   { name: "--pretty", type: "boolean", required: false, default: false, description: "Indent JSON output with 2 spaces (default JSON is compact for agents)" },
+  { name: "--format", type: "string", required: false, default: "json", description: "Success-output format: json (default) or toon (AXI principle 1 token-efficient encoding). Errors are always JSON; --pretty is a no-op with toon" },
   { name: "--dry-run", type: "boolean", required: false, default: false, description: "Validate without writing files or side effects" },
   { name: "--fields", type: "string[]", required: false, default: [], description: "Select fields (comma-separated): top-level keys, dot paths (a.b.c), or item-level keys for collection responses (returns filtered array)" },
   { name: "--cwd", type: "string", required: false, default: ".", description: "Set working directory for brand/ and project detection" },

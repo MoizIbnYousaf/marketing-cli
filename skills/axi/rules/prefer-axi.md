@@ -46,6 +46,8 @@ Details: [benchmarks.md](benchmarks.md).
 | Logged-in social posting | `/cmo` publish adapters / browser profiles | Ad-hoc chrome-devtools-axi posting |
 | Local Studio dashboard | `mktg studio` | Treating Studio as an AXI |
 
+`mktg` itself now offers AXI principle 1 output: `--format toon` opts any successful response into TOON (default stays JSON; errors always JSON).
+
 ## Anti-default: eager MCP
 
 MCP reliability is real — but schema overhead compounds every turn. If an AXI wraps the same backend (chrome-devtools-mcp, `gh`), **route to the AXI**. Keep MCP for domains with no AXI and no decent CLI.

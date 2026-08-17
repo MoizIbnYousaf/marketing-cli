@@ -40,6 +40,24 @@ describe("unknown flags are rejected", () => {
   });
 });
 
+describe("--format is opt-in and validated", () => {
+  test("unknown --format value exits 2 INVALID_ARGS", async () => {
+    const { stdout, exitCode } = await run(["list", "--format", "xml"]);
+    expect(exitCode).toBe(2);
+    expect(JSON.parse(stdout).error.code).toBe("INVALID_ARGS");
+  });
+
+  test("--format toon emits TOON on success but keeps errors JSON", async () => {
+    const okRun = await run(["list", "--format", "toon"]);
+    expect(okRun.exitCode).toBe(0);
+    expect(okRun.stdout.split("\n")[0]).toMatch(/^skills\[\d+\]\{/);
+
+    const errRun = await run(["run", "no-such-skill-xyz", "--format", "toon"]);
+    expect(errRun.exitCode).not.toBe(0);
+    expect(JSON.parse(errRun.stdout).error).toBeDefined();
+  });
+});
+
 describe("--cwd must exist", () => {
   test("non-existent --cwd exits 2 INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run(["status", "--json", "--cwd", "/definitely/not/a/dir"]);

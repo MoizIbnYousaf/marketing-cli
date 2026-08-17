@@ -21,6 +21,7 @@ mktg <command> [subcommand] [--json] [--dry-run] [--fields <dot.path>]
 |------|---------|---------|
 | `--json` | Structured JSON output (auto-enabled when piped). Compact single-line by default | `mktg status --json` |
 | `--pretty` | Indent JSON output (2 spaces) for humans; agents should omit it | `mktg status --json --pretty` |
+| `--format` | Success-output encoding: `json` (default) or `toon` (AXI principle 1, ~40% fewer tokens). Errors stay JSON | `mktg list --format toon` |
 | `--dry-run` | Preview mutations without writing | `mktg init --dry-run` |
 | `--fields` | Dot-notation field selection | `--fields "brandSummary.populated,skills.installed"` |
 | `--input` | Raw JSON payload for mutating commands (global) | `mktg brand append-learning --input '{...}'` |
@@ -33,6 +34,7 @@ mktg <command> [subcommand] [--json] [--dry-run] [--fields <dot.path>]
 ## Response conventions
 
 - **Compact JSON.** Every JSON response is one line (`JSON.stringify` with no indentation). Parse it; never assert on whitespace. `--pretty` restores 2-space indentation.
+- **TOON output.** `--format toon` opts a *successful* response into [TOON](https://toonformat.dev/) (AXI principle 1): uniform arrays become `key[N]{f1,f2}:` + one comma-joined row per item (values with commas/newlines/quotes are double-quoted, embedded quotes doubled), scalars/objects become `key: value` lines nested 2 spaces, a top-level array carries `count: N`, and `help[]` renders as a trailing `help[N]:` block. JSON stays the default contract: **errors are always JSON** (the structured error envelope is machine-parsed), `--fields` applies before encoding, and `--pretty` is a no-op. An unknown `--format` value is `INVALID_ARGS`, exit 2.
 - **`help[]`.** Success responses may carry a top-level `help` array of concrete next-command templates (e.g. `"mktg run <skill> --json"`, `"mktg brand freshness --json"`). `status`, `init`, `doctor`, `plan`, `skill info`, `list`, `compete list`, `catalog list`, `setup` populate it. It is selectable via `--fields help` and printed as a `Next:` footer in TTY. Prose fields (`nextActions`, `setup.nextSteps`) stay for compat.
 - **Home view.** Bare `mktg` (no command) returns a live snapshot, not static help: `{bin, description, cwd, version, health, brand:{populated,total}, skills:{installed,total}, help[]}` (`bin`/`cwd` collapse `$HOME` to `~`). `mktg --help` keeps the full command list.
 - **Ambient context.** `mktg setup --json` idempotently installs a Claude Code `SessionStart` hook (`./.claude/settings.json`; `--global` for `~/.claude/settings.json`) that runs `mktg status --fields health,brandSummary,nextActions --json`. Re-runs report `{installed:true, changed:false}`; `--dry-run` previews the settings file.
