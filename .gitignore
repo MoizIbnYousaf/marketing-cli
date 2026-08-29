@@ -67,3 +67,6 @@ studio/marketing.db
 studio/marketing.db-*
 studio/tsconfig.tsbuildinfo
 studio/next-env.d.ts
+
+# Amp orb portal metadata
+.amp/portals/*

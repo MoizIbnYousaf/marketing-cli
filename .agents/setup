@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+step() {
+  printf '\n[%s] %s\n' "$(date -u +%H:%M:%S)" "$1"
+}
+
+step "Checking system prerequisites"
+apt_packages=()
+command -v curl >/dev/null 2>&1 || apt_packages+=(curl)
+command -v unzip >/dev/null 2>&1 || apt_packages+=(unzip)
+command -v node >/dev/null 2>&1 || apt_packages+=(nodejs)
+
+if ((${#apt_packages[@]})); then
+  sudo apt-get update
+  sudo apt-get install -y "${apt_packages[@]}"
+fi
+
+node_major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
+if [[ ! "$node_major" =~ ^[0-9]+$ ]] || ((node_major < 18)); then
+  printf 'Node.js 18 or newer is required; found %s.\n' "$(node --version)" >&2
+  exit 1
+fi
+
+# Orb login shells run as the regular user but can inherit stale sudo metadata,
+# which makes tooling incorrectly target root's home directory.
+unset SUDO_USER SUDO_UID SUDO_GID
+
+step "Ensuring Bun 1.1 or newer is installed"
+install_bun=false
+if ! command -v bun >/dev/null 2>&1; then
+  install_bun=true
+elif [[ "$(printf '%s\n' 1.1.0 "$(bun --version)" | sort -V | head -n1)" != "1.1.0" ]]; then
+  install_bun=true
+fi
+
+if [[ "$install_bun" == true ]]; then
+  curl -fsSL https://bun.sh/install | bash
+fi
+
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+profile_marker="# marketing-cli orb toolchain"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+  cat >>"$HOME/.bash_profile" <<'EOF'
+
+# marketing-cli orb toolchain
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+unset SUDO_USER SUDO_UID SUDO_GID
+EOF
+fi
+
+sudo_unset="unset SUDO_USER SUDO_UID SUDO_GID"
+if ! grep -Fqx "$sudo_unset" "$HOME/.bash_profile" 2>/dev/null; then
+  printf '%s\n' "$sudo_unset" >>"$HOME/.bash_profile"
+fi
+
+step "Preparing the repository workspace layout"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+workspace_alias="$(dirname "$repo_root")/marketing-cli"
+if [[ ! -e "$workspace_alias" && ! -L "$workspace_alias" ]]; then
+  ln -s "$repo_root" "$workspace_alias"
+fi
+
+step "Installing locked workspace dependencies"
+time bun install --frozen-lockfile
+
+step "Building the CLI"
+time bun run build
+
+step "Orb setup complete"
+printf 'Bun %s, Node %s\n' "$(bun --version)" "$(node --version)"

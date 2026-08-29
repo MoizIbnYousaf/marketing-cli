@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This repository has no services or authentication that need wake-time repair.
+printf '[%s] marketing-cli orb ready\n' "$(date -u +%H:%M:%S)"
