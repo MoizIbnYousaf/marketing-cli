@@ -13,12 +13,21 @@ export const isTTY = (): boolean =>
 const isObject = (v: unknown): v is Record<string, unknown> =>
   v !== null && typeof v === "object" && !Array.isArray(v);
 
+const UNSAFE_FIELD_SEGMENTS = new Set(["__proto__", "prototype", "constructor"]);
+
+const isSafeFieldPath = (path: string): boolean =>
+  path.split(".").every((part) => part.length > 0 && !UNSAFE_FIELD_SEGMENTS.has(part));
+
+const hasOwn = (obj: Record<string, unknown>, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(obj, key);
+
 /** Resolve a dot-notation path like "checks.name" to a nested value. When the
  * walker encounters an array, it maps the remaining path across each element
  * and returns the array of results — lets `list --fields skills.name` and
  * `catalog list --fields catalogs.capabilities.publish_adapters` work as
  * agents expect (SQL-like column projection on a collection). */
 const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
+  if (!isSafeFieldPath(path)) return undefined;
   const parts = path.split(".");
   let current: unknown = obj;
   for (let i = 0; i < parts.length; i++) {
@@ -32,18 +41,22 @@ const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => 
       );
     }
     if (typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[parts[i]!];
+    const record = current as Record<string, unknown>;
+    const part = parts[i]!;
+    if (!hasOwn(record, part)) return undefined;
+    current = record[part];
   }
   return current;
 };
 
 /** Set a value at a dot-notation path, creating intermediate objects */
 const setNestedValue = (obj: Record<string, unknown>, path: string, value: unknown): void => {
+  if (!isSafeFieldPath(path)) return;
   const parts = path.split(".");
   let current = obj;
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i]!;
-    if (!(part in current) || typeof current[part] !== "object") {
+    if (!hasOwn(current, part) || !isObject(current[part])) {
       current[part] = {};
     }
     current = current[part] as Record<string, unknown>;
@@ -88,6 +101,10 @@ const pickFromObject = (
   const result: Record<string, unknown> = {};
   const missing: string[] = [];
   for (const field of fields) {
+    if (!isSafeFieldPath(field)) {
+      missing.push(field);
+      continue;
+    }
     if (field.includes(".")) {
       const value = getNestedValue(data, field);
       // An array of only-undefined leaves means the path traversed an array
@@ -101,7 +118,7 @@ const pickFromObject = (
       } else {
         missing.push(field);
       }
-    } else if (field in data) {
+    } else if (hasOwn(data, field)) {
       result[field] = data[field];
     } else {
       missing.push(field);

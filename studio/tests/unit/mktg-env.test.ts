@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { loadEnvLocal } from "../../lib/mktg.ts";
+import { childProcessEnv, nextProcessEnv } from "../../lib/child-env.ts";
 
 let tmp: string;
 
@@ -92,5 +93,38 @@ describe("Bun.spawn inherits .env.local through run()", () => {
     } finally {
       rmSync(tmp2, { recursive: true, force: true });
     }
+  });
+});
+
+describe("Studio child-process environment boundaries", () => {
+  const source = {
+    PATH: "/bin",
+    HOME: "/tmp/home",
+    POSTIZ_API_KEY: "postiz-secret",
+    MKTG_STUDIO_TOKEN: "studio-token",
+    MKTG_STUDIO_TOKEN_PATH: "/tmp/token",
+    MKTG_STUDIO_TOKEN_DIR: "/tmp/tokens",
+    NEXT_PUBLIC_STUDIO_DEMO: "1",
+  };
+
+  test("mktg children retain integration credentials but never Studio auth secrets", () => {
+    const env = childProcessEnv(source);
+    expect(env.POSTIZ_API_KEY).toBe("postiz-secret");
+    expect(env.MKTG_STUDIO_TOKEN).toBeUndefined();
+    expect(env.MKTG_STUDIO_TOKEN_PATH).toBeUndefined();
+    expect(env.MKTG_STUDIO_TOKEN_DIR).toBeUndefined();
+  });
+
+  test("Next receives only runtime-safe and NEXT_PUBLIC values", () => {
+    const env = nextProcessEnv(source, {
+      STUDIO_API_BASE: "http://localhost:3001",
+      DASHBOARD_PORT: "3000",
+    });
+    expect(env.PATH).toBe("/bin");
+    expect(env.HOME).toBe("/tmp/home");
+    expect(env.NEXT_PUBLIC_STUDIO_DEMO).toBe("1");
+    expect(env.STUDIO_API_BASE).toBe("http://localhost:3001");
+    expect(env.POSTIZ_API_KEY).toBeUndefined();
+    expect(env.MKTG_STUDIO_TOKEN).toBeUndefined();
   });
 });

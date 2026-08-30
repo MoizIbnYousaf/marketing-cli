@@ -24,6 +24,7 @@ import { globalEmitter, getJobEmitter } from "./lib/sse.ts";
 import { startBrandWatcher, startContentWatcher, stopBrandWatcher, stopContentWatcher } from "./lib/watcher.ts";
 import { startZombieSweeper } from "./lib/sweep.ts";
 import { backupBrandDir } from "./lib/brand-backup.ts";
+import { childProcessEnv } from "./lib/child-env.ts";
 import { createJob, runJob, getJob, listJobs, cancelJob } from "./lib/jobs.ts";
 import {
   rejectControlChars,
@@ -438,20 +439,6 @@ async function parseBody<T>(req: Request, schema: z.ZodSchema<T>): Promise<{ ok:
 
 function isDryRun(url: URL): boolean {
   return url.searchParams.get("dryRun") === "true";
-}
-
-// Build a clean env for child processes. Strips the studio bearer token so
-// `MKTG_STUDIO_TOKEN` never leaks into spawned `mktg` subprocesses (visible
-// via `ps eww` and any tool that echoes its env). Lane 1 / Wave A.
-function spawnEnv(extra: Record<string, string> = {}): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(process.env)) {
-    if (v === undefined) continue;
-    if (k === "MKTG_STUDIO_TOKEN") continue;
-    out[k] = v;
-  }
-  for (const [k, v] of Object.entries(extra)) out[k] = v;
-  return out;
 }
 
 /**
@@ -1561,7 +1548,7 @@ const server = Bun.serve({
           // Strip studio bearer token so it does not leak into mktg's
           // process env (visible via `ps eww` and any `mktg doctor --json`
           // that echoes env). Never inherit secrets to subprocesses.
-          env: spawnEnv(),
+          env: childProcessEnv(),
         });
         const stdout = await new Response(proc.stdout).text();
         const stderr = await new Response(proc.stderr).text();
@@ -1749,7 +1736,7 @@ const server = Bun.serve({
       try {
         const proc = Bun.spawn(
           ["mktg", "init", "--yes", "--skip-skills", "--skip-agents", "--json"],
-          { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe", env: spawnEnv() },
+          { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe", env: childProcessEnv() },
         );
         const stderr = await new Response(proc.stderr).text();
         const exitCode = await proc.exited;

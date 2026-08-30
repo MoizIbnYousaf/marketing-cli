@@ -92,6 +92,24 @@ test("Case 1: Step 0 button uses US spelling 'Initializing' (Wave C #9)", async 
   await expect(errorAlert).not.toContainText(/initialise/i)
 })
 
+test("API keys never enter onboarding localStorage", async ({ page }) => {
+  await page.goto(`${DASHBOARD}/onboarding`)
+  await page.getByRole("button", { name: /Start fresh/i }).click()
+  await expect(page.getByRole("heading", { name: /Connect social accounts/i })).toBeVisible()
+
+  const sentinel = "postiz-secret-sentinel"
+  await page.getByLabel(/Postiz API key/i).fill(sentinel)
+
+  const persisted = await page.evaluate(() =>
+    window.localStorage.getItem("mktg-studio:onboarding") ?? "",
+  )
+  expect(persisted).not.toContain(sentinel)
+  expect(persisted).not.toContain("postizKey")
+  expect(persisted).not.toContain("firecrawlKey")
+  expect(persisted).not.toContain("exaKey")
+  expect(persisted).not.toContain("resendKey")
+})
+
 test("Case 2: Step 3 (building) headline uses 'Writing your brand files…' not 'marketing brain'", async ({
   page,
 }) => {

@@ -68,6 +68,28 @@ describe("formatOutput", () => {
     expect(parsed.error.suggestions[0]).toMatch(/Available fields/);
   });
 
+  test("rejects prototype-chain field paths without polluting Object.prototype", () => {
+    const polluted = "mktgFieldsPolluted";
+    const result = ok({ constructor: { prototype: { [polluted]: "owned" } } });
+
+    const filtered = applyFieldsFilter(result, [`constructor.prototype.${polluted}`]);
+
+    expect(filtered.ok).toBe(false);
+    if (filtered.ok) throw new Error("expected unsafe field path to fail");
+    expect(filtered.error.code).toBe("UNKNOWN_FIELD");
+    expect((Object.prototype as Record<string, unknown>)[polluted]).toBeUndefined();
+  });
+
+  test("does not resolve inherited fields but preserves selectable own properties", () => {
+    const inherited = applyFieldsFilter(ok({ name: "test" }), ["toString"]);
+    expect(inherited.ok).toBe(false);
+
+    const own = applyFieldsFilter(ok({ toString: "selectable" }), ["toString"]);
+    expect(own.ok).toBe(true);
+    if (!own.ok) throw new Error("expected own property to remain selectable");
+    expect(own.data).toEqual({ toString: "selectable" });
+  });
+
   test("formats string data directly in non-JSON mode", () => {
     const result = ok("Hello, world!");
     const output = formatOutput(result, defaultFlags);

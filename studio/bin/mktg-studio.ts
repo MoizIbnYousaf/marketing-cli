@@ -19,6 +19,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
+import { childProcessEnv, nextProcessEnv } from "../lib/child-env.ts";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -304,8 +305,16 @@ const baseChildEnv: Record<string, string> = {
 // token by reading the `?token=` query string on first nav (see launcher
 // auto-open below) and persists it in localStorage.
 const STUDIO_TOKEN = readOrCreateStudioToken();
-const serverEnv: Record<string, string> = { ...baseChildEnv, MKTG_STUDIO_TOKEN: STUDIO_TOKEN };
-const nextEnv: Record<string, string> = baseChildEnv;
+const serverEnv: Record<string, string> = {
+  ...childProcessEnv(baseChildEnv),
+  MKTG_STUDIO_TOKEN: STUDIO_TOKEN,
+};
+const nextEnv = nextProcessEnv(baseChildEnv, {
+  STUDIO_PORT,
+  DASHBOARD_PORT,
+  STUDIO_API_BASE: baseChildEnv.STUDIO_API_BASE,
+  NEXT_DIST_DIR: baseChildEnv.NEXT_DIST_DIR,
+});
 
 console.log(`[mktg-studio] starting server (:${STUDIO_PORT}) + dashboard (:${DASHBOARD_PORT})`);
 // Cabinet pattern: the token path is invisible to humans by default.
@@ -507,7 +516,12 @@ if (openFlag) {
   }
 
   try {
-    Bun.spawn({ cmd, stdout: "ignore", stderr: "ignore" });
+    Bun.spawn({
+      cmd,
+      env: nextProcessEnv(process.env),
+      stdout: "ignore",
+      stderr: "ignore",
+    });
   } catch {
     // fine -- user can open the URL printed in the banner above manually
   }

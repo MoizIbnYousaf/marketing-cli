@@ -26,6 +26,8 @@ interface WizardState {
   resendKey: string
 }
 
+type PersistedWizardState = Pick<WizardState, "step" | "url" | "postizBase">
+
 const DEFAULT_STATE: WizardState = {
   step: 0,
   url: "",
@@ -41,7 +43,15 @@ function loadState(): WizardState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return DEFAULT_STATE
-    return { ...DEFAULT_STATE, ...JSON.parse(raw) }
+    const parsed = JSON.parse(raw) as Partial<PersistedWizardState>
+    return {
+      ...DEFAULT_STATE,
+      step: typeof parsed.step === "number" ? parsed.step : DEFAULT_STATE.step,
+      url: typeof parsed.url === "string" ? parsed.url : DEFAULT_STATE.url,
+      postizBase: typeof parsed.postizBase === "string"
+        ? parsed.postizBase
+        : DEFAULT_STATE.postizBase,
+    }
   } catch {
     return DEFAULT_STATE
   }
@@ -49,7 +59,12 @@ function loadState(): WizardState {
 
 function saveState(state: WizardState) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    const persisted: PersistedWizardState = {
+      step: state.step,
+      url: state.url,
+      postizBase: state.postizBase,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
   } catch {
     // ignore
   }
@@ -235,6 +250,7 @@ export function Wizard() {
     if (!state.postizKey.trim()) {
       setPostizError(null)
       setPostizErrorFix(null)
+      update({ postizKey: "" })
       goTo(2)
       return
     }
@@ -253,12 +269,14 @@ export function Wizard() {
       // "Continue without saving" to skip the integration knowingly.
       return
     }
+    update({ postizKey: "" })
     goTo(2)
   }
 
   function handlePostizSkip() {
     setPostizError(null)
     setPostizErrorFix(null)
+    update({ postizKey: "" })
     goTo(2)
   }
 
@@ -272,6 +290,7 @@ export function Wizard() {
     setOptionalErrorFix(null)
 
     if (Object.keys(env).length === 0) {
+      update({ firecrawlKey: "", exaKey: "", resendKey: "" })
       goTo(3)
       return
     }
@@ -284,12 +303,14 @@ export function Wizard() {
       setOptionalErrorFix(result.fix)
       return
     }
+    update({ firecrawlKey: "", exaKey: "", resendKey: "" })
     goTo(3)
   }
 
   function handleOptionalSkip() {
     setOptionalError(null)
     setOptionalErrorFix(null)
+    update({ firecrawlKey: "", exaKey: "", resendKey: "" })
     goTo(3)
   }
 

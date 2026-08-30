@@ -6,6 +6,7 @@
 
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { childProcessEnv } from "./child-env";
 import { resolveProjectRoot } from "./project-root";
 
 import type {
@@ -92,7 +93,10 @@ export async function run<T>(
   const cwd = opts.cwd ?? resolveProjectRoot(process.cwd());
   // Shell env wins; fallback to .env.local so `mktg doctor` sees
   // TYPEFULLY_API_KEY / POSTIZ_API_KEY / etc. even on a bare `bun run`.
-  const env = { ...loadEnvLocal(cwd), ...(process.env as Record<string, string>) };
+  const env = childProcessEnv({
+    ...loadEnvLocal(cwd),
+    ...(process.env as Record<string, string>),
+  });
 
   let proc: ReturnType<typeof Bun.spawn>;
   try {
