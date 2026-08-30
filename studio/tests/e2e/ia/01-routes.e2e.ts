@@ -1,5 +1,6 @@
-// 01-routes.e2e.ts -- every route in the Lane 4 sitemap renders against the
-// real booted Next.js + Bun studio.
+// 01-routes.e2e.ts -- every App Router page renders against the real booted
+// Next.js + Bun studio. The source-inventory assertion fails when a new
+// page.tsx is added without extending this suite.
 //
 // Routes covered (canonical post-rename, per Lane 4 final ship output):
 //   /                 redirect to /onboarding (empty brand/) or /dashboard
@@ -7,14 +8,19 @@
 //   /dashboard        BrandWorkspace + 4 tabs (?tab=pulse|signals|publish|brand)
 //   /brand            redirect to /dashboard?tab=brand
 //   /settings         SettingsPanel (5 in-page sections)
-//   /skills           NEW: SkillList from GET /api/skills
-//   /skills/[name]    NEW: SkillDetail
+//   /skills           SkillList from GET /api/skills
+//   /skills/[name]    SkillDetail
+//   /dev-test/primitives  real-render component matrix
 //
 // The brief asks for 3+ cases per surface. This file covers the "renders"
 // case for every route + the "redirects correctly" case for the 2 alias
 // routes + the "404" case for unknown paths.
 
 import { test, expect } from "@playwright/test"
+import { existsSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { dirname, join, relative, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import {
   DASHBOARD,
   STUDIO,
@@ -25,6 +31,43 @@ import {
 } from "./_helpers"
 
 test.describe.configure({ mode: "serial" })
+
+const STUDIO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..")
+const APP_ROOT = join(STUDIO_ROOT, "app")
+const PROJECT_ROOT_FILE = join(tmpdir(), "mktg-studio-e2e.project-root")
+const EXPECTED_PAGE_FILES = [
+  "app/(dashboard)/brand/page.tsx",
+  "app/(dashboard)/dashboard/page.tsx",
+  "app/(dashboard)/settings/page.tsx",
+  "app/(dashboard)/skills/[name]/page.tsx",
+  "app/(dashboard)/skills/page.tsx",
+  "app/dev-test/primitives/page.tsx",
+  "app/onboarding/page.tsx",
+  "app/page.tsx",
+] as const
+
+function findPageFiles(root: string): string[] {
+  const found: string[] = []
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name)
+    if (entry.isDirectory()) found.push(...findPageFiles(path))
+    if (entry.isFile() && entry.name === "page.tsx") {
+      found.push(relative(STUDIO_ROOT, path).replaceAll("\\", "/"))
+    }
+  }
+  return found.sort()
+}
+
+function e2eProjectRoot(): string {
+  if (!existsSync(PROJECT_ROOT_FILE)) {
+    throw new Error(`global setup did not write ${PROJECT_ROOT_FILE}`)
+  }
+  return readFileSync(PROJECT_ROOT_FILE, "utf8").trim()
+}
+
+test("1.0 every app/page.tsx has an explicit browser contract", () => {
+  expect(findPageFiles(APP_ROOT)).toEqual([...EXPECTED_PAGE_FILES].sort())
+})
 
 test.beforeEach(async ({ page }) => {
   // Empty MKTG_PROJECT_ROOT in global-setup means brand/voice-profile.md
@@ -51,14 +94,45 @@ test("1.1 / redirects to /onboarding when brand/voice-profile.md is missing", as
   ).toBeVisible({ timeout: 10_000 })
 })
 
-test("1.2 /onboarding renders the wizard step 0", async ({ page }) => {
+test("1.2 / redirects to /dashboard when the voice profile is populated", async ({
+  page,
+}) => {
+  const voiceProfile = join(e2eProjectRoot(), "brand", "voice-profile.md")
+  const populatedProfile = [
+    "# Voice profile",
+    "",
+    "## Personality",
+    "Direct, practical, specific, confident, and grounded in verifiable evidence.",
+    "",
+    "## Vocabulary",
+    "Use concrete product language and name the outcome before implementation detail.",
+    "",
+    "## Sentence patterns",
+    "Lead with the conclusion. Follow with concise evidence and the next useful action.",
+    "",
+    "Avoid placeholders, vague superlatives, and claims that cannot be demonstrated.",
+  ].join("\n")
+  expect(populatedProfile.length).toBeGreaterThan(200)
+  writeFileSync(voiceProfile, populatedProfile, "utf8")
+
+  try {
+    await page.goto(`${DASHBOARD}/`)
+    await page.waitForURL(/\/dashboard\/?$/, { timeout: 10_000 })
+    await waitForDashboardChrome(page)
+    await expect(page.getByRole("heading", { name: /^pulse$/i })).toBeVisible()
+  } finally {
+    rmSync(voiceProfile, { force: true })
+  }
+})
+
+test("1.3 /onboarding renders the wizard step 0", async ({ page }) => {
   await page.goto(`${DASHBOARD}/onboarding`)
   await expect(
     page.getByRole("heading", { name: /what'?s your project\?/i }),
   ).toBeVisible({ timeout: 10_000 })
 })
 
-test("1.3 /dashboard renders BrandWorkspace with 4-tab strip", async ({ page }) => {
+test("1.4 /dashboard renders every workspace tab state", async ({ page }) => {
   await seedWorkspaceTab(page, "pulse")
   await page.goto(`${DASHBOARD}/dashboard`)
   await waitForDashboardChrome(page)
@@ -72,18 +146,34 @@ test("1.3 /dashboard renders BrandWorkspace with 4-tab strip", async ({ page }) 
       page.getByRole("button", { name: new RegExp(`^${label}`, "i") }).first(),
     ).toBeVisible({ timeout: 10_000 })
   }
+
+  for (const state of [
+    { path: "/dashboard", heading: "Pulse" },
+    { path: "/dashboard?tab=signals", heading: "Signals" },
+    { path: "/dashboard?tab=publish", heading: "Publish" },
+    { path: "/dashboard?tab=brand", heading: "Brand files" },
+  ]) {
+    await page.goto(`${DASHBOARD}${state.path}`)
+    await expect(
+      page.getByRole("heading", { name: new RegExp(`^${state.heading}$`, "i") }),
+    ).toBeVisible({ timeout: 10_000 })
+  }
 })
 
-test("1.4 /brand server-redirects to /dashboard?tab=brand", async ({ page }) => {
+test("1.5 /brand redirects to the complete brand editor page state", async ({ page }) => {
   await seedWorkspaceTab(page, "brand")
   await page.goto(`${DASHBOARD}/brand`)
   await page.waitForURL(/\/dashboard\?tab=brand(?:&|$)/, { timeout: 10_000 })
   const url = landingUrl(page)
   expect(url.pathname).toBe("/dashboard")
   expect(url.searchParams.get("tab")).toBe("brand")
+  await expect(page.getByText("Brand docs", { exact: true })).toBeVisible()
+  await expect(page.getByText("Pick a brand doc to edit", { exact: true })).toBeVisible()
+  await expect(page.getByRole("button", { name: /voice profile/i })).toBeVisible()
+  await expect(page.locator("aside li")).toHaveCount(10)
 })
 
-test("1.5 /settings renders the SettingsPanel header + sidebar", async ({ page }) => {
+test("1.6 /settings renders the SettingsPanel header + sidebar", async ({ page }) => {
   await page.goto(`${DASHBOARD}/settings`)
   await waitForDashboardChrome(page)
   await expect(
@@ -103,7 +193,7 @@ test("1.5 /settings renders the SettingsPanel header + sidebar", async ({ page }
   }
 })
 
-test("1.6 /skills renders the Skill Browser header with skill count", async ({
+test("1.7 /skills renders the Skill Browser header with skill count", async ({
   page,
 }) => {
   await page.goto(`${DASHBOARD}/skills`)
@@ -119,7 +209,7 @@ test("1.6 /skills renders the Skill Browser header with skill count", async ({
   ).toBeVisible({ timeout: 10_000 })
 })
 
-test("1.7 /skills/[name] renders a known skill detail (cmo)", async ({ page }) => {
+test("1.8 /skills/[name] renders a known skill detail (cmo)", async ({ page }) => {
   await page.goto(`${DASHBOARD}/skills/cmo`)
   await waitForDashboardChrome(page)
   // SkillDetail renders the skill name in a font-mono h1.
@@ -133,7 +223,18 @@ test("1.7 /skills/[name] renders a known skill detail (cmo)", async ({ page }) =
   })
 })
 
-test("1.8 unknown segment returns 404 not-found", async ({ request }) => {
+test("1.9 /dev-test/primitives renders its real component matrix", async ({ page }) => {
+  const response = await page.goto(`${DASHBOARD}/dev-test/primitives`)
+  expect(response?.status()).toBe(200)
+  await expect(page.getByTestId("harness-heading")).toHaveText(
+    "Primitives variant matrix (Lane 6 E2E)",
+  )
+  for (const section of ["card", "skeleton", "button", "input", "textarea", "label", "tokens"]) {
+    await expect(page.getByTestId(`section-${section}`)).toBeVisible()
+  }
+})
+
+test("1.10 unknown segment returns 404 not-found", async ({ request }) => {
   // Next.js renders the global app/_not-found.tsx (or the framework's
   // default) for unknown segments; the response code is 404 even though
   // the body is HTML. Use request to assert the network code directly so
@@ -142,7 +243,7 @@ test("1.8 unknown segment returns 404 not-found", async ({ request }) => {
   expect(res.status()).toBe(404)
 })
 
-test("1.9 /api/health on the studio API responds 200", async ({ request }) => {
+test("1.11 /api/health on the studio API responds 200", async ({ request }) => {
   // Sanity probe of the Bun server boot path that Lane 4 is downstream
   // of -- if /api/health is broken every other assertion in this file
   // would be a false positive.
