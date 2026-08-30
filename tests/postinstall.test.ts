@@ -8,6 +8,18 @@ import { tmpdir } from "node:os";
 const POSTINSTALL = join(import.meta.dir, "..", "scripts", "postinstall.cjs");
 const ROOT = join(import.meta.dir, "..");
 
+const isolatedHomeEnv = (home: string): NodeJS.ProcessEnv => {
+  const env = { ...process.env, HOME: home };
+  // These orb/CI variables describe the outer shell, not the test child.
+  // Leaving them set makes postinstall correctly choose the real sudo user's
+  // home instead of the isolated HOME this test is exercising.
+  delete env.SUDO_USER;
+  delete env.SUDO_UID;
+  delete env.SUDO_GID;
+  delete env.SUDO_COMMAND;
+  return env;
+};
+
 const loadManifestSkillCount = async (): Promise<number> => {
   const manifest = JSON.parse(await readFile(join(ROOT, "skills-manifest.json"), "utf-8"));
   return Object.keys(manifest.skills).length;
@@ -51,8 +63,7 @@ describe("npm postinstall", () => {
     const result = spawnSync("node", [POSTINSTALL], {
       encoding: "utf8",
       env: {
-        ...process.env,
-        HOME: home,
+        ...isolatedHomeEnv(home),
         MKTG_POSTINSTALL_FORCE: "1",
         MKTG_POSTINSTALL_QUIET: "1",
       },
@@ -75,8 +86,7 @@ describe("npm postinstall", () => {
     const result = spawnSync("node", [POSTINSTALL], {
       encoding: "utf8",
       env: {
-        ...process.env,
-        HOME: home,
+        ...isolatedHomeEnv(home),
         npm_config_global: "false",
         MKTG_POSTINSTALL_QUIET: "1",
       },

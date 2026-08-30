@@ -7,6 +7,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { childProcessEnv } from "./child-env";
+import { resolveMktgCommand } from "./mktg-command";
 import { resolveProjectRoot } from "./project-root";
 
 import type {
@@ -100,7 +101,7 @@ export async function run<T>(
 
   let proc: ReturnType<typeof Bun.spawn>;
   try {
-    proc = Bun.spawn(["mktg", ...args, "--json"], {
+    proc = Bun.spawn(resolveMktgCommand([...args, "--json"]), {
       cwd,
       env,
       stdin: opts.input !== undefined ? "pipe" : "inherit",

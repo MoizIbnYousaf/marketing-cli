@@ -25,6 +25,7 @@ import { startBrandWatcher, startContentWatcher, stopBrandWatcher, stopContentWa
 import { startZombieSweeper } from "./lib/sweep.ts";
 import { backupBrandDir } from "./lib/brand-backup.ts";
 import { childProcessEnv } from "./lib/child-env.ts";
+import { resolveMktgCommand } from "./lib/mktg-command.ts";
 import { createJob, runJob, getJob, listJobs, cancelJob } from "./lib/jobs.ts";
 import {
   rejectControlChars,
@@ -1542,7 +1543,7 @@ const server = Bun.serve({
         const args = body.data.from
           ? ["init", "--from", body.data.from, "--yes"]
           : ["init", "--yes"];
-        const proc = Bun.spawn(["mktg", ...args], {
+        const proc = Bun.spawn(resolveMktgCommand(args), {
           stdout: "pipe",
           stderr: "pipe",
           // Strip studio bearer token so it does not leak into mktg's
@@ -1735,7 +1736,7 @@ const server = Bun.serve({
       // brand/ from templates. Existing files are overwritten.
       try {
         const proc = Bun.spawn(
-          ["mktg", "init", "--yes", "--skip-skills", "--skip-agents", "--json"],
+          resolveMktgCommand(["init", "--yes", "--skip-skills", "--skip-agents", "--json"]),
           { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe", env: childProcessEnv() },
         );
         const stderr = await new Response(proc.stderr).text();

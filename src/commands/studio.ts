@@ -362,6 +362,7 @@ export const handler: CommandHandler<StudioLaunchPreview> = async (args, flags) 
     stdio: "inherit",
     env: {
       ...(process.env as Record<string, string>),
+      MKTG_CLI_ROOT: getPackageRoot(),
       MKTG_PROJECT_ROOT: process.env.MKTG_PROJECT_ROOT ?? flags.cwd,
     },
   });
