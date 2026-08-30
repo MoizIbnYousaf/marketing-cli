@@ -128,12 +128,6 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
   const routeTimeWindow = normalizeTimeWindow(searchParams.get("time"))
 
   const activeTab = routeTab
-  const signalFilters = {
-    platform: routePlatform,
-    stream: routeStream,
-    timeWindow: routeTimeWindow,
-  } as const
-
   const updateUrlState = useCallback((update: {
     tab?: WorkspaceTab
     platform?: WorkspacePlatformFilter
@@ -230,13 +224,13 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
                         <PulsePage groupId={groupId} />
                       </div>
                     )}
-                    {activeTab === "signals" && <ContentTab groupId={groupId} />}
-                    {activeTab === "publish" && <PublishTab groupId={groupId} />}
+                    {activeTab === "signals" && <ContentTab />}
+                    {activeTab === "publish" && <PublishTab />}
                     {activeTab === "brand" && <BrandTab />}
                   </div>
 
                   <div className="hidden h-full min-h-0 border-l border-white/10 bg-[#0e1418]/80 xl:block">
-                    <ActivityPanel groupId={groupId} />
+                    <ActivityPanel />
                   </div>
                 </div>
               </div>
@@ -244,8 +238,8 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
           ) : (
             <div className="h-full overflow-auto pb-28">
               {activeTab === "pulse" && <PulsePage groupId={groupId} />}
-              {activeTab === "signals" && <ContentTab groupId={groupId} />}
-              {activeTab === "publish" && <PublishTab groupId={groupId} />}
+              {activeTab === "signals" && <ContentTab />}
+              {activeTab === "publish" && <PublishTab />}
               {activeTab === "brand" && <BrandTab />}
             </div>
           )}
@@ -279,7 +273,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
               </SheetDescription>
             </div>
             <div className="min-h-0 flex-1 [&>div]:!border-l-0">
-              <ActivityPanel groupId={groupId} />
+              <ActivityPanel />
             </div>
           </div>
         </SheetContent>

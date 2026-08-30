@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { m, AnimatePresence } from "framer-motion"
 import { Check, Loader2, Circle, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -50,16 +50,16 @@ const PhaseIcon = ({ status }: { status: PhaseStatus }) => {
   }
 }
 
-const ElapsedTimer = ({ startTime }: { startTime: number }) => {
+const ElapsedTimer = ({ startTime }: { startTime?: number }) => {
+  const [initialStart] = useState(() => startTime ?? Date.now())
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
-    setElapsed(Math.floor((Date.now() - startTime) / 1000))
     const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTime) / 1000))
+      setElapsed(Math.floor((Date.now() - initialStart) / 1000))
     }, 1000)
     return () => clearInterval(interval)
-  }, [startTime])
+  }, [initialStart])
 
   return (
     <m.span
@@ -85,15 +85,6 @@ export function AgentPhaseProgress({
   compact?: boolean
   className?: string
 }) {
-  const internalStart = useRef<number | null>(null)
-  if (currentPhase && !internalStart.current) {
-    internalStart.current = Date.now()
-  }
-  if (!currentPhase) {
-    internalStart.current = null
-  }
-  const effectiveStartTime = startedAt ?? internalStart.current
-
   const activePhase = currentPhase
     ? AGENT_PHASES.find((p) => p.id === currentPhase)
     : null
@@ -156,8 +147,8 @@ export function AgentPhaseProgress({
           ) : (
             <span />
           )}
-          {currentPhase && effectiveStartTime ? (
-            <ElapsedTimer startTime={effectiveStartTime} />
+          {currentPhase ? (
+            <ElapsedTimer key={`${currentPhase}-${startedAt ?? "local"}`} startTime={startedAt} />
           ) : (
             <span />
           )}
@@ -237,8 +228,8 @@ export function AgentPhaseProgress({
           </div>
 
           <div className="flex items-center justify-between px-1">
-            {currentPhase && effectiveStartTime ? (
-              <ElapsedTimer startTime={effectiveStartTime} />
+            {currentPhase ? (
+              <ElapsedTimer key={`${currentPhase}-${startedAt ?? "local"}`} startTime={startedAt} />
             ) : (
               <span />
             )}

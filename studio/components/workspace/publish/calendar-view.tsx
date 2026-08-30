@@ -49,9 +49,8 @@ export function CalendarView({
     { refreshInterval: 120_000 },
   )
 
-  const posts = data?.data ?? []
-
   const days = useMemo(() => {
+    const posts = data?.data ?? []
     return Array.from({ length: 7 }, (_, i) => {
       const day = new Date(weekStart.getTime() + i * DAY_MS)
       const dayStart = day.getTime()
@@ -64,7 +63,7 @@ export function CalendarView({
         }),
       }
     })
-  }, [weekStart, posts])
+  }, [weekStart, data])
 
   return (
     <Card className={cn("gap-3 py-4", className)} data-demo-id="publish-calendar">

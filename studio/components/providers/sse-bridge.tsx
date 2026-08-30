@@ -46,7 +46,10 @@ export function SSEBridge() {
   // EventSource on every render. The channel owns its lifecycle; the
   // handlers update in place via the ref.
   const handlersRef = useRef({ router, mutate, setWorkspaceTab, setSignalFilters, pushActivity, setConnected })
-  handlersRef.current = { router, mutate, setWorkspaceTab, setSignalFilters, pushActivity, setConnected }
+
+  useEffect(() => {
+    handlersRef.current = { router, mutate, setWorkspaceTab, setSignalFilters, pushActivity, setConnected }
+  }, [router, mutate, setWorkspaceTab, setSignalFilters, pushActivity, setConnected])
 
   useEffect(() => {
     let closed = false
@@ -151,7 +154,8 @@ export function SSEBridge() {
               tab === "content" ? "signals" :
               tab
             h.setWorkspaceTab(canonicalTab)
-            const { mode, ...signalFilter } = filter ?? {}
+            const signalFilter = { ...filter }
+            delete signalFilter.mode
             if (Object.keys(signalFilter).length > 0) {
               h.setSignalFilters(signalFilter as Parameters<typeof h.setSignalFilters>[0])
             }
@@ -243,7 +247,7 @@ export function SSEBridge() {
     }
     // Empty deps -- the channel lives for the lifetime of the bridge mount.
     // All call-site dependencies are read via handlersRef.current.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [])
 
   return null

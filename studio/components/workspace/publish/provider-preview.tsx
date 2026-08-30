@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Heart, MessageCircle, Repeat2, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -85,9 +86,12 @@ export function ProviderPreview({
 function Avatar({ src, label }: { src: string; label: string }) {
   if (src) {
     return (
-      <img
+      <Image
         src={src}
         alt={label}
+        width={28}
+        height={28}
+        unoptimized
         className="size-7 rounded-full border border-border/70 object-cover"
         onError={(e) => {
           ;(e.currentTarget as HTMLImageElement).style.display = "none"

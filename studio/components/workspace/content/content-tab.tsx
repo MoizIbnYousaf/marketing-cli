@@ -5,7 +5,7 @@ import { fadeInUp } from "@/lib/animation/variants"
 import { ContentLibrary } from "@/components/workspace/publish/content-library"
 import { WarRoomList } from "./war-room"
 
-export function ContentTab(_props: { groupId: string }) {
+export function ContentTab() {
   return (
     <m.div
       data-demo-id="content-tab"
@@ -16,7 +16,7 @@ export function ContentTab(_props: { groupId: string }) {
     >
       <div className="mx-auto max-w-[1500px]">
         <WarRoomList />
-        <ContentLibrary adapter="mktg-native" />
+        <ContentLibrary />
       </div>
     </m.div>
   )

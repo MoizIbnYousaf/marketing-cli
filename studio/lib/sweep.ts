@@ -116,7 +116,7 @@ export function startZombieSweeper(
  } catch (e) {
  // Don't crash the server on a transient sqlite hiccup. Log and retry
  // next interval.
- // eslint-disable-next-line no-console
+
  console.error("[zombie-sweep] pass failed:", e);
  }
  };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, memo } from "react";
+import Image from "next/image";
 import { getFaviconUrl } from "@/lib/favicon";
 
 interface FaviconProps {
@@ -19,9 +20,12 @@ function FaviconComponent({ url, size = 16, className = "w-4 h-4", alt = "" }: F
   }
 
   return (
-    <img
+    <Image
       src={faviconUrl}
       alt={alt}
+      width={size}
+      height={size}
+      unoptimized
       className={className}
       loading="lazy"
       onError={() => setImageError(true)}

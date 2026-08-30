@@ -193,12 +193,11 @@ export function useSSE<T = unknown>(url: string): SSEEvent<T> | null {
  * Useful for job log streams.
  */
 export function useSSELog<T = unknown>(url: string): SSEEvent<T>[] {
-  const [events, setEvents] = useState<SSEEvent<T>[]>([]);
+  const [log, setLog] = useState<{ url: string; events: SSEEvent<T>[] }>({ url, events: [] });
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     esRef.current?.close();
-    setEvents([]);
 
     const es = new EventSource(url);
     esRef.current = es;
@@ -206,7 +205,10 @@ export function useSSELog<T = unknown>(url: string): SSEEvent<T>[] {
     es.onmessage = (ev) => {
       try {
         const parsed = JSON.parse(ev.data) as SSEEvent<T>;
-        setEvents((prev) => [...prev, parsed]);
+        setLog((prev) => ({
+          url,
+          events: prev.url === url ? [...prev.events, parsed] : [parsed],
+        }));
       } catch {
         // Ignore malformed frames
       }
@@ -217,5 +219,5 @@ export function useSSELog<T = unknown>(url: string): SSEEvent<T>[] {
     };
   }, [url]);
 
-  return events;
+  return log.url === url ? log.events : [];
 }

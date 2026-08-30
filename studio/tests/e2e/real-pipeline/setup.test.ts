@@ -333,7 +333,6 @@ describe("replayOrCapture", () => {
 
  test("live mode hits API but does NOT write golden", async () => {
  const key = uniqKey();
- const goldenPath = goldenPathFor("void-test", key);
 
  const res = await replayOrCapture<{ fresh: boolean }>(
  { api: "void-test", goldenKey: key, method: "GET", endpoint: "/fresh", mode: "live" },

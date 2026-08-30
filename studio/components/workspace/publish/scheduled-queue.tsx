@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Image from "next/image"
 import useSWR from "swr"
 import { CalendarClock, ImageIcon, RefreshCw, ShieldAlert } from "lucide-react"
 import { publishCalendarRange, type PublishRangeId } from "@/lib/calendar-range"
@@ -175,9 +176,12 @@ function ScheduledPostRow({ post, adapter }: { post: ScheduledPost; adapter: str
                   className="group block overflow-hidden rounded-lg border border-accent/25 bg-accent/10 transition-colors hover:bg-accent/15"
                 >
                   {isImageAsset(path) ? (
-                    <img
+                    <Image
                       src={`/api/assets/file?path=${encodeURIComponent(path)}`}
                       alt={assetLabel(path)}
+                      width={144}
+                      height={96}
+                      unoptimized
                       className="h-24 w-36 object-cover transition-transform duration-200 group-hover:scale-[1.02]"
                       loading="lazy"
                     />

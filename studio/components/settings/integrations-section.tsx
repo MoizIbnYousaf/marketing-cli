@@ -252,12 +252,12 @@ export function IntegrationsSection() {
             </p>
           ) : (
             <ul className="space-y-1">
-              {catalogEntries.map((c) => {
+              {catalogEntries.map((c, index) => {
                 const configured = c.configured === true
                 const detail = c.detail ?? ""
                 return (
                   <li
-                    key={c.name ?? Math.random()}
+                    key={c.name ?? `catalog-${index}`}
                     className="flex items-start justify-between gap-3 rounded-lg border border-border/40 bg-background/80 px-3 py-2.5"
                   >
                     <div className="min-w-0 flex-1">

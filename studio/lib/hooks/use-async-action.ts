@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { extractErrorFix, extractErrorMessage } from "@/lib/api-error"
 
@@ -29,9 +29,12 @@ export function useAsyncAction<TArgs extends unknown[], TResult>(
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const optionsRef = useRef(options)
-  optionsRef.current = options
   const fnRef = useRef(fn)
-  fnRef.current = fn
+
+  useEffect(() => {
+    optionsRef.current = options
+    fnRef.current = fn
+  }, [fn, options])
 
   const run = useCallback(async (...args: TArgs): Promise<TResult | undefined> => {
     const opts = optionsRef.current

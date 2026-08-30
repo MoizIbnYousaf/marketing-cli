@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
     // Always surface in dev console -- the Next dev overlay swallows
     // boundary-caught errors by default, which makes diagnosis painful.
     if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
+
       console.error("[ErrorBoundary]", error, info)
     }
     this.props.onError?.(error, info)

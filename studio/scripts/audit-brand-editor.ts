@@ -23,7 +23,6 @@ import path from "node:path"
 import { writeFileSync, mkdirSync, existsSync } from "node:fs"
 
 const NEXT_BASE = process.env.STUDIO_URL ?? "http://localhost:3012"
-const API_BASE = process.env.STUDIO_API_BASE ?? "http://localhost:3001"
 const OUT_DIR = path.join(process.cwd(), "docs", "screenshots")
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })

@@ -12,7 +12,7 @@
 
 import { test, expect, beforeEach, afterEach } from "bun:test"
 import { Database } from "bun:sqlite"
-import { mkdtempSync, mkdirSync, rmSync, copyFileSync } from "node:fs"
+import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -112,7 +112,7 @@ test("Case 2: every signals.url uses demo.local, no real-domain hosts", async ()
     let parsed: URL
     try {
       parsed = new URL(row.url)
-    } catch (e) {
+    } catch {
       throw new Error(
         `signals[id=${row.id}, platform=${row.platform}] has unparseable URL: ${row.url}`,
       )

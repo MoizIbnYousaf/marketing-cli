@@ -19,14 +19,14 @@
 import "./lib/crash-handlers.ts";
 
 import { z } from "zod";
-import { getDb, closeDb, queryAll, queryOne, execute } from "./lib/sqlite.ts";
+import { getDb, closeDb, queryAll, execute } from "./lib/sqlite.ts";
 import { globalEmitter, getJobEmitter } from "./lib/sse.ts";
 import { startBrandWatcher, startContentWatcher, stopBrandWatcher, stopContentWatcher } from "./lib/watcher.ts";
 import { startZombieSweeper } from "./lib/sweep.ts";
 import { backupBrandDir } from "./lib/brand-backup.ts";
 import { childProcessEnv } from "./lib/child-env.ts";
 import { resolveMktgCommand } from "./lib/mktg-command.ts";
-import { createJob, runJob, getJob, listJobs, cancelJob } from "./lib/jobs.ts";
+import { createJob, runJob, getJob, listJobs } from "./lib/jobs.ts";
 import {
   rejectControlChars,
   validateResourceId,

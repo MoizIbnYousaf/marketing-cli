@@ -3,7 +3,7 @@
 // On any change → publishes SSE event to the global emitter.
 
 import { watch } from "node:fs";
-import { join, basename, relative } from "node:path";
+import { join, relative } from "node:path";
 import { existsSync, mkdirSync, statSync } from "node:fs";
 import type { SSEEmitter } from "./sse.ts";
 import { resolveProjectRoot } from "./project-root.ts";

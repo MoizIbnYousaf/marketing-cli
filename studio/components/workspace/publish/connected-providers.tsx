@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import useSWR from "swr"
 import { ExternalLink, PlugZap, RefreshCw, ShieldAlert } from "lucide-react"
 import { toast } from "sonner"
@@ -326,9 +327,12 @@ function ProviderAvatar({
 }) {
   if (picture) {
     return (
-      <img
+      <Image
         src={picture}
         alt={label}
+        width={32}
+        height={32}
+        unoptimized
         className="size-8 rounded-full border border-border/70 object-cover"
         onError={(e) => {
           ;(e.currentTarget as HTMLImageElement).style.display = "none"

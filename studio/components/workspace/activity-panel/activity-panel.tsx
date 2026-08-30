@@ -24,12 +24,7 @@ function buildUrl(base: string, kind: ActivityKind | "all", skill: string, timeW
   return `${base}?${params.toString()}`
 }
 
-interface ActivityPanelProps {
-  /** Reserved for future group-scoped filtering. Currently the feed is global. */
-  groupId?: string
-}
-
-export function ActivityPanel(_props: ActivityPanelProps = {}) {
+export function ActivityPanel() {
   const [kind, setKind] = useState<ActivityKind | "all">("all")
   const [skill, setSkill] = useState("")
   const [timeWindow, setTimeWindow] = useState("24h")

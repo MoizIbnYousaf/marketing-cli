@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useHydrated } from "@/lib/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 import {
   useWorkspaceStore,
@@ -129,13 +130,9 @@ export function DemoMode() {
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DemoRect | null>(null)
-  const [portalReady, setPortalReady] = useState(false)
+  const portalReady = useHydrated()
 
   const currentStep = WORKSPACE_DEMO_STEPS[stepIndex]
-
-  useEffect(() => {
-    setPortalReady(true)
-  }, [])
 
   useEffect(() => {
     if (!isOpen) return

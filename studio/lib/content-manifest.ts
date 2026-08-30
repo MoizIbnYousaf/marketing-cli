@@ -125,10 +125,6 @@ function normalizeRelPath(path: string): string {
   return path.replace(/\\/g, "/").replace(/^\.\//, "");
 }
 
-function isUrl(value: string): boolean {
-  return /^https?:\/\//i.test(value);
-}
-
 function hashString(value: string): string {
   return createHash("sha256").update(value).digest("hex").slice(0, 16);
 }

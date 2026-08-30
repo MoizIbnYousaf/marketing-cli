@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
+import { useHydrated } from "@/lib/hooks/use-hydrated"
 import { studioAuthHeaders } from "@/lib/studio-token"
 
 import { StepProject } from "./step-project"
@@ -86,10 +87,17 @@ const variants = {
 }
 
 export function Wizard() {
-  const [state, setState] = useState<WizardState>(DEFAULT_STATE)
+  const hydrated = useHydrated()
+  return hydrated ? <HydratedWizard /> : null
+}
+
+function HydratedWizard() {
+  const [state, setState] = useState<WizardState>(() => {
+    const saved = loadState()
+    return saved.step === 3 ? { ...saved, step: 2 } : saved
+  })
   const [direction, setDirection] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [hydrated, setHydrated] = useState(false)
   // A17 / H1-01: /api/init failures used to be swallowed with empty
   // catch {}. The wizard advanced regardless and the user saw no signal
   // that the server call had failed. Surfacing the error inline + blocking
@@ -107,19 +115,10 @@ export function Wizard() {
   const [optionalError, setOptionalError] = useState<string | null>(null)
   const [optionalErrorFix, setOptionalErrorFix] = useState<string | null>(null)
 
-  // Hydrate from localStorage after mount
-  useEffect(() => {
-    const saved = loadState()
-    // Don't resume into building step; re-trigger it
-    if (saved.step === 3) saved.step = 2
-    setState(saved)
-    setHydrated(true)
-  }, [])
-
   // Persist on every change
   useEffect(() => {
-    if (hydrated) saveState(state)
-  }, [state, hydrated])
+    saveState(state)
+  }, [state])
 
   const update = useCallback(
     (patch: Partial<WizardState>) =>
@@ -131,6 +130,7 @@ export function Wizard() {
     setDirection(next > 0 ? 1 : -1)
     update({ step: next })
   }, [update])
+  const handleBuildingDone = useCallback(() => goTo(4), [goTo])
 
   // ── Step handlers ──────────────────────────────────────────────────────────
 
@@ -314,8 +314,6 @@ export function Wizard() {
     goTo(3)
   }
 
-  if (!hydrated) return null
-
   return (
     <div className="w-full max-w-lg mx-auto">
       {/* Progress dots */}
@@ -427,7 +425,7 @@ export function Wizard() {
                 />
               )}
               {state.step === 3 && (
-                <StepBuilding onDone={() => goTo(4)} />
+                <StepBuilding onDone={handleBuildingDone} />
               )}
               {state.step === 4 && <StepDone />}
             </motion.div>

@@ -15,7 +15,6 @@
 // any output. A standalone Bun script is more resilient.
 
 import { describe, test, expect, beforeAll } from "bun:test"
-import { spawnSync } from "node:child_process"
 import { readFileSync, existsSync, statSync, readdirSync } from "node:fs"
 import { join, resolve } from "node:path"
 

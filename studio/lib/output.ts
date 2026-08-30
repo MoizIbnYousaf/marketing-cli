@@ -194,7 +194,7 @@ export function applyFields<T>(data: T, fields: readonly string[]): FilterResult
   // Smart pivot: when every requested field is missing at the top level, look
   // for the first array-valued key whose items satisfy all fields.
   if (topLevelMissing.length === fields.length) {
-    for (const [_, value] of Object.entries(obj)) {
+    for (const value of Object.values(obj)) {
       if (!Array.isArray(value) || value.length === 0) continue;
       const trial = filterArrayItems(value as unknown[], fields);
       if (trial.ok) return trial;

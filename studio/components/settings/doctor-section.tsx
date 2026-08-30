@@ -110,12 +110,12 @@ export function DoctorSection() {
             <p className="font-mono text-[11px] text-rose-500/80">{catalogError}</p>
           </li>
         )}
-        {catalogs.map((c) => {
+        {catalogs.map((c, index) => {
           const ok = c.configured === true && !c.error
           const hintParts: string[] = []
           if (c.detail) hintParts.push(c.detail)
           if (c.error) hintParts.push(c.error)
-          return <div key={c.name ?? Math.random()}>{check(`Catalog · ${c.name ?? "unknown"}`, ok, hintParts.join(" · "))}</div>
+          return <div key={c.name ?? `catalog-${index}`}>{check(`Catalog · ${c.name ?? "unknown"}`, ok, hintParts.join(" · "))}</div>
         })}
         {!catalogs.length && !catalogError && (
           <li className="px-4 py-3 text-center text-xs text-muted-foreground">

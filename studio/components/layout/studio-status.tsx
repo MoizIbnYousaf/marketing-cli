@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import useSWR from "swr"
 import type { Activity } from "@/lib/types/activity"
 import { fetcher } from "@/lib/fetcher"
@@ -55,44 +54,13 @@ function relativeAgo(iso: string | undefined): string | null {
 
 export function StudioStatus() {
   const connected = useActivityLiveStore((s) => s.connected)
-  const [state, setState] = useState<StudioState>("up")
-  const [studioApiBase, setStudioApiBase] = useState<string>("")
-  const lastLatency = useRef<number>(0)
+  const studioApiBase = resolveStudioApiBase()
 
-  useEffect(() => {
-    setStudioApiBase(resolveStudioApiBase())
-  }, [])
-
-  const { data: health } = useSWR<{ data: HealthResponse; latencyMs: number }>(
+  const { data: health, error: healthError } = useSWR<{ data: HealthResponse; latencyMs: number }>(
     `${studioApiBase}/api/health`,
     timedFetchJson,
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
   )
-
-  useEffect(() => {
-    if (connected) {
-      setState("up")
-      return
-    }
-    if (!health) return
-    lastLatency.current = health.latencyMs
-    if (health.data?.ok !== true) setState("down")
-    else if (health.latencyMs > 1000) setState("slow")
-    else setState("up")
-  }, [health])
-
-  // If the fetcher throws, SWR's data stays undefined. Fall back to "down"
-  // after the first interval by watching `isValidating` idle state.
-  useEffect(() => {
-    if (connected) return
-    if (!health) {
-      const t = setTimeout(() => {
-        if (!health && !connected) setState("down")
-      }, 5000)
-      return () => clearTimeout(t)
-    }
-    return undefined
-  }, [connected, health])
 
   const { data: activityFrame, error: activityError } = useSWR<ActivityResponse>(
     `${studioApiBase}/api/activity?limit=1`,
@@ -112,11 +80,19 @@ export function StudioStatus() {
       : "bg-muted-foreground/40"
     : "bg-muted-foreground/25"
 
+  const state: StudioState = connected
+    ? "up"
+    : healthError || health?.data?.ok === false
+      ? "down"
+      : health && health.latencyMs > 1000
+        ? "slow"
+        : "up"
+  const latency = health?.latencyMs ?? 0
   const { dot, label } = studioClasses(state)
   const title = state === "up"
-    ? `Bun server responding in ${Math.round(lastLatency.current)}ms`
+    ? `Bun server responding in ${Math.round(latency)}ms`
     : state === "slow"
-      ? `Server slow: ${Math.round(lastLatency.current)}ms`
+      ? `Server slow: ${Math.round(latency)}ms`
       : "Server not responding"
 
   return (

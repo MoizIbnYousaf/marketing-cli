@@ -125,7 +125,7 @@ export async function run<T>(
   // Cast to ReadableStream: stdout/stderr are always "pipe" above, so the type is
   // ReadableStream<Uint8Array>, but Bun's spawn overloads return a union that includes
   // `number`. The cast is safe given the spawn options above.
-  const [stdout, _stderr, exitCode] = await Promise.all([
+  const [stdout, , exitCode] = await Promise.all([
     readStream(proc.stdout as ReadableStream<Uint8Array> | null),
     readStream(proc.stderr as ReadableStream<Uint8Array> | null),
     proc.exited,

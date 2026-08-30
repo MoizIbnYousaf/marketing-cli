@@ -93,7 +93,7 @@ async function main() {
  let lastSeen = ""
  let lastMtime = 0
 
- // eslint-disable-next-line no-constant-condition
+
  while (true) {
  let content = ""
  try {

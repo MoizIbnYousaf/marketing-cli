@@ -25,8 +25,6 @@
 // which is the risk surface that tabs collision tests miss.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
 import { createHarness, type RealPipelineHarness } from "./setup";
 
 let harness: RealPipelineHarness | null = null;

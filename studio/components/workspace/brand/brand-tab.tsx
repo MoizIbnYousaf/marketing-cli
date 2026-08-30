@@ -65,8 +65,7 @@ export function BrandTab() {
   const liveActivity = useActivityLiveStore((s) => s.items)
 
   const autosaveTimerRef = useRef<number | null>(null)
-  const regenJobIdRef = useRef<string | null>(null)
-  const regeneratingRef = useRef(false)
+  const [regenJobId, setRegenJobId] = useState<string | null>(null)
 
   // A13 / H1-45: diff-before-clobber state. When the external-change
   // banner's "See the diff" button fires, we fetch the remote content
@@ -92,7 +91,10 @@ export function BrandTab() {
 
   // Save logic: shared between Cmd+S, Save button, autosave debounce.
   const saveRef = useRef<{ file: string; content: string; mtime: string | null } | null>(null)
-  saveRef.current = currentFile ? { file: currentFile, content, mtime } : null
+
+  useEffect(() => {
+    saveRef.current = currentFile ? { file: currentFile, content, mtime } : null
+  }, [content, currentFile, mtime])
 
   const doSave = useCallback(async () => {
     const snapshot = saveRef.current
@@ -211,23 +213,20 @@ export function BrandTab() {
       toast.info(`${currentFile} is append-only; no skill regenerates it.`)
       return
     }
-    regeneratingRef.current = true
     try {
       const res = await regenerateBrandFile(currentFile)
-      regenJobIdRef.current = res.jobId
+      setRegenJobId(res.jobId)
       toast.success(`/cmo queued ${skill}; the file will update when the skill completes.`)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Regenerate failed")
-    } finally {
-      regeneratingRef.current = false
     }
   }, [currentFile])
 
   // Hoist regenerating state: keep it derived from the ref for the header.
   // (Refs don't trigger re-renders; we watch the job id in activity instead.)
   const regeneratingActive =
-    !!regenJobIdRef.current &&
-    !liveActivity.some((a) => a.kind === "skill-run" && a.meta && typeof a.meta === "object" && "jobId" in a.meta && (a.meta as Record<string, unknown>).jobId === regenJobIdRef.current && /complete/i.test(a.summary))
+    !!regenJobId &&
+    !liveActivity.some((a) => a.kind === "skill-run" && a.meta && typeof a.meta === "object" && "jobId" in a.meta && (a.meta as Record<string, unknown>).jobId === regenJobId && /complete/i.test(a.summary))
 
   // The file list always renders (from BRAND_FILE_SPEC) even when the list
   // endpoint fails: the canonical 10 files are known client-side. Surface

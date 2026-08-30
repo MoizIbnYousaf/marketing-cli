@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import useSWR from "swr"
 import {
   ArrowUpRight,
@@ -25,7 +26,7 @@ type ContentManifestResponse = {
   data: ContentManifest
 }
 
-export function ContentLibrary(_props: { adapter?: string } = {}) {
+export function ContentLibrary() {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
@@ -209,9 +210,12 @@ function MediaStage({ asset, onExpand }: { asset: ContentAsset; onExpand: () => 
             onDoubleClick={() => void handleExpand()}
           />
         ) : (
-          <img
+          <Image
             src={href}
             alt={assetTitle(asset)}
+            width={1600}
+            height={900}
+            unoptimized
             className="max-h-[62vh] w-full object-contain"
             loading="eager"
             decoding="async"
@@ -291,9 +295,12 @@ function AssetTile({
     >
       <span className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/35">
         {asset.kind === "image" ? (
-          <img
+          <Image
             src={href}
             alt={assetTitle(asset)}
+            width={320}
+            height={320}
+            unoptimized
             className="h-full w-full object-cover"
             loading="lazy"
             decoding="async"
@@ -410,9 +417,12 @@ function MediaLightbox({ asset, onClose }: { asset: ContentAsset; onClose: () =>
             className="max-h-[82vh] w-full rounded-3xl border border-white/10 bg-black object-contain shadow-2xl"
           />
         ) : (
-          <img
+          <Image
             src={href}
             alt={assetTitle(asset)}
+            width={1600}
+            height={900}
+            unoptimized
             className="max-h-[82vh] w-full rounded-3xl border border-white/10 bg-black object-contain shadow-2xl"
             decoding="async"
           />

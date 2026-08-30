@@ -51,7 +51,7 @@ type NativeAccountResponse = {
 const ADAPTER = "postiz"
 const DEFAULT_ADAPTER = "mktg-native"
 
-export function PublishTab(_props: { groupId: string }) {
+export function PublishTab() {
   const [adapter, setAdapter] = useState<string>(DEFAULT_ADAPTER)
   const [selectedIntegrationIds, setSelectedIntegrationIds] = useState<string[]>([])
   const [previewContent, setPreviewContent] = useState("")

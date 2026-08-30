@@ -252,15 +252,16 @@ export function StepBuilding({ onDone }: Props) {
   }, [runDemoStream])
 
   useEffect(() => {
+    // Start after mount without a synchronous effect-state cascade.
+    const startId = window.setTimeout(() => void start(), 0)
+
     if (DEMO_MODE) {
-      start()
       return () => {
+        window.clearTimeout(startId)
         for (const id of demoTimersRef.current) window.clearTimeout(id)
         demoTimersRef.current = []
       }
     }
-
-    start()
 
     const es = new EventSource(withStudioToken(`${STUDIO_API_BASE}/api/events`))
     esRef.current = es
@@ -299,14 +300,14 @@ export function StepBuilding({ onDone }: Props) {
     }
 
     return () => {
+      window.clearTimeout(startId)
       window.clearTimeout(timeoutId)
       es.close()
       esRef.current = null
       setConnected(false)
     }
-    // esGeneration in deps lets handleRetrySse remount the stream cleanly.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [esGeneration])
+    // esGeneration lets handleRetrySse remount the stream cleanly.
+  }, [esGeneration, handleEnvelope, start])
 
   async function handleRetry() {
     setRetrying(true)

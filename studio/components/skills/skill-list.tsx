@@ -50,7 +50,7 @@ export function SkillList() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState<CategoryFilter>("all")
 
-  const skills = data ?? []
+  const skills = useMemo(() => data ?? [], [data])
   const totalInstalled = skills.filter((s) => s.installed).length
 
   const counts = useMemo<Record<string, number>>(() => {

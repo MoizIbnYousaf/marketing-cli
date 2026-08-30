@@ -28,13 +28,6 @@ const SCALE = 2
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true })
 
-interface SurfaceCheck {
- name: string
- url: string
- expectSelector?: string
- notes?: string
-}
-
 interface CellResult {
  surface: string
  state: string

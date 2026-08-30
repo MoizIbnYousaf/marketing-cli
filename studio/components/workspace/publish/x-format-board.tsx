@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import type React from "react"
+import Image from "next/image"
 import { Calendar, ImageIcon, Loader2, MessageCircle, Repeat2, Send, Sparkles, X } from "lucide-react"
 import { toast } from "sonner"
 import { studioJsonPost } from "@/lib/studio-token"
@@ -347,9 +348,12 @@ function AccountAvatar({
   const label = account?.name || account?.profile || "Marketing Studio"
   if (account?.picture) {
     return (
-      <img
+      <Image
         src={account.picture}
         alt={label}
+        width={large ? 40 : 20}
+        height={large ? 40 : 20}
+        unoptimized
         className={cn(
           "rounded-full border border-border/70 object-cover",
           large ? "size-10" : "size-5",

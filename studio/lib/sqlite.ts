@@ -3,7 +3,7 @@
 // Runs migrations from db/schema.sql and db/migrations/*.sql on startup.
 
 import { Database, type SQLQueryBindings } from "bun:sqlite";
-import { existsSync, readdirSync, readFileSync, mkdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveStudioDbPath } from "./project-root.ts";

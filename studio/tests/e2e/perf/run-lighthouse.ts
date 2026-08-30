@@ -12,8 +12,9 @@
 // Usage: bun run tests/e2e/perf/run-lighthouse.ts [--no-build] [--routes=/]
 
 import { spawn, spawnSync } from "node:child_process"
-import { mkdirSync, writeFileSync, readFileSync, existsSync, statSync } from "node:fs"
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { chromium } from "@playwright/test"
 
 const HERE = import.meta.dir
 const STUDIO_ROOT = resolve(HERE, "..", "..", "..")
@@ -23,7 +24,7 @@ const PORT = 4178
 const BASE = `http://localhost:${PORT}`
 const NEXT_BIN = resolve(REPO_ROOT, "node_modules", ".bin", "next")
 const LIGHTHOUSE_BIN = resolve(REPO_ROOT, "node_modules", ".bin", "lighthouse")
-const CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+const CHROME_BIN = process.env.CHROME_PATH ?? chromium.executablePath()
 
 const ALL_ROUTES = ["/", "/onboarding", "/dashboard", "/settings", "/skills"]
 
