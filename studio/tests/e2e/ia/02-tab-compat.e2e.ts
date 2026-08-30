@@ -39,6 +39,10 @@ test("2.1 ?tab=hq server-redirects to /dashboard (canonical no-tab Pulse)", asyn
   page,
 }) => {
   await page.goto(`${DASHBOARD}/dashboard?tab=hq`)
+  await page.waitForURL((candidate) => {
+    const tab = candidate.searchParams.get("tab")
+    return candidate.pathname === "/dashboard" && (tab === null || tab === "pulse")
+  }, { timeout: 10_000 })
   // The workspace strips `?tab=pulse` to its canonical form (`/dashboard`
   // alone) -- see brand-workspace.tsx updateUrlState, line ~117. Either
   // form is correct for "Pulse"; we accept both.
@@ -81,7 +85,11 @@ test("2.3 ?tab=trends&mode=radar redirects to ?tab=signals AND drops mode", asyn
 
 test("2.4 ?tab=audience redirects to /dashboard with no tab", async ({ page }) => {
   await page.goto(`${DASHBOARD}/dashboard?tab=audience`)
-  await page.waitForURL(/\/dashboard(?:\?|$)/, { timeout: 10_000 })
+  await page.waitForURL(
+    (candidate) =>
+      candidate.pathname === "/dashboard" && candidate.searchParams.get("tab") === null,
+    { timeout: 10_000 },
+  )
   const url = landingUrl(page)
   expect(url.pathname).toBe("/dashboard")
   expect(url.searchParams.get("tab")).toBeNull()
@@ -91,7 +99,11 @@ test("2.5 ?tab=opportunities redirects to /dashboard with no tab", async ({
   page,
 }) => {
   await page.goto(`${DASHBOARD}/dashboard?tab=opportunities`)
-  await page.waitForURL(/\/dashboard(?:\?|$)/, { timeout: 10_000 })
+  await page.waitForURL(
+    (candidate) =>
+      candidate.pathname === "/dashboard" && candidate.searchParams.get("tab") === null,
+    { timeout: 10_000 },
+  )
   const url = landingUrl(page)
   expect(url.pathname).toBe("/dashboard")
   expect(url.searchParams.get("tab")).toBeNull()

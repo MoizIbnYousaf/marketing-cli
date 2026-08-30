@@ -2,12 +2,18 @@
 
 import { existsSync, readFileSync, unlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const PID_FILE = join(tmpdir(), "mktg-studio-e2e.pids");
 const PROJECT_ROOT_FILE = join(tmpdir(), "mktg-studio-e2e.project-root");
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const DASHBOARD_PORT = Number(process.env.E2E_DASHBOARD_PORT ?? "4800");
+const NEXT_DIST_DIR = `.next-e2e-${DASHBOARD_PORT}`;
 
 export default async function globalTeardown(): Promise<void> {
+  if (process.env.E2E_SKIP_GLOBAL_STACK === "1") return;
+
   if (existsSync(PID_FILE)) {
     const pids = readFileSync(PID_FILE, "utf-8")
       .split("\n")
@@ -54,5 +60,11 @@ export default async function globalTeardown(): Promise<void> {
     } catch {
       /* fine */
     }
+  }
+
+  try {
+    rmSync(join(REPO_ROOT, NEXT_DIST_DIR), { recursive: true, force: true });
+  } catch {
+    /* fine */
   }
 }

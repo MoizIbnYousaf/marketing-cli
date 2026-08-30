@@ -2,10 +2,9 @@
 //
 // Lane 3 chrome E2E coverage. Real Playwright against real Studio (Bun API
 // server + Next.js dev) booted in this test file on dedicated ports that do
-// not collide with the shared `tests/e2e/global-setup.ts`. The shared setup
-// also runs even when only this file is selected; running our own pair of
-// servers from inside the file lets us pin our own lifecycle and avoid the
-// cross-suite shutdowns observed when other lanes touch the shared PID file.
+// not collide with the shared `tests/e2e/global-setup.ts`. The package script
+// skips the shared stack for this lane; running our own pair of servers lets
+// us pin lifecycle and isolate each Next.js cache.
 //
 // Two describe blocks run serially:
 //   1. "demo-enabled" boots a stack with NEXT_PUBLIC_STUDIO_DEMO=1, runs
@@ -13,8 +12,7 @@
 //   2. "demo-disabled" boots a fresh stack WITHOUT the demo env to verify
 //      the gate hides DemoMode without disturbing the rest of the chrome.
 //
-// Only one `next dev` runs at a time, which is required because Next.js
-// holds a project-wide lock at `.next/dev/lock`.
+// Only one lane-local `next dev` runs at a time.
 //
 // No mocks. No fake data. Computed-style assertions read what the browser
 // actually paints. A surface that still rendered an inline hex would fail
@@ -30,7 +28,6 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..", "..");
-const SNAP_DIR = join(__dirname, "snapshots");
 
 // Dedicated ports that do NOT collide with the shared globalSetup ports
 // (4800/4801) used by `tests/e2e/user-journey.e2e.ts`.
@@ -43,6 +40,7 @@ interface BootResult {
   server: ChildProcess;
   next: ChildProcess;
   projectRoot: string;
+  distDir: string;
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -84,18 +82,13 @@ async function waitFor(url: string, timeoutMs: number): Promise<boolean> {
   return false;
 }
 
-function clearStaleNextLocks(): void {
-  // Next.js `next dev` holds a process-wide lock at `.next/dev/lock`. A
-  // previously-aborted dev server can leave a stale lock that blocks the
-  // next boot.
-  for (const rel of [".next/dev/lock", ".next/build/lock"]) {
-    const p = join(REPO_ROOT, rel);
-    if (existsSync(p)) {
-      try {
-        rmSync(p, { force: true });
-      } catch {
-        /* fine */
-      }
+function clearNextDist(distDir: string): void {
+  const path = join(REPO_ROOT, distDir)
+  if (existsSync(path)) {
+    try {
+      rmSync(path, { recursive: true, force: true })
+    } catch {
+      /* fine */
     }
   }
 }
@@ -107,7 +100,8 @@ async function bootStack(opts: {
 }): Promise<BootResult> {
   await killPort(opts.apiPort);
   await killPort(opts.dashPort);
-  clearStaleNextLocks();
+  const distDir = `.next-e2e-${opts.dashPort}`
+  clearNextDist(distDir)
   await sleep(200);
 
   const projectRoot = mkdtempSync(join(tmpdir(), "lane3-chrome-"));
@@ -122,11 +116,15 @@ async function bootStack(opts: {
     ...process.env,
     STUDIO_PORT: String(opts.apiPort),
     DASHBOARD_PORT: String(opts.dashPort),
+    NEXT_DIST_DIR: distDir,
     MKTG_PROJECT_ROOT: projectRoot,
     NEXT_PUBLIC_STUDIO_DEMO: opts.demoFlag,
-    NEXT_PUBLIC_STUDIO_API_BASE: `http://127.0.0.1:${opts.apiPort}`,
+    STUDIO_API_BASE: `http://127.0.0.1:${opts.apiPort}`,
     MKTG_STUDIO_AUTH: "disabled",
   };
+  // Browser traffic stays same-origin through Next's /api rewrite. The lane
+  // ports are intentionally outside server.ts's fixed CORS allowlist.
+  delete env.NEXT_PUBLIC_STUDIO_API_BASE
 
   const server = spawn("bun", ["run", "server.ts"], {
     cwd: REPO_ROOT,
@@ -163,7 +161,7 @@ async function bootStack(opts: {
       `lane3 boot failed: api=${apiOk} dash=${dashOk} (port ${opts.dashPort})`,
     );
   }
-  return { server, next, projectRoot };
+  return { server, next, projectRoot, distDir };
 }
 
 async function teardownStack(stack: BootResult | null): Promise<void> {
@@ -188,6 +186,7 @@ async function teardownStack(stack: BootResult | null): Promise<void> {
   } catch {
     /* fine */
   }
+  clearNextDist(stack.distDir)
 }
 
 // ---------------------------------------------------------------------------
@@ -484,6 +483,12 @@ test.describe("demo-enabled chrome", () => {
         .locator('div[data-slot="sidebar-container"]')
         .first();
       await expect(sidebar).toBeVisible();
+      // The expanded-state attribute flips before the width transition ends.
+      // Wait for the stable desktop width so the snapshot cannot capture an
+      // intermediate or just-collapsed rail.
+      await expect.poll(async () =>
+        Math.round((await sidebar.boundingBox())?.width ?? 0),
+      ).toBe(256);
       expect(await sidebar.screenshot()).toMatchSnapshot("sidebar.png", {
         maxDiffPixelRatio: 0.05,
       });
@@ -637,6 +642,7 @@ test.describe("demo-enabled chrome", () => {
         state: "visible",
         timeout: 30_000,
       });
+      await page.evaluate(() => document.querySelector("nextjs-portal")?.remove())
       const dock = page.locator('nav[aria-label="Primary tabs"]').first();
       await expect(dock).toBeVisible();
       expect(await dock.screenshot()).toMatchSnapshot("mobile-dock.png", {

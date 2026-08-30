@@ -94,16 +94,17 @@ test("Pulse hero chip + funnel ribbon render with real data", async ({ page }) =
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
 
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
+  const hero = page.locator("header", { hasText: "last 7 days" })
   for (const label of ["SIGNALS", "BRIEFS", "DRAFTS", "PUBLISHES"]) {
-    await expect(page.getByText(label, { exact: true })).toBeVisible()
+    await expect(hero.getByText(new RegExp(`^${label}$`, "i"))).toBeVisible()
   }
 })
 
 test("4 sparklines paint as svg linearGradient defs (one per tone)", async ({ page }) => {
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
 
   // Recharts mount race; settle.
   await page.waitForTimeout(500)
@@ -115,7 +116,7 @@ test("4 sparklines paint as svg linearGradient defs (one per tone)", async ({ pa
 test("delta pills render positive percentages on a heavier-current seed", async ({ page }) => {
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
 
   // Seeder shape produces +86% / +100% / +125% / +200%.
   const positivePill = page.locator('text=/\\+\\d+%/').first()
@@ -125,7 +126,7 @@ test("delta pills render positive percentages on a heavier-current seed", async 
 test("bottom strip renders 3 sub-panels (Brand health / Recent media / Recent publishes)", async ({ page }) => {
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
 
   for (const title of ["Brand health", "Recent media", "Recent publishes"]) {
     await expect(page.getByRole("heading", { name: title })).toBeVisible()
@@ -135,7 +136,7 @@ test("bottom strip renders 3 sub-panels (Brand health / Recent media / Recent pu
 test("SSE invalidation: activity-log POST triggers a snapshot re-fetch + UI update WITHOUT reload", async ({ page, request }) => {
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
 
   // Capture every /api/pulse/snapshot fetch the page makes. The initial
   // mount fires one; the SWR + activity-live debounce should fire another
@@ -177,7 +178,7 @@ test("SSE invalidation: activity-log POST triggers a snapshot re-fetch + UI upda
   // UI assertion: the new activity summary appears in the page DOM without
   // a reload. The activity timeline renders summaries in a div within the
   // "Recent agent activity" panel.
-  await expect(page.getByText(marker)).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(marker).first()).toBeVisible({ timeout: 10_000 })
 
   // Belt and suspenders: confirm we never reloaded -- url.location stayed
   // on /dashboard the whole time.
@@ -187,8 +188,8 @@ test("SSE invalidation: activity-log POST triggers a snapshot re-fetch + UI upda
 test("page reload refetches the snapshot (smoke for SSR fallback)", async ({ page }) => {
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
   await page.reload()
-  await expect(page.getByText(/^Pulse$/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
   await expect(page.getByRole("heading", { name: "Brand health" })).toBeVisible()
 })

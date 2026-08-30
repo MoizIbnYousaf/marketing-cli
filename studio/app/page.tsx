@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
+import { resolveProjectRoot } from "@/lib/project-root"
 
 // Filesystem state in brand/voice-profile.md changes across user sessions
 // (created on first /cmo run, updated on every brand-voice run). This route
@@ -8,7 +9,7 @@ import path from "node:path"
 // guard, so it lives here rather than on the root layout.
 export const dynamic = "force-dynamic"
 
-const VOICE_PROFILE_PATH = path.join(process.cwd(), "brand", "voice-profile.md")
+const VOICE_PROFILE_PATH = path.join(resolveProjectRoot(), "brand", "voice-profile.md")
 
 const TEMPLATE_MARKERS = [
   "<!-- TEMPLATE -->",

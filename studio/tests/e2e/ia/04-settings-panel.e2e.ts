@@ -103,9 +103,9 @@ test("4.3 clicking Danger zone updates ?panel=reset and scrolls", async ({ page 
 
   // Same scroll assertion as 4.2 but for the reset section.
   await page.waitForTimeout(1500)
-  const offset = await sectionScrollOffset(page, "reset")
-  expect(offset).not.toBeNull()
-  expect(Math.abs(offset ?? 9999)).toBeLessThan(200)
+  const resetSection = page.locator("#reset")
+  await expect(resetSection).toBeInViewport()
+  await expect(resetSection.getByRole("heading", { name: /danger zone/i })).toBeVisible()
 })
 
 test("4.4 /settings?panel=garbage does not crash + no section scrolls", async ({

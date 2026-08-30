@@ -13,7 +13,12 @@ export default defineConfig({
   // Match .e2e.ts (not .spec.ts) so bun test discovery doesn't pick up
   // Playwright files and crash with "test.describe.configure not allowed".
   testMatch: /.*\.e2e\.ts$/,
-  timeout: 60_000,
+  // The chrome visual lane owns two private Next stacks. `test:e2e` runs it
+  // separately so those stacks never compete with the shared suite server.
+  testIgnore: process.env.E2E_SKIP_CHROME ? /chrome\/chrome\.e2e\.ts$/ : undefined,
+  // Cold Turbopack compilation and spec-local server boot both count toward
+  // the test budget on fresh CI/orb caches.
+  timeout: 120_000,
   expect: { timeout: 10_000 },
   fullyParallel: false, // the server + next are a shared resource in globalSetup
   workers: 1,

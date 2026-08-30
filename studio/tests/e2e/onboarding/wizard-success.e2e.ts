@@ -98,7 +98,7 @@ test("API keys never enter onboarding localStorage", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Connect social accounts/i })).toBeVisible()
 
   const sentinel = "postiz-secret-sentinel"
-  await page.getByLabel(/Postiz API key/i).fill(sentinel)
+  await page.getByLabel("POSTIZ_API_KEY").fill(sentinel)
 
   const persisted = await page.evaluate(() =>
     window.localStorage.getItem("mktg-studio:onboarding") ?? "",

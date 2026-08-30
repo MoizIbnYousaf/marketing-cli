@@ -28,6 +28,10 @@ const STUDIO_API_BASE =
   "http://localhost:3001"
 
 const nextConfig: NextConfig = {
+  // Browser tests and orb portals address the dev server by loopback IP.
+  // Explicitly allow that hostname so Next's dev-tools issue overlay does not
+  // report a cross-origin warning for its own `/_next/*` assets.
+  allowedDevOrigins: ["127.0.0.1"],
   // Lets the E2E perf suite build into an isolated .next-perf dir so a
   // concurrently running `next dev` (from another team-mate's lane) does
   // not wipe production server-app artifacts mid-test. Default is ".next".

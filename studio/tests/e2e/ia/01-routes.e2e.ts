@@ -133,13 +133,13 @@ test("1.7 /skills/[name] renders a known skill detail (cmo)", async ({ page }) =
   })
 })
 
-test("1.8 unknown segment returns 404 not-found", async ({ page }) => {
+test("1.8 unknown segment returns 404 not-found", async ({ request }) => {
   // Next.js renders the global app/_not-found.tsx (or the framework's
   // default) for unknown segments; the response code is 404 even though
   // the body is HTML. Use request to assert the network code directly so
   // the test does not depend on framework copy.
-  const res = await page.goto(`${DASHBOARD}/this-route-does-not-exist`)
-  expect(res?.status()).toBe(404)
+  const res = await request.get(`${DASHBOARD}/this-route-does-not-exist`)
+  expect(res.status()).toBe(404)
 })
 
 test("1.9 /api/health on the studio API responds 200", async ({ request }) => {

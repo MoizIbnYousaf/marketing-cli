@@ -124,11 +124,11 @@ test("2. onboarding — fresh user can walk through every step", async ({ page }
   await page.getByRole("button", { name: /^skip all$/i }).click();
 
   // Step 3 → Step 4 — demo mode auto-completes all three lanes in ~3s and
-  // auto-advances to StepDone ("Your marketing brain is live" + "Open dashboard").
+  // auto-advances to StepDone ("Your brand files are live" + "Open dashboard").
   // We verify the terminal step renders; the dashboard itself is covered by
   // the next test (it navigates directly).
   await expect(
-    page.getByRole("heading", { name: /marketing brain is live/i }),
+    page.getByRole("heading", { name: /brand files are live/i }),
   ).toBeVisible({ timeout: 30_000 });
   await expect(
     page.getByRole("button", { name: /open dashboard/i }),
@@ -357,7 +357,7 @@ test("11. publish — native backend flow works end to end", async ({ page }) =>
 
   const content = `E2E native publish ${Date.now()}`;
   const scheduledAt = new Date(Date.now() + 60 * 60 * 1000);
-  await publishTab.locator("textarea").fill(content);
+  await publishTab.getByPlaceholder("Write once for the native agent-first publish backend.").fill(content);
   await publishTab.getByLabel("Scheduled at").fill(formatDateTimeLocal(scheduledAt));
   await publishTab.getByRole("button", { name: /^Schedule$/i }).last().click();
 

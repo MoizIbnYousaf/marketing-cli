@@ -63,7 +63,7 @@ export function StudioStatus() {
   }, [])
 
   const { data: health } = useSWR<{ data: HealthResponse; latencyMs: number }>(
-    studioApiBase ? `${studioApiBase}/api/health` : null,
+    `${studioApiBase}/api/health`,
     timedFetchJson,
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
   )
@@ -94,7 +94,7 @@ export function StudioStatus() {
   }, [connected, health])
 
   const { data: activityFrame, error: activityError } = useSWR<ActivityResponse>(
-    studioApiBase ? `${studioApiBase}/api/activity?limit=1` : null,
+    `${studioApiBase}/api/activity?limit=1`,
     async (url: string) => {
       const res = await fetch(url)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)

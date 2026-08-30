@@ -108,9 +108,13 @@ test("6.3 routing.requires/unlocks render as cross-skill chip links", async ({
 test("6.4 invalid skill name renders 404 not-found", async ({ page }) => {
   // SKILL_NAME_PATTERN at app/(dashboard)/skills/[name]/page.tsx is
   // /^[a-z0-9-]{1,64}$/. Uppercase fails. The page calls notFound() before
-  // the API is even hit, so the response code is 404 from Next.js itself.
-  const res = await page.goto(`${DASHBOARD}/skills/INVALID_NAME`)
-  expect(res?.status()).toBe(404)
+  // the API is even hit, so the rendered route is Next.js's 404 page.
+  await page.goto(`${DASHBOARD}/skills/INVALID_NAME`)
+  // In Next dev mode the document request can be 200 while the streamed RSC
+  // invokes notFound(). Assert the rendered route outcome rather than that
+  // framework-specific transport detail.
+  await expect(page.getByRole("heading", { name: "404" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /page could not be found/i })).toBeVisible()
 })
 
 test("6.5 valid-format nonexistent name renders ErrorState (not 404)", async ({

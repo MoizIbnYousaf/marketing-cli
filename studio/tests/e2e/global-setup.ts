@@ -18,6 +18,7 @@ const PROJECT_ROOT_FILE = join(tmpdir(), "mktg-studio-e2e.project-root");
 
 const STUDIO_PORT = Number(process.env.E2E_STUDIO_PORT ?? "4801");
 const DASHBOARD_PORT = Number(process.env.E2E_DASHBOARD_PORT ?? "4800");
+const NEXT_DIST_DIR = `.next-e2e-${DASHBOARD_PORT}`;
 
 async function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -64,6 +65,11 @@ function killPortSync(port: number): void {
 }
 
 export default async function globalSetup(): Promise<void> {
+  if (process.env.E2E_SKIP_GLOBAL_STACK === "1") {
+    console.log("[e2e] shared stack skipped for self-hosted chrome lane");
+    return;
+  }
+
   await killPortSync(STUDIO_PORT);
   await killPortSync(DASHBOARD_PORT);
   await sleep(300);
@@ -72,9 +78,11 @@ export default async function globalSetup(): Promise<void> {
   mkdirSync(join(projectRoot, "brand"), { recursive: true });
   writeFileSync(PROJECT_ROOT_FILE, projectRoot, "utf-8");
 
-  // Next.js refuses to boot if a stale lock is present from a prior aborted run.
+  // This suite overlaps with chrome.e2e.ts, which launches its own Next
+  // instances. Give every instance a private Turbopack cache; sharing `.next`
+  // corrupts its persistence files even when the servers use different ports.
   try {
-    rmSync(join(REPO_ROOT, ".next", "dev", "lock"), { force: true });
+    rmSync(join(REPO_ROOT, NEXT_DIST_DIR), { recursive: true, force: true });
   } catch {
     /* fine */
   }
@@ -85,15 +93,18 @@ export default async function globalSetup(): Promise<void> {
     ...process.env,
     STUDIO_PORT: String(STUDIO_PORT),
     DASHBOARD_PORT: String(DASHBOARD_PORT),
+    NEXT_DIST_DIR,
     MKTG_PROJECT_ROOT: projectRoot,
     NEXT_PUBLIC_STUDIO_DEMO: "1",
-    NEXT_PUBLIC_STUDIO_API_BASE:
-      process.env.NEXT_PUBLIC_STUDIO_API_BASE ?? `http://127.0.0.1:${STUDIO_PORT}`,
+    STUDIO_API_BASE: `http://127.0.0.1:${STUDIO_PORT}`,
     // Lane 1 / Wave A: e2e harness skips auth so existing Playwright specs
     // do not have to thread a token through every fetch. Real-launch token
     // flow is exercised by the integration suite in tests/server/.
     MKTG_STUDIO_AUTH: "disabled",
   };
+  // Keep browser traffic same-origin through Next's /api rewrite. Arbitrary
+  // E2E ports are intentionally outside the Bun server's fixed CORS allowlist.
+  delete childEnv.NEXT_PUBLIC_STUDIO_API_BASE;
 
   const server: ChildProcess = spawn("bun", ["run", "server.ts"], {
     cwd: REPO_ROOT,
@@ -116,6 +127,12 @@ export default async function globalSetup(): Promise<void> {
   server.stderr?.on("data", (c) => process.stderr.write(`[server!] ${c}`));
   next.stdout?.on("data", (c) => process.stderr.write(`[next] ${c}`));
   next.stderr?.on("data", (c) => process.stderr.write(`[next!] ${c}`));
+  server.on("exit", (code, signal) => {
+    process.stderr.write(`[server] exited code=${code ?? "null"} signal=${signal ?? "null"}\n`);
+  });
+  next.on("exit", (code, signal) => {
+    process.stderr.write(`[next] exited code=${code ?? "null"} signal=${signal ?? "null"}\n`);
+  });
 
   writeFileSync(
     PID_FILE,

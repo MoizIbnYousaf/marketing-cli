@@ -2,7 +2,7 @@
 
 import useSWR from "swr"
 import { ExternalLink, SearchX } from "lucide-react"
-import { fetcher } from "@/lib/fetcher"
+import { dataFetcher } from "@/lib/fetcher"
 import type { SeoStatusData } from "@/lib/mktg"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,7 @@ const READINESS_COPY: Record<SeoStatus["readiness"], { label: string; tone: "ok"
 }
 
 export function SeoReadinessCard() {
-  const { data, error, isLoading } = useSWR<SeoStatus>("/api/seo/status", fetcher, { refreshInterval: 120_000 })
+  const { data, error, isLoading } = useSWR<SeoStatus>("/api/seo/status", dataFetcher, { refreshInterval: 120_000 })
 
   if (isLoading) {
     return <div className="h-24 animate-pulse rounded-md bg-muted/40" />
