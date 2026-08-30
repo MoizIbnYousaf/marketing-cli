@@ -39,17 +39,11 @@ function studioClasses(state: StudioState): { dot: string; label: string } {
   }
 }
 
-function relativeAgo(iso: string | undefined): string | null {
+function activityTime(iso: string | undefined): string | null {
   if (!iso) return null
-  const diff = Date.now() - new Date(iso).getTime()
-  if (!Number.isFinite(diff) || diff < 0) return null
-  const s = Math.floor(diff / 1000)
-  if (s < 60) return `${s}s ago`
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  return `${Math.floor(h / 24)}d ago`
+  const date = new Date(iso)
+  if (!Number.isFinite(date.getTime())) return null
+  return `${date.toISOString().slice(11, 16)} UTC`
 }
 
 export function StudioStatus() {
@@ -69,7 +63,7 @@ export function StudioStatus() {
   )
 
   const latestActivity = activityFrame?.data?.[0]
-  const cmoAgo = relativeAgo(latestActivity?.createdAt)
+  const cmoAgo = activityTime(latestActivity?.createdAt)
   // Distinguish errored-to-undefined from idle: a fetch failure flips the
   // /cmo dot to a muted rose so the user sees the chrome is stale.
   const cmoDotColor = activityError
@@ -102,7 +96,7 @@ export function StudioStatus() {
       <span className="text-border">|</span>
       <span className={`size-1.5 rounded-full ${cmoDotColor}`} />
       <span>
-        /cmo {cmoAgo ? `active ${cmoAgo}` : "idle"}
+        /cmo {cmoAgo ? `active at ${cmoAgo}` : "idle"}
       </span>
     </div>
   )

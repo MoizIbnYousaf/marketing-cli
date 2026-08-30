@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import { AlertTriangle, Gauge } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -18,7 +18,6 @@ export function RateLimitBadge({
   resetsAt?: string
   className?: string
 }) {
-  const [renderedAt] = useState(Date.now)
   const ratio = limit === 0 ? 0 : used / limit
   const tone = useMemo(() => {
     if (ratio >= 1) return "danger"
@@ -28,13 +27,10 @@ export function RateLimitBadge({
 
   const resetsLabel = useMemo(() => {
     if (!resetsAt) return null
-    const ms = new Date(resetsAt).getTime() - renderedAt
-    if (Number.isNaN(ms) || ms <= 0) return "now"
-    const mins = Math.ceil(ms / 60_000)
-    if (mins < 60) return `in ${mins}m`
-    const hrs = Math.ceil(mins / 60)
-    return `in ${hrs}h`
-  }, [renderedAt, resetsAt])
+    const date = new Date(resetsAt)
+    if (Number.isNaN(date.getTime())) return null
+    return `at ${date.toISOString().slice(11, 16)} UTC`
+  }, [resetsAt])
 
   return (
     <Tooltip>

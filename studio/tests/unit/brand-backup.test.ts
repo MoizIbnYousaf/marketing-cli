@@ -1,22 +1,21 @@
 // tests/unit/brand-backup.test.ts — A15 / H1-110 regression guard.
 //
 // Proves that `backupBrandDir(projectRoot)`:
-//   1. Creates `.mktg/brand-backups/brand-<iso>.zip` with the brand/ tree
-//      inside it.
+//   1. Creates `.mktg/brand-backups/brand-<iso>/` with the brand/ tree.
 //   2. Reports the correct fileCount + sizeBytes.
 //   3. Returns `{ skipped: true }` when brand/ is missing or empty —
 //      a first-time-user reset shouldn't fail on nothing-to-back-up.
-//   4. Returns `{ ok: false, error }` when zip fails (simulated by a
-//      non-existent PATH).
+//   4. Rejects symlink escapes and replaces existing files during reset.
 //
 // Uses a fresh tmp dir per test so the suite is hermetic.
 
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdir, mkdtemp, readFile, rm, writeFile, readdir } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { backupBrandDir } from "../../lib/brand-backup.ts";
+import { backupBrandDir, resetBrandDir } from "../../lib/brand-backup.ts";
+import { BRAND_TEMPLATES } from "../../../src/core/brand.ts";
 
 let tmp: string;
 
@@ -138,5 +137,46 @@ describe("backupBrandDir", () => {
     expect(r.ok).toBe(false);
     if (r.ok) throw new Error("expected failure");
     expect(r.error.length).toBeGreaterThan(0);
+  });
+
+  test("rejects a backup directory that resolves outside the project", async () => {
+    await seedBrand(["voice-profile.md"]);
+    const outside = await mkdtemp(join(tmpdir(), "mktg-backup-outside-"));
+    await mkdir(join(tmp, ".mktg"));
+    await symlink(outside, join(tmp, ".mktg", "brand-backups"));
+    try {
+      const r = await backupBrandDir(tmp);
+      expect(r.ok).toBe(false);
+      if (r.ok) throw new Error("expected failure");
+      expect(r.error).toMatch(/outside the project root/i);
+      expect(await readdir(outside)).toEqual([]);
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects symlinks inside brand rather than archiving external content", async () => {
+    await seedBrand(["voice-profile.md"]);
+    const outside = join(tmp, "outside-secret.txt");
+    await writeFile(outside, "do not archive");
+    await symlink(outside, join(tmp, "brand", "linked-secret.txt"));
+    const r = await backupBrandDir(tmp);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error("expected failure");
+    expect(r.error).toMatch(/unsafe symlink/i);
+  });
+});
+
+describe("resetBrandDir", () => {
+  test("replaces existing content with canonical templates", async () => {
+    await seedBrand(["voice-profile.md", "custom.md"]);
+    const r = await resetBrandDir(tmp);
+    expect(r.ok).toBe(true);
+    if (!r.ok) throw new Error(r.error);
+    expect(await readFile(join(tmp, "brand", "voice-profile.md"), "utf8"))
+      .toBe(BRAND_TEMPLATES["voice-profile.md"]);
+    expect(existsSync(join(tmp, "brand", "custom.md"))).toBe(false);
+    expect(r.filesReset).toContain("SCHEMA.md");
+    expect(r.filesReset).toContain("learnings.md");
   });
 });

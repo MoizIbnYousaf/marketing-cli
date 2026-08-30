@@ -3,45 +3,29 @@
 import { useEffect, useState } from "react"
 import { SWRConfig } from "swr"
 import { fetcher } from "@/lib/fetcher"
-import { getStudioToken, stripStudioTokenFromUrl } from "@/lib/studio-token"
-
-const STORAGE_KEY = "mktgStudioToken"
+import { removeLegacyBrowserCredentials } from "@/lib/studio-token"
 
 /**
  * SWR provider with cold-start token bootstrap.
  *
- * Production path: `mktg studio` opens the dashboard at `?token=<hex>`,
- * `getStudioToken()` reads the URL, stashes it in localStorage, and we
- * render immediately.
- *
- * Dev path: `bun run dev:all` opens the dashboard with no `?token=`,
- * localStorage is empty, `getStudioToken()` returns null. We then call
- * `GET /api/auth/bootstrap` (a public, Host-allowlisted endpoint that
- * returns the studio token) and stash the result before rendering. CORS
- * blocks cross-origin reads; only the localhost dashboard can complete
- * this exchange.
+ * Every cold load calls the public, Host-allowlisted bootstrap endpoint.
+ * It establishes an HttpOnly, same-site session cookie without exposing the
+ * bearer token to JavaScript, browser storage, or navigation URLs.
  *
  * If the bootstrap fails (network down, unauthenticated proxy, etc.) we
  * render anyway. SWR will surface 401s as ErrorState rather than the
  * dashboard staying blank forever.
  */
 export function SWRProvider({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(() => getStudioToken() !== null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // getStudioToken() runs while React hydrates. Strip only after mount so
-    // Next's initial search-param state cannot put the credential back.
-    stripStudioTokenFromUrl()
-    if (ready) return
     let cancelled = false
-    fetch("/api/auth/bootstrap")
-      .then((r) => r.json())
-      .then((b: { ok?: boolean; data?: { token?: string } }) => {
-        if (cancelled) return
-        if (b?.ok && typeof b?.data?.token === "string" && b.data.token.length >= 32 && typeof window !== "undefined") {
-          window.localStorage.setItem(STORAGE_KEY, b.data.token)
-        }
-        setReady(true)
+    removeLegacyBrowserCredentials()
+    fetch("/api/auth/bootstrap", { credentials: "same-origin" })
+      .then((response) => {
+        if (!cancelled) setReady(true)
+        return response.body?.cancel()
       })
       .catch(() => {
         if (cancelled) return
@@ -50,7 +34,7 @@ export function SWRProvider({ children }: { children: React.ReactNode }) {
         setReady(true)
       })
     return () => { cancelled = true }
-  }, [ready])
+  }, [])
 
   if (!ready) return null
 

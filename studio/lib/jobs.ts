@@ -177,8 +177,7 @@ export function runJob(id: string, worker: WorkerFn): void {
       _persistSkillRun(job, durationMs);
     })
     .finally(() => {
-      // Remove per-job emitter after a short grace period
-      // so late SSE subscribers can still read the final event
+      // Keep the replayable per-job stream available for a short grace period.
       setTimeout(() => removeJobEmitter(id), 30_000);
     });
 }

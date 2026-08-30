@@ -158,7 +158,7 @@ bun run start:studio
 ```
 
 ### 2.5 Onboarding wizard hangs on "Building your marketing brain…"
-**Symptom:** onboarding advances to step 4 but the three agent lanes stay on "Waiting" forever. Reconnecting chip stuck.
+**Symptom:** onboarding advances to step 4 but the three initialization lanes stay on "Waiting" forever. Reconnecting chip stuck.
 **Cause:** SSE connection never opened. Either the studio server on `:3001` isn't running, or the onboarding POST to `/api/onboarding/foundation` failed silently.
 **Fix:**
 ```sh
@@ -169,7 +169,7 @@ curl -s -X POST http://localhost:3001/api/onboarding/foundation
 # if 404, you are on a pre-onboarding build; skip onboarding and go straight to /dashboard
 # if 5xx, check server logs (the bun process tag in the launcher output)
 ```
-If still stuck after 30 s, click Skip → /dashboard, then trigger the three agents manually in `/cmo`:
+If still stuck after 30 s, continue without live progress and inspect the three files in `brand/`. Run `/cmo` to perform full research if the files contain only templates:
 ```
 /cmo run mktg-brand-researcher
 /cmo run mktg-audience-researcher

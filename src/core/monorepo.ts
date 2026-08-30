@@ -12,8 +12,37 @@ export interface RepositoryLayout {
   readonly studioRoot: string;
 }
 
+interface LayoutEnv {
+  readonly MKTG_CLI_PATH?: string;
+  readonly MKTG_STUDIO_BIN?: string;
+  readonly [key: string]: string | undefined;
+}
+
+function studioRootFromBin(path: string): string {
+  const absolute = resolve(path);
+  return dirname(dirname(absolute));
+}
+
 /** Resolve both bundled and legacy sibling repository layouts. */
-export const resolveRepositoryLayout = (fromUrl: string = import.meta.url): RepositoryLayout => {
+export const resolveRepositoryLayout = (
+  fromUrl: string = import.meta.url,
+  env: LayoutEnv = process.env,
+): RepositoryLayout => {
+  if (env.MKTG_CLI_PATH) {
+    const cliRoot = resolve(env.MKTG_CLI_PATH);
+    const ecosystemRoot = dirname(cliRoot);
+    const bundledStudio = join(cliRoot, "studio");
+    return {
+      ecosystemRoot,
+      cliRoot,
+      studioRoot: env.MKTG_STUDIO_BIN
+        ? studioRootFromBin(env.MKTG_STUDIO_BIN)
+        : existsSync(bundledStudio)
+          ? bundledStudio
+          : join(ecosystemRoot, "mktg-studio"),
+    };
+  }
+
   // Runtime-agnostic module dir: Bun exposes `import.meta.dir` directly, but
   // the node-installed dist bundle only guarantees `import.meta.url`.
   const here = dirname(fileURLToPath(fromUrl));
@@ -27,7 +56,9 @@ export const resolveRepositoryLayout = (fromUrl: string = import.meta.url): Repo
     return {
       ecosystemRoot,
       cliRoot: marketingCliRoot,
-      studioRoot: existsSync(bundledStudio)
+      studioRoot: env.MKTG_STUDIO_BIN
+        ? studioRootFromBin(env.MKTG_STUDIO_BIN)
+        : existsSync(bundledStudio)
         ? bundledStudio
         : join(ecosystemRoot, "mktg-studio"),
     };

@@ -62,6 +62,7 @@ function readLighthouse(routePath: string, mode: "cold" | "warm" | "cache"): {
   cls: number
   perfScore: number
   runtimeError: string | null
+  warnings: string[]
 } {
   const fp = join(RUNS_DIR, `${safeName(routePath)}-${mode}-1.json`)
   if (!existsSync(fp)) {
@@ -74,6 +75,7 @@ function readLighthouse(routePath: string, mode: "cold" | "warm" | "cache"): {
     runtimeError?: { code?: string; message?: string }
     audits?: Record<string, { numericValue?: number }>
     categories?: { performance?: { score?: number } }
+    runWarnings?: string[]
   }
   const audits = raw.audits ?? {}
   return {
@@ -83,6 +85,7 @@ function readLighthouse(routePath: string, mode: "cold" | "warm" | "cache"): {
     cls: audits["cumulative-layout-shift"]?.numericValue ?? -1,
     perfScore: (raw.categories?.performance?.score ?? 0) * 100,
     runtimeError: raw.runtimeError?.code ?? null,
+    warnings: raw.runWarnings ?? [],
   }
 }
 
@@ -96,9 +99,13 @@ describe("Lane 7 perf — Lighthouse Web Vitals (real Chrome via run-lighthouse.
         }
         expect(r.fcp_ms).toBeGreaterThan(0)
         expect(r.fcp_ms).toBeLessThan(VITAL_THRESHOLDS.fcp_ms)
+        expect(r.lcp_ms).toBeGreaterThan(0)
         expect(r.lcp_ms).toBeLessThan(VITAL_THRESHOLDS.lcp_ms)
+        expect(r.tbt_ms).toBeGreaterThanOrEqual(0)
         expect(r.tbt_ms).toBeLessThan(VITAL_THRESHOLDS.tbt_ms)
+        expect(r.cls).toBeGreaterThanOrEqual(0)
         expect(r.cls).toBeLessThan(VITAL_THRESHOLDS.cls)
+        expect(r.warnings.some((warning) => /results may be incomplete/i.test(warning))).toBe(false)
       })
     }
   }

@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { studioAuthHeaders, withStudioToken } from "@/lib/studio-token"
+import { studioAuthHeaders } from "@/lib/studio-token"
 import type {
   FoundationCompletePayload,
   FoundationLane,
@@ -263,7 +263,7 @@ export function StepBuilding({ onDone }: Props) {
       }
     }
 
-    const es = new EventSource(withStudioToken(`${STUDIO_API_BASE}/api/events`))
+    const es = new EventSource(`${STUDIO_API_BASE}/api/events`, { withCredentials: true })
     esRef.current = es
 
     // A17 / H1-02: if onopen never fires, the wizard previously sat on
@@ -444,7 +444,7 @@ export function StepBuilding({ onDone }: Props) {
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        /cmo is orchestrating; you&apos;ll move on automatically when all three complete.
+        Studio is initializing these files; you&apos;ll move on automatically when all three complete.
       </p>
     </div>
   )

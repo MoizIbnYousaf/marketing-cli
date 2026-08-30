@@ -8,9 +8,8 @@
  *   consumer wants the underlying array/record directly. Falls back to the
  *   raw JSON if the response isn't enveloped.
  *
- * Lane 1 / Wave A: every request now sends `Authorization: Bearer <token>`.
- * The token is bootstrapped from `?token=` on first nav and persisted in
- * localStorage. See lib/studio-token.ts.
+ * Browser authentication is carried by an HttpOnly, same-site cookie issued
+ * during bootstrap. See lib/studio-token.ts.
  */
 
 import { studioAuthHeaders } from "./studio-token"

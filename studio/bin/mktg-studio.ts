@@ -88,16 +88,12 @@ function flagValue(flag: string): string | undefined {
   return undefined;
 }
 
-function dashboardUrl(token?: string): string {
+function dashboardUrl(): string {
   const params = new URLSearchParams();
   const intent = flagValue("--intent");
   const session = flagValue("--session");
   if (intent) params.set("mode", intent);
   if (session) params.set("session", session);
-  // Lane 1 / Wave A: append the bearer token on first nav. The dashboard
-  // strips it from the URL after stashing it in localStorage. Token only
-  // travels in the URL for this single bootstrap hop.
-  if (token) params.set("token", token);
   const query = params.toString();
   return `http://localhost:${DASHBOARD_PORT}/dashboard${query ? `?${query}` : ""}`;
 }
@@ -105,10 +101,10 @@ function dashboardUrl(token?: string): string {
 // ---------------------------------------------------------------------------
 // Studio bearer token (Lane 1 / Wave A). Mirrors studio/lib/auth.ts so the
 // server and the launcher converge on the same token without an import
-// path. The launcher reads or creates the token, hands it to the server
-// child as MKTG_STUDIO_TOKEN, and appends it to the dashboard URL on first
-// open. The Next.js child does NOT receive the token via env -- the
-// dashboard learns it from the URL once and persists it in localStorage.
+// path. The launcher reads or creates the token and hands it only to the
+// server child as MKTG_STUDIO_TOKEN. The Next.js child, dashboard URL, and
+// browser JavaScript never receive it; the API bootstrap sets an HttpOnly
+// same-site session cookie instead.
 // ---------------------------------------------------------------------------
 
 const STUDIO_TOKEN_DIR = process.env.MKTG_STUDIO_TOKEN_DIR
@@ -300,10 +296,8 @@ const baseChildEnv: Record<string, string> = {
 };
 
 // The server child gets the bearer token via env. The Next.js child does
-// NOT -- it would risk accidentally inlining the token via NEXT_PUBLIC_*
-// helpers or surfacing it in error overlays. The dashboard learns the
-// token by reading the `?token=` query string on first nav (see launcher
-// auto-open below) and persists it in localStorage.
+// not. The dashboard establishes an HttpOnly session through the localhost
+// bootstrap endpoint, so JavaScript and navigation URLs never see the token.
 const STUDIO_TOKEN = readOrCreateStudioToken();
 const serverEnv: Record<string, string> = {
   ...childProcessEnv(baseChildEnv),
@@ -461,12 +455,7 @@ if (!serverReady || !nextReady) {
 // Banner
 // ---------------------------------------------------------------------------
 
-// Banner URL is the bookmarkable form (no token in the URL the user pastes
-// or copies). The auto-open path uses a separate URL that carries the
-// bootstrap token so the dashboard can stash it in localStorage on first
-// nav.
 const dash = dashboardUrl();
-const dashWithToken = dashboardUrl(STUDIO_TOKEN);
 const api = `http://localhost:${STUDIO_PORT}`;
 // Hide the token path from the default banner so first-time users see a
 // product-shaped boot, not a security artifact. MKTG_STUDIO_DEBUG=1 exposes
@@ -489,7 +478,7 @@ console.log(`
 `);
 
 if (openFlag) {
-  const url = dashWithToken;
+  const url = dash;
   const browserOverride =
     flagValue("--browser") ?? process.env.MKTG_STUDIO_BROWSER ?? process.env.BROWSER;
 

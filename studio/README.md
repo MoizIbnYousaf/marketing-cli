@@ -39,11 +39,11 @@ MKTG_PROJECT_ROOT=/path/to/your/project bun --cwd studio run start:studio
 
 `MKTG_PROJECT_ROOT` redirects both `brand/` and the SQLite file. Override either one separately with `MKTG_BRAND_DIR` or `MKTG_STUDIO_DB`.
 
-On first boot the onboarding wizard asks for your API keys, then `/cmo` spins up three research agents (brand voice, audience, competitors) in parallel. Tabs light up as each finishes.
+On first boot the onboarding wizard asks for optional integration keys, then Studio initializes three core brand files from the project URL or bundled templates. Run `/cmo` afterward for full brand, audience, and competitor research.
 
 | ![onboarding step 1](./docs/screenshots/onboarding-step-1-project.png) | ![onboarding step 5](./docs/screenshots/onboarding-step-5-done.png) |
 |---|---|
-| Step 1: point at a URL and `/cmo` scrapes your voice, audience, and positioning. | Step 5: brand memory live, dashboard ready. |
+| Step 1: point at a URL so Studio can extract initial project context. | Step 5: initial brand memory ready for review and `/cmo` research. |
 
 ## What you see
 

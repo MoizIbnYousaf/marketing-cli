@@ -10,8 +10,8 @@
 //   4. POST /api/brand/reset      (also requires ?confirm=true)
 //   5. POST /api/settings/env     (also requires ?confirm=true post-Lane 1)
 //
-// Each is probed with: no auth (401), valid bearer dryRun (200/202), valid
-// token via ?token= (matches the SSE-fallback path).
+// Each is probed with: no auth (401), valid bearer dryRun (200/202), and a
+// valid HttpOnly-style browser session cookie.
 
 import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { startSecurityServer, type SecurityHarness, PORTS } from "./harness";
@@ -43,13 +43,12 @@ const PROBES: Record<string, Probe> = {
   "/api/settings/env":     { path: "/api/settings/env",     body: { FOO_KEY: "bar" }, extraQuery: "confirm=true", successStatus: [200, 202] },
 };
 
-const buildUrl = (base: string, p: Probe, withDryRun: boolean, withTokenQuery?: string): string => {
+const buildUrl = (base: string, p: Probe, withDryRun: boolean): string => {
   const params = new URLSearchParams();
   if (withDryRun) params.set("dryRun", "true");
   if (p.extraQuery) {
     for (const [k, v] of new URLSearchParams(p.extraQuery)) params.set(k, v);
   }
-  if (withTokenQuery) params.set("token", withTokenQuery);
   const q = params.toString();
   return `${base}${p.path}${q ? `?${q}` : ""}`;
 };
@@ -77,10 +76,10 @@ describe("palette endpoints -- token gate covers all 5", () => {
         expect(probe.successStatus).toContain(r.status);
       });
 
-      test("HAPPY: valid ?token= query + dryRun returns success", async () => {
-        const r = await fetch(buildUrl(h.baseUrl, probe, true, h.token), {
+      test("HAPPY: valid session cookie + dryRun returns success", async () => {
+        const r = await fetch(buildUrl(h.baseUrl, probe, true), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { ...h.cookie(), "Content-Type": "application/json" },
           body: JSON.stringify(probe.body),
         });
         expect(probe.successStatus).toContain(r.status);
@@ -121,7 +120,7 @@ describe("palette endpoints -- destructive routes require ?confirm=true", () => 
   test("/api/settings/env with confirm + valid bearer writes + emits activity-new", async () => {
     // Subscribe to /api/events first to capture the activity-new SSE.
     const ctrl = new AbortController();
-    const eventsPromise = fetch(h.withToken("/api/events"), { signal: ctrl.signal });
+    const eventsPromise = fetch(`${h.baseUrl}/api/events`, { signal: ctrl.signal, headers: h.cookie() });
     const events = await eventsPromise;
     expect(events.status).toBe(200);
 

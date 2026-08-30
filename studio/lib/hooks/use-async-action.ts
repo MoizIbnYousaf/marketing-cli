@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { extractErrorFix, extractErrorMessage } from "@/lib/api-error"
 
@@ -31,7 +31,7 @@ export function useAsyncAction<TArgs extends unknown[], TResult>(
   const optionsRef = useRef(options)
   const fnRef = useRef(fn)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     optionsRef.current = options
     fnRef.current = fn
   }, [fn, options])

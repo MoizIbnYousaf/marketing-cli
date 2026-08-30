@@ -132,19 +132,12 @@ describe("J1 brand-refresh flow", () => {
  body: JSON.stringify({}),
  });
  expect(res.status).toBe(202);
- const body = (await res.json()) as { ok?: boolean; data?: { jobIds?: Record<string, string>; lanes?: string[]; note?: string }; error?: { code: string } };
- // 202 = accepted. The backend may or may not fully enqueue depending on
- // whether /cmo is reachable from the spawned server; we only require
- // the envelope structure, not downstream success.
- if (body.ok && body.data) {
+ const body = (await res.json()) as { ok: boolean; data: { jobIds: Record<string, string>; lanes: string[]; note: string } };
+ expect(body.ok).toBe(true);
  expect(Array.isArray(body.data.lanes)).toBe(true);
  expect(body.data.lanes).toEqual(["brand", "audience", "competitors"]);
- expect(Object.keys(body.data.jobIds ?? {})).toEqual(["brand", "audience", "competitors"]);
- } else {
- // Acceptable in test env: enqueue may have failed without /cmo. The
- // 202 status still tells us the route exists and parsed the body.
- expect(body.error).toBeDefined();
- }
+ expect(Object.keys(body.data.jobIds)).toEqual(["brand", "audience", "competitors"]);
+ expect(body.data.note).toMatch(/Brand-file refresh queued/);
  });
 
  // -------------------------------------------------------------------------

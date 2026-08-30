@@ -39,8 +39,8 @@ export interface PulseHarness {
   withDb<T>(fn: (db: Database) => T): T
   /** Authed GET. Pulse only uses GET; POST helpers can be added later. */
   fetchAuthed(path: string, init?: RequestInit): Promise<Response>
-  /** Build a `?token=` URL (for SSE-style consumers without headers). */
-  withToken(path: string): string
+  /** HttpOnly-style browser session cookie for direct fetch assertions. */
+  cookie(): { Cookie: string }
   /** Bearer header. */
   bearer(): { Authorization: string }
   /** Teardown: kill server, remove temp dir. Idempotent. */
@@ -137,9 +137,8 @@ export async function startPulseHarness(options: HarnessOptions): Promise<PulseH
     return fetch(`${baseUrl}${path}`, { ...init, headers })
   }
 
-  function withToken(path: string): string {
-    const sep = path.includes("?") ? "&" : "?"
-    return `${baseUrl}${path}${sep}token=${encodeURIComponent(token)}`
+  function cookie(): { Cookie: string } {
+    return { Cookie: `mktg_studio_session=${encodeURIComponent(token)}` }
   }
 
   function bearer(): { Authorization: string } {
@@ -205,7 +204,7 @@ export async function startPulseHarness(options: HarnessOptions): Promise<PulseH
     seed,
     withDb,
     fetchAuthed,
-    withToken,
+    cookie,
     bearer,
     teardown,
   }

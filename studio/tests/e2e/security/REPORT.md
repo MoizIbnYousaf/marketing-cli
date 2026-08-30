@@ -22,10 +22,10 @@ No mocks. No shimmed validators. Every test boots a real Bun server with the aut
 | File | Tests | Coverage |
 |---|---|---|
 | `harness.ts` | (no tests) | Spawns real server, reads token, returns base URL + helpers. Per-port allocation prevents cross-suite collisions. |
-| `auth-perimeter.test.ts` | 17 | Public allowlist (3), Authorization: Bearer (5), `?token=` query (4), header precedence (2), Host header allowlist (5) |
+| `auth-perimeter.test.ts` | 22 | Public allowlist, Authorization: Bearer, HttpOnly session cookie, query-token rejection, header precedence, and Host allowlist |
 | `api-key-redaction.test.ts` | 4 | Full response shape on `/api/publish/native/account`, regex regression guard against `mktg_live_/mktg_test_` substrings, apiKeyPreview shape, no-auth-still-no-leak |
 | `parse-body-strict.test.ts` | 10 | 64 KB cap (3), prototype pollution `__proto__` + `constructor` (4), malformed JSON (3) |
-| `palette-endpoints.test.ts` | 18 | All 5 palette POSTs (skill/run, cmo/playbook, brand/refresh, brand/reset, settings/env) gated -- 3 cases each: no-auth=401 / Bearer=success / `?token=`=success. Plus confirm-gate on destructive routes (3) and live SSE assertion that audit row contains key NAME but NOT key VALUE. |
+| `palette-endpoints.test.ts` | 18 | All 5 palette POSTs gated with no-auth rejection, Bearer success, and browser-session cookie success. Plus destructive confirmation and secret-redaction assertions. |
 | `token-rotation.test.ts` | 4 | File mode 0o600, restart-reuses-token, delete+restart-rotates-token (old rejected), `MKTG_STUDIO_TOKEN` env override |
 | `malformed-headers.test.ts` | 8 | `Bearer` no token, whitespace-only, `Basic`, `Token`, double space, trailing whitespace, folded duplicates, embedded control char |
 | `mktg-run-validation.test.ts` | 5 | CLI `mktg run`: valid name -> NOT_FOUND (past validator), uppercase rejected, shell-metachar rejected, 10000-char rejected (regression: error message length capped), missing positional |
@@ -35,7 +35,7 @@ No mocks. No shimmed validators. Every test boots a real Bun server with the aut
 | Requirement | Coverage |
 |---|---|
 | Authorization: Bearer happy path | `auth-perimeter` 5 tests, `palette-endpoints` 5 tests |
-| `?token=` query param fallback (browser SSE) | `auth-perimeter` 4 tests + 1 SSE-stream test, `palette-endpoints` 5 tests |
+| HttpOnly browser session cookie (including SSE) | `auth-perimeter` and `palette-endpoints` |
 | Host allowlist (DNS rebinding mitigation) | `auth-perimeter` 5 Host tests including "applies to public allowlist" and "applies before token check" |
 | Public allowlist (`/api/health`, `/api/schema`, `/api/help`) | `auth-perimeter` 3 tests asserting 200 with no token |
 | API key redaction full response shape | `api-key-redaction` 4 tests, regex guard against full-key substrings |
@@ -59,7 +59,7 @@ HTTP 200
 ### T2 -- `/api/skills` (no token)
 ```
 HTTP 401
-{"ok":false,"error":{"code":"UNAUTHORIZED","message":"Missing bearer token","fix":"Send Authorization: Bearer <token> (or ?token= for EventSource). Token at /tmp/e2e-tok"}}
+{"ok":false,"error":{"code":"UNAUTHORIZED","message":"Missing bearer token","fix":"Send Authorization: Bearer <token>, or bootstrap a browser session at /api/auth/bootstrap. Token at /tmp/e2e-tok"}}
 ```
 
 ### T3 -- evil Host header with valid bearer (DNS rebinding guard)

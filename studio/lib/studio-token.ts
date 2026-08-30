@@ -1,90 +1,27 @@
-// lib/studio-token.ts -- client-side bearer-token bootstrap for the dashboard.
-//
-// Lane 1 / Wave A. The launcher (bin/mktg-studio.ts) opens the dashboard at
-// `?token=<hex>` on first nav. This helper:
-//   1. Reads the token from the URL on first load.
-//   2. Persists it in localStorage under `mktgStudioToken`.
-//   3. Strips the token from the URL via `history.replaceState`.
-//   4. Returns the cached token to fetch / EventSource callers.
-//
-// All client code that talks to /api/* must route through `getStudioToken()`
-// or `withStudioToken()` so the bearer travels with every request.
+// Browser authentication is an HttpOnly, same-site session cookie established
+// by SWRProvider. Dashboard JavaScript never reads or persists the bearer.
 
-const STORAGE_KEY = "mktgStudioToken";
-
-let cached: string | null | undefined;
-
-function readFromUrl(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("token");
-  } catch {
-    return null;
-  }
-}
-
-/** Strip the bootstrap token after hydration so Next cannot restore its stale URL. */
-export function stripStudioTokenFromUrl(): void {
+/** Remove credentials left by pre-cookie Studio releases without reading them. */
+export function removeLegacyBrowserCredentials(): void {
   if (typeof window === "undefined") return;
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has("token")) return;
-    params.delete("token");
-    const remaining = params.toString();
-    const next = window.location.pathname
-      + (remaining ? `?${remaining}` : "")
-      + window.location.hash;
-    window.history.replaceState({}, "", next);
+    window.localStorage.removeItem("mktgStudioToken");
   } catch {
-    // Keep auth usable in restricted browser contexts even if history fails.
+    // Restricted storage is already non-persistent.
   }
-}
-
-function readFromStorage(): string | null {
-  if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem(STORAGE_KEY);
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("token")) return;
+    url.searchParams.delete("token");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   } catch {
-    return null;
+    // Bootstrap still establishes the secure cookie if URL cleanup is blocked.
   }
 }
 
-function writeToStorage(token: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, token);
-  } catch {
-    // Private mode or quota: surface as unauthenticated. The user retries.
-  }
-}
-
-/** Returns the persisted token, bootstrapping from `?token=` on first call. */
-export function getStudioToken(): string | null {
-  if (cached !== undefined) return cached;
-  const fromUrl = readFromUrl();
-  if (fromUrl) {
-    writeToStorage(fromUrl);
-    cached = fromUrl;
-    return fromUrl;
-  }
-  const fromStorage = readFromStorage();
-  cached = fromStorage;
-  return fromStorage;
-}
-
-/** Append `?token=` to a URL for EventSource (cannot set headers from JS). */
-export function withStudioToken(url: string): string {
-  const token = getStudioToken();
-  if (!token) return url;
-  const sep = url.includes("?") ? "&" : "?";
-  return `${url}${sep}token=${encodeURIComponent(token)}`;
-}
-
-/** Return Authorization header object, or empty if no token is known. */
+/** Browser fetch sends the same-origin session cookie automatically. */
 export function studioAuthHeaders(): Record<string, string> {
-  const token = getStudioToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return {};
 }
 
 /** JSON POST with bearer auth: canonical helper for dashboard mutations. */
@@ -100,16 +37,4 @@ export async function studioJsonPost(
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-}
-
-/** Drop the cached token (test / re-auth flow). */
-export function clearStudioToken(): void {
-  cached = null;
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignored
-    }
-  }
 }

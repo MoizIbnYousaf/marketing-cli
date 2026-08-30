@@ -374,25 +374,25 @@ The studio drives onboarding via three endpoints. /cmo doesn't normally call the
 
 ### `POST /api/onboarding/foundation`
 
-Spawns three "research lanes" (brand, audience, competitive) in parallel. Returns immediately with one job id per agent; progress streams over SSE.
+Starts three brand-file initialization lanes (brand, audience, competitors) in parallel. This runs `mktg init` and may seed templates; it does not run `/cmo` or research agents. Returns immediately with one job id per lane; progress streams over SSE.
 
 **Body**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `from` | string (URL) | no | When set, the studio runs `mktg init --from <url>` to scrape and populate brand/. |
-| `seed` | boolean | no | When `true` (default), missing brand files are seeded from templates so the dashboard has data to render. Set `false` to require real research. |
+| `seed` | boolean | no | When `true` (default), missing brand files are seeded from templates so the dashboard has data to render. When `false`, missing output files make the lane fail; no research is started. |
 
 **Response**
 
 ```json
 {"ok": true, "data": {
   "jobIds": {
-    "mktg-brand-researcher": "foundation_<...>",
-    "mktg-audience-researcher": "foundation_<...>",
-    "mktg-competitive-scanner": "foundation_<...>"
+    "brand": "foundation_<...>",
+    "audience": "foundation_<...>",
+    "competitors": "foundation_<...>"
   },
-  "agents": ["mktg-brand-researcher", "mktg-audience-researcher", "mktg-competitive-scanner"],
+  "lanes": ["brand", "audience", "competitors"],
   "note": "..."
 }}
 ```
@@ -401,7 +401,7 @@ Subscribe to `/api/events` (or `/api/onboarding/stream`) for `foundation:progres
 
 ### `POST /api/brand/refresh`
 
-Same plumbing as the foundation endpoint — re-runs research and re-emits progress events. Use when the user clicks "Refresh research" in Settings.
+Same plumbing as the foundation endpoint: verifies or initializes the three core brand files and re-emits progress events. Existing populated files are not re-researched or overwritten. Run `/cmo` to refresh their research.
 
 ### `POST /api/brand/reset?confirm=true`
 
@@ -655,8 +655,8 @@ All events flow through `GET /api/events` with envelope `{type, payload, ts}`.
 | `highlight` | `{tab, selector, reason}` | `POST /api/highlight` |
 | `brand-file-changed` | `{file}` | `POST /api/brand/note`, `POST /api/brand/reset`, foundation runner, file watcher |
 | `publish-completed` | `{adapter, published, failed}` | `POST /api/publish` |
-| `foundation:progress` | `{agent, status, filesChanged?, note?, error?, durationMs?}` where `status ∈ {queued, running, complete, failed}` | `POST /api/onboarding/foundation`, `POST /api/brand/refresh` |
-| `foundation:complete` | `{durationMs, success, agents:[FoundationProgressPayload]}` | foundation runner — fires once after all 3 agents settle |
+| `foundation:progress` | `{lane, status, filesChanged?, note?, error?, durationMs?}` where `status ∈ {queued, running, complete, failed}` | `POST /api/onboarding/foundation`, `POST /api/brand/refresh` |
+| `foundation:complete` | `{durationMs, success, lanes:[FoundationProgressPayload]}` | foundation initializer — fires once after all 3 lanes settle |
 | `skill-start` | `{skill, file?, jobId?}` | `POST /api/brand/regenerate` — fires immediately when a skill is queued |
 | `skill-complete` | `{skill, file?, filesChanged?, jobId?}` | /cmo posts back via `POST /api/activity/log` after the skill writes its output |
 | `job-created` / `job-started` / `job-log` / `job-completed` / `job-failed` / `job-cancelled` | job summary | `lib/jobs.ts` |

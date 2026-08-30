@@ -7,7 +7,6 @@ import { useSWRConfig } from "swr"
 import { useWorkspaceStore, type WorkspaceTab } from "@/lib/stores/workspace"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import type { Activity } from "@/lib/types/activity"
-import { withStudioToken } from "@/lib/studio-token"
 import type { JobSSEEvent } from "@/lib/sse"
 
 // Wire type accepts pre-rename ids ("hq", "content") for one-release compat
@@ -83,16 +82,16 @@ export function SSEBridge() {
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null
         reconnectDelay = Math.min(RECONNECT_MAX_MS, Math.floor(reconnectDelay * RECONNECT_GROWTH))
-        connect()
+        void fetch(`${STUDIO_API_BASE}/api/auth/bootstrap`, { credentials: "include" })
+          .catch(() => undefined)
+          .finally(connect)
       }, reconnectDelay)
     }
 
     function connect() {
       if (closed) return
       try {
-        // EventSource cannot set Authorization headers from JS, so the
-        // bearer travels in the query string. Lane 1 / Wave A.
-        es = new EventSource(withStudioToken(`${STUDIO_API_BASE}/api/events`))
+        es = new EventSource(`${STUDIO_API_BASE}/api/events`, { withCredentials: true })
       } catch {
         scheduleReconnect()
         return

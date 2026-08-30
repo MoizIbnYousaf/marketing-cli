@@ -5,10 +5,10 @@
 //
 // Covered (3+ cases each):
 //   - Authorization: Bearer (happy / wrong / malformed / mixed-case header name)
-//   - ?token= query (happy / wrong / no token at all)
+//   - HttpOnly browser session cookie (happy / wrong / absent)
 //   - Public allowlist: /api/health, /api/schema, /api/help (no token, all 200)
 //   - Host header allowlist (localhost / 127.0.0.1 / [::1] vs evil.com)
-//   - Mixed: Authorization wins over ?token= (header is canonical)
+//   - Mixed: Authorization wins over the session cookie
 
 import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { startSecurityServer, type SecurityHarness, PORTS } from "./harness";
@@ -60,17 +60,18 @@ describe("auth perimeter -- public allowlist", () => {
     expect(body.data.errorCodes).toContain("BAD_INPUT");
   });
 
-  test("/api/auth/bootstrap returns the token to localhost (dev cold-start unblock)", async () => {
+  test("/api/auth/bootstrap establishes an HttpOnly session without exposing the token", async () => {
     const r = await fetch(`${h.baseUrl}/api/auth/bootstrap`);
     expect(r.status).toBe(200);
-    const body = (await r.json()) as { ok: boolean; data: { token: string } };
+    const body = (await r.json()) as { ok: boolean; data: { authenticated: boolean } };
     expect(body.ok).toBe(true);
-    expect(typeof body.data.token).toBe("string");
-    expect(body.data.token.length).toBeGreaterThanOrEqual(64);
-    // Critical: the bootstrap endpoint must hand back the SAME token the
-    // server uses to validate Bearer headers. Otherwise the dashboard
-    // would stash a value that 401s on every fetch.
-    expect(body.data.token).toBe(h.token);
+    expect(body.data.authenticated).toBe(true);
+    expect(JSON.stringify(body)).not.toContain(h.token);
+    const cookie = r.headers.get("set-cookie") ?? "";
+    expect(cookie).toContain("mktg_studio_session=");
+    expect(cookie).toContain("HttpOnly");
+    expect(cookie).toContain("SameSite=Strict");
+    expect(r.headers.get("cache-control")).toBe("no-store");
   });
 
   test("/api/auth/bootstrap is REJECTED with evil Host even though it is on the public allowlist", async () => {
@@ -140,24 +141,24 @@ describe("auth perimeter -- Authorization: Bearer", () => {
 });
 
 // ---------------------------------------------------------------------------
-// ?token= query (3 cases)
+// HttpOnly browser session cookie
 // ---------------------------------------------------------------------------
 
-describe("auth perimeter -- ?token= query (EventSource fallback)", () => {
-  test("HAPPY: valid ?token= authorizes a private route (no Authorization header)", async () => {
-    const r = await fetch(h.withToken("/api/skills"));
+describe("auth perimeter -- browser session cookie", () => {
+  test("HAPPY: valid session cookie authorizes a private route", async () => {
+    const r = await fetch(`${h.baseUrl}/api/skills`, { headers: h.cookie() });
     expect(r.status).toBe(200);
     const body = (await r.json()) as { ok: boolean; data: unknown };
     expect(body.ok).toBe(true);
   });
 
-  test("HAPPY: ?token= authorizes the SSE stream (text/event-stream content-type)", async () => {
+  test("HAPPY: session cookie authorizes the SSE stream", async () => {
     // SSE stays open; use AbortController to read one frame and bail.
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 800);
     let r: Response | null = null;
     try {
-      r = await fetch(h.withToken("/api/events"), { signal: ctrl.signal });
+      r = await fetch(`${h.baseUrl}/api/events`, { signal: ctrl.signal, headers: h.cookie() });
       expect(r.status).toBe(200);
       expect(r.headers.get("content-type")).toContain("text/event-stream");
     } finally {
@@ -166,7 +167,7 @@ describe("auth perimeter -- ?token= query (EventSource fallback)", () => {
     }
   });
 
-  test("FAILURE: missing ?token= AND no Authorization returns 401", async () => {
+  test("FAILURE: no session cookie and no Authorization returns 401", async () => {
     const r = await fetch(`${h.baseUrl}/api/events`);
     expect(r.status).toBe(401);
     const body = (await r.json()) as { ok: false; error: { code: string; message: string } };
@@ -174,8 +175,8 @@ describe("auth perimeter -- ?token= query (EventSource fallback)", () => {
     expect(body.error.message).toMatch(/Missing bearer/i);
   });
 
-  test("FAILURE: ?token= with a bogus value returns 401", async () => {
-    const r = await fetch(`${h.baseUrl}/api/skills?token=garbage`);
+  test("FAILURE: query tokens are not accepted", async () => {
+    const r = await fetch(`${h.baseUrl}/api/skills?token=${encodeURIComponent(h.token)}`);
     expect(r.status).toBe(401);
     const body = (await r.json()) as { ok: false; error: { code: string } };
     expect(body.error.code).toBe("UNAUTHORIZED");
@@ -183,22 +184,20 @@ describe("auth perimeter -- ?token= query (EventSource fallback)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Authorization wins over ?token= (canonical header)
+// Authorization wins over a browser cookie
 // ---------------------------------------------------------------------------
 
 describe("auth perimeter -- header precedence", () => {
-  test("EDGE: valid Authorization with bogus ?token= still authorizes (header wins)", async () => {
-    const r = await fetch(`${h.baseUrl}/api/skills?token=garbage`, {
-      headers: h.bearer(),
+  test("EDGE: valid Authorization with bogus cookie still authorizes", async () => {
+    const r = await fetch(`${h.baseUrl}/api/skills`, {
+      headers: { ...h.bearer(), Cookie: "mktg_studio_session=garbage" },
     });
     expect(r.status).toBe(200);
   });
 
-  test("EDGE: bogus Authorization with valid ?token= returns 401 (header is checked first)", async () => {
-    // The middleware reads the header first; if present and bearer-prefixed,
-    // it does NOT fall back to query. This is the documented precedence.
-    const r = await fetch(h.withToken("/api/skills"), {
-      headers: { Authorization: "Bearer wrong-but-bearer-prefixed" },
+  test("EDGE: bogus Authorization with valid cookie returns 401", async () => {
+    const r = await fetch(`${h.baseUrl}/api/skills`, {
+      headers: { ...h.cookie(), Authorization: "Bearer wrong-but-bearer-prefixed" },
     });
     expect(r.status).toBe(401);
   });

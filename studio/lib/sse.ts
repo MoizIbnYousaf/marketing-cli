@@ -37,6 +37,9 @@ interface Subscriber {
 
 export class SSEEmitter {
   private subscribers: Subscriber[] = [];
+  private history: string[] = [];
+
+  constructor(private readonly historyLimit = 0) {}
 
   /**
    * Subscribe a request to an SSE stream.
@@ -57,6 +60,7 @@ export class SSEEmitter {
         // Send initial heartbeat so the browser opens the connection
         const heartbeat = `data: ${JSON.stringify({ type: "connected", payload: { channel }, ts: Date.now() })}\n\n`;
         controller.enqueue(heartbeat);
+        for (const frame of this.history) controller.enqueue(frame);
 
         // SSE comment-line ping every 15s -- Bun.serve and most proxies will
         // close idle streams within 30-60s. Comment frames (`: ping`) keep
@@ -102,6 +106,13 @@ export class SSEEmitter {
     const envelope: SSEEvent<T> = { ...event, ts: Date.now() } as SSEEvent<T>;
     const data = `data: ${JSON.stringify(envelope)}\n\n`;
 
+    if (this.historyLimit > 0) {
+      this.history.push(data);
+      if (this.history.length > this.historyLimit) {
+        this.history.splice(0, this.history.length - this.historyLimit);
+      }
+    }
+
     const dead: Subscriber[] = [];
 
     for (const sub of this.subscribers) {
@@ -137,7 +148,7 @@ export const jobEmitters = new Map<string, SSEEmitter>();
 
 export function getJobEmitter(jobId: string): SSEEmitter {
   if (!jobEmitters.has(jobId)) {
-    jobEmitters.set(jobId, new SSEEmitter());
+    jobEmitters.set(jobId, new SSEEmitter(100));
   }
   return jobEmitters.get(jobId)!;
 }

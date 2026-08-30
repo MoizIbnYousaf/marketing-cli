@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import useSWR from "swr"
 import { FileText } from "lucide-react"
 import { toast } from "sonner"
@@ -92,7 +92,7 @@ export function BrandTab() {
   // Save logic: shared between Cmd+S, Save button, autosave debounce.
   const saveRef = useRef<{ file: string; content: string; mtime: string | null } | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     saveRef.current = currentFile ? { file: currentFile, content, mtime } : null
   }, [content, currentFile, mtime])
 

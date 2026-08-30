@@ -4,8 +4,8 @@
 // /api/skill/run with `{ name }` plus `studioAuthHeaders()`. On success
 // it surfaces a sonner toast; on failure it surfaces an error toast. Lane 1
 // gated /api/skill/run behind the Bearer middleware, but the e2e harness
-// runs with MKTG_STUDIO_AUTH=disabled so the token may be empty -- the
-// header IS still attached when a token is present in localStorage.
+// runs with MKTG_STUDIO_AUTH=disabled. Browser auth normally uses an HttpOnly
+// session cookie, so dashboard JavaScript never attaches the bearer header.
 //
 // Coverage:
 //   7.1  Click Run on a list-view card POSTs to /api/skill/run with the
@@ -14,8 +14,8 @@
 //        success toast
 //   7.3  When skill.installed is false, the button is disabled (proves
 //        the disabled state mapping in run-skill-button.tsx)
-//   7.4  Auth headers are honored: when a token is set in localStorage,
-//        the POST includes Authorization: Bearer <token>
+//   7.4  Credentials left by older releases in localStorage or the URL are
+//        removed and never forwarded by the POST.
 
 import { test, expect, type Request } from "@playwright/test"
 import { DASHBOARD, fetchSkills, waitForDashboardChrome } from "./_helpers"
@@ -128,15 +128,14 @@ test("7.3 Run button disabled state matches skill.installed=false", async ({
   await expect(button).toBeDisabled({ timeout: 5_000 })
 })
 
-test("7.4 Authorization: Bearer header is forwarded when a token is in localStorage", async ({
+test("7.4 legacy browser credentials are removed and never sent in URLs or headers", async ({
   page,
 }) => {
   const skills = await fetchSkills()
   const installed = skills.find((s) => s.installed) ?? skills[0]!
 
-  // Seed a fake studio token before the page mounts. studio-token.ts
-  // reads the value lazily on first fetch, persists, and sticks it in
-  // every subsequent Authorization header.
+  // Seed the key used by pre-cookie releases. Bootstrap must delete it
+  // without reading or forwarding it.
   await page.addInitScript(() => {
     try {
       window.localStorage.setItem("mktgStudioToken", "test-token-aabbcc")
@@ -145,7 +144,7 @@ test("7.4 Authorization: Bearer header is forwarded when a token is in localStor
     }
   })
 
-  await page.goto(`${DASHBOARD}/skills/${installed.name}`)
+  await page.goto(`${DASHBOARD}/skills/${installed.name}?token=legacy-url-token`)
   await waitForDashboardChrome(page)
   await expect(page.getByRole("heading", { name: /^versions$/i })).toBeVisible({
     timeout: 15_000,
@@ -160,5 +159,8 @@ test("7.4 Authorization: Bearer header is forwarded when a token is in localStor
   const req = await reqPromise
 
   const auth = req.headers()["authorization"] ?? req.headers()["Authorization"] ?? ""
-  expect(auth).toBe("Bearer test-token-aabbcc")
+  expect(auth).toBe("")
+  expect(req.url()).not.toContain("token=")
+  await expect.poll(() => page.url()).not.toContain("token=")
+  expect(await page.evaluate(() => window.localStorage.getItem("mktgStudioToken"))).toBeNull()
 })

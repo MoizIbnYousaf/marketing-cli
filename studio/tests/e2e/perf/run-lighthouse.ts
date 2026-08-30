@@ -12,7 +12,7 @@
 // Usage: bun run tests/e2e/perf/run-lighthouse.ts [--no-build] [--routes=/]
 
 import { spawn, spawnSync } from "node:child_process"
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs"
+import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { chromium } from "@playwright/test"
 
@@ -84,6 +84,7 @@ function build(): void {
 
 function runLighthouse(routePath: string, mode: "cold" | "warm" | "cache"): void {
   const outPath = join(RUNS_DIR, `${safeName(routePath)}-${mode}-1.json`)
+  rmSync(outPath, { force: true })
   const userDataDir = join(RUNS_DIR, `chrome-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`)
   const chromeFlags = [
     "--headless=new",
@@ -122,32 +123,41 @@ function runLighthouse(routePath: string, mode: "cold" | "warm" | "cache"): void
 
   spawnSync("/bin/rm", ["-rf", userDataDir])
 
+  if (res.status !== 0) {
+    throw new Error(`Lighthouse failed for ${routePath} (${mode}), exit ${res.status}: ${res.stderr?.slice(0, 500) ?? ""}`)
+  }
   if (!existsSync(outPath)) {
-    console.error(`[perf] FAILED to write ${outPath}`)
-    console.error(`stderr: ${res.stderr?.slice(0, 500) ?? ""}`)
-    return
+    throw new Error(`Lighthouse did not write ${outPath}`)
   }
   let parsed: unknown = null
   try { parsed = JSON.parse(readFileSync(outPath, "utf-8")) } catch {}
   const r = parsed as { runtimeError?: { code?: string; message?: string }; audits?: Record<string, { numericValue?: number }>; categories?: { performance?: { score?: number } } } | null
   if (r?.runtimeError) {
     console.warn(`[perf] PageLoadError ${routePath} (${mode}): ${r.runtimeError.code} — ${r.runtimeError.message ?? ""}`)
-    // Pre-warm and retry once
-    void fetch(`${BASE}${routePath}`).catch(() => {})
-    spawnSync(LIGHTHOUSE_BIN, lhArgs, {
+    const retry = spawnSync(LIGHTHOUSE_BIN, lhArgs, {
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 90_000,
       env: { ...process.env, CHROME_PATH: CHROME_BIN },
     })
-    return
+    if (retry.status !== 0) {
+      throw new Error(`Lighthouse retry failed for ${routePath} (${mode}), exit ${retry.status}: ${retry.stderr?.slice(0, 500) ?? ""}`)
+    }
+    try { parsed = JSON.parse(readFileSync(outPath, "utf-8")) } catch {
+      throw new Error(`Lighthouse retry wrote invalid JSON for ${routePath} (${mode})`)
+    }
+    const retried = parsed as typeof r
+    if (retried?.runtimeError) {
+      throw new Error(`Lighthouse PageLoadError after retry for ${routePath} (${mode}): ${retried.runtimeError.code}`)
+    }
   }
-  const audits = r?.audits ?? {}
+  const result = parsed as typeof r
+  const audits = result?.audits ?? {}
   const fcp = audits["first-contentful-paint"]?.numericValue
   const lcp = audits["largest-contentful-paint"]?.numericValue
   const tbt = audits["total-blocking-time"]?.numericValue
   const cls = audits["cumulative-layout-shift"]?.numericValue
-  const perf = (r?.categories?.performance?.score ?? 0) * 100
+  const perf = (result?.categories?.performance?.score ?? 0) * 100
   console.log(`[perf]   FCP=${fcp?.toFixed(0)}ms LCP=${lcp?.toFixed(0)}ms TBT=${tbt?.toFixed(0)}ms CLS=${cls?.toFixed(3)} score=${perf.toFixed(0)}`)
 }
 

@@ -6,9 +6,8 @@
 // `.env.local` and queueing of skill runs. This module enforces:
 //
 //   1. DNS rebinding mitigation -- Host header allowlist.
-//   2. Bearer token check -- `Authorization: Bearer <hex>` for fetch,
-//      `?token=<hex>` query string for EventSource (browsers forbid
-//      JS-set headers on EventSource).
+//   2. Token check -- `Authorization: Bearer <hex>` for API clients or an
+//      HttpOnly, same-site session cookie for the browser dashboard.
 //   3. Public allowlist -- `/api/health`, `/api/schema`, `/api/help`
 //      are reachable without a token so launchers can poll boot status.
 //
@@ -31,9 +30,8 @@ const TOKEN_PATH = process.env.MKTG_STUDIO_TOKEN_PATH
 
 // Routes that bypass the bearer check. Host header is still enforced so a
 // drive-by `evil.com` page cannot probe even these. `/api/auth/bootstrap`
-// is localhost-only and returns the token so the dashboard can populate
-// localStorage on direct-nav (no launcher) cold starts; CORS still blocks
-// cross-origin reads.
+// is localhost-only and sets an HttpOnly session cookie; the token is never
+// exposed to dashboard JavaScript.
 const PUBLIC_PATHS = new Set<string>([
   "/api/health",
   "/api/schema",
@@ -50,6 +48,8 @@ const ALLOWED_HOSTS = new Set<string>([
   "[::1]",
   "::1",
 ]);
+
+export const STUDIO_SESSION_COOKIE = "mktg_studio_session";
 
 // Module-local cache so we don't re-read the token file on every request.
 let cachedToken: string | null = null;
@@ -137,6 +137,19 @@ function safeEqual(a: string, b: string): boolean {
   }
 }
 
+function cookieValue(req: Request, name: string): string {
+  const cookie = req.headers.get("cookie") ?? "";
+  for (const part of cookie.split(";")) {
+    const [rawName, ...rawValue] = part.trim().split("=");
+    if (rawName === name) return decodeURIComponent(rawValue.join("="));
+  }
+  return "";
+}
+
+export function studioSessionCookie(token: string): string {
+  return `${STUDIO_SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/`;
+}
+
 /**
  * Single auth gate for the studio. Caller decides the response shape;
  * this function only computes the verdict.
@@ -148,7 +161,8 @@ function safeEqual(a: string, b: string): boolean {
  *   3. If `MKTG_STUDIO_AUTH=disabled` is set in the server env, allow.
  *      This is a TEST/DEV escape hatch -- production launches do not set it.
  *      The server logs a warning at boot when it is set.
- *   4. Otherwise require `Authorization: Bearer <token>` OR `?token=<token>`.
+ *   4. Otherwise require `Authorization: Bearer <token>` or the HttpOnly
+ *      browser session cookie issued by `/api/auth/bootstrap`.
  */
 export function checkAuth(req: Request, url: URL): AuthResult {
   if (!hostHeaderAllowed(req)) {
@@ -176,8 +190,7 @@ export function checkAuth(req: Request, url: URL): AuthResult {
   if (header.toLowerCase().startsWith("bearer ")) {
     presented = header.slice(7).trim();
   } else {
-    // EventSource cannot set Authorization in browsers -- fall back to query.
-    presented = url.searchParams.get("token") ?? "";
+    presented = cookieValue(req, STUDIO_SESSION_COOKIE);
   }
 
   if (!presented) {
@@ -186,7 +199,7 @@ export function checkAuth(req: Request, url: URL): AuthResult {
       reason: "UNAUTHORIZED",
       status: 401,
       message: "Missing bearer token",
-      fix: `Send Authorization: Bearer <token> (or ?token= for EventSource). Token at ${TOKEN_PATH}`,
+      fix: `Send Authorization: Bearer <token>, or bootstrap a browser session at /api/auth/bootstrap. Token at ${TOKEN_PATH}`,
     };
   }
 

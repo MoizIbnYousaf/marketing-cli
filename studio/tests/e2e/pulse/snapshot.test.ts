@@ -219,8 +219,8 @@ describe("Lane 5 E2E -- /api/pulse/snapshot (auth on)", () => {
     expect(res.status).toBe(200)
   })
 
-  test("auth perimeter: ?token= query param authorizes (SSE / browser EventSource path)", async () => {
-    const res = await fetch(h().withToken("/api/pulse/snapshot"))
+  test("auth perimeter: browser session cookie authorizes", async () => {
+    const res = await fetch(`${h().baseUrl}/api/pulse/snapshot`, { headers: h().cookie() })
     expect(res.status).toBe(200)
   })
 

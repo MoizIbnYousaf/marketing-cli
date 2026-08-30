@@ -31,12 +31,12 @@ Ran 16 tests across 2 files. [639.00ms]
 
 Pattern mirrors `tests/e2e/security/harness.ts` (ironmint's Lane 1 reference). Critical properties:
 
-- Auth ENABLED: server boots without `MKTG_STUDIO_AUTH=disabled`. Token is read from disk via `MKTG_STUDIO_TOKEN_PATH=<tempDir>/studio-token` (length-validated >= 32 chars). Tests authorize via `Authorization: Bearer <token>` OR `?token=<token>` query param.
+- Auth ENABLED: server boots without `MKTG_STUDIO_AUTH=disabled`. Token is read from disk via `MKTG_STUDIO_TOKEN_PATH=<tempDir>/studio-token` (length-validated >= 32 chars). Tests authorize via `Authorization: Bearer <token>` or an HttpOnly-style session cookie.
 - Per-suite ports: `snapshot=38301`, `staleSections=38302`, `playwright=38303`. No clashes with other E2E suites in the repo.
 - Per-suite temp dir: `mkdtemp(...mktg-pulse-e2e-...)` cleaned by `teardown()`.
 - DB at `<tempDir>/studio.sqlite`; brand seed at `<tempDir>/brand/*.md` (10 canonical files); `MKTG_PROJECT_ROOT` + `MKTG_BRAND_DIR` pointed at the temp dir so the running server stays inside the harness.
 - `harness.seed({ reset: true })` spawns `bun run scripts/seed-pulse-series.ts --db <dbPath> --reset`. Status non-zero throws.
-- `harness.fetchAuthed(path, init)` always sends the bearer header. Helpers `withToken(path)` and `bearer()` cover the two auth paths the production launcher exercises.
+- `harness.fetchAuthed(path, init)` sends the bearer header. Helpers `cookie()` and `bearer()` cover browser-session and API-client auth paths.
 - Auto-runs the funnel seeder once at boot unless `skipFunnelSeed: true` is passed (used by `staleSections.test.ts` so each test composes its own seed).
 
 ## snapshot.test.ts (11 tests)
@@ -45,7 +45,7 @@ Pattern mirrors `tests/e2e/security/harness.ts` (ironmint's Lane 1 reference). C
 |---|---|---|
 | 1 | auth perimeter: unauthed GET is rejected | Plain `fetch(.../api/pulse/snapshot)` returns 401 |
 | 2 | auth perimeter: bearer header authorizes | Returns 200 with the harness token |
-| 3 | auth perimeter: `?token=` query param authorizes (SSE / EventSource path) | Returns 200 |
+| 3 | auth perimeter: browser session cookie authorizes | Returns 200 |
 | 4 | [state 1] empty DB returns canonical envelope | Full-shape pass, all funnel zeros, `staleSections: []` |
 | 5 | [state 2] single-day seed -- today at series[6] | `series[6] === 1` for every funnel node |
 | 6 | [state 3] 14-day flat seed -- both windows equal | `deltaPct === 0` for every node |

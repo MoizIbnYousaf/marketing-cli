@@ -36,6 +36,7 @@ import { flagValue } from "../core/args";
 import { missingDep } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green } from "../core/output";
 import { getPackageRoot } from "../core/paths";
+import { childProcessEnv } from "../core/studio-child-env";
 
 const STUDIO_BIN = "mktg-studio";
 const DEFAULT_STUDIO_PORT = "3001";
@@ -217,6 +218,7 @@ const probeVersion = async (binary: string): Promise<string> => {
   try {
     const proc = spawnChild(cmd[0]!, cmd.slice(1), {
       stdio: ["ignore", "pipe", "pipe"],
+      env: childProcessEnv(),
     });
     let stdout = "";
     proc.stdout?.setEncoding("utf8");
@@ -361,7 +363,7 @@ export const handler: CommandHandler<StudioLaunchPreview> = async (args, flags) 
   const child = spawnChild(childCmd[0]!, childCmd.slice(1), {
     stdio: "inherit",
     env: {
-      ...(process.env as Record<string, string>),
+      ...childProcessEnv(),
       MKTG_CLI_ROOT: getPackageRoot(),
       MKTG_PROJECT_ROOT: process.env.MKTG_PROJECT_ROOT ?? flags.cwd,
     },

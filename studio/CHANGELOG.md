@@ -86,7 +86,7 @@ First public launch alongside `marketing-cli@0.3.0`. Full audit-surface shipped;
 
 ### Added
 
-- **Onboarding wizard** (5 steps) with three parallel foundation agents. Post-A17 the wizard blocks advance on silent `/api/init` failure and times out the SSE connect at 15 s with a Retry / Skip fallback.
+- **Onboarding wizard** (5 steps) with three parallel brand-file initialization lanes. Post-A17 the wizard blocks advance on silent `/api/init` failure and times out the SSE connect at 15 s with a Retry / Skip fallback.
 - **Launch-era workspace tabs**: Pulse, Trends, Signals, Audience, Opportunities, Publish, Brand. Each with SWR-backed data + SSE live updates. Current navigation is smaller; see the Unreleased section.
 - **Activity panel** streaming every /cmo action in real time over `/api/events`.
 - **Brand editor** (markdown): file list + editor + diff-before-clobber merge UI (A13). Atomic writes via `/api/brand/write` with optimistic mtime locks + 409 CONFLICT + structured fix suggestions.

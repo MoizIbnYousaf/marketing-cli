@@ -18,11 +18,12 @@
 //   * ISO timestamp uses a filename-safe format (no colons). Easy to
 //     sort lexicographically in a directory listing.
 
-import { cp, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
+import { cp, lstat, mkdir, readdir, realpath, rename, rm, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, isAbsolute, join, relative } from "node:path";
 import { randomUUID } from "node:crypto";
 import { brandRoot } from "./brand-files.ts";
+import { scaffoldBrand } from "../../src/core/brand.ts";
 
 export type BrandBackupResult =
   | {
@@ -37,6 +38,17 @@ export type BrandBackupResult =
   | { ok: false; error: string };
 
 const BACKUP_ROOT = ".mktg/brand-backups";
+
+async function rejectSymlinks(root: string): Promise<void> {
+  const rootInfo = await lstat(root);
+  if (rootInfo.isSymbolicLink()) throw new Error(`Refusing symbolic link: ${root}`);
+  if (!rootInfo.isDirectory()) return;
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    if (entry.isSymbolicLink()) throw new Error(`Refusing symbolic link: ${path}`);
+    if (entry.isDirectory()) await rejectSymlinks(path);
+  }
+}
 
 /** ISO timestamp sanitized for use in filenames. */
 function backupTimestamp(now = new Date()): string {
@@ -91,9 +103,26 @@ export async function backupBrandDir(
     return { ok: true, skipped: true, reason: "brand/ is empty" };
   }
 
+  try {
+    await rejectSymlinks(brandDir);
+  } catch (e) {
+    return {
+      ok: false,
+      error: `Brand backup contains an unsafe symlink: ${e instanceof Error ? e.message : String(e)}`,
+    };
+  }
+
   const backupDir = join(projectRoot, BACKUP_ROOT);
   try {
     await mkdir(backupDir, { recursive: true });
+    const [canonicalProject, canonicalBackup] = await Promise.all([
+      realpath(projectRoot),
+      realpath(backupDir),
+    ]);
+    const backupRelative = relative(canonicalProject, canonicalBackup);
+    if (backupRelative.startsWith("..") || isAbsolute(backupRelative)) {
+      throw new Error(`${BACKUP_ROOT} resolves outside the project root`);
+    }
   } catch (e) {
     return {
       ok: false,
@@ -127,5 +156,48 @@ export async function backupBrandDir(
       ok: false,
       error: `Could not copy brand backup: ${e instanceof Error ? e.message : String(e)}`,
     };
+  }
+}
+
+export type BrandResetResult =
+  | { ok: true; filesReset: string[] }
+  | { ok: false; error: string };
+
+/** Replace brand/ with a freshly scaffolded directory, restoring on swap failure. */
+export async function resetBrandDir(
+  projectRoot: string = process.cwd(),
+): Promise<BrandResetResult> {
+  const brandDir = brandRoot(projectRoot);
+  const parent = dirname(brandDir);
+  const id = randomUUID();
+  const replacementRoot = join(parent, `.brand-reset-${id}.tmp`);
+  const previousPath = join(parent, `.brand-previous-${id}.tmp`);
+  let movedPrevious = false;
+
+  try {
+    await mkdir(parent, { recursive: true });
+    await scaffoldBrand(replacementRoot);
+    if (existsSync(brandDir)) {
+      await rename(brandDir, previousPath);
+      movedPrevious = true;
+    }
+    await rename(join(replacementRoot, "brand"), brandDir);
+    await rm(previousPath, { recursive: true, force: true });
+    movedPrevious = false;
+    const filesReset = await readdir(brandDir);
+    return { ok: true, filesReset: filesReset.sort() };
+  } catch (e) {
+    if (movedPrevious && !existsSync(brandDir)) {
+      await rename(previousPath, brandDir).catch(() => {});
+    }
+    return {
+      ok: false,
+      error: `Could not reset brand/: ${e instanceof Error ? e.message : String(e)}`,
+    };
+  } finally {
+    await rm(replacementRoot, { recursive: true, force: true }).catch(() => {});
+    if (!movedPrevious) {
+      await rm(previousPath, { recursive: true, force: true }).catch(() => {});
+    }
   }
 }

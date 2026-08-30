@@ -23,7 +23,7 @@ import { getDb, closeDb, queryAll, execute } from "./lib/sqlite.ts";
 import { globalEmitter, getJobEmitter } from "./lib/sse.ts";
 import { startBrandWatcher, startContentWatcher, stopBrandWatcher, stopContentWatcher } from "./lib/watcher.ts";
 import { startZombieSweeper } from "./lib/sweep.ts";
-import { backupBrandDir } from "./lib/brand-backup.ts";
+import { backupBrandDir, resetBrandDir } from "./lib/brand-backup.ts";
 import { childProcessEnv } from "./lib/child-env.ts";
 import { resolveMktgCommand } from "./lib/mktg-command.ts";
 import { createJob, runJob, getJob, listJobs } from "./lib/jobs.ts";
@@ -37,6 +37,7 @@ import {
   checkAuth,
   getOrCreateStudioToken,
   studioTokenPath,
+  studioSessionCookie,
   authIsDisabled,
 } from "./lib/auth.ts";
 import { basename, join } from "node:path";
@@ -62,7 +63,6 @@ import { wrapRoute, checkRateLimit } from "./lib/dx.ts";
 import {
   startFoundation,
   FOUNDATION_LANES,
-  LANE_TO_FILE,
 } from "./lib/foundation.ts";
 import {
   registerRouteSchema,
@@ -521,7 +521,7 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/project/current",         description: "Active local marketing project identity, launch context, and health" },
   { method: "GET",  path: "/api/schema",                  description: "Runtime route schema for agent self-discovery", params: ["route"] },
   { method: "GET",  path: "/api/help",                    description: "Agent cheat-sheet: envelopes, error codes, query params, entry points" },
-  { method: "GET",  path: "/api/auth/bootstrap",           description: "Localhost-only token bootstrap. Returns the studio bearer token so the dashboard can populate localStorage on a direct-nav (no launcher) cold start. Host allowlist + CORS still block remote and cross-origin reads.", errors: [] },
+  { method: "GET",  path: "/api/auth/bootstrap",           description: "Localhost-only browser bootstrap. Establishes an HttpOnly, same-site Studio session without exposing the bearer token to JavaScript.", errors: [] },
 
   // HQ legacy signal endpoints
   { method: "GET",  path: "/api/pulse/decision-feed",     description: "Decision feed cards (brand status + next action)", params: ["groupId"] },
@@ -982,15 +982,10 @@ const server = Bun.serve({
     }
 
     // -----------------------------------------------------------------------
-    // GET /api/auth/bootstrap -- localhost-only token handoff for the
-    // dashboard. The launcher (`mktg studio`) opens the dashboard at
-    // `?token=...` for first nav; that path is the production case. Direct
-    // dev nav (`bun run dev:all`) bypasses the launcher, so the dashboard
-    // has no token to inject. This endpoint returns the token if and only
-    // if the Host header allowlist passes (enforced by checkAuth above).
-    // CORS still blocks cross-origin reads. Anyone on localhost who can
-    // hit this URL can already `cat ~/.mktg/.runtime/studio-token`, so
-    // there is no marginal exposure increase.
+    // GET /api/auth/bootstrap -- localhost-only browser session bootstrap.
+    // The bearer remains server-side; the browser receives only an HttpOnly,
+    // same-site session cookie, so neither JavaScript nor navigation URLs
+    // contain the credential.
     //
     // SECURITY: this endpoint is safe ONLY because Bun.serve binds
     // 127.0.0.1 (see `hostname: "127.0.0.1"` in the Bun.serve config
@@ -998,11 +993,18 @@ const server = Bun.serve({
     // check (lib/auth.ts::checkAuth). If Studio is ever made
     // network-accessible (binding to 0.0.0.0, exposed via tunnel, or
     // running behind a reverse proxy that strips the Host check), this
-    // endpoint MUST be removed from PUBLIC_PATHS and re-gated. Without
-    // those two guarantees, this is a token-disclosure leak.
+    // endpoint MUST be removed from PUBLIC_PATHS and re-gated.
     // -----------------------------------------------------------------------
     if (method === "GET" && url.pathname === "/api/auth/bootstrap") {
-      return json({ ok: true, data: { token: STUDIO_TOKEN } }, 200, corsHeaders);
+      return json(
+        { ok: true, data: { authenticated: true } },
+        200,
+        {
+          ...corsHeaders,
+          "Cache-Control": "no-store",
+          "Set-Cookie": studioSessionCookie(STUDIO_TOKEN),
+        },
+      );
     }
 
     // -----------------------------------------------------------------------
@@ -1056,10 +1058,8 @@ const server = Bun.serve({
     //
     // Auth: GETs go through the same perimeter as every other private
     // route -- the auth gate at the top of `fetch()` enforces (1) the
-    // Host header allowlist (DNS rebinding mitigation) and (2) the bearer
-    // token, accepted via `Authorization: Bearer` OR `?token=` (the SSE
-    // fallback that browsers also use when the dashboard reads the
-    // bootstrapped token from localStorage).
+    // Host header allowlist (DNS rebinding mitigation) and (2) either the
+    // API client's bearer header or the dashboard's HttpOnly session cookie.
     if (method === "GET" && url.pathname === "/api/pulse/snapshot") {
       const data = buildPulseSnapshot({ db: getDb(), projectRoot: STUDIO_CWD, recentMedia: [] });
       return respondObject(url, data, corsHeaders);
@@ -1509,7 +1509,7 @@ const server = Bun.serve({
       const job = getJob(jobId);
       if (!job) return err("Job not found", 404, corsHeaders);
       const emitter = getJobEmitter(jobId);
-      return emitter.subscribe(jobId);
+      return emitter.subscribe(jobId, corsHeaders);
     }
 
     const jobMatch = url.pathname.match(/^\/api\/jobs\/([^/]+)$/);
@@ -1732,28 +1732,17 @@ const server = Bun.serve({
         );
       }
 
-      // Re-run mktg init --skip-skills --skip-agents --yes which recreates
-      // brand/ from templates. Existing files are overwritten.
-      try {
-        const proc = Bun.spawn(
-          resolveMktgCommand(["init", "--yes", "--skip-skills", "--skip-agents", "--json"]),
-          { cwd: STUDIO_CWD, stdout: "pipe", stderr: "pipe", env: childProcessEnv() },
-        );
-        const stderr = await new Response(proc.stderr).text();
-        const exitCode = await proc.exited;
-        if (exitCode !== 0) {
-          return err(stderr.trim() || `mktg init exited ${exitCode}`, 502, corsHeaders, "Run `mktg doctor` to diagnose");
-        }
-      } catch (e) {
+      const reset = await resetBrandDir(STUDIO_CWD);
+      if (!reset.ok) {
         return err(
-          e instanceof Error ? e.message : "spawn failed",
+          reset.error,
           502,
           corsHeaders,
-          "Ensure marketing-cli is installed: npm i -g marketing-cli",
+          "Brand files were backed up but could not be reset. Restore from the reported backup if needed.",
         );
       }
 
-      const files = Object.values(LANE_TO_FILE);
+      const files = reset.filesReset;
       for (const f of files) {
         globalEmitter.publish("*", { type: "brand-file-changed", payload: { file: f } });
       }

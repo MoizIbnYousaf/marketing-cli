@@ -36,7 +36,7 @@ describe("malformed Authorization headers -- still safe", () => {
 
   test("FAILURE: non-Bearer scheme (Basic) is treated as missing token", async () => {
     // Basic auth header: middleware does not match the bearer prefix, so it
-    // falls through to ?token= which is absent -> 401.
+    // falls through to the session cookie, which is absent -> 401.
     const r = await fetch(`${h.baseUrl}/api/skills`, {
       headers: { Authorization: "Basic dXNlcjpwYXNz" },
     });

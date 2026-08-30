@@ -245,7 +245,7 @@ export function Palette({ open, onClose }: PaletteProps) {
               className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
             >
               <Command.Item
-                value="refresh brand brand files"
+                value="check brand brand files"
                 onSelect={async () => {
                   onClose()
                   await studioJsonPost("/api/brand/refresh")
@@ -256,7 +256,7 @@ export function Palette({ open, onClose }: PaletteProps) {
                 )}
               >
                 <RefreshCw className="size-4 text-muted-foreground shrink-0" />
-                Refresh brand
+                Check brand files
               </Command.Item>
 
               <Command.Item

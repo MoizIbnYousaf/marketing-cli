@@ -32,8 +32,8 @@ export interface SecurityHarness {
   readonly proc: Subprocess;
   /** Teardown: kill server, remove temp dir + token file. Idempotent. */
   teardown(): Promise<void>;
-  /** Helper: build full URL including ?token=. */
-  withToken(path: string): string;
+  /** HttpOnly browser-session cookie value for direct fetch assertions. */
+  cookie(): { Cookie: string };
   /** Helper: bearer headers. */
   bearer(): { Authorization: string };
 }
@@ -142,10 +142,7 @@ export async function startSecurityServer(options: HarnessOptions): Promise<Secu
     tempDir,
     proc,
     teardown,
-    withToken: (path: string) => {
-      const sep = path.includes("?") ? "&" : "?";
-      return `${baseUrl}${path}${sep}token=${encodeURIComponent(token)}`;
-    },
+    cookie: () => ({ Cookie: `mktg_studio_session=${encodeURIComponent(token)}` }),
     bearer: () => ({ Authorization: `Bearer ${token}` }),
   };
 }
