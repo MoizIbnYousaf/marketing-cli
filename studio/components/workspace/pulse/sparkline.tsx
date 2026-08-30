@@ -5,11 +5,6 @@
 // shape of components/workspace/signals/metric-chip.tsx::MiniSparkline but
 // renders larger and exposes a `tone` so the four funnel nodes can color-code.
 //
-// When stardust ships ui/sparkline.tsx as a primitive, swap imports and
-// delete this file. Recharts is gated behind nightowl's optimizePackageImports
-// list, so this component can land on the home page without bundle regression.
-
-import { Area, AreaChart, ResponsiveContainer } from "recharts"
 import type { PulseSeries, PulseActionTone } from "@/lib/types/pulse"
 import { cn } from "@/lib/utils"
 
@@ -32,28 +27,33 @@ export function PulseSparkline({
   const data = series.map((value, i) => ({ i, value }))
   const stroke = TONE_STROKE[tone]
   const gradientId = `pulse-spark-${tone}`
+  const min = Math.min(...series)
+  const max = Math.max(...series)
+  const range = Math.max(max - min, 1)
+  const points = data.map(({ i, value }) => ({
+    x: 2 + (i / Math.max(data.length - 1, 1)) * 116,
+    y: 36 - ((value - min) / range) * 32,
+  }))
+  const linePath = points.map(({ x, y }, index) => `${index === 0 ? "M" : "L"}${x} ${y}`).join(" ")
+  const areaPath = `${linePath} L118 38 L2 38 Z`
 
   return (
     <div className={cn("h-10 w-full min-w-[80px]", className)}>
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={stroke} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={stroke} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={stroke}
-            strokeWidth={1.6}
-            fill={`url(#${gradientId})`}
-            dot={false}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      <svg
+        aria-hidden="true"
+        className="h-full w-full overflow-visible"
+        preserveAspectRatio="none"
+        viewBox="0 0 120 40"
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={stroke} stopOpacity={0.35} />
+            <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill={`url(#${gradientId})`} />
+        <path d={linePath} fill="none" stroke={stroke} strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
+      </svg>
     </div>
   )
 }

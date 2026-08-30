@@ -13,7 +13,7 @@
 // What this file proves end-to-end through a real browser:
 //   1. /dashboard?tab=pulse mounts, hero chip renders
 //   2. The 4 funnel nodes' labels appear (SIGNALS / BRIEFS / DRAFTS / PUBLISHES)
-//   3. Recharts sparklines paint (one <linearGradient> per tone)
+//   3. Native SVG sparklines paint (one <linearGradient> per tone)
 //   4. Delta pills show "+\\d+%" because the seeder produces positive deltas
 //   5. Bottom strip headings render (Brand health / Recent media / Recent publishes)
 //   6. SSE invalidation: POST /api/activity/log -> page re-fetches /api/pulse/snapshot
