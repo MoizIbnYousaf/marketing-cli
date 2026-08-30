@@ -11,15 +11,19 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { studioAuthHeaders, withStudioToken } from "@/lib/studio-token"
+import type {
+  FoundationCompletePayload,
+  FoundationLane,
+  FoundationProgressPayload,
+} from "@/lib/foundation"
 
 type LaneStatus = "pending" | "queued" | "running" | "done" | "error"
 
-type AgentKey = "brand-researcher" | "audience-researcher" | "competitive-scanner"
 type LaneId = "brand" | "audience" | "competitors"
 
 interface Lane {
   id: LaneId
-  agentKey: AgentKey
   label: string
   icon: string
   file: string
@@ -27,19 +31,6 @@ interface Lane {
   detail?: string
   errorMessage?: string
   filesChanged?: string[]
-}
-
-interface FoundationProgressPayload {
-  agent: string
-  status: "queued" | "running" | "complete" | "failed"
-  filesChanged?: string[]
-  error?: string
-}
-
-interface FoundationCompletePayload {
-  durationMs?: number
-  successes?: number
-  failures?: number
 }
 
 interface EventEnvelope {
@@ -59,7 +50,6 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_STUDIO_DEMO === "1"
 const INITIAL_LANES: Lane[] = [
   {
     id: "brand",
-    agentKey: "brand-researcher",
     label: "Brand voice",
     icon: "🧠",
     file: "brand/voice-profile.md",
@@ -67,7 +57,6 @@ const INITIAL_LANES: Lane[] = [
   },
   {
     id: "audience",
-    agentKey: "audience-researcher",
     label: "Audience",
     icon: "👥",
     file: "brand/audience.md",
@@ -75,7 +64,6 @@ const INITIAL_LANES: Lane[] = [
   },
   {
     id: "competitors",
-    agentKey: "competitive-scanner",
     label: "Competitors",
     icon: "🥊",
     file: "brand/competitors.md",
@@ -83,20 +71,11 @@ const INITIAL_LANES: Lane[] = [
   },
 ]
 
-function agentToLaneId(agent: string): LaneId | null {
-  if (!agent) return null
-  const a = agent.toLowerCase()
-  if (a.includes("brand")) return "brand"
-  if (a.includes("audience")) return "audience"
-  if (a.includes("competitive") || a.includes("competitor")) return "competitors"
-  return null
-}
-
 function statusLabel(status: LaneStatus): string {
   switch (status) {
     case "pending": return "Waiting"
     case "queued": return "Queued"
-    case "running": return "Researching…"
+    case "running": return "Initializing…"
     case "done": return "Complete"
     case "error": return "Failed"
   }
@@ -183,16 +162,15 @@ export function StepBuilding({ onDone }: Props) {
   const demoTimersRef = useRef<number[]>([])
 
   const applyProgress = useCallback((payload: FoundationProgressPayload) => {
-    const laneId = agentToLaneId(payload.agent)
-    if (!laneId) return
+    const laneId: FoundationLane = payload.lane
     setLanes((prev) =>
       prev.map((l) => {
         if (l.id !== laneId) return l
         if (payload.status === "queued") {
-          return { ...l, status: "queued", detail: "Queued for /cmo" }
+          return { ...l, status: "queued", detail: "Queued for initialization" }
         }
         if (payload.status === "running") {
-          return { ...l, status: "running", detail: "Researching with /cmo…" }
+          return { ...l, status: "running", detail: "Writing initial brand file…" }
         }
         if (payload.status === "complete") {
           return {
@@ -207,7 +185,7 @@ export function StepBuilding({ onDone }: Props) {
           return {
             ...l,
             status: "error",
-            errorMessage: payload.error ?? "Agent failed without an error message.",
+            errorMessage: payload.error ?? "Initialization failed without an error message.",
           }
         }
         return l
@@ -218,16 +196,16 @@ export function StepBuilding({ onDone }: Props) {
   const runDemoStream = useCallback(() => {
     // Simulate the server event shape locally for UI preview.
     const stages: Array<{ delay: number; event: EventEnvelope }> = [
-      { delay: 250, event: { type: "foundation:progress", payload: { agent: "mktg-brand-researcher", status: "queued" } } },
-      { delay: 400, event: { type: "foundation:progress", payload: { agent: "mktg-audience-researcher", status: "queued" } } },
-      { delay: 550, event: { type: "foundation:progress", payload: { agent: "mktg-competitive-scanner", status: "queued" } } },
-      { delay: 900, event: { type: "foundation:progress", payload: { agent: "mktg-brand-researcher", status: "running" } } },
-      { delay: 1100, event: { type: "foundation:progress", payload: { agent: "mktg-audience-researcher", status: "running" } } },
-      { delay: 1400, event: { type: "foundation:progress", payload: { agent: "mktg-competitive-scanner", status: "running" } } },
-      { delay: 2200, event: { type: "foundation:progress", payload: { agent: "mktg-brand-researcher", status: "complete", filesChanged: ["brand/voice-profile.md"] } } },
-      { delay: 2600, event: { type: "foundation:progress", payload: { agent: "mktg-audience-researcher", status: "complete", filesChanged: ["brand/audience.md"] } } },
-      { delay: 3100, event: { type: "foundation:progress", payload: { agent: "mktg-competitive-scanner", status: "complete", filesChanged: ["brand/competitors.md"] } } },
-      { delay: 3300, event: { type: "foundation:complete", payload: { durationMs: 3050, successes: 3, failures: 0 } } },
+      { delay: 250, event: { type: "foundation:progress", payload: { lane: "brand", status: "queued" } } },
+      { delay: 400, event: { type: "foundation:progress", payload: { lane: "audience", status: "queued" } } },
+      { delay: 550, event: { type: "foundation:progress", payload: { lane: "competitors", status: "queued" } } },
+      { delay: 900, event: { type: "foundation:progress", payload: { lane: "brand", status: "running" } } },
+      { delay: 1100, event: { type: "foundation:progress", payload: { lane: "audience", status: "running" } } },
+      { delay: 1400, event: { type: "foundation:progress", payload: { lane: "competitors", status: "running" } } },
+      { delay: 2200, event: { type: "foundation:progress", payload: { lane: "brand", status: "complete", filesChanged: ["brand/voice-profile.md"] } } },
+      { delay: 2600, event: { type: "foundation:progress", payload: { lane: "audience", status: "complete", filesChanged: ["brand/audience.md"] } } },
+      { delay: 3100, event: { type: "foundation:progress", payload: { lane: "competitors", status: "complete", filesChanged: ["brand/competitors.md"] } } },
+      { delay: 3300, event: { type: "foundation:complete", payload: { durationMs: 3050, success: true, lanes: [] } } },
     ]
     for (const s of stages) {
       const id = window.setTimeout(() => handleEnvelope(s.event), s.delay)
@@ -244,13 +222,7 @@ export function StepBuilding({ onDone }: Props) {
       }
       if (envelope.type === "foundation:complete") {
         const payload = (envelope.payload ?? {}) as FoundationCompletePayload
-        setLanes((prev) => {
-          const anyFailed = prev.some((l) => l.status === "error")
-          if (!anyFailed && (payload.failures ?? 0) === 0) {
-            window.setTimeout(onDone, 600)
-          }
-          return prev
-        })
+        if (payload.success === true) window.setTimeout(onDone, 600)
       }
     },
     [applyProgress, onDone],
@@ -267,9 +239,12 @@ export function StepBuilding({ onDone }: Props) {
     }
 
     try {
-      const res = await fetch(`${STUDIO_API_BASE}/api/onboarding/foundation`, { method: "POST" })
+      const res = await fetch(`${STUDIO_API_BASE}/api/onboarding/foundation`, {
+        method: "POST",
+        headers: studioAuthHeaders(),
+      })
       if (!res.ok) {
-        setError(`Couldn't start foundation agents (HTTP ${res.status}). Retry or check the server.`)
+        setError(`Couldn't initialize brand files (HTTP ${res.status}). Retry or check the server.`)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Server unreachable. Retry or check that the studio server is running on :3001.")
@@ -287,7 +262,7 @@ export function StepBuilding({ onDone }: Props) {
 
     start()
 
-    const es = new EventSource(`${STUDIO_API_BASE}/api/events`)
+    const es = new EventSource(withStudioToken(`${STUDIO_API_BASE}/api/events`))
     esRef.current = es
 
     // A17 / H1-02: if onopen never fires, the wizard previously sat on
@@ -371,8 +346,8 @@ export function StepBuilding({ onDone }: Props) {
           Writing your brand files…
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Three research agents are running in parallel. Each writes a brand
-          file to disk. This takes 60 to 90 seconds.
+          Studio is initializing three brand files from your project URL or
+          bundled templates. Run /cmo afterward for full agent research.
         </p>
       </div>
 
@@ -445,8 +420,8 @@ export function StepBuilding({ onDone }: Props) {
           {error && <p className="text-xs text-destructive">{error}</p>}
           {anyFailed && !error && (
             <p className="text-xs text-destructive">
-              One or more agents failed. You can retry, or continue and re-run them later from the
-              dashboard.
+              One or more files failed to initialize. You can retry, or continue and refresh later
+              from the dashboard.
             </p>
           )}
           <div className="flex items-center gap-2">

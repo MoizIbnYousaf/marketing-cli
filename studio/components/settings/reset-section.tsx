@@ -119,8 +119,8 @@ export function ResetSection() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">Re-run onboarding</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Walk through the wizard again to re-enter keys and spawn the 3 foundation research
-              agents. Brand files are kept.
+              Walk through the wizard again to re-enter keys and initialize the 3 foundation files.
+              Existing brand files are kept.
             </p>
           </div>
           <Button onClick={reRunOnboarding} size="sm" variant="outline" className="gap-2">

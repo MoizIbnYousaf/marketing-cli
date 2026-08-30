@@ -12,7 +12,7 @@
 // Uses a fresh tmp dir per test so the suite is hermetic.
 
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile, readdir } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -41,7 +41,7 @@ async function seedBrand(names: string[]): Promise<void> {
 }
 
 describe("backupBrandDir", () => {
-  test("writes a .zip under .mktg/brand-backups/ and reports metadata", async () => {
+  test("writes an atomic directory backup under .mktg/brand-backups/ and reports metadata", async () => {
     await seedBrand(["voice-profile.md", "audience.md", "learnings.md"]);
 
     const r = await backupBrandDir(tmp);
@@ -52,7 +52,7 @@ describe("backupBrandDir", () => {
     expect(r.fileCount).toBe(3);
     expect(r.sizeBytes).toBeGreaterThan(0);
     expect(r.backupPath).toMatch(
-      /\.mktg\/brand-backups\/brand-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.zip$/,
+      /\.mktg\/brand-backups\/brand-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/,
     );
     expect(existsSync(r.backupPath)).toBe(true);
     expect(r.backupRelativePath.startsWith(".mktg/brand-backups/")).toBe(true);
@@ -60,25 +60,24 @@ describe("backupBrandDir", () => {
     // Directory has exactly one file (the backup we just wrote).
     const dir = await readdir(join(tmp, ".mktg", "brand-backups"));
     expect(dir.length).toBe(1);
-    expect(dir[0]).toMatch(/^brand-.*\.zip$/);
+    expect(dir[0]).toMatch(/^brand-/);
   });
 
-  test("produces a backup that `unzip -l` can list with the original file names", async () => {
+  test("produces a directly recoverable copy without requiring zip on PATH", async () => {
     await seedBrand(["voice-profile.md", "audience.md"]);
-    const r = await backupBrandDir(tmp);
-    if (!r.ok || r.skipped) throw new Error("expected non-skipped success");
-
-    // Shell out to `unzip -l` (macOS + Linux standard) to prove the
-    // archive is legit, not just a file we named .zip.
-    const proc = Bun.spawn(["unzip", "-l", r.backupPath], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
-    const out = await new Response(proc.stdout).text();
-    const exit = await proc.exited;
-    expect(exit).toBe(0);
-    expect(out).toContain("brand/voice-profile.md");
-    expect(out).toContain("brand/audience.md");
+    const originalPath = process.env.PATH;
+    process.env.PATH = "";
+    try {
+      const r = await backupBrandDir(tmp);
+      if (!r.ok || r.skipped) throw new Error("expected non-skipped success");
+      expect(await readFile(join(r.backupPath, "brand", "voice-profile.md"), "utf8"))
+        .toContain("Sample content for voice-profile.md");
+      expect(await readFile(join(r.backupPath, "brand", "audience.md"), "utf8"))
+        .toContain("Sample content for audience.md");
+    } finally {
+      if (originalPath === undefined) delete process.env.PATH;
+      else process.env.PATH = originalPath;
+    }
   });
 
   test("returns skipped when brand/ does not exist (first-time reset)", async () => {
@@ -117,15 +116,8 @@ describe("backupBrandDir", () => {
       if (!r.ok || r.skipped) throw new Error("expected non-skipped success");
       expect(r.fileCount).toBe(1);
 
-      // Archive should list the remote brand dir's basename, not
-      // projectRoot/brand which doesn't even exist in this test.
-      const proc = Bun.spawn(["unzip", "-l", r.backupPath], {
-        stdout: "pipe",
-        stderr: "pipe",
-      });
-      const out = await new Response(proc.stdout).text();
-      await proc.exited;
-      expect(out).toContain("voice-profile.md");
+      expect(await readFile(join(r.backupPath, "brand", "voice-profile.md"), "utf8"))
+        .toContain("voice from temp");
     } finally {
       if (originalEnv === undefined) delete process.env.MKTG_BRAND_DIR;
       else process.env.MKTG_BRAND_DIR = originalEnv;

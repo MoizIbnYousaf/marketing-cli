@@ -2,14 +2,14 @@
 //
 // H1-110 / A15 ship blocker: `POST /api/brand/reset?confirm=true` wiped
 // every file in brand/ with no export, no undo window. Months of
-// learnings.md gone on one click. Fix: before reset, zip brand/ to
-// `.mktg/brand-backups/brand-<iso>.zip` and return the path in the
+// learnings.md gone on one click. Fix: before reset, atomically copy brand/
+// to `.mktg/brand-backups/brand-<iso>/brand/` and return the path in the
 // success response so users (and /cmo) can see the recovery artifact.
 //
 // Implementation notes:
-//   * Uses the system `zip` binary (macOS ships it; Linux too; Windows
-//     via Git Bash / WSL). Bun has no built-in zip and pulling in a
-//     deflate dep for one backup path is overkill.
+//   * Uses Node's filesystem API only. No `zip`/`tar` executable is assumed.
+//   * Copies to a temporary sibling then renames, so failed copies never
+//     leave a final-looking partial backup.
 //   * Writes under `.mktg/brand-backups/` -- already .gitignored via
 //     the `.mktg/` entry.
 //   * If brand/ is missing or empty, returns `{ skipped: true, ... }`
@@ -18,9 +18,10 @@
 //   * ISO timestamp uses a filename-safe format (no colons). Easy to
 //     sort lexicographically in a directory listing.
 
-import { mkdir, readdir } from "node:fs/promises";
+import { cp, mkdir, readdir, rename, rm, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { brandRoot } from "./brand-files.ts";
 
 export type BrandBackupResult =
@@ -39,11 +40,28 @@ const BACKUP_ROOT = ".mktg/brand-backups";
 
 /** ISO timestamp sanitized for use in filenames. */
 function backupTimestamp(now = new Date()): string {
-  return now.toISOString().replace(/:/g, "-").replace(/\..+$/, "");
+  return now.toISOString().replace(/[:.]/g, "-");
+}
+
+async function backupStats(root: string): Promise<{ fileCount: number; sizeBytes: number }> {
+  let fileCount = 0;
+  let sizeBytes = 0;
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) {
+      const nested = await backupStats(path);
+      fileCount += nested.fileCount;
+      sizeBytes += nested.sizeBytes;
+    } else {
+      fileCount += 1;
+      sizeBytes += (await stat(path)).size;
+    }
+  }
+  return { fileCount, sizeBytes };
 }
 
 /**
- * Zip a brand/ directory to `.mktg/brand-backups/brand-<iso>.zip` inside
+ * Copy a brand/ directory to `.mktg/brand-backups/brand-<iso>/brand` inside
  * `projectRoot`. Returns metadata about the artifact + a relative path
  * the UI can display.
  *
@@ -82,45 +100,32 @@ export async function backupBrandDir(
       error: `Could not create ${BACKUP_ROOT}: ${e instanceof Error ? e.message : String(e)}`,
     };
   }
-  const filename = `brand-${backupTimestamp()}.zip`;
+  const filename = `brand-${backupTimestamp()}`;
   const absPath = join(backupDir, filename);
   const relPath = join(BACKUP_ROOT, filename);
+  const temporaryPath = join(backupDir, `.${filename}.${randomUUID()}.tmp`);
 
-  // `zip -r -q <out> <name>` -- the -q silences stdout; we only want the
-  // exit code. Run from the brand dir's PARENT so the archive uses the
-  // brand dir's basename as the entry prefix (`brand/<name>` typically,
-  // or whatever the tail of MKTG_BRAND_DIR is when the test harness
-  // redirects us).
-  const zipCwd = dirname(brandDir);
-  const zipEntry = basename(brandDir);
-  const proc = Bun.spawn(["zip", "-r", "-q", absPath, zipEntry], {
-    cwd: zipCwd,
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const stderr = await new Response(proc.stderr).text();
-  const exitCode = await proc.exited;
-  if (exitCode !== 0) {
+  try {
+    await mkdir(temporaryPath);
+    await cp(brandDir, join(temporaryPath, "brand"), {
+      recursive: true,
+      force: false,
+      errorOnExist: true,
+    });
+    const metadata = await backupStats(join(temporaryPath, "brand"));
+    await rename(temporaryPath, absPath);
+    return {
+      ok: true,
+      skipped: false,
+      backupPath: absPath,
+      backupRelativePath: relPath,
+      ...metadata,
+    };
+  } catch (e) {
+    await rm(temporaryPath, { recursive: true, force: true }).catch(() => {});
     return {
       ok: false,
-      error: `zip exited ${exitCode}${stderr.trim() ? `: ${stderr.trim()}` : ""}`,
+      error: `Could not copy brand backup: ${e instanceof Error ? e.message : String(e)}`,
     };
   }
-
-  let sizeBytes = 0;
-  try {
-    const stat = await Bun.file(absPath).size;
-    sizeBytes = stat;
-  } catch {
-    // non-fatal
-  }
-
-  return {
-    ok: true,
-    skipped: false,
-    backupPath: absPath,
-    backupRelativePath: relPath,
-    fileCount: entries.length,
-    sizeBytes,
-  };
 }

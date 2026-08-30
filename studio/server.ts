@@ -60,8 +60,8 @@ import {
 import { wrapRoute, checkRateLimit } from "./lib/dx.ts";
 import {
   startFoundation,
-  FOUNDATION_AGENTS,
-  AGENT_TO_FILE,
+  FOUNDATION_LANES,
+  LANE_TO_FILE,
 } from "./lib/foundation.ts";
 import {
   registerRouteSchema,
@@ -582,9 +582,9 @@ const ROUTE_SCHEMA = [
   { method: "POST", path: "/api/init",                    description: "Initialize mktg project (mktg init)", body: { from: "string?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
   { method: "POST", path: "/api/settings/env",            description: "Write API keys to .env.local. Destructive — requires ?confirm=true", body: { "[key]": "string" }, dryRun: true, confirm: true, errors: ["BAD_INPUT", "CONFIRM_REQUIRED", "RATE_LIMITED"] },
   { method: "GET",  path: "/api/settings/env/status",     description: "Per-key set/unset map for known env vars (NEVER returns values)", params: ["fields"], errors: [] },
-  { method: "POST", path: "/api/onboarding/foundation",   description: "Spawn 3 foundation research agents in parallel; emits foundation:progress + foundation:complete SSE events", body: { from: "string?", seed: "boolean?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
-  { method: "GET",  path: "/api/onboarding/stream",       description: "SSE stream of foundation agent progress (filter on the global stream)" },
-  { method: "POST", path: "/api/brand/refresh",           description: "Re-run the foundation research skills (same plumbing as /api/onboarding/foundation)", body: { from: "string?", seed: "boolean?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
+  { method: "POST", path: "/api/onboarding/foundation",   description: "Initialize 3 foundation brand files; emits foundation:progress + foundation:complete SSE events", body: { from: "string?", seed: "boolean?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
+  { method: "GET",  path: "/api/onboarding/stream",       description: "SSE stream of foundation initialization progress (filter on the global stream)" },
+  { method: "POST", path: "/api/brand/refresh",           description: "Refresh foundation brand files using the same initialization plumbing", body: { from: "string?", seed: "boolean?" }, dryRun: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
   { method: "POST", path: "/api/brand/reset",             description: "Wipe brand/ files back to templates. Destructive — requires ?confirm=true", body: {}, dryRun: true, confirm: true, errors: ["BAD_INPUT", "UPSTREAM_FAILED", "RATE_LIMITED"] },
 
   // Brand docs editor
@@ -1654,8 +1654,8 @@ const server = Bun.serve({
       return json({ ok: true, written: keyNames }, 200, corsHeaders);
     }
 
-    // POST /api/onboarding/foundation — real parallel runner.
-    // Spawns 3 research lanes via lib/foundation.ts; each emits foundation:progress
+    // POST /api/onboarding/foundation — brand-file initialization runner.
+    // Tracks 3 file lanes via lib/foundation.ts; each emits foundation:progress
     // and the runner emits foundation:complete on the global SSE channel.
     if (method === "POST" && url.pathname === "/api/onboarding/foundation") {
       const body = await parseBody(req, FOUNDATION_BODY);
@@ -1669,7 +1669,7 @@ const server = Bun.serve({
           ok: true,
           data: {
             jobIds: result.jobIds,
-            agents: FOUNDATION_AGENTS as readonly string[],
+            lanes: FOUNDATION_LANES,
             note: body.data.from
               ? "Scraping project URL via mktg init; subscribe to /api/events for foundation:* events"
               : "Seeding brand templates; run /cmo for full per-skill research",
@@ -1693,8 +1693,8 @@ const server = Bun.serve({
           ok: true,
           data: {
             jobIds: result.jobIds,
-            agents: FOUNDATION_AGENTS as readonly string[],
-            note: "Brand refresh queued; subscribe to /api/events for foundation:* events",
+            lanes: FOUNDATION_LANES,
+            note: "Brand-file refresh queued; subscribe to /api/events for foundation:* events",
           },
         },
         202,
@@ -1727,7 +1727,7 @@ const server = Bun.serve({
           `Backup failed: ${backup.error}`,
           502,
           corsHeaders,
-          "Brand files NOT reset. Verify `zip` is on PATH and `.mktg/` is writable, then retry.",
+          "Brand files NOT reset. Verify `.mktg/` is writable and has enough free space, then retry.",
         );
       }
 
@@ -1752,7 +1752,7 @@ const server = Bun.serve({
         );
       }
 
-      const files = Object.values(AGENT_TO_FILE);
+      const files = Object.values(LANE_TO_FILE);
       for (const f of files) {
         globalEmitter.publish("*", { type: "brand-file-changed", payload: { file: f } });
       }

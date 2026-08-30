@@ -127,7 +127,7 @@ const verbs: ReadonlyArray<{ name: string; run: (baseUrl: string, i: number) => 
   {
     name: "brand-refresh",
     run: async (baseUrl) => {
-      // dry-run so we don't actually enqueue foundation agents every cycle.
+      // dry-run so we don't enqueue foundation initialization every cycle.
       const res = await fetch(`${baseUrl}/api/brand/refresh?dryRun=true`, {
         method: "POST",
         headers: { "content-type": "application/json" },

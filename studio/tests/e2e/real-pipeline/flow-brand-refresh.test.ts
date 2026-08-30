@@ -11,9 +11,9 @@
 // What the flow is (from SUPPORT-RUNBOOK + docs/cmo-integration.md):
 //
 // 1. User clicks "Refresh voice" (or issues POST /api/brand/refresh)
-// 2. Server enqueues foundation agents, returns 202 + jobIds
-// 3. Foundation agents run (in production: spawned via /cmo), each
-// completion writes to brand/<file>.md via POST /api/brand/write
+// 2. Server enqueues foundation initialization lanes, returns 202 + jobIds
+// 3. Initialization writes or seeds each foundation brand file; later /cmo
+// research may replace it through POST /api/brand/write
 // 4. Atomic write inserts an activity row (kind='brand-write')
 // 5. Server broadcasts SSE events: 'activity-new' + 'brand-file-changed'
 // 6. File watcher independently confirms disk change -- double-event
@@ -126,7 +126,7 @@ describe("J1 brand-refresh flow", () => {
  // -------------------------------------------------------------------------
  // Step 2: real refresh returns 202 with structured envelope
  // -------------------------------------------------------------------------
- test("step 2: POST /api/brand/refresh returns 202 with agents list", async () => {
+ test("step 2: POST /api/brand/refresh returns 202 with initialization lanes", async () => {
  const baseUrl = h().studioBaseUrl;
  const res = await fetch(`${baseUrl}/api/brand/refresh`, {
  method: "POST",
@@ -134,15 +134,14 @@ describe("J1 brand-refresh flow", () => {
  body: JSON.stringify({}),
  });
  expect(res.status).toBe(202);
- const body = (await res.json()) as { ok?: boolean; data?: { jobIds?: string[]; agents?: string[]; note?: string }; error?: { code: string } };
+ const body = (await res.json()) as { ok?: boolean; data?: { jobIds?: Record<string, string>; lanes?: string[]; note?: string }; error?: { code: string } };
  // 202 = accepted. The backend may or may not fully enqueue depending on
  // whether /cmo is reachable from the spawned server; we only require
  // the envelope structure, not downstream success.
  if (body.ok && body.data) {
- expect(Array.isArray(body.data.agents)).toBe(true);
- expect(body.data.agents!).toContain("mktg-brand-researcher");
- expect(body.data.agents!).toContain("mktg-audience-researcher");
- expect(body.data.agents!).toContain("mktg-competitive-scanner");
+ expect(Array.isArray(body.data.lanes)).toBe(true);
+ expect(body.data.lanes).toEqual(["brand", "audience", "competitors"]);
+ expect(Object.keys(body.data.jobIds ?? {})).toEqual(["brand", "audience", "competitors"]);
  } else {
  // Acceptable in test env: enqueue may have failed without /cmo. The
  // 202 status still tells us the route exists and parsed the body.

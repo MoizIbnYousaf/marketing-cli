@@ -1,8 +1,7 @@
 // lib/foundation.ts -- Onboarding foundation runner
 //
-// Spawns the 3 research agents (brand, audience, competitive) in parallel
-// when onboarding kicks off. Each agent has its own job ID + SSE channel so
-// the dashboard can render 3 lanes that fill independently.
+// Initializes the 3 foundation brand files when onboarding kicks off. Each
+// file has its own progress lane so the dashboard can render independently.
 //
 // Best-available execution model:
 //   - If a `from` URL is provided, uses `mktg init --from <url>` once for
@@ -23,28 +22,24 @@ import { globalEmitter } from "./sse.ts";
 import { resolveBrandTemplateRoot } from "./brand-files.ts";
 import { run } from "./mktg.ts";
 
-export type FoundationAgent =
-  | "mktg-brand-researcher"
-  | "mktg-audience-researcher"
-  | "mktg-competitive-scanner";
+export type FoundationLane = "brand" | "audience" | "competitors";
 
-export const FOUNDATION_AGENTS: readonly FoundationAgent[] = [
-  "mktg-brand-researcher",
-  "mktg-audience-researcher",
-  "mktg-competitive-scanner",
+export const FOUNDATION_LANES: readonly FoundationLane[] = [
+  "brand",
+  "audience",
+  "competitors",
 ] as const;
 
-// Each agent owns one brand file. /cmo's research populates these.
-export const AGENT_TO_FILE: Record<FoundationAgent, string> = {
-  "mktg-brand-researcher": "brand/voice-profile.md",
-  "mktg-audience-researcher": "brand/audience.md",
-  "mktg-competitive-scanner": "brand/competitors.md",
+export const LANE_TO_FILE: Record<FoundationLane, string> = {
+  brand: "brand/voice-profile.md",
+  audience: "brand/audience.md",
+  competitors: "brand/competitors.md",
 };
 
 export type FoundationStatus = "queued" | "running" | "complete" | "failed";
 
 export interface FoundationProgressPayload {
-  agent: FoundationAgent;
+  lane: FoundationLane;
   status: FoundationStatus;
   filesChanged?: string[];
   note?: string;
@@ -60,17 +55,23 @@ export interface FoundationStartOptions {
 }
 
 export interface FoundationStartResult {
-  jobIds: Record<FoundationAgent, string>;
+  jobIds: Record<FoundationLane, string>;
 }
 
-interface AgentJob {
+export interface FoundationCompletePayload {
+  durationMs: number;
+  lanes: FoundationProgressPayload[];
+  success: boolean;
+}
+
+interface LaneJob {
   id: string;
-  agent: FoundationAgent;
+  lane: FoundationLane;
   status: FoundationStatus;
   startedAt: number;
 }
 
-const inflight = new Map<string, AgentJob>();
+const inflight = new Map<string, LaneJob>();
 
 function newJobId(): string {
   return `foundation_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -85,9 +86,9 @@ function emitProgress(payload: FoundationProgressPayload): void {
 }
 
 function emitComplete(durationMs: number, results: FoundationProgressPayload[]): void {
-  const payload = {
+  const payload: FoundationCompletePayload = {
     durationMs,
-    agents: results,
+    lanes: results,
     success: results.every((r) => r.status === "complete"),
   };
   globalEmitter.publish("*", { type: "foundation:complete", payload });
@@ -100,21 +101,21 @@ function emitComplete(durationMs: number, results: FoundationProgressPayload[]):
  * agent-native UX contract (every action shows up in Activity).
  */
 function logActivity(
-  agent: FoundationAgent,
+  lane: FoundationLane,
   status: FoundationStatus,
   detail: string,
   filesChanged?: string[],
 ): void {
   try {
-    const summary = `Foundation: ${agent} ${status}`;
+    const summary = `Foundation initialization: ${lane} ${status}`;
     const detailValue = detail || null;
     const filesValue = filesChanged?.length ? JSON.stringify(filesChanged) : null;
     const metaValue = JSON.stringify({ source: "onboarding", status });
 
     const result = execute(
       `INSERT INTO activity (kind, skill, summary, detail, files_changed, meta)
-       VALUES ('skill-run', ?, ?, ?, ?, ?)`,
-      [agent, summary, detailValue, filesValue, metaValue],
+       VALUES ('custom', NULL, ?, ?, ?, ?)`,
+      [summary, detailValue, filesValue, metaValue],
     );
 
     const id = Number(result.lastInsertRowid);
@@ -122,8 +123,8 @@ function logActivity(
       type: "activity-new",
       payload: {
         id,
-        kind: "skill-run" as const,
-        skill: agent,
+        kind: "custom" as const,
+        skill: null,
         summary,
         detail: detailValue,
         filesChanged: filesChanged ?? [],
@@ -181,7 +182,7 @@ async function runMktgInit(
 }
 
 /**
- * Kick off the foundation flow. Returns immediately with one jobId per agent.
+ * Kick off the foundation flow. Returns immediately with one jobId per lane.
  * Progress streams via SSE on the global, "onboarding", and "foundation"
  * channels.
  *
@@ -189,7 +190,7 @@ async function runMktgInit(
  *   - All 3 jobs are marked "queued" synchronously so the SSE catches the
  *     first heartbeat.
  *   - Real work runs in a fire-and-forget chain: try `mktg init` first
- *     (covers the URL-scrape case AND the no-URL case), then per-agent seed
+ *     (covers the URL-scrape case AND the no-URL case), then per-lane seed
  *     fallback for missing files, then mark complete.
  *   - `foundation:complete` always fires, even on partial failure, with a
  *     `success: boolean` so the dashboard knows whether to advance.
@@ -202,19 +203,19 @@ export function startFoundation(
   const seed = options.seed !== false;
   const from = options.from;
 
-  const jobIds = {} as Record<FoundationAgent, string>;
-  for (const agent of FOUNDATION_AGENTS) {
+  const jobIds = {} as Record<FoundationLane, string>;
+  for (const lane of FOUNDATION_LANES) {
     const id = newJobId();
-    jobIds[agent] = id;
-    inflight.set(id, { id, agent, status: "queued", startedAt: Date.now() });
+    jobIds[lane] = id;
+    inflight.set(id, { id, lane, status: "queued", startedAt: Date.now() });
     emitProgress({
-      agent,
+      lane,
       status: "queued",
       note: from
         ? "Queued -- scraping from project URL"
         : "Queued -- using brand templates; run /cmo for full research",
     });
-    logActivity(agent, "queued", from ? `from=${from}` : "no URL provided");
+    logActivity(lane, "queued", from ? `from=${from}` : "no URL provided");
   }
 
   void runFoundationAsync({
@@ -229,7 +230,7 @@ export function startFoundation(
 }
 
 async function runFoundationAsync(opts: {
-  jobIds: Record<FoundationAgent, string>;
+  jobIds: Record<FoundationLane, string>;
   from?: string;
   seed: boolean;
   projectRoot: string;
@@ -239,11 +240,11 @@ async function runFoundationAsync(opts: {
   const results: FoundationProgressPayload[] = [];
 
   // Mark each as running before invoking the CLI so the UI lanes animate.
-  for (const agent of FOUNDATION_AGENTS) {
-    const job = inflight.get(opts.jobIds[agent]);
+  for (const lane of FOUNDATION_LANES) {
+    const job = inflight.get(opts.jobIds[lane]);
     if (job) job.status = "running";
     emitProgress({
-      agent,
+      lane,
       status: "running",
       note: opts.from
         ? "Scraping project URL via mktg init"
@@ -254,32 +255,32 @@ async function runFoundationAsync(opts: {
   // Single mktg init covers all 3 brand files when a URL is provided.
   const init = await runMktgInit(opts.projectRoot, opts.from);
   if (!init.ok && !opts.seed) {
-    for (const agent of FOUNDATION_AGENTS) {
+    for (const lane of FOUNDATION_LANES) {
       const payload: FoundationProgressPayload = {
-        agent,
+        lane,
         status: "failed",
         error: init.error,
         durationMs: Date.now() - start,
       };
       results.push(payload);
       emitProgress(payload);
-      logActivity(agent, "failed", init.error);
-      const job = inflight.get(opts.jobIds[agent]);
+      logActivity(lane, "failed", init.error);
+      const job = inflight.get(opts.jobIds[lane]);
       if (job) job.status = "failed";
     }
     emitComplete(Date.now() - start, results);
     return;
   }
 
-  // Per-agent finalize -- check whether each brand file landed; if not and
+  // Per-lane finalize -- check whether each brand file landed; if not and
   // seed mode is on, drop the template.
-  for (const agent of FOUNDATION_AGENTS) {
-    const file = AGENT_TO_FILE[agent];
+  for (const lane of FOUNDATION_LANES) {
+    const file = LANE_TO_FILE[lane];
     let payload: FoundationProgressPayload;
 
     if (existsSync(join(opts.projectRoot, file))) {
       payload = {
-        agent,
+        lane,
         status: "complete",
         filesChanged: [file],
         note: "Brand file written",
@@ -289,7 +290,7 @@ async function runFoundationAsync(opts: {
       const seedResult = seedTemplate(opts.projectRoot, opts.templateRoot, file);
       if (seedResult.wrote) {
         payload = {
-          agent,
+          lane,
           status: "complete",
           filesChanged: [file],
           note: "Seeded from template -- run /cmo to populate with research",
@@ -297,7 +298,7 @@ async function runFoundationAsync(opts: {
         };
       } else {
         payload = {
-          agent,
+          lane,
           status: "failed",
           error: seedResult.reason,
           durationMs: Date.now() - start,
@@ -305,7 +306,7 @@ async function runFoundationAsync(opts: {
       }
     } else {
       payload = {
-        agent,
+        lane,
         status: "failed",
         error: "Brand file not written and seed mode disabled",
         durationMs: Date.now() - start,
@@ -315,7 +316,7 @@ async function runFoundationAsync(opts: {
     results.push(payload);
     emitProgress(payload);
     logActivity(
-      agent,
+      lane,
       payload.status,
       payload.note ?? payload.error ?? "",
       payload.filesChanged,
@@ -328,7 +329,7 @@ async function runFoundationAsync(opts: {
         });
       }
     }
-    const job = inflight.get(opts.jobIds[agent]);
+    const job = inflight.get(opts.jobIds[lane]);
     if (job) job.status = payload.status;
   }
 
