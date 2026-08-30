@@ -1,0 +1,26 @@
+services:
+  studio:
+    command: >-
+      DASHBOARD_PORT="$PORT" STUDIO_PORT=3001 MKTG_PROJECT_ROOT="$PWD"
+      MKTG_STUDIO_OPEN=false MKTG_STUDIO_AUTH=disabled
+      bun run studio/bin/mktg-studio.ts --no-open
+    port: 3000
+    health: /
+    portal:
+      url: /
+      title: mktg Studio
+      description: Bundled Studio for the marketing-cli checkout.
+    review: true
+    agent: control
+
+  website:
+    command: bun run dev --hostname 0.0.0.0 --port "$PORT"
+    cwd: ../repos/mktg-site/website
+    port: 3100
+    health: /
+    portal:
+      url: /
+      title: marketing-cli.com
+      description: Local development build of the public marketing website.
+    review: true
+    agent: control

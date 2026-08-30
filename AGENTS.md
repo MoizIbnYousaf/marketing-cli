@@ -7,7 +7,92 @@
 > `skills/cmo/rules/studio-api-index.md`.
 > **For /axi (AXI catalog router — gh-axi, chrome-devtools-axi, principles)**, read `skills/axi/SKILL.md`.
 > **For development standards**, read `CLAUDE.md`.
-> This file covers the 5 marketing sub-agents and the drop-in contracts for skills and agents.
+> This file covers the repository landscape, local runtime, marketing sub-agents, and drop-in contracts.
+
+## Repository Landscape
+
+`marketing-cli` is the public product source of truth. It owns the CLI, `/cmo`, skills, agents,
+canonical manifests, publishing adapters, and the shipping Studio app under `studio/`.
+
+| Repository | Role | Relationship to `marketing-cli` |
+|---|---|---|
+| `MoizIbnYousaf/marketing-cli` (this repo) | Canonical CLI package and bundled Studio | Make product, skill, agent, catalog, and Studio changes here. The npm tarball includes `studio/`. |
+| `MoizIbnYousaf/mktg-site` | Public `marketing-cli.com` website | Its `website/` app presents the product. Its root `skills-manifest.json` is a timestamped downstream mirror, not an authoring source. |
+| `MoizIbnYousaf/Ai-Agent-Skills` | Public skill registry and optional installer | Its `skills.json` points to live sources in this repo; it does not own or vendor the skills. Runtime delegation is opt-in via `MKTG_USE_AI_AGENT_SKILLS=1`. |
+| `MoizIbnYousaf/mktg-studio` | Legacy standalone Studio checkout | Compatibility/dev fallback only. The current product app is this repo's `studio/`; do not implement Studio features in the standalone repo unless explicitly maintaining that fallback. |
+
+### Source-of-truth flows
+
+```text
+skills/* + skills-manifest.json (marketing-cli, canonical)
+                    │
+                    └─ maintainer propagation
+                         ├─> mktg-site/skills-manifest.json (timestamps/activity)
+                         └─> Ai-Agent-Skills/skills.json (curated registry metadata)
+
+marketing-cli/src + skills + agents + studio
+                    └─> npm package `marketing-cli`
+
+marketing-cli/studio ──reads/writes──> user project root
+                                      ├─ brand/
+                                      ├─ marketing/
+                                      └─ .mktg/ + SQLite state
+```
+
+- Edit a skill and the canonical manifest here first. Do not hand-edit downstream mirror fields to
+  simulate propagation. Downstream publication is a distinct maintainer action after the canonical
+  commit.
+- `mktg-site/website` and this repo's `studio/` are different web apps: the former is the public
+  marketing site, while the latter is the local authenticated product UI for a user's project.
+- Studio and CLI must use the same project root so `brand/`, `marketing/`, and `.mktg/` agree. Set
+  `MKTG_PROJECT_ROOT` when the target project is not the checkout root.
+- External catalogs are runtime boundaries, not sibling product repos: Postiz
+  (`gitroomhq/postiz-app`) is called over raw HTTP; OpenSEO (`every-app/open-seo`) is HTTP/MCP.
+  Upstream-mirrored skills additionally track provenance in their own `upstream.json` files.
+
+### External upstreams
+
+These repositories contribute behavior or mirrored methodology but do not own the product:
+
+| Upstream | Boundary |
+|---|---|
+| `gitroomhq/postiz-app` | Postiz publishing service, accessed through the raw HTTP adapter declared in `catalogs-manifest.json`. |
+| `every-app/open-seo` | OpenSEO research service and skill family, accessed over HTTP/MCP. |
+| `exa-labs/agent-skills` | Provenance source for Exa-backed research skills; Exa remains a BYO integration. |
+| `higgsfield-ai/skills` | Provenance source for Higgsfield generation skills. |
+| `kunchenguid/axi` | Source for the AXI tool-interface catalog/router methodology. |
+| `remotion-dev/remotion` and `remotion-dev/skills` | Provenance sources for the Remotion mirrored skill; update only through its `upstream.json` + upgrade workflow. |
+
+### Finding sibling repositories
+
+The conventional layout is `.../mktgmono/{marketing-cli,mktg-site,mktg-studio}`.
+Amp orbs may instead mount this checkout at `$PWD` and connected repos under `../repos/`.
+Resolve paths in this order rather than assuming one machine-specific root:
+
+1. Explicit override: `MKTG_CLI_PATH`, `MKTG_SITE_PATH`, or `AI_AGENT_SKILLS_PATH`.
+2. Conventional sibling next to this checkout.
+3. Orb connected-repo path under `../repos/`.
+
+`MKTG_STUDIO_BIN` may override Studio launcher resolution for compatibility testing, but normal
+development and releases must use the bundled `studio/` app.
+
+### End-to-end local workflow
+
+```bash
+# CLI + bundled Studio (from marketing-cli)
+bun install --frozen-lockfile
+bun run build
+bun run dev -- doctor --json
+MKTG_PROJECT_ROOT="$PWD" bun run studio/bin/mktg-studio.ts --no-open
+
+# Public website (from mktg-site/website)
+bun install --frozen-lockfile
+bun run dev
+```
+
+In an Amp orb, prefer `amp orb services ensure`: `.amp/services.yaml` supervises and portals both
+the bundled Studio and the connected `mktg-site` checkout. The CLI itself is terminal-only; Studio
+is its browser-facing app.
 
 6 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
 
@@ -264,14 +349,16 @@ The canonical `skills-manifest.json` is the single source of truth. Two downstre
 - `mktg-site/skills-manifest.json` — mirror with embedded `_changed_at` / `_first_seen` ISO timestamps. The website activity page reads these.
 - `Ai-Agent-Skills/skills.json` — registry with curated metadata per skill (source, sourceUrl, tags, etc.).
 
-The sync command (`mktg-propagate`) lives in the **private** `mktg-private` repo, NOT in `marketing-cli` itself, because it's maintainer-only infra and would be useless to public npm users. See `MoizIbnYousaf/mktg-private` for the implementation. From this repo's perspective: just know that `/mktg-add` and `/mktg-steal` invoke it as their final step after committing to `marketing-cli`.
+Downstream mirror publication is maintained outside the public product package. From this repo's
+perspective, edit `skills-manifest.json` as the canonical source and treat downstream publication as
+a separate maintainer action.
 
-## Cursor Cloud specific instructions
+## Local and Amp Orb Development
 
 ### Runtime
 
 - Package manager is **Bun** (`>=1.1.0`). Put `~/.bun/bin` and `~/.local/bin` on `PATH`.
-- Local CLI wrapper: `~/.local/bin/mktg` → `node /workspace/dist/cli.js` (fallback `bun src/cli.ts`). Rebuild after CLI changes: `bun run build`.
+- Local CLI wrapper: `~/.local/bin/mktg` should resolve to this checkout's `dist/cli.js` (fallback `bun src/cli.ts`). Never hardcode `/workspace`; rebuild after CLI changes with `bun run build`.
 - Install deps: `bun install` at repo root (hoisted linker via `bunfig.toml`). Skills/agents install via `mktg init` / `mktg update` into `~/.claude/skills` and `~/.claude/agents`.
 
 ### Services
@@ -279,20 +366,21 @@ The sync command (`mktg-propagate`) lives in the **private** `mktg-private` repo
 | Surface | Command | Ports |
 |---|---|---|
 | CLI (dev) | `bun run dev -- <cmd> --json` or `mktg <cmd> --json` | n/a |
-| Studio API + Next | `mktg studio --no-open` (or `bun --cwd studio run start:studio`) | API `:3001`, dashboard `:3000` |
+| Bundled Studio API + Next | `mktg studio --no-open` (or `bun run studio/bin/mktg-studio.ts --no-open`) | API `:3001`, dashboard `:3000` |
+| Public website | Run `bun run dev` in `mktg-site/website` | Next dev port |
 
-Studio auth: bearer token at `~/.mktg/.runtime/studio-token`. Open `http://127.0.0.1:3000/dashboard?token=<token>` once so the dashboard stores it in `localStorage`. Public routes only: `/api/health`, `/api/schema`, `/api/help`.
+Studio auth: bearer token at `~/.mktg/.runtime/studio-token`. A normal launcher supplies it to the dashboard on first navigation so the dashboard stores it in `localStorage`. Public API routes only: `/api/health`, `/api/schema`, `/api/help`. The orb-supervised service uses the server's explicit development-only auth escape hatch because the Amp portal is itself authenticated; do not use that setting for a network-exposed deployment.
 
 ### Gotchas discovered in cloud VMs
 
 1. **Project root**: Studio must share `brand/` and `.mktg/native-publish/` with the CLI. The launcher now defaults `MKTG_PROJECT_ROOT` to the marketing-cli parent when `studio/` is a workspace member. Still override with `MKTG_PROJECT_ROOT=/path` when pointing at an external project.
-2. **`mktg verify` / `mktg ship-check` suite reachability**: those commands resolve suites as `<mktgmonoRoot>/marketing-cli` and `.../mktg-studio`. In a bare `/workspace` checkout they mark suites unreachable. Symlink `sudo ln -sfn /workspace /marketing-cli` (or check out as `.../mktgmono/marketing-cli`) if you need those orchestration tests green.
+2. **`mktg verify` / `mktg ship-check` suite reachability**: those commands still resolve suites as `<mktgmonoRoot>/marketing-cli` and `.../mktg-studio`. In a standalone checkout they may mark the legacy Studio suite unreachable. Use the conventional sibling layout when running those cross-repo orchestration checks; `.agents/setup` creates the local `marketing-cli` workspace alias needed in orbs.
 3. **Studio lint**: `bun --cwd studio run lint` expects an ESLint flat config (`eslint.config.*`) that is not present yet — typecheck via `bun --cwd studio run typecheck` instead.
 4. **Optional integrations**: Postiz / Typefully / Resend / Firecrawl / Exa are BYO. Exa is first-class via skills `exa-search`, `exa-contents`, `company-research`, `lead-generation`, `build-with-exa` + root `.mcp.json`. Set `EXA_API_KEY`; `mktg doctor` surfaces `integration-EXA_API_KEY`.
 5. **Tests**: root `bun test` (CLI); studio `bun run --cwd studio test` (or `bun run test` inside `studio/`). Do **not** run bare `bun test` in `studio/` — that also picks up `tests/e2e/perf` (Lighthouse fixtures) and fails without a prior `bun run tests/e2e/perf/run-lighthouse.ts`. No mocks — real temp-dir I/O.
-6. **Studio UI vs API in cloud VMs**: Bun API on `:3001` is the source of truth. The Next dashboard on `:3000` rewrites `/api/*` → Bun; that proxy can hang (`socket hang up` / HTTP 000) while direct `:3001` curls stay healthy. If the UI stays on skeletons, verify with `curl -H "Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)" http://127.0.0.1:3001/api/skills` and restart via `mktg studio --no-open` with `MKTG_PROJECT_ROOT` set to the checkout root. Do not start `bun run server.ts` alone without that root — native publish / brand paths will miss `/workspace/.mktg`.
+6. **Studio UI vs API in cloud VMs**: Bun API on `:3001` is the source of truth. The Next dashboard on `:3000` rewrites `/api/*` → Bun; that proxy can hang (`socket hang up` / HTTP 000) while direct `:3001` curls stay healthy. If the UI stays on skeletons, verify with `curl -H "Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)" http://127.0.0.1:3001/api/skills` and restart via `mktg studio --no-open` with `MKTG_PROJECT_ROOT` set to the checkout root. Do not start `bun run server.ts` alone without that root — native publish and brand paths will point at the wrong `.mktg/` and `brand/` directories.
 
-5. **`/axi`**: tool-interface orchestrator (parallel to `/cmo` for marketing). Prefer `npx -y gh-axi` / `npx -y chrome-devtools-axi` over eager MCP. See `skills/axi/SKILL.md`.
+7. **`/axi`**: tool-interface orchestrator (parallel to `/cmo` for marketing). Prefer `npx -y gh-axi` / `npx -y chrome-devtools-axi` over eager MCP. See `skills/axi/SKILL.md`.
 
 ### Standard commands
 

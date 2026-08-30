@@ -67,6 +67,23 @@ fi
 step "Installing locked workspace dependencies"
 time bun install --frozen-lockfile
 
+site_root="${MKTG_SITE_PATH:-}"
+if [[ -z "$site_root" ]]; then
+  for candidate in \
+    "$(dirname "$repo_root")/mktg-site" \
+    "$(dirname "$repo_root")/repos/mktg-site"; do
+    if [[ -f "$candidate/website/bun.lock" ]]; then
+      site_root="$candidate"
+      break
+    fi
+  done
+fi
+
+if [[ -n "$site_root" && -f "$site_root/website/bun.lock" ]]; then
+  step "Installing connected mktg-site website dependencies"
+  time bun install --cwd "$site_root/website" --frozen-lockfile
+fi
+
 step "Building the CLI"
 time bun run build
 
