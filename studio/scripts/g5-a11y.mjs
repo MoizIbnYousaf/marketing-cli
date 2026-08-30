@@ -39,7 +39,7 @@ const runs = {};
         await page.waitForTimeout(1500);
         await page.addScriptTag({ content: AXE });
         const result = await page.evaluate(async () => {
-          // @ts-ignore
+          // @ts-expect-error -- axe is injected into the browser at runtime.
           return await window.axe.run({
             runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"] },
             resultTypes: ["violations", "incomplete"],

@@ -1602,7 +1602,7 @@ const server = Bun.serve({
 
       // Read existing .env.local
       const envPath = join(STUDIO_CWD, ".env.local");
-      let existing: string[] = existsSync(envPath)
+      const existing: string[] = existsSync(envPath)
         ? readFileSync(envPath, "utf-8").split("\n")
         : [];
 

@@ -152,7 +152,7 @@ function readBundle(routePath: string): BundleNumbers {
   for (const arr of Object.values(obj)) for (const c of arr) allJs.add(c)
 
   const cssIdx = content.indexOf('"entryCSSFiles":')
-  let allCss = new Set<string>()
+  const allCss = new Set<string>()
   if (cssIdx !== -1) {
     const cssBlock = balancedJson(content.slice(cssIdx + '"entryCSSFiles":'.length))
     const cssObj = JSON.parse(cssBlock) as Record<string, Array<{ path: string; inlined: boolean }>>

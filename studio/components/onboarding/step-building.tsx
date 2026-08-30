@@ -193,6 +193,20 @@ export function StepBuilding({ onDone }: Props) {
     )
   }, [])
 
+  const handleEnvelope = useCallback(
+    (envelope: EventEnvelope) => {
+      if (envelope.type === "foundation:progress") {
+        applyProgress(envelope.payload as FoundationProgressPayload)
+        return
+      }
+      if (envelope.type === "foundation:complete") {
+        const payload = (envelope.payload ?? {}) as FoundationCompletePayload
+        if (payload.success === true) window.setTimeout(onDone, 600)
+      }
+    },
+    [applyProgress, onDone],
+  )
+
   const runDemoStream = useCallback(() => {
     // Simulate the server event shape locally for UI preview.
     const stages: Array<{ delay: number; event: EventEnvelope }> = [
@@ -212,21 +226,7 @@ export function StepBuilding({ onDone }: Props) {
       demoTimersRef.current.push(id)
     }
     setConnected(true)
-  }, [])
-
-  const handleEnvelope = useCallback(
-    (envelope: EventEnvelope) => {
-      if (envelope.type === "foundation:progress") {
-        applyProgress(envelope.payload as FoundationProgressPayload)
-        return
-      }
-      if (envelope.type === "foundation:complete") {
-        const payload = (envelope.payload ?? {}) as FoundationCompletePayload
-        if (payload.success === true) window.setTimeout(onDone, 600)
-      }
-    },
-    [applyProgress, onDone],
-  )
+  }, [handleEnvelope])
 
   const start = useCallback(async () => {
     setError(null)

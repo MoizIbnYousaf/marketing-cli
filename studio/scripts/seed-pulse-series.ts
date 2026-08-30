@@ -126,7 +126,7 @@ function isoOffset(daysAgo: number, minutes: number): string {
   return new Date(t).toISOString().slice(0, 19).replace("T", " ")
 }
 
-let totals = { signals: 0, briefs: 0, drafts: 0, publishes: 0 }
+const totals = { signals: 0, briefs: 0, drafts: 0, publishes: 0 }
 
 DAILY.forEach((day, idx) => {
   const daysAgo = 13 - idx

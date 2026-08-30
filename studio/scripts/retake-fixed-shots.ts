@@ -45,7 +45,7 @@ await hideScrollbars(page)
 await waitReady(page)
 await page.keyboard.press("Meta+KeyK")
 await page.waitForTimeout(300)
-let openCount = await page.locator('[cmdk-root]').count()
+const openCount = await page.locator('[cmdk-root]').count()
 if (!openCount) {
   await page.keyboard.press("Control+KeyK")
   await page.waitForTimeout(300)

@@ -207,7 +207,7 @@ if (RESET) {
 // scripts/seed-pulse-series.ts:108-130.
 // ---------------------------------------------------------------------------
 
-let inserted = { signals: 0, opportunities: 0, activities: 0, briefs: 0, publish: 0 }
+const inserted = { signals: 0, opportunities: 0, activities: 0, briefs: 0, publish: 0 }
 
 const NOW_MS = Date.now()
 

@@ -43,7 +43,7 @@ export function StepPostiz({
           Connect social accounts
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Postiz is the studio's primary social backend while the native
+          Postiz is the studio&apos;s primary social backend while the native
           connectors roll out for X, TikTok, Instagram, Reddit, and LinkedIn.
           You can skip this and add it later in Settings.
         </p>
