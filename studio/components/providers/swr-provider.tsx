@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { SWRConfig } from "swr"
 import { fetcher } from "@/lib/fetcher"
-import { getStudioToken } from "@/lib/studio-token"
+import { getStudioToken, stripStudioTokenFromUrl } from "@/lib/studio-token"
 
 const STORAGE_KEY = "mktgStudioToken"
 
@@ -29,6 +29,9 @@ export function SWRProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(() => getStudioToken() !== null)
 
   useEffect(() => {
+    // getStudioToken() runs while React hydrates. Strip only after mount so
+    // Next's initial search-param state cannot put the credential back.
+    stripStudioTokenFromUrl()
     if (ready) return
     let cancelled = false
     fetch("/api/auth/bootstrap")

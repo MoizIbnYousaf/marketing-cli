@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import useSWR from "swr"
 import type { Activity } from "@/lib/types/activity"
+import { fetcher } from "@/lib/fetcher"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import { resolveStudioApiBase } from "@/lib/studio-api-base"
 
@@ -95,11 +96,7 @@ export function StudioStatus() {
 
   const { data: activityFrame, error: activityError } = useSWR<ActivityResponse>(
     `${studioApiBase}/api/activity?limit=1`,
-    async (url: string) => {
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return res.json() as Promise<ActivityResponse>
-    },
+    fetcher,
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
   )
 

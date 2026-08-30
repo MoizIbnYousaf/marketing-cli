@@ -18,18 +18,26 @@ function readFromUrl(): string | null {
   if (typeof window === "undefined") return null;
   try {
     const params = new URLSearchParams(window.location.search);
-    const tok = params.get("token");
-    if (!tok) return null;
-    // Strip from URL so the token does not survive in history / bookmarks.
+    return params.get("token");
+  } catch {
+    return null;
+  }
+}
+
+/** Strip the bootstrap token after hydration so Next cannot restore its stale URL. */
+export function stripStudioTokenFromUrl(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("token")) return;
     params.delete("token");
     const remaining = params.toString();
     const next = window.location.pathname
       + (remaining ? `?${remaining}` : "")
       + window.location.hash;
     window.history.replaceState({}, "", next);
-    return tok;
   } catch {
-    return null;
+    // Keep auth usable in restricted browser contexts even if history fails.
   }
 }
 

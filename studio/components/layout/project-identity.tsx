@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { dataFetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import { resolveStudioApiBase } from "@/lib/studio-api-base"
 
@@ -39,18 +40,6 @@ type ProjectIdentity = {
     postCount: number
   }
   fetchedAt: string
-}
-
-type ProjectCurrentResponse = {
-  ok: boolean
-  data: ProjectIdentity
-}
-
-const fetchProject = async (url: string) => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const body = (await res.json()) as ProjectCurrentResponse
-  return body.data
 }
 
 function logoUrl(project: ProjectIdentity): string | null {
@@ -183,7 +172,7 @@ export function ProjectIdentityCard() {
   const apiBase = resolveStudioApiBase()
   const { data: project, error: projectError } = useSWR<ProjectIdentity>(
     `${apiBase}/api/project/current`,
-    fetchProject,
+    dataFetcher,
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
   )
 
@@ -241,7 +230,7 @@ export function ProjectIdentityChip() {
   const apiBase = resolveStudioApiBase()
   const { data: project, error: projectError } = useSWR<ProjectIdentity>(
     `${apiBase}/api/project/current`,
-    fetchProject,
+    dataFetcher,
     { refreshInterval: 30_000, revalidateOnFocus: false, shouldRetryOnError: false },
   )
 
