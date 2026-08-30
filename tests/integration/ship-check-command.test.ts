@@ -80,6 +80,7 @@ describe("mktg ship-check --dry-run", () => {
     expect(res.data.icon).toBe("🟢");
     // Commits populated from git even in dry-run
     expect(res.data.commits.marketingCli).toBeTruthy();
+    expect(res.data.commits.mktgStudio).toBe(res.data.commits.marketingCli);
   });
 
   test("--skip removes the named check from the run", async () => {

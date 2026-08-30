@@ -118,6 +118,19 @@ describe("mktg verify --dry-run — Pass 1 surface preserved", () => {
     expect(res.data.execution).toBeUndefined();
   });
 
+  test("resolves bundled Studio suites inside marketing-cli/studio", async () => {
+    const res = await verifyHandler(
+      ["--suite", "studio-unit"],
+      baseFlags({ dryRun: true }),
+    );
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const studio = res.data.suites.find((suite) => suite.name === "studio-unit");
+    expect(studio?.cwd).toBe(resolve(process.cwd(), "studio"));
+    expect(studio?.reachable).toBe(true);
+    expect(studio?.willRun).toBe(true);
+  });
+
   test("--suite filter narrows the plan", async () => {
     const res = await verifyHandler(
       ["--suite", "marketing-cli-typecheck"],

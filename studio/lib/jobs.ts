@@ -6,7 +6,13 @@
 // SSE progress events are published per-job via getJobEmitter(id).
 
 import { randomUUID } from "node:crypto";
-import { globalEmitter, getJobEmitter, removeJobEmitter } from "./sse.ts";
+import {
+  globalEmitter,
+  getJobEmitter,
+  removeJobEmitter,
+  type JobSSEEventInput,
+  type SSEEmitter,
+} from "./sse.ts";
 import { execute } from "./sqlite.ts";
 
 // ---------------------------------------------------------------------------
@@ -40,6 +46,14 @@ export type WorkerFn = (
 
 const jobs = new Map<string, Job>();
 
+function publishJobEvent(
+  emitter: SSEEmitter,
+  channel: string,
+  event: JobSSEEventInput,
+): void {
+  emitter.publish<unknown>(channel, event);
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -67,7 +81,7 @@ export function createJob(kind: string, args: Record<string, unknown> = {}): Job
   console.log(`[jobs] Created job ${job.id} (${kind})`);
 
   // Publish creation event on global channel
-  globalEmitter.publish("*", {
+  publishJobEvent(globalEmitter, "*", {
     type: "job-created",
     payload: { id: job.id, kind, status: "queued" },
   });
@@ -100,11 +114,11 @@ export function runJob(id: string, worker: WorkerFn): void {
   const emit = (message: string) => {
     const entry = { ts: Date.now(), message };
     job.log.push(entry);
-    jobEmitter.publish<{ message: string; jobId: string }>(id, {
+    publishJobEvent(jobEmitter, id, {
       type: "job-log",
       payload: { jobId: id, message },
     });
-    globalEmitter.publish("*", {
+    publishJobEvent(globalEmitter, "*", {
       type: "job-log",
       payload: { jobId: id, message },
     });
@@ -114,10 +128,12 @@ export function runJob(id: string, worker: WorkerFn): void {
   job.status = "running";
   job.startedAt = new Date();
 
-  globalEmitter.publish("*", {
+  const startedEvent: JobSSEEventInput = {
     type: "job-started",
-    payload: { id, kind: job.kind },
-  });
+    payload: { id, kind: job.kind, status: "running" },
+  };
+  publishJobEvent(jobEmitter, id, startedEvent);
+  publishJobEvent(globalEmitter, "*", startedEvent);
 
   emit(`Job ${id} (${job.kind}) started`);
 
@@ -132,10 +148,12 @@ export function runJob(id: string, worker: WorkerFn): void {
       const durationMs = Date.now() - start;
       emit(`Job ${id} completed in ${durationMs}ms`);
 
-      globalEmitter.publish("*", {
+      const completedEvent: JobSSEEventInput = {
         type: "job-completed",
         payload: { id, kind: job.kind, status: "success", durationMs },
-      });
+      };
+      publishJobEvent(jobEmitter, id, completedEvent);
+      publishJobEvent(globalEmitter, "*", completedEvent);
 
       // Persist to skill_runs
       _persistSkillRun(job, durationMs);
@@ -149,10 +167,12 @@ export function runJob(id: string, worker: WorkerFn): void {
       const durationMs = Date.now() - start;
       emit(`Job ${id} failed: ${message}`);
 
-      globalEmitter.publish("*", {
+      const failedEvent: JobSSEEventInput = {
         type: "job-failed",
         payload: { id, kind: job.kind, status: "failed", error: message, durationMs },
-      });
+      };
+      publishJobEvent(jobEmitter, id, failedEvent);
+      publishJobEvent(globalEmitter, "*", failedEvent);
 
       _persistSkillRun(job, durationMs);
     })
@@ -185,7 +205,12 @@ export function cancelJob(id: string): boolean {
   if (!job || job.status !== "queued") return false;
   job.status = "cancelled";
   job.completedAt = new Date();
-  globalEmitter.publish("*", { type: "job-cancelled", payload: { id } });
+  const cancelledEvent: JobSSEEventInput = {
+    type: "job-cancelled",
+    payload: { id, kind: job.kind, status: "cancelled" },
+  };
+  publishJobEvent(getJobEmitter(id), id, cancelledEvent);
+  publishJobEvent(globalEmitter, "*", cancelledEvent);
   return true;
 }
 

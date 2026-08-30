@@ -6,8 +6,14 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
-/** Walk from this module to the monorepo root, or fall back to ~/projects/mktgmono. */
-export const resolveMonorepoRoot = (fromUrl: string = import.meta.url): string => {
+export interface RepositoryLayout {
+  readonly ecosystemRoot: string;
+  readonly cliRoot: string;
+  readonly studioRoot: string;
+}
+
+/** Resolve both bundled and legacy sibling repository layouts. */
+export const resolveRepositoryLayout = (fromUrl: string = import.meta.url): RepositoryLayout => {
   // Runtime-agnostic module dir: Bun exposes `import.meta.dir` directly, but
   // the node-installed dist bundle only guarantees `import.meta.url`.
   const here = dirname(fileURLToPath(fromUrl));
@@ -16,11 +22,24 @@ export const resolveMonorepoRoot = (fromUrl: string = import.meta.url): string =
     if (!existsSync(join(marketingCliRoot, "package.json")) || !existsSync(join(marketingCliRoot, "skills-manifest.json"))) {
       continue;
     }
-    const candidate = resolve(marketingCliRoot, "..");
-    if (existsSync(join(candidate, "marketing-cli"))) {
-      return candidate;
-    }
-    return dirname(marketingCliRoot);
+    const ecosystemRoot = dirname(marketingCliRoot);
+    const bundledStudio = join(marketingCliRoot, "studio");
+    return {
+      ecosystemRoot,
+      cliRoot: marketingCliRoot,
+      studioRoot: existsSync(bundledStudio)
+        ? bundledStudio
+        : join(ecosystemRoot, "mktg-studio"),
+    };
   }
-  return join(homedir(), "projects", "mktgmono");
+  const ecosystemRoot = join(homedir(), "projects", "mktgmono");
+  return {
+    ecosystemRoot,
+    cliRoot: join(ecosystemRoot, "marketing-cli"),
+    studioRoot: join(ecosystemRoot, "mktg-studio"),
+  };
 };
+
+/** Compatibility accessor for reports that expose the ecosystem root. */
+export const resolveMonorepoRoot = (fromUrl: string = import.meta.url): string =>
+  resolveRepositoryLayout(fromUrl).ecosystemRoot;

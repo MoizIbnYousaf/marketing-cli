@@ -8,11 +8,23 @@ import { useEffect, useRef, useState } from "react";
 // ---------------------------------------------------------------------------
 // Shared event shape -- all SSE events use this envelope.
 // ---------------------------------------------------------------------------
-export interface SSEEvent<T = unknown> {
-  type: string;
+export interface SSEEvent<T = unknown, K extends string = string> {
+  type: K;
   payload: T;
   ts: number;
 }
+
+export type JobSSEEvent =
+  | SSEEvent<{ id: string; kind: string; status: "queued" }, "job-created">
+  | SSEEvent<{ id: string; kind: string; status: "running" }, "job-started">
+  | SSEEvent<{ jobId: string; message: string }, "job-log">
+  | SSEEvent<{ id: string; kind: string; status: "success"; durationMs: number }, "job-completed">
+  | SSEEvent<{ id: string; kind: string; status: "failed"; error: string; durationMs: number }, "job-failed">
+  | SSEEvent<{ id: string; kind: string; status: "cancelled" }, "job-cancelled">;
+
+export type JobSSEEventInput = JobSSEEvent extends infer E
+  ? E extends SSEEvent ? Omit<E, "ts"> : never
+  : never;
 
 // ---------------------------------------------------------------------------
 // Server-side SSEEmitter
@@ -86,7 +98,7 @@ export class SSEEmitter {
    * Publish an event to all subscribers on a channel (or "*" for all).
    * `channel = "*"` broadcasts to every open stream.
    */
-  publish<T>(channel: string, event: Omit<SSEEvent<T>, "ts">): void {
+  publish<T = unknown>(channel: string, event: Omit<SSEEvent<T>, "ts">): void {
     const envelope: SSEEvent<T> = { ...event, ts: Date.now() } as SSEEvent<T>;
     const data = `data: ${JSON.stringify(envelope)}\n\n`;
 

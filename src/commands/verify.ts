@@ -27,7 +27,7 @@ import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } 
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 import { flagValue, flagValues, hasFlag } from "../core/args";
-import { resolveMonorepoRoot } from "../core/monorepo";
+import { resolveRepositoryLayout, type RepositoryLayout } from "../core/monorepo";
 
 // ------------------------------------------------------------------
 // Suite registry — data-driven, single source of truth
@@ -369,9 +369,9 @@ export const schema: CommandSchema = {
 const parseSuiteFilter = (args: readonly string[]): string[] =>
   [...flagValues(args, "--suite")];
 
-const buildPlan = (filter: readonly string[], monorepoRoot: string): SuitePlan[] =>
+const buildPlan = (filter: readonly string[], layout: RepositoryLayout): SuitePlan[] =>
   SUITES.map((def): SuitePlan => {
-    const cwd = join(monorepoRoot, def.cwdFrom);
+    const cwd = def.cwdFrom === "marketing-cli" ? layout.cliRoot : layout.studioRoot;
     const reachable = existsSync(cwd);
     const missingEnv = def.requiredEnv.filter((v) => !process.env[v]);
     const envSatisfied = missingEnv.length === 0;
@@ -636,8 +636,9 @@ export const handler: CommandHandler<VerifyReport> = async (args, flags) => {
     capturePath = isAbsolute(capturePath) ? capturePath : resolve(flags.cwd, capturePath);
   }
 
-  const monorepoRoot = resolveMonorepoRoot();
-  const suites = buildPlan(filter, monorepoRoot);
+  const layout = resolveRepositoryLayout();
+  const monorepoRoot = layout.ecosystemRoot;
+  const suites = buildPlan(filter, layout);
 
   const baseCounts = {
     total: suites.length,

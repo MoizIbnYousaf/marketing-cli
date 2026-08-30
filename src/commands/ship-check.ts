@@ -39,7 +39,7 @@ import { homedir } from "node:os";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { flagValue, hasFlag } from "../core/args";
-import { resolveMonorepoRoot } from "../core/monorepo";
+import { resolveRepositoryLayout } from "../core/monorepo";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 
 // ------------------------------------------------------------------
@@ -516,9 +516,10 @@ export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
   }
   const shouldSkip = (name: string): boolean => skipList.includes(name);
 
-  const mktgmonoRoot = resolveMonorepoRoot();
-  const cliRoot = join(mktgmonoRoot, "marketing-cli");
-  const studioRoot = join(mktgmonoRoot, "mktg-studio");
+  const layout = resolveRepositoryLayout();
+  const mktgmonoRoot = layout.ecosystemRoot;
+  const cliRoot = layout.cliRoot;
+  const studioRoot = layout.studioRoot;
   const started = performance.now();
   const timestamp = new Date().toISOString();
 

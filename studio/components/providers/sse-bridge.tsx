@@ -8,6 +8,7 @@ import { useWorkspaceStore, type WorkspaceTab } from "@/lib/stores/workspace"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import type { Activity } from "@/lib/types/activity"
 import { withStudioToken } from "@/lib/studio-token"
+import type { JobSSEEvent } from "@/lib/sse"
 
 // Wire type accepts pre-rename ids ("hq", "content") for one-release compat
 // with /cmo callers that still send the old strings. The handler normalizes
@@ -21,6 +22,7 @@ type SSEEvent =
   | { type: "activity-new"; payload: Activity }
   | { type: "activity-deleted"; payload: { id: number } }
   | { type: "connected"; payload?: unknown }
+  | Omit<JobSSEEvent, "ts">
   | { type: string; payload: unknown }
 
 // Default to same-origin so Next.js rewrites forward /api/* → Bun.
@@ -212,11 +214,12 @@ export function SSEBridge() {
             h.mutate((key: unknown) => typeof key === "string" && (key.startsWith("/api/onboarding") || key.startsWith("/api/brand")))
             return
           }
-          case "job:created":
-          case "job:log":
-          case "job:completed":
-          case "job:failed":
-          case "job:cancelled": {
+          case "job-created":
+          case "job-started":
+          case "job-log":
+          case "job-completed":
+          case "job-failed":
+          case "job-cancelled": {
             h.mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/jobs"))
             return
           }
