@@ -168,7 +168,7 @@ Named end-to-end recipes. When the builder asks for something big, pick the righ
 
 Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestion`.
 
-**Data plane first (both paths):** check `mktg catalog info openseo --json --fields configured`. When OpenSEO is ready, measured metrics (KD, volume, SERP, backlinks, GSC) come from the `openseo-*` skills and the playbook skills below consume them via their Backend Selection sections. When OpenSEO is absent, the same playbook steps run on Exa/Firecrawl with every metric marked as unknown — never invented.
+**Data plane first (both paths):** check `mktg seo status --json --fields readiness,catalog.endpointError,project`. A `*_ready` state means OpenSEO is configured; verify live access with OpenSEO's free **whoami** MCP tool before paid research. Measured metrics (KD, volume, SERP, backlinks, GSC) then come from the `openseo-*` skills. When OpenSEO is absent or unreachable, the same playbook steps run on Exa/Firecrawl with every metric marked as unknown — never invented.
 
 **Path A triggers:** *"rank higher on Google"*, *"improve SEO"*, *"I want to show up in AI search"*, *"compete for [topic]"*, *"write me an SEO article"*  -  short-horizon, one-shot, no roadmap.
 
@@ -182,11 +182,11 @@ Two paths. Pick by the user's horizon. If unclear, ask once with `AskUserQuestio
 |---|---|---|
 | 1 | `keyword-research` (OpenSEO path: `openseo-keyword-research`) | `brand/keyword-plan.md` with primary, secondary, long-tail terms + search intent notes. Measured KD/volume when OpenSEO is configured. |
 | 2 | `seo-content` (ongoing) | `marketing/content/*.md`  -  rankable, anti-AI-slop articles with schema. |
-| 3 | `ai-seo` | Entity optimization, structured data, citation-worthy formatting for ChatGPT/Perplexity/Claude/Gemini/AI Overviews. |
+| 3 | `ai-seo` | Durable AEO program: repository truth, neutral prompt portfolio, sampled visibility/citation/accuracy measurement, diagnosis, and approved fixes. |
 | 4 | `competitor-alternatives` (OpenSEO path: target picks from `openseo-competitor-analysis`) | `marketing/alternatives/<competitor>-vs-us.md`  -  high-intent comparison pages. |
 | 5 | `seo-audit` (periodically) | Site architecture + schema markup audit. Rank snapshots in `.seo/rank-snapshots/` when OpenSEO is configured. |
 
-**Stop:** one cornerstone + one AI-SEO piece + one alternatives page shipped. Schedule re-runs quarterly.
+**Stop:** one cornerstone asset shipped, an AEO baseline/report/gameplan completed, and one alternatives page shipped. Set a remeasurement cadence based on volatility and launch timing rather than defaulting blindly to quarterly.
 
 ### Path B  -  Programmatic SEO machine (long arc)
 
@@ -235,7 +235,7 @@ Beyond the linear sprint, /cmo runs these named sub-playbooks when the situation
 |---|---|---|
 | **B.1 Weekly SEO Maintenance Loop** | Recurring weekly cadence (use `/loop 7d` or schedule) | `seo-machine` striking-distance phase + `mktg compete scan` + reconcile new keyword opportunities into `brand/keyword-plan.md`. Output: weekly diff (pages to refresh, keywords to claim, competitor SERP movement). |
 | **B.2 Post-Launch SEO Ignition** | Immediately after `launch-strategy` completes | Day 1: `seo-machine` Initialize + Phase 0 (tech audit). Day 7: `seo-machine` Pattern A sprint (alternatives). Day 14: `seo-machine` Pattern D sprint (comparisons) + first striking-distance pass. Couples launch momentum to indexing momentum. |
-| **B.3 AI Overview Chase** | User wants Perplexity/ChatGPT/AI Overview citations | `ai-seo` for entity hardening + structured data → `seo-machine` Pattern E (playbook long-form, the AI-citation surface) → `competitor-alternatives` for honest "X vs Y" pages (AI engines preferentially cite honest comparisons over self-serving ones) → striking-distance refresh on already-cited weak rankers. |
+| **B.3 AI Answer Visibility Program** | User wants Perplexity/ChatGPT/AI Overview visibility or citations | `ai-seo` truth baseline + neutral prompt portfolio + repeated sampling → diagnose technical, comprehension, trust, or measurement gaps → get approval for fixes → execute the smallest relevant content/technical work → remeasure against the same portfolio. Use OpenSEO only for supporting search/crawl/backlink/analytics evidence. |
 | **B.4 /for/ Persona Discovery Pipeline** | User has audience.md but no /for/ pages yet | `audience-research` (refresh if stale) → `keyword-research` for persona-keyed vocabulary → `seo-machine` Pattern B/C generation → `page-cro` review on the first 3 shipped. Ships persona-targeted landing pages from end to end. |
 | **B.5 Seasonal Sprint Replanner** | Triggered when `landscape.md` is refreshed (new competitors, market shift, category re-frame) | Re-rank pending phases in `docs/seo-machine.md` to chase the new landscape instead of continuing the stale plan. /cmo's learning-loop addition: stale roadmaps cost time, refreshing is cheap. |
 
@@ -269,7 +269,7 @@ Each sub-playbook returns to the main Path B Resume loop afterward  -  they're s
 
 | Phase | Skill / command | Why |
 |---|---|---|
-| 0 | `mktg studio --dry-run --json --intent cmo --session <id>` | Preview. Resolves sibling `mktg-studio/bin/mktg-studio.ts`, `MKTG_STUDIO_BIN`, or PATH, confirms ports + exact CMO dashboard URL, and never spawns. |
+| 0 | `mktg studio --dry-run --json --intent cmo --session <id>` | Preview. Resolves explicit `MKTG_STUDIO_BIN`, bundled Studio, legacy sibling, or PATH, confirms ports + exact CMO dashboard URL, and never spawns. |
 | 1 | `mktg studio --open --intent cmo --session <id>` | Spawn server (port 3001) + dashboard (port 3000). Studio opens at `http://localhost:3000/dashboard?mode=cmo&session=<id>`. |
 | 2 | Foundation research (if first run) | Spawn `mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner` in parallel. Agents use `exa-search` / `company-research` for live web research. Each writes a brand file. |
 | 3 | `POST /api/brand/refresh` after each agent | Tabs light up one by one as each brand file lands. User watches the dashboard populate in real time. |

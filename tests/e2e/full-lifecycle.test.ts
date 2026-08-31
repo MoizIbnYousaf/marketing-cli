@@ -21,6 +21,7 @@ import { handler as listHandler } from "../../src/commands/list";
 import { handler as updateHandler } from "../../src/commands/update";
 import { handler as runHandler } from "../../src/commands/run";
 import { loadManifest } from "../../src/core/skills";
+import { loadAgentManifest } from "../../src/core/agents";
 
 let tempDir: string;
 let flags: GlobalFlags;
@@ -151,9 +152,10 @@ describe("Phase 4: Status reflects all activity", () => {
 
     const manifest = await loadManifest();
     const expectedSkillCount = Object.keys(manifest.skills).length;
+    const agentManifest = await loadAgentManifest();
     expect(status.data.skills.total).toBe(expectedSkillCount);
     expect(status.data.skills.installed).toBeGreaterThan(0);
-    expect(status.data.agents.total).toBe(6);
+    expect(status.data.agents.total).toBe(Object.keys(agentManifest.agents).length);
     expect(status.data.agents.installed).toBeGreaterThan(0);
     expect(status.data.health).not.toBe("needs-setup");
     expect(Array.isArray(status.data.nextActions)).toBe(true);
@@ -268,8 +270,9 @@ describe("Full pipeline coherence", () => {
     expect(status.ok).toBe(true);
     if (!status.ok) return;
     const m = await loadManifest();
+    const agentManifest = await loadAgentManifest();
     expect(status.data.skills.total).toBe(Object.keys(m.skills).length);
-    expect(status.data.agents.total).toBe(6);
+    expect(status.data.agents.total).toBe(Object.keys(agentManifest.agents).length);
 
     // Step 5: Doctor passes
     const doctor = await doctorHandler([], flags);

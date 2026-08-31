@@ -181,9 +181,9 @@ Tests: 2599 pass / 0 fail / 96 files
 │ ├── agents.ts  -  agent registry, install to ~/.claude/agents/
 │ └── transcribe.ts  -  whisper.cpp + yt-dlp + ffmpeg orchestration
 ├── skills/  -  76 SKILL.md files (see §Skills below)
-├── agents/ - 6 agent .md files (see §Agents below)
+├── agents/ - 7 agent .md files (see §Agents below)
 ├── skills-manifest.json  -  76 skills: triggers, categories, layers, reads, writes, env_vars
-├── agents-manifest.json - 6 agents: categories, files, reads, writes, tier
+├── agents-manifest.json - 7 agents: categories, files, reads, writes, tier
 ├── catalogs-manifest.json  -  2 catalogs (postiz, openseo): capabilities, auth, transport, license
 ├── brand/SCHEMA.md  -  schema for all 10 brand files
 ├── CLAUDE.md  -  198 lines: development contract
@@ -265,7 +265,7 @@ Rules: ~/projects/mktgmono/marketing-cli/skills/cmo/rules/ (14 files, ~1,900 lin
 - Quality gate pipeline (ai-check → editorial-first-pass → content-reviewer → seo-analyst → distribute)
 - Brand file → dependent skills reverse index (what to re-run when voice-profile.md changes)
 - All 16 mktg CLI commands + when to use each
-- All 5 sub-agents (3 research + 2 review) + spawn protocol
+- All 7 sub-agents (4 research + 3 review) + spawn protocol
 - External tool ecosystem (firecrawl, ffmpeg, remotion, /ply*, gh, whisper-cli, yt-dlp, summarize, Exa MCP)
 
 **How /cmo talks to the studio (inverted from v1 of this doc):**
@@ -364,11 +364,11 @@ Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
 | `marketing-psychology` | knowledge | Cialdini's 6 principles, cognitive biases |
 | `ai-check` | review | Line-by-line AI slop detection |
 | `editorial-first-pass` | review | Hook, thesis, promise, stakes  -  pass/fail |
-| `ai-seo` | review | AI search optimization (ChatGPT, Perplexity, Claude, Gemini) |
+| `ai-seo` | review | Durable AEO/GEO visibility, citation, and accuracy program |
 | `competitor-alternatives` | review | "X vs Y" and "X alternatives" SEO pages |
 | `landscape-scan` | infrastructure | Ecosystem snapshot + Claims Blacklist |
 
-## 5 Sub-Agents
+## 7 Sub-Agents
 
 ```
 Installed: ~/.claude/agents/<name>.md
@@ -383,6 +383,8 @@ Manifest: ~/projects/mktgmono/marketing-cli/agents-manifest.json
 | `mktg-competitive-scanner` | research | brand/competitors.md | /cmo on FIRST RUN (parallel) |
 | `mktg-content-reviewer` | review | none (scores only) | /cmo after content draft lands |
 | `mktg-seo-analyst` | review | none (scores only) | /cmo after SEO content lands |
+| `mktg-strategy-reviewer` | review | none (scores only) | /cmo after high-stakes strategy lands |
+| `mktg-backlink-prospector` | research | none (returns targets) | /cmo during off-page research |
 
 ## 10 Brand Files
 

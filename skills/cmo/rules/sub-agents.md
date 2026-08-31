@@ -1,12 +1,12 @@
 # Sub-Agent Orchestration
 
-/cmo spawns specialized sub-agents for parallel research and post-production review. Agents never call agents — /cmo is the only orchestrator. This file documents when and how to invoke each of the 6 agents in `agents-manifest.json`.
+/cmo spawns specialized sub-agents for parallel research and independent review. Agents never call agents — /cmo is the only orchestrator. This file documents when and how to invoke each of the 7 agents in `agents-manifest.json`.
 
 **Canonical rule:** research agents spawn on first-run foundation building (3 in parallel). Review agents spawn on-demand after content lands.
 
 ---
 
-## The 6 Agents
+## The 7 Agents
 
 ### Research agents (parallel, spawned on FIRST RUN or on-demand)
 
@@ -23,6 +23,7 @@
 |---|---|---|---|
 | `mktg-content-reviewer` | Voice-profile consistency gate | any content draft (DRC, SEO, email, social, newsletter, lead-magnet) | Reads `brand/voice-profile.md` |
 | `mktg-seo-analyst` | Keyword-plan adherence gate | any SEO asset (seo-content, landing page, competitor-alternatives, ai-seo output, every page batch from a `seo-machine` phase) | Reads `brand/keyword-plan.md` |
+| `mktg-strategy-reviewer` | Decision-quality and commercial-logic gate | high-stakes growth, pricing, launch, retention, positioning, channel-allocation, or executive strategy | Reads available strategy evidence; never writes or rewrites |
 
 ---
 
@@ -150,11 +151,37 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 - Surface the score to the user.
 - If specific improvements are worth making → loop back to the content skill with the recommendations.
 
+### `mktg-strategy-reviewer` — independent strategy gate
+
+**When /cmo invokes it:**
+- After drafting high-stakes growth, pricing, launch, retention, positioning, or channel-allocation advice.
+- Before presenting a strategic recommendation as decision-ready to an executive, board, or finance stakeholder.
+- Not for direct, low-risk asset requests whose direction is already settled.
+
+**Spawn pattern:**
+
+```
+<Agent tool call>
+  subagent_type: mktg-strategy-reviewer
+  description: Independent strategy review
+  prompt: [strategy draft or file path] + "Read the available positioning,
+         audience, competitors, keyword-plan, landscape, and learnings files.
+         Review the recommendation independently for diagnosis, relevant
+         commercial coverage, growth motion, business effect, evidence versus
+         assumptions, sequencing, trade-offs, and decision clarity. Return
+         PASS, REVISE, or REJECT. Do not rewrite or modify files."
+```
+
+**What /cmo does with the result:**
+- `PASS` → present the recommendation with its assumptions and decision conditions.
+- `REVISE` → repair the identified material gaps, then review the changed decision once more.
+- `REJECT` → return to diagnosis or gather the missing evidence; do not disguise uncertainty with more tactics.
+
 ---
 
 ## Never-Call-Other-Agents Invariant
 
-Each of the 6 agents is **isolated** — they never spawn other agents. If a research agent needs content-reviewer's output, that's a signal the workflow is wrong. CMO is the coordinator; the agents are specialists.
+Each of the 7 agents is **isolated** — they never spawn other agents. If a research agent needs content-reviewer's output, that's a signal the workflow is wrong. CMO is the coordinator; the agents are specialists.
 
 **Anti-pattern to watch:** agents trying to chain work. If `mktg-brand-researcher` asks for audience data mid-run, reject — audience research is a separate agent, run in parallel, merged by CMO afterwards.
 

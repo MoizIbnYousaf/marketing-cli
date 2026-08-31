@@ -37,8 +37,9 @@ The preview response returns the exact `urls.dashboard` value, for example:
 http://localhost:3000/dashboard?mode=cmo&session=<id>
 ```
 
-`mktg studio` prefers a sibling `mktg-studio/bin/mktg-studio.ts` checkout,
-then `MKTG_STUDIO_BIN`, then `mktg-studio` on PATH. Preview mode is always
+`mktg studio` prefers `MKTG_STUDIO_BIN` when explicitly set, then the bundled
+`studio/bin/mktg-studio.ts`, then the legacy sibling checkout, then `mktg-studio`
+on PATH. Preview mode is always
 side-effect free; launch mode starts the local Bun API and Next.js dashboard.
 
 ## Primary Navigation Contract

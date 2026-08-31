@@ -12,6 +12,7 @@ import { handler as doctorHandler } from "../../src/commands/doctor";
 import { handler as statusHandler } from "../../src/commands/status";
 import { handler as listHandler } from "../../src/commands/list";
 import { loadManifest } from "../../src/core/skills";
+import { loadAgentManifest } from "../../src/core/agents";
 
 let tempDir: string;
 let flags: GlobalFlags;
@@ -147,7 +148,8 @@ describe("Fresh install pipeline", () => {
 
     // Agents should be installed
     expect(statusResult.data.agents.installed).toBeGreaterThan(0);
-    expect(statusResult.data.agents.total).toBe(6);
+    const agentManifest = await loadAgentManifest();
+    expect(statusResult.data.agents.total).toBe(Object.keys(agentManifest.agents).length);
   });
 
   test("list shows correct skill count after init", async () => {

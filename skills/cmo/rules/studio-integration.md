@@ -32,8 +32,9 @@ The dry-run is side-effect free and returns `urls.dashboard`, usually:
 http://localhost:3000/dashboard?mode=cmo&session=<id>
 ```
 
-The launcher prefers the sibling `mktg-studio/bin/mktg-studio.ts` checkout,
-then `MKTG_STUDIO_BIN`, then `mktg-studio` on PATH. Once health returns 200,
+The launcher prefers `MKTG_STUDIO_BIN` when explicitly set, then the bundled
+`studio/bin/mktg-studio.ts`, then the legacy sibling checkout, then `mktg-studio`
+on PATH. Once health returns 200,
 switch to studio-attached mode and use the verbs below.
 
 ## The studio verbs

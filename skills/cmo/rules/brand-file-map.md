@@ -124,7 +124,7 @@ Landscape drives the **Claims Blacklist** — any claim not grounded in current 
 | Skill | Why |
 |---|---|
 | `seo-content` | Primary/secondary/long-tail targeting. |
-| `ai-seo` | Entity optimization vocabulary. |
+| `ai-seo` | Seeds the neutral prompt portfolio and connects observed answer-engine visibility to the audiences and topics that matter. |
 | `competitor-alternatives` | Comparison keyword selection. |
 | `seo-audit` | URL structure + schema recommendations. |
 | `seo-machine` | Seeds every phase — striking-distance keywords, pattern grouping (alternatives/compare/use-case/playbooks), per-page targets. |

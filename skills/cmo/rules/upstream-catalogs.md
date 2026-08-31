@@ -9,7 +9,7 @@ Extracted from `skills/cmo/SKILL.md` (kept under 500 lines).
 | Catalog | What it adds | Skill it powers | Env vars | Activation check |
 |---|---|---|---|---|
 | `postiz` | 30+ social provider integrations (LinkedIn, Reddit, Bluesky, Mastodon, Threads, Instagram, TikTok, YouTube, Pinterest, Discord, Slack, etc.) via a BYO [postiz-app](https://github.com/gitroomhq/postiz-app) instance (hosted or Docker self-host) | `/postiz` + `/social-campaign` Phase 5 routing | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` (defaults to `https://api.postiz.com`) | `mktg catalog info postiz --json --fields configured,missing_envs` |
-| `openseo` | SEO data plane (keyword difficulty, volume, SERP, backlinks, rank tracking, GSC) via `research_adapters` + MCP from a BYO [open-seo](https://github.com/every-app/open-seo) instance | `openseo`, `openseo-*` skills; OpenSEO path inside `keyword-research` / `seo-audit` / `competitor-alternatives` | `OPENSEO_API_KEY`, `OPENSEO_API_BASE` (`OPENSEO_MCP_URL` override) | `mktg catalog info openseo --json --fields configured,missing_envs` |
+| `openseo` | SEO data plane (keywords, SERP, backlinks, local SEO, rank tracking, GSC, GA4, site audit) via MCP from a BYO [open-seo](https://github.com/every-app/open-seo) instance | `openseo`, `openseo-*` skills; measured evidence inside `keyword-research` / `seo-audit` / `ai-seo` / `competitor-alternatives` | Hosted OAuth by default; `OPENSEO_API_KEY` for headless; `OPENSEO_MCP_URL` for self-host endpoint override | `mktg seo status --json` (rich readiness); catalog info for env-only readiness |
 
 ### Catalog-aware routing rules
 
@@ -33,7 +33,7 @@ Always check catalog readiness BEFORE routing any social distribution request. T
 2. **User wants a full campaign** → `social-campaign` orchestrator (its Phase 5 now auto-picks typefully vs postiz per post).
 3. **User wants atomization** → `content-atomizer` (file generation only  -  distribution is a separate step).
 4. **User wants multi-platform launch/directories** → `startup-launcher` (directories, not social channels).
-5. **Any metrics-bearing SEO request** (KD, volume, SERP, backlinks, rank tracking, GSC): `openseo` configured → the matching `openseo-*` skill; not configured → the Exa-backed skill (`keyword-research`, `seo-audit`, `competitive-intel`) with an explicit gap note that metrics are estimated. See `rules/ecosystem.md` §OpenSEO.
+5. **Any metrics-bearing SEO request** (KD, volume, SERP, backlinks, rank tracking, GSC): OpenSEO ready → the matching `openseo-*` skill; not ready → the Exa-backed skill (`keyword-research`, `seo-audit`, `competitive-intel`) with unavailable numeric metrics marked `unknown`. See `rules/ecosystem.md` §OpenSEO.
 
 ### AGPL firewall
 

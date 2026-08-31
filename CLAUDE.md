@@ -11,7 +11,7 @@
 
 ## What This Is
 
-A TypeScript/Bun agent-native marketing playbook CLI. 76 marketing skills (74 playbook + `/cmo` + `/axi`), 6 agents (4 research + 2 review), 24 commands, 2 upstream catalogs (postiz, openseo). The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
+A TypeScript/Bun agent-native marketing playbook CLI. 76 marketing skills (74 playbook + `/cmo` + `/axi`), 7 agents (4 research + 3 review), 24 commands, 2 upstream catalogs (postiz, openseo). The Studio dashboard (Next.js + Bun API) ships inside the same tarball and is launched via `mktg studio`.
 
 | Component | Count | Purpose |
 |---|---|---|
@@ -20,7 +20,7 @@ A TypeScript/Bun agent-native marketing playbook CLI. 76 marketing skills (74 pl
 | `/axi` skill | 1 orchestrator | Routes agent-tool work to AXI-catalog CLIs (gh-axi, chrome-devtools-axi, …) |
 | `brand/` directory | 10 memory files (+ SCHEMA.md) | Persistent marketing memory, compounds across sessions |
 | Marketing skills | 76 total (74 playbook + `/cmo` + `/axi`) | The playbook, installed to `~/.claude/skills/` |
-| Marketing agents | 6 | Parallel sub-agents for research + review, installed to `~/.claude/agents/` |
+| Marketing agents | 7 | Parallel sub-agents for research + independent review, installed to `~/.claude/agents/` |
 | Upstream catalogs | 2 | External OSS projects mktg builds on (postiz = 30+ social providers via REST API, AGPL-firewalled; openseo = SEO data plane via research_adapters + MCP) |
 | Studio dashboard | 1 | Next.js + Bun API workspace member at `studio/`, bundled in the tarball, launched via `mktg studio` |
 

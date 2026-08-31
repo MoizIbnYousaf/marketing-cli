@@ -125,7 +125,7 @@
 | `visual-style` → `brand-kit-playground` | Full loop. |
 | `paper-marketing` | Has the design system to spawn designer agents. |
 | `slideshow-script` + `video-content` + `tiktok-slideshow` | Full video pipeline. |
-| `ai-seo` | Has keyword-plan + positioning for entity optimization. |
+| `ai-seo` | Has keyword-plan + positioning for a durable truth baseline, neutral prompt portfolio, sampled AEO visibility/citation/accuracy measurement, and diagnosed fixes. |
 | `frontend-slides` | Brand-consistent pitch decks. |
 | `app-store-screenshots` | Brand visuals in place. |
 | `email-sequences` with full stack awareness | Knows which ESP (`stack.md`) + audience segments. |

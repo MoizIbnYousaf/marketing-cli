@@ -112,6 +112,15 @@ When the user makes a specific, single-asset request ("write me a LinkedIn post 
 - Deliver the asset directly
 - Still include WHAT'S NEXT (2-3 lines)
 
+## Strategy Decision Format
+
+For high-stakes strategy recommendations, include one decision table in the content section:
+
+| Recommendation | Business effect | Metric | Horizon | Assumption | Risk / reversal signal |
+|---|---|---|---|---|---|
+
+Use `unknown` where evidence is missing. Do not turn speculative uplift into a forecast. End with the decision requested from the user and the smallest reversible first step.
+
 ## Visual Conversion Checkpoint
 
 Skills that produce copy (landing pages, emails, lead magnets) must offer a visual build step:

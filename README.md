@@ -5,14 +5,14 @@
 <p align="center">
   <a href="https://github.com/MoizIbnYousaf/marketing-cli/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-10b981" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/skills-76-10b981" alt="76 Skills">
-  <img src="https://img.shields.io/badge/agents-6-10b981" alt="6 Agents">
+  <img src="https://img.shields.io/badge/agents-7-10b981" alt="7 Agents">
   <a href="https://www.npmjs.com/package/marketing-cli"><img src="https://img.shields.io/npm/v/marketing-cli?color=10b981" alt="npm"></a>
-  <img src="https://img.shields.io/badge/tests-2,624-10b981" alt="2,624 tests">
+  <img src="https://img.shields.io/badge/tests-3,664-10b981" alt="3,664 tests">
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6" alt="TypeScript Strict">
 </p>
 
 <p align="center">
-  <b>One package. One install. CLI for the agent, Studio for the human. 76 skills, 6 research/review agents, brand memory that compounds.</b>
+  <b>One package. One install. CLI for the agent, Studio for the human. 76 skills, 7 research/review agents, brand memory that compounds.</b>
 </p>
 
 ---
@@ -25,7 +25,7 @@ One npm package, two surfaces. The CLI is the agent surface, the Studio dashboar
 
 | Surface | What it is | Path |
 |---|---|---|
-| `mktg` CLI | 76 skills, 6 agents, brand memory, `/cmo` orchestration | (root) |
+| `mktg` CLI | 76 skills, 7 agents, brand memory, `/cmo` orchestration | (root) |
 | Studio dashboard | Local Next.js + Bun API: pulse, signals, brand visualizer, publish queue | [`studio/`](studio/) |
 
 `npm i -g marketing-cli` installs both. The repo uses a bun workspace because Studio is a Next.js app with its own build, but at install time it is one package, one tarball.
@@ -34,7 +34,7 @@ One npm package, two surfaces. The CLI is the agent surface, the Studio dashboar
 
 You ask your agent for marketing help. It writes generic copy and forgets your audience by tomorrow. The skills it would use aren't installed; the brand files don't exist; the agent learns this halfway through, when something fails mid-execution. Every session is the first session.
 
-`marketing-cli` fixes that. Install once and your agent inherits 76 skills, 6 research/review agents, and a brand memory that compounds. Session 10 starts where session 9 ended. Every conversation builds on the last.
+`marketing-cli` fixes that. Install once and your agent inherits 76 skills, 7 research/review agents, and a brand memory that compounds. Session 10 starts where session 9 ended. Every conversation builds on the last.
 
 ---
 
@@ -58,7 +58,7 @@ You ask your agent for marketing help. It writes generic copy and forgets your a
 |---|---|
 | **`mktg` CLI** | 24 commands, 21/21 Agent DX score, JSON-by-default |
 | **76 marketing skills** | The playbook, copied to `~/.claude/skills/` |
-| **6 research + review agents** | Parallel sub-agents in `~/.claude/agents/` |
+| **7 research + review agents** | Parallel research and independent review in `~/.claude/agents/` |
 | **10 brand memory files** | Persistent marketing memory in your project's `brand/` (10 templates plus `SCHEMA.md`), created by `mktg init` |
 | **`/cmo` orchestrator** | The brain that routes every request to the right skill |
 | **Studio dashboard** | Local Next.js + Bun API dashboard at `studio/`, launched via `mktg studio` |
@@ -97,7 +97,7 @@ mktg orchestrates; it doesn't reimplement. When a good tool already exists, we c
 npm i -g marketing-cli
 ```
 
-That's it. The global npm install copies the 76 skills into `~/.claude/skills/` and the 6 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
+That's it. The global npm install copies the 76 skills into `~/.claude/skills/` and the 7 agents into `~/.claude/agents/`. No second install command, no `mktg init` to remember.
 
 Then open Claude Code in your project and run:
 
@@ -286,7 +286,7 @@ Organized by marketing layer. Foundation builds up to distribution.
 | **app-store-screenshots** | App Store screenshot pages (Next.js export) |
 | **frontend-slides** | Animated HTML presentations and pitch decks |
 | **seo-audit** | Technical SEO, site architecture, schema markup |
-| **ai-seo** | Optimize for AI search (ChatGPT, Perplexity) |
+| **ai-seo** | Measure and improve AEO/GEO visibility, citations, and accuracy |
 | **competitor-alternatives** | "X vs Y" and "X alternatives" comparison pages |
 | **page-cro** | Landing page conversion rate optimization |
 | **conversion-flow-cro** | Signup, onboarding, paywall flow optimization |
@@ -335,7 +335,7 @@ Organized by marketing layer. Foundation builds up to distribution.
 
 ---
 
-## Agents (6)
+## Agents (7)
 
 Parallel sub-agents for research and review. `/cmo` spawns them during foundation building:
 
@@ -346,6 +346,8 @@ Parallel sub-agents for research and review. `/cmo` spawns them during foundatio
 | **competitive-scanner** | Competitor teardown and positioning gap analysis |
 | **content-reviewer** | Quality review for any marketing output |
 | **seo-analyst** | SEO audit for content and pages |
+| **strategy-reviewer** | Independent gate for high-stakes strategic recommendations |
+| **backlink-prospector** | Parallel off-page and backlink target research |
 
 The 3 research agents run **in parallel**. Results write back to `brand/` so every future session starts ahead.
 

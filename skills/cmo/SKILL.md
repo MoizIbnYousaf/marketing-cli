@@ -12,6 +12,7 @@ allowed-tools:
 
 ## North Star
 For the persona contract  -  who the builder is, what /cmo's job is, and the suggest/ask/discuss/act/teach disciplines  -  see [rules/persona.md](rules/persona.md).
+For business-model classification boundaries used only when they change strategic advice, see [rules/b2b-archetypes.md](rules/b2b-archetypes.md).
 
 For brand memory protocol, see [rules/brand-memory.md](rules/brand-memory.md).
 For output formatting, see [rules/output-format.md](rules/output-format.md).
@@ -24,7 +25,7 @@ For the brand file → dependent skills reverse index (which skills go stale whe
 For the full `mktg` + `mktg catalog` command reference (when CMO invokes each), see [rules/command-reference.md](rules/command-reference.md).
 For the runtime-resolved CLI command index, see [rules/cli-runtime-index.md](rules/cli-runtime-index.md).
 For native/Postiz/Typefully distribution routing, see [rules/publish-index.md](rules/publish-index.md).
-For the 6-agent spawn protocol  -  3 research agents (`mktg-brand-researcher`, `mktg-audience-researcher`, `mktg-competitive-scanner`) in parallel on first run, the 2 review agents (`mktg-content-reviewer` voice-consistency gate, `mktg-seo-analyst` keyword-adherence gate) on-demand after any content draft, plus `mktg-backlink-prospector` (on-demand for `off-page-seo` / `seo-machine` off-page phases)  -  see [rules/sub-agents.md](rules/sub-agents.md).
+For the 7-agent spawn protocol  -  3 foundation research agents in parallel on first run, `mktg-backlink-prospector` for off-page research, 2 content/SEO review agents after assets, and the independent `mktg-strategy-reviewer` after high-stakes strategy  -  see [rules/sub-agents.md](rules/sub-agents.md).
 For external tools, MCP, Exa skills, and the API-vs-browser fork, see [rules/ecosystem.md](rules/ecosystem.md).
 For upstream catalogs (postiz, openseo)  -  registered catalogs, catalog-aware routing rules, the AGPL firewall, and how to add a new catalog  -  see [rules/upstream-catalogs.md](rules/upstream-catalogs.md).
 For error recovery + degraded-mode playbook (brand file missing, integration unconfigured, rate limit hit, sent-marker dedupe, Claims Blacklist violation, stale data, mid-run failures), see [rules/error-recovery.md](rules/error-recovery.md).
@@ -110,10 +111,10 @@ Follow this escalation pattern. Always start at the highest applicable level:
 | Audit technical SEO | `seo-audit` | Site health check | SEO |
 | Audit site architecture | `seo-audit --mode architecture` | URL structure, internal linking | SEO |
 | Add schema markup | `seo-audit --mode schema` | Need JSON-LD structured data | SEO |
-| Optimize for AI search | `ai-seo` | Need visibility in AI answers | SEO |
+| Build / audit AI-search visibility | `ai-seo` | Need sampled AEO/GEO visibility, citation, accuracy, and a durable gameplan | SEO |
 | Build organic traffic OS / programmatic pages | `seo-machine` | "We need traffic", SEO machine, programmatic SEO end-to-end (Path B in `rules/playbooks.md`) | SEO |
 | Backlinks / link building / guest posts | `off-page-seo` | Need authority, outreach, digital PR (spawns `mktg-backlink-prospector`) | SEO |
-| Measured KD / volume / SERP / GSC data | `openseo` (+ `openseo-keyword-research`, `openseo-keyword-clustering`, `openseo-competitor-analysis`, `openseo-competitive-landscape`, `openseo-link-prospecting`, `openseo-project-setup`, `openseo-coach`) | OpenSEO catalog configured (`mktg catalog info openseo --json --fields configured`); else Exa-backed `keyword-research` with a gap note | SEO |
+| Measured KD / volume / SERP / GSC data | `openseo` (+ `openseo-keyword-research`, `openseo-keyword-clustering`, `openseo-competitor-analysis`, `openseo-competitive-landscape`, `openseo-link-prospecting`, `openseo-project-setup`, `openseo-coach`) | OpenSEO has a ready state in `mktg seo status --json`; else Exa-backed `keyword-research` with a gap note | SEO |
 | Build comparison pages | `competitor-alternatives` | "X vs Y" or "X alternatives" pages | SEO |
 | Audit landing page CRO | `page-cro` | Live page needs optimization | Conversion |
 | Optimize signup/onboarding | `conversion-flow-cro` | Funnel needs improvement | Conversion |
@@ -187,6 +188,7 @@ When a request is ambiguous, use this matrix:
 | "SEO" | `keyword-research` | `seo-audit` | Keywords first. Audit after you have pages. |
 | "SEO machine" / "we need traffic" / "programmatic SEO" | `seo-machine` | `seo-content` | seo-machine is the end-to-end organic traffic OS. seo-content writes one article/page set. |
 | "keyword difficulty" / "search volume" | `openseo-keyword-research` (if OpenSEO configured) | `keyword-research` | OpenSEO returns measured metrics. keyword-research is qualitative (Exa) with unknown KD/volume. |
+| "AI visibility" / "AI citations" / "how does ChatGPT describe us" | `ai-seo` | `openseo` | `ai-seo` owns direct answer-engine sampling and AEO diagnosis. OpenSEO supplies supporting search, crawl, backlink, analytics, and audit evidence; v0.1.6 exposes no AI Visibility MCP tools. |
 | "backlinks" / "link building" | `off-page-seo` | `startup-launcher` | Off-page = authority + outreach. Launcher = launch-day directory submissions. |
 | "submit to directories" / "directory submissions" | `startup-launcher` (launch-day: PH/HN/BetaList/AppSumo and the 56-platform list) | `off-page-seo` | Launcher owns one-time launch submissions. `off-page-seo` owns ongoing DA/listicle/directory link-building ("directory link building", "listicle placements", "domain authority"). |
 | "alternatives pages" / "comparison pages" / "programmatic SEO" | `competitor-alternatives` for one-off X-vs-Y or one alternatives page; `seo-machine` for a batch/roadmap of many pages + tracker; `seo-content --mode scale` for template-only articles at scale | any single one of the three | Count + tracker decides: one page = competitor-alternatives; many pages with a roadmap/tracker = seo-machine; one template stamped over rows with no roadmap = seo-content --mode scale. |

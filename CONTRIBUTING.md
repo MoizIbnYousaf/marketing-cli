@@ -39,8 +39,8 @@ src/cli.ts           Entry point + command router
 src/types.ts         All shared types (CommandResult, ExitCode, etc.)
 src/commands/        One file per command (20 total)
 src/core/            Shared infrastructure: output, errors, brand, skills, agents
-skills/              50 SKILL.md files following the drop-in contract
-agents/              5 agent .md files (3 research, 2 review)
+skills/              76 SKILL.md files following the drop-in contract
+agents/              7 agent .md files (4 research, 3 review)
 tests/               Unit + integration + e2e (all real I/O in temp dirs)
 ```
 

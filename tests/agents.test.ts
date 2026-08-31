@@ -20,6 +20,8 @@ const EXPECTED_AGENTS = [
   "competitive-scanner",
   "content-reviewer",
   "seo-analyst",
+  "strategy-reviewer",
+  "backlink-prospector",
 ] as const;
 
 const RESEARCH_AGENTS = [
@@ -28,7 +30,7 @@ const RESEARCH_AGENTS = [
   "competitive-scanner",
 ] as const;
 
-const REVIEW_AGENTS = ["content-reviewer", "seo-analyst"] as const;
+const REVIEW_AGENTS = ["content-reviewer", "seo-analyst", "strategy-reviewer"] as const;
 
 describe("loadAgentManifest", () => {
   test("loads successfully", async () => {
@@ -42,17 +44,17 @@ describe("loadAgentManifest", () => {
     expect(manifest.version).toBe(1);
   });
 
-  test("has exactly 6 agents", async () => {
+  test("has exactly 7 agents", async () => {
     const manifest = await loadAgentManifest();
-    expect(Object.keys(manifest.agents)).toHaveLength(6);
+    expect(Object.keys(manifest.agents)).toHaveLength(7);
   });
 });
 
 describe("getAgentNames", () => {
-  test("returns all 6 agent names", async () => {
+  test("returns all 7 agent names", async () => {
     const manifest = await loadAgentManifest();
     const names = getAgentNames(manifest);
-    expect(names).toHaveLength(6);
+    expect(names).toHaveLength(7);
 
     for (const expected of EXPECTED_AGENTS) {
       expect(names).toContain(expected);
@@ -61,10 +63,10 @@ describe("getAgentNames", () => {
 });
 
 describe("getAgentInstallStatus", () => {
-  test("returns status for all 6 agents", async () => {
+  test("returns status for all 7 agents", async () => {
     const manifest = await loadAgentManifest();
     const status = await getAgentInstallStatus(manifest);
-    expect(Object.keys(status)).toHaveLength(6);
+    expect(Object.keys(status)).toHaveLength(7);
   });
 
   test("each status has installed boolean and path string", async () => {
@@ -117,7 +119,7 @@ describe("installAgents", () => {
 });
 
 describe("updateAgents", () => {
-  test("reports updated/unchanged/notBundled totaling 5", async () => {
+  test("reports updated/unchanged/notBundled totaling 7", async () => {
     const manifest = await loadAgentManifest();
     const result = await updateAgents(manifest);
 
@@ -125,7 +127,7 @@ describe("updateAgents", () => {
       result.updated.length +
       result.unchanged.length +
       result.notBundled.length;
-    expect(total).toBe(6);
+    expect(total).toBe(7);
   });
 
   test("dry-run reports without writing", async () => {
@@ -136,7 +138,7 @@ describe("updateAgents", () => {
       result.updated.length +
       result.unchanged.length +
       result.notBundled.length;
-    expect(total).toBe(6);
+    expect(total).toBe(7);
   });
 });
 
@@ -238,6 +240,8 @@ describe("manifest schema", () => {
       "competitive-scanner": "competitive-intel",
       "content-reviewer": null,
       "seo-analyst": "seo-audit",
+      "strategy-reviewer": null,
+      "backlink-prospector": "off-page-seo",
     };
 
     for (const [name, skill] of Object.entries(expectedSkills)) {

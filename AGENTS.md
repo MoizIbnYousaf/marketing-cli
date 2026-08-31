@@ -94,7 +94,7 @@ In an Amp orb, prefer `amp orb services ensure`: `.amp/services.yaml` supervises
 the bundled Studio and the connected `mktg-site` checkout. The CLI itself is terminal-only; Studio
 is its browser-facing app.
 
-6 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
+7 sub-agents that `/cmo` spawns for parallel research and review. Installed to `~/.claude/agents/` by `mktg init` and `mktg update`.
 
 ## Agent Registry
 
@@ -105,6 +105,8 @@ is its browser-facing app.
 | `mktg-competitive-scanner` | research | `brand/competitors.md` | `competitive-intel` | `/cmo` foundation |
 | `mktg-content-reviewer` | review | none (scores only) | reads `brand/voice-profile.md` | on demand |
 | `mktg-seo-analyst` | review | none (scores only) | reads `brand/keyword-plan.md` | on demand |
+| `mktg-strategy-reviewer` | review | none (scores only) | reads strategic brand evidence | after high-stakes strategy |
+| `mktg-backlink-prospector` | research | none (returns targets) | `off-page-seo` | off-page research |
 
 ## How Agents Work
 

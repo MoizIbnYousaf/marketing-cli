@@ -255,7 +255,7 @@ Rules: ~/projects/mktgmono/marketing-cli/skills/cmo/rules/ (14 files, ~1,900 lin
 - Quality gate pipeline (ai-check → editorial-first-pass → content-reviewer → seo-analyst → distribute)
 - Brand file → dependent skills reverse index (what to re-run when voice-profile.md changes)
 - All 16 mktg CLI commands + when to use each
-- All 5 sub-agents (3 research + 2 review) + spawn protocol
+- All 7 sub-agents (4 research + 3 review) + spawn protocol
 - External tool ecosystem (firecrawl, ffmpeg, remotion, /ply*, gh, whisper-cli, yt-dlp, summarize, Exa MCP)
 
 **How the studio talks to /cmo:**
@@ -350,11 +350,11 @@ Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
 | `marketing-psychology` | knowledge | Cialdini's 6 principles, cognitive biases |
 | `ai-check` | review | Line-by-line AI slop detection |
 | `editorial-first-pass` | review | Hook, thesis, promise, stakes — pass/fail |
-| `ai-seo` | review | AI search optimization (ChatGPT, Perplexity, Claude, Gemini) |
+| `ai-seo` | review | Durable AEO/GEO visibility, citation, and accuracy program |
 | `competitor-alternatives` | review | "X vs Y" and "X alternatives" SEO pages |
 | `landscape-scan` | infrastructure | Ecosystem snapshot + Claims Blacklist |
 
-## 5 Sub-Agents
+## 7 Sub-Agents
 
 ```
 Installed: ~/.claude/agents/<name>.md
@@ -369,6 +369,8 @@ Manifest: ~/projects/mktgmono/marketing-cli/agents-manifest.json
 | `mktg-competitive-scanner` | research | brand/competitors.md | /cmo on FIRST RUN (parallel) |
 | `mktg-content-reviewer` | review | none (scores only) | /cmo after content draft lands |
 | `mktg-seo-analyst` | review | none (scores only) | /cmo after SEO content lands |
+| `mktg-strategy-reviewer` | review | none (scores only) | /cmo after high-stakes strategy lands |
+| `mktg-backlink-prospector` | research | none (returns targets) | /cmo during off-page research |
 
 ## 10 Brand Files
 

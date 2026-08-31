@@ -41,6 +41,14 @@
       "references_skill": "seo-audit",
       "tier": "nice-to-have"
     },
+    "strategy-reviewer": {
+      "category": "review",
+      "file": "review/strategy-reviewer.md",
+      "writes": [],
+      "reads": ["positioning.md", "audience.md", "competitors.md", "keyword-plan.md", "landscape.md", "learnings.md"],
+      "references_skill": null,
+      "tier": "nice-to-have"
+    },
     "backlink-prospector": {
       "category": "research",
       "file": "research/backlink-prospector.md",

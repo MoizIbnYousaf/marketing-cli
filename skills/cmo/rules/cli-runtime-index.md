@@ -33,8 +33,8 @@ mktg studio --dry-run --json --intent cmo --session <id>
 mktg studio --open --intent cmo --session <id>
 ```
 
-The launcher resolves the in-repo `studio/` first, then the sibling
-`mktg-studio/` checkout, then `MKTG_STUDIO_BIN`, then PATH. The dry-run response's `urls.dashboard` is the
+The launcher resolves `MKTG_STUDIO_BIN` first, then the bundled in-repo `studio/`,
+then the legacy sibling `mktg-studio/` checkout, then PATH. The dry-run response's `urls.dashboard` is the
 canonical URL to show or open.
 
 ## Top-Level Commands

@@ -12,6 +12,7 @@ import { handler as initHandler } from "../../../src/commands/init";
 import { handler as listHandler } from "../../../src/commands/list";
 import { handler as doctorHandler } from "../../../src/commands/doctor";
 import { loadManifest } from "../../../src/core/skills";
+import { loadAgentManifest } from "../../../src/core/agents";
 
 let tempDir: string;
 let flags: GlobalFlags;
@@ -60,7 +61,8 @@ describe("CMO reads status for brand health", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.data.agents.total).toBe(6);
+    const manifest = await loadAgentManifest();
+    expect(result.data.agents.total).toBe(Object.keys(manifest.agents).length);
     expect(result.data.agents.installed).toBeGreaterThan(0);
   });
 

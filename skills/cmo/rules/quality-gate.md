@@ -19,6 +19,8 @@ Do NOT apply to:
 - Strategy documents (launch plans, pricing analysis)
 - Technical output (schema markup, SEO audit reports)
 
+Strategy documents use a separate gate: after the draft is complete, invoke `mktg-strategy-reviewer` using `rules/sub-agents.md`. This tests decision logic and evidence; it does not apply copy-polish rules or rewrite the plan.
+
 ## How to Audit
 
 1. Read the full reference: [references/ai-slop-patterns.md](../references/ai-slop-patterns.md)

@@ -61,16 +61,18 @@ When a platform has no usable API, /cmo routes to the browser. Multiple browser 
 |---|---|---|
 | KD / volume / CPC / intent | OpenSEO MCP (`get_keyword_metrics`, `research_keywords`) | none — mark `unknown` |
 | Live SERP for a keyword | OpenSEO MCP (`get_serp_results`) | firecrawl/Exa scrape (weaker) |
-| Domain ranked keywords / backlinks | OpenSEO MCP (`get_ranked_keywords`, `get_backlinks_overview`) | `competitive-intel` qualitative |
+| Domain ranked keywords / backlinks | OpenSEO MCP (`get_ranked_keywords`, `get_backlinks_profile`) | `competitive-intel` qualitative |
 | GSC striking-distance / cannibalization | OpenSEO (`get_search_console_performance`) | manual GSC CSV export into `.seo/gsc/` |
 | Open-web discovery / Reddit / GitHub | Exa | — |
 | Fetch known-URL content | firecrawl | — |
 
 **Skills:** `openseo` (adapter/readiness), `openseo-project-setup`, `openseo-coach`, `openseo-keyword-research`, `openseo-keyword-clustering`, `openseo-competitive-landscape`, `openseo-competitor-analysis`, `openseo-link-prospecting`.
 
-**CMO routes to OpenSEO when:** any metrics-bearing SEO request arrives and `mktg catalog info openseo --json --fields configured` returns true. SEO playbook skills (`keyword-research`, `seo-audit`, `off-page-seo`, `ai-seo`, `seo-machine`, `competitor-alternatives`) have Backend Selection sections that prefer OpenSEO when ready.
+**CMO routes to OpenSEO when:** any metrics-bearing SEO request arrives and `mktg seo status --json` returns a `*_ready` readiness state. Verify live access with OpenSEO's free `whoami` tool before spending credit. SEO playbook skills (`keyword-research`, `seo-audit`, `off-page-seo`, `ai-seo`, `seo-machine`, `competitor-alternatives`) prefer OpenSEO when ready.
 
-**Wired via:** `.mcp.json` at the repo root (`openseo` server, hosted MCP `https://app.openseo.so/mcp` hardcoded; for self-host edit that URL — the `OPENSEO_MCP_URL` env only drives `mktg catalog` readiness/`mcp.url_env`, not `.mcp.json`) and `OPENSEO_API_KEY` for non-interactive automation (`mktg doctor` surfaces catalog readiness). Cost discipline: bulk research + `save_keywords` require confirmation (DataForSEO credit).
+**Wired via:** `.mcp.json` at the repo root (`openseo` server, hosted MCP `https://app.openseo.so/mcp`) for interactive OAuth; `OPENSEO_API_KEY` supports non-interactive automation and `OPENSEO_MCP_URL` overrides the endpoint for self-host clients. Cost discipline: research calls can spend DataForSEO credit and require approval; `save_keywords` is free but mutates shared state and also requires confirmation.
+
+**AEO boundary:** `ai-seo` owns direct observations from answer engines: prompt portfolios, repeated samples, citation/mention/accuracy measures, diagnosis, and remeasurement. OpenSEO supplies supporting traditional-search, crawl, backlink, rank, GSC, GA4, local SEO, and audit evidence. OpenSEO v0.1.6 has AI Visibility in its product UI but exposes no AI Visibility MCP tools, so /cmo must never represent OpenSEO data as direct ChatGPT, Perplexity, Claude, Gemini, or AI Overview measurement.
 
 ---
 

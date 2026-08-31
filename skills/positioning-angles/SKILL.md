@@ -194,6 +194,10 @@ The mechanism makes the promise believable. It answers: "Why will this work when
 
 Even if nothing is truly proprietary, there is always a mechanism. Name it.
 
+### Step 3.5: Require structural proof
+
+Before accepting an angle, run the structural-proof, perception-gap, economic-case, and buyer-risk checks in `references/structural-proof.md`. Label unsupported angles as messaging hypotheses rather than competitive claims.
+
 ---
 
 ### Step 4: Assess market sophistication
@@ -346,6 +350,8 @@ Present the competitive search findings first (see Step 2.5 format above).
   Sophistication: Stage [N] -- [stage name]
   Transformation: [one sentence]
   Mechanism: [the unique how]
+  Structural proof: [why the promise is defensible, or "unproven hypothesis"]
+  Perception gap: [internal vs customer vs operational mismatch]
   Primary alternative: [what they do instead]
 ```
 

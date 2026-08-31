@@ -1,5 +1,5 @@
 // CMO Agent Spawning Tests
-// Proves CMO can discover all 6 agents and knows when to spawn research vs review.
+// Proves CMO can discover all 7 agents and knows when to spawn research vs review.
 // Real manifest reads, no mocks.
 
 import { describe, test, expect } from "bun:test";
@@ -13,17 +13,19 @@ const EXPECTED_AGENTS = [
   "competitive-scanner",
   "content-reviewer",
   "seo-analyst",
+  "strategy-reviewer",
+  "backlink-prospector",
 ];
 
 const RESEARCH_AGENTS = ["brand-researcher", "audience-researcher", "competitive-scanner"];
-const REVIEW_AGENTS = ["content-reviewer", "seo-analyst"];
+const REVIEW_AGENTS = ["content-reviewer", "seo-analyst", "strategy-reviewer"];
 
 describe("CMO Agent Discovery", () => {
-  test("discovers all 6 agents from manifest", async () => {
+  test("discovers all 7 agents from manifest", async () => {
     const manifest = await loadAgentManifest();
     const names = getAgentNames(manifest);
 
-    expect(names.length).toBe(6);
+    expect(names.length).toBe(7);
     for (const expected of EXPECTED_AGENTS) {
       expect(names).toContain(expected);
     }
@@ -68,7 +70,7 @@ describe("CMO Research vs Review Classification", () => {
     }
   });
 
-  test("2 review agents write nothing", async () => {
+  test("3 review agents write nothing", async () => {
     const manifest = await loadAgentManifest();
 
     for (const name of REVIEW_AGENTS) {
@@ -178,5 +180,30 @@ describe("CMO Spawning Decision Logic", () => {
       // They don't write anything, so spawning them without data would be wasteful
       expect(agent.writes.length).toBe(0);
     }
+  });
+
+  test("strategy reviewer is an independent read-only gate", async () => {
+    const manifest = await loadAgentManifest();
+    const reviewer = manifest.agents["strategy-reviewer"]!;
+
+    expect(reviewer.category).toBe("review");
+    expect(reviewer.writes).toHaveLength(0);
+    expect(reviewer.reads).toEqual(
+      expect.arrayContaining([
+        "positioning.md",
+        "audience.md",
+        "competitors.md",
+        "landscape.md",
+        "learnings.md",
+      ]),
+    );
+
+    const { getPackageRoot } = await import("../../../src/core/paths");
+    const { join } = await import("node:path");
+    const source = await Bun.file(join(getPackageRoot(), "agents", reviewer.file)).text();
+    expect(source).toContain("PASS");
+    expect(source).toContain("REVISE");
+    expect(source).toContain("REJECT");
+    expect(source).toContain("Never write or edit project files");
   });
 });

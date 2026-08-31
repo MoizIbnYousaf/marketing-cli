@@ -17,6 +17,30 @@ Set up tracking that informs decisions, not dashboards.
 3. **Name things consistently.** Establish patterns before implementing.
 4. **Quality over quantity.** Clean data beats more data.
 
+## Measurement Map
+
+Label each initiative by the growth motion it is meant to affect. A metric is only useful when its role and decision cadence are explicit.
+
+| Motion | Question | Leading signals | Lagging outcomes | Useful cadence |
+|---|---|---|---|---|
+| Brand | Do the right buyers recognize and correctly understand us? | direct/search interest, prompted/unprompted recall, message comprehension, relevant mentions | branded demand, consideration, qualified inbound mix | monthly or campaign waves |
+| Demand | Are we creating and capturing active interest? | qualified visits, engagement, intent actions, pipeline entry | sourced/influenced pipeline, acquisition cost, new revenue | weekly operational; monthly decision review |
+| Expand | Are customers adopting, retaining, and growing? | activation, feature adoption, health signals, advocacy | retention, expansion revenue, net revenue retention, lifetime value | weekly risk review; monthly/cohort review |
+
+Do not force one initiative into one motion if it has a deliberate secondary effect. Name the primary motion so optimization does not sacrifice long-term value for the easiest short-term metric.
+
+### Evidence strength
+
+| Level | What it supports | Examples |
+|---|---|---|
+| Descriptive | What happened | trend, cohort, funnel, before/after observation |
+| Associational | What moves together | segmented comparison, regression, matched cohort |
+| Experimental | What this intervention caused under the tested conditions | randomized holdout, controlled geo test, credible incrementality design |
+
+Report the strongest level the design supports—never the level the dashboard makes visually tempting. A channel appearing in a converting journey is not proof that it caused the conversion.
+
+For every strategic metric, record: owner, definition, source, baseline date, target direction (not an invented point estimate), review cadence, and the decision triggered by a material change.
+
 ## Event Naming Convention
 
 Use `object_action` format, lowercase with underscores:
@@ -145,8 +169,8 @@ Skills that depend on external data must declare their research mode:
 ```
   RESEARCH MODE
   ├── Web search      ✗ not available
-  ├── Data quality: ESTIMATED
+  ├── Data quality: UNKNOWN
   └── To upgrade: connect Exa (`exa-search` / MCP) or firecrawl
 ```
 
-Always show this signal. Never silently fall back to estimated data. Prefix estimates with `~`.
+Always show this signal. Never silently relabel missing data as estimated. If the user provides an explicit estimate, label it as an assumption and prefix it with `~`.
