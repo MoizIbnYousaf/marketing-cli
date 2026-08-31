@@ -772,13 +772,17 @@
       "version": "1.0.0"
     },
     "ai-seo": {
-      "source": "v1",
+      "source": "new",
       "category": "seo",
       "layer": "execution",
       "tier": "nice-to-have",
       "reads": [
         "voice-profile.md",
-        "keyword-plan.md"
+        "keyword-plan.md",
+        "audience.md",
+        "positioning.md",
+        "competitors.md",
+        "landscape.md"
       ],
       "writes": [],
       "depends_on": [],
@@ -786,10 +790,15 @@
         "AI SEO",
         "AI search",
         "LLM optimization",
-        "ChatGPT ranking"
+        "ChatGPT ranking",
+        "AEO",
+        "GEO",
+        "AI citations",
+        "AI visibility",
+        "answer engine optimization"
       ],
       "review_interval_days": 30,
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     "off-page-seo": {
       "source": "new",
@@ -2143,10 +2152,10 @@
         "gsc performance"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ]
     },
     "openseo-project-setup": {
@@ -2155,7 +2164,11 @@
       "layer": "foundation",
       "tier": "nice-to-have",
       "reads": [
-        "keyword-plan.md"
+        "keyword-plan.md",
+        "positioning.md",
+        "audience.md",
+        "competitors.md",
+        "voice-profile.md"
       ],
       "writes": [
         "keyword-plan.md"
@@ -2169,10 +2182,10 @@
         "openseo project id"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2202,10 +2215,10 @@
         "seo strategy help"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2237,10 +2250,10 @@
         "measured keyword research"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2271,10 +2284,10 @@
         "which page should target"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2306,10 +2319,10 @@
         "serp competitors"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2341,10 +2354,10 @@
         "competitor seo teardown"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {
@@ -2373,10 +2386,10 @@
         "link building outreach"
       ],
       "review_interval_days": 60,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "env_vars": [
         "OPENSEO_API_KEY",
-        "OPENSEO_API_BASE"
+        "OPENSEO_MCP_URL"
       ],
       "upstream": {
         "primary": {

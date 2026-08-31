@@ -62,7 +62,7 @@ Yes -- `brand/` is plain markdown in your project. Commit to git + push, or Drop
 A structured Markdown file under `skills/<name>/SKILL.md` that tells `/cmo` how to do one thing. 50 ship out of the box -- brand voice extraction, keyword research, content atomizer, Postiz publishing, native publishing, etc. `mktg list --json` shows them all.
 
 ### What's an agent?
-A sub-agent `/cmo` spawns in parallel. 5 ship: 3 researchers (brand, audience, competitors) and 2 reviewers (content, SEO). Agents write to specific brand files; `/cmo` never writes where an agent owns.
+A sub-agent `/cmo` spawns for bounded research or independent review. 7 ship: 4 researchers (brand, audience, competitors, backlinks) and 3 reviewers (content, SEO, strategy). Foundation researchers write to specific brand files; reviewers never write.
 
 ### Skills never call skills?
 Correct. That's the contract. `/cmo` orchestrates; skills are leaf nodes. If skill A needs skill B's output, it goes through `/cmo`, not through a direct call.

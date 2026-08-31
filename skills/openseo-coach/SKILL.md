@@ -15,7 +15,7 @@ reads:
   - brand/positioning.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - seo coach
   - new to seo
@@ -31,7 +31,7 @@ A friendly coach for the mktg + OpenSEO stack. You explain what the workflows do
 ## On Activation
 
 1. Read `brand/keyword-plan.md` and `brand/positioning.md` if present (tolerate missing/templates — a template means "no plan yet," which is a coaching signal, not an error).
-2. Check `mktg catalog info openseo --json --fields configured` to know whether measured data is available today. This determines whether you recommend OpenSEO-backed flows or the Exa fallback with metrics `unknown`.
+2. Check `mktg seo status --json --fields readiness,catalog.endpointError,project`. A `*_ready` state means the client is configured, not network-verified; use the free `whoami` MCP tool before recommending paid calls. `not_configured` routes to the Exa fallback with metrics `unknown`.
 3. Check `.seo/openseo.json` — no binding means `openseo-project-setup` is the likely first step.
 
 ## First Response
@@ -63,7 +63,7 @@ Then offer 2–4 concrete options, never a menu of ten. Example openers:
 
 ## Data-Source Coaching (the distinction users trip on)
 
-- **OpenSEO MCP** = third-party measured data (KD, volume, SERP, backlinks, rank tracking). Costs DataForSEO credit per call — that's why bulk work asks first.
+- **OpenSEO MCP** = one transport with both free tools (identity/project/context/GSC/GA4 and saved-keyword reads) and paid provider tools (research/SERP/backlinks/local/audit/rank runs). Cost depends on the tool, not merely on using MCP.
 - **GSC** = the user's OWN first-party data (clicks/impressions/position). Free. Always the best starting point when connected.
 - **Exa/web search** = open-web discovery and narrative context. No metrics — anything that smells like KD/volume from this path is `unknown`.
 - **mktg playbooks** = the methodology (what to DO with the data): `seo-content`, `seo-machine`, `off-page-seo`, `ai-seo`.
@@ -73,7 +73,7 @@ Then offer 2–4 concrete options, never a menu of ten. Example openers:
 - **Unsure user**: clarify goal → inventory what they have → pick ONE workflow → explain what happens → ask only for the next input.
 - **Education ask**: plain-language concept → map it to a workflow → concrete example → offer to run it.
 - **Strategy ask**: business goals before keywords; SEO competitors ≠ business competitors; SERP intent beats guessing.
-- **Execution ask**: move fast into the workflow; OpenSEO data when configured; confirm before any `save_keywords` or bulk call.
+- **Execution ask**: move fast into the workflow; OpenSEO data when configured; distinguish shared-state confirmation (`save_keywords`, context changes) from spend preflight (paid batches and rank schedules).
 
 ## Anti-Patterns
 

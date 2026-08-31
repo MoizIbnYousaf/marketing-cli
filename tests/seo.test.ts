@@ -52,7 +52,7 @@ describe("mktg seo status", () => {
   afterEach(async () => { await rm(tmp, { recursive: true, force: true }); });
 
   test("unbound project reports not_configured + missing keyword plan", async () => {
-    const { stdout, exitCode } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined, OPENSEO_MCP_CONFIGURED: undefined });
+    const { stdout, exitCode } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: undefined, OPENSEO_MCP_URL: undefined, OPENSEO_MCP_CONFIGURED: undefined });
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.readiness).toBe("not_configured");
@@ -63,34 +63,59 @@ describe("mktg seo status", () => {
     expect(parsed.catalog.mcp.default_url).toBe("https://app.openseo.so/mcp");
   });
 
-  test("api_ready when fully configured (key + base)", async () => {
-    const { stdout } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" });
+  test("hosted_api_key_ready with a key and the hosted default endpoint", async () => {
+    const { stdout } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: "k", OPENSEO_MCP_URL: undefined });
     const parsed = JSON.parse(stdout);
-    expect(parsed.readiness).toBe("api_ready");
+    expect(parsed.readiness).toBe("hosted_api_key_ready");
     expect(parsed.catalog.configured).toBe(true);
+    expect(parsed.catalog.resolvedMcpUrl).toBe("https://app.openseo.so/mcp");
   });
 
-  test("credential without a base is NOT api_ready — half-configured is not readiness", async () => {
-    const { stdout } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: undefined });
+  test("hosted_oauth_ready when the agent client reports an OAuth MCP connection", async () => {
+    const { stdout } = await run(["seo", "status", "--json", "--cwd", tmp], {
+      OPENSEO_API_KEY: undefined,
+      OPENSEO_MCP_URL: undefined,
+      OPENSEO_MCP_CONFIGURED: "1",
+    });
     const parsed = JSON.parse(stdout);
-    expect(parsed.readiness).toBe("not_configured");
+    expect(parsed.readiness).toBe("hosted_oauth_ready");
     expect(parsed.catalog.configured).toBe(false);
-    expect(parsed.catalog.missingEnvs).toContain("OPENSEO_API_BASE");
+    expect(parsed.catalog.missingEnvs).toEqual(["OPENSEO_API_KEY"]);
   });
 
-  test("selfhost_ready when base points at a self-hosted instance", async () => {
+  test("selfhost_ready when MCP points at a self-hosted instance", async () => {
     const { stdout } = await run(
       ["seo", "status", "--json", "--cwd", tmp],
-      { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "http://localhost:3100" },
+      { OPENSEO_API_KEY: "k", OPENSEO_MCP_URL: "http://localhost:3100/mcp" },
     );
     const parsed = JSON.parse(stdout);
     expect(parsed.readiness).toBe("selfhost_ready");
+    expect(parsed.openUrl).toBe("http://localhost:3100");
+  });
+
+  test("does not classify a lookalike OpenSEO hostname as hosted", async () => {
+    const { stdout } = await run(
+      ["seo", "status", "--json", "--cwd", tmp],
+      { OPENSEO_API_KEY: "k", OPENSEO_MCP_URL: "https://notopenseo.so/mcp" },
+    );
+    expect(JSON.parse(stdout).readiness).toBe("selfhost_ready");
+  });
+
+  test("invalid MCP endpoint is surfaced without crashing", async () => {
+    const { stdout, exitCode } = await run(["seo", "status", "--json", "--cwd", tmp], {
+      OPENSEO_API_KEY: "k",
+      OPENSEO_MCP_URL: "not-a-url",
+    });
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.readiness).toBe("not_configured");
+    expect(parsed.catalog.endpointError).toContain("valid URL");
   });
 
   test("corrupt binding is surfaced, never crash", async () => {
     await mkdir(join(tmp, ".seo"), { recursive: true });
     await writeFile(join(tmp, ".seo", "openseo.json"), "{not json");
-    const { stdout, exitCode } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined });
+    const { stdout, exitCode } = await run(["seo", "status", "--json", "--cwd", tmp], { OPENSEO_API_KEY: undefined, OPENSEO_MCP_URL: undefined });
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.bindingCorrupt).toBe(true);
@@ -149,6 +174,20 @@ describe("mktg seo link-project", () => {
     expect(bad1.error.code).toBe("INVALID_ARGS");
     const bad2 = JSON.parse((await run(["seo", "link-project", "--input", '{"projectId":"p\u0007","domain":"example.com"}', "--json", "--cwd", tmp])).stdout);
     expect(bad2.error.code).toBe("INVALID_ARGS");
+  });
+
+  test("accepts loopback HTTP MCP but rejects remote HTTP and non-MCP paths", async () => {
+    const loopback = await run(["seo", "link-project", "--input", '{"projectId":"p","domain":"example.com","mcpUrl":"http://127.0.0.1:3100/mcp"}', "--json", "--cwd", tmp]);
+    expect(loopback.exitCode).toBe(0);
+    expect(JSON.parse(loopback.stdout).binding.mcpUrl).toBe("http://127.0.0.1:3100/mcp");
+
+    const remoteHttp = await run(["seo", "link-project", "--input", '{"projectId":"p","domain":"example.com","mcpUrl":"http://example.com/mcp"}', "--json", "--cwd", tmp]);
+    expect(remoteHttp.exitCode).toBe(2);
+    expect(JSON.parse(remoteHttp.stdout).error.message).toContain("HTTPS");
+
+    const wrongPath = await run(["seo", "link-project", "--input", '{"projectId":"p","domain":"example.com","mcpUrl":"https://example.com/api"}', "--json", "--cwd", tmp]);
+    expect(wrongPath.exitCode).toBe(2);
+    expect(JSON.parse(wrongPath.stdout).error.message).toContain("/mcp");
   });
 });
 

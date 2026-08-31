@@ -665,11 +665,11 @@ If the user needs additional data validation beyond web search:
 ```
 
 When web search is unavailable, skip Phase 3 and run the v1 process (Phases 1,
-2, 4-7). Show the RESEARCH MODE signal with "Data quality: ESTIMATED" per
-_system/brand-memory.md. Tell the user you are using estimated data based on
-training knowledge rather than live search results. Prefix all volume and
-ranking estimates with ~ to indicate they are directional. Recommend the user
-manually check top results for priority keywords.
+2, 4-7). Show the RESEARCH MODE signal with "Data quality: UNKNOWN" per
+the CMO analytics guide. Tell the user that live SERP and metric evidence is
+unavailable. Do not infer volume, difficulty, or ranking from training knowledge;
+mark those fields `unknown`. Recommend the user manually check top results for
+priority keywords or connect OpenSEO for measured metrics.
 
 ### No business context available
 

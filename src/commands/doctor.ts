@@ -193,7 +193,7 @@ const checkIntegrations = async (): Promise<Check[]> => {
     return getIntegrationStatus(manifest).map(s => ({
       name: `integration-${s.envVar}`,
       status: s.configured ? "pass" as const : "warn" as const,
-      detail: s.configured ? `${s.envVar} set (${s.skills.join(", ")})` : `${s.envVar} not set — needed by ${s.skills.join(", ")}`,
+      detail: s.configured ? `${s.envVar} set (${s.skills.join(", ")})` : `${s.envVar} not set — used by ${s.skills.join(", ")} when that integration path is selected`,
     }));
   } catch { return []; }
 };

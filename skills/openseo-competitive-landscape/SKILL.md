@@ -19,7 +19,7 @@ writes:
   - brand/landscape.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - competitive landscape seo
   - who ranks for
@@ -37,7 +37,7 @@ Answer with measured data: who is winning this SEO market, what content works fo
 
 ## On Activation
 
-1. **Catalog + binding**: `mktg catalog info openseo --json --fields configured` + `.seo/openseo.json`. No OpenSEO → fall back to `landscape-scan` (Exa qualitative) and label authority/metrics `unknown`.
+1. **Readiness + binding**: `mktg seo status --json --fields readiness,catalog.endpointError,project`. `not_configured` → fall back to `landscape-scan` (Exa qualitative) and label authority/metrics `unknown`. For a ready state, verify live access with the free `whoami` MCP tool before paid calls.
 2. **Brand grounding**: read `brand/landscape.md` + `brand/competitors.md` (tolerate templates) — known competitors seed the query set; positioning filters "SEO competitor" from "business competitor."
 
 ## OpenSEO MCP Tools
@@ -48,6 +48,7 @@ Answer with measured data: who is winning this SEO market, what content works fo
 - `get_domain_overview`: organic footprint for top 3–5 recurring domains.
 - `get_ranked_keywords`: exact ranking keywords/URLs/intents for leaders.
 - `get_backlinks_overview`: authority comparison where rankings look authority-driven (may be unavailable on some accounts — continue without it).
+- `get_backlinks_profile`: sampled link-level evidence for leaders when overview totals are too coarse; record scope, filters, and pagination.
 - `get_search_console_performance`: when the user's own domain is compared and GSC is connected, anchor THEIR side with first-party data instead of third-party estimates.
 
 ## Workflow

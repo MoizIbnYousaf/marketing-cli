@@ -1,10 +1,10 @@
 # Honesty as a Positioning Lever
 
-Most brand voice work treats honesty as a tone modifier — "be transparent," "no buzzwords." That undersells it. **Honesty is a positioning lever.** When a brand publishes a tradeoff where a competitor wins, three things happen:
+Most brand voice work treats honesty as a tone modifier — "be transparent," "no buzzwords." That undersells it. **Honesty can be a positioning lever.** When a brand publishes a real, relevant tradeoff where a competitor wins, it can:
 
 1. The reader's skepticism filter drops. Vendor-published comparisons are presumed biased; conceding the obvious removes that assumption.
 2. The wins land harder. "We're better at X, Y, Z" reads as marketing copy. "They're better at A, B, C; we're better at X, Y, Z" reads as honest analysis.
-3. AI engines cite it. Perplexity, ChatGPT, Google AI Overviews preferentially cite sources that show "thinking" — pages that hedge every claim ("it depends") and pages that claim total superiority both get skipped. The honest middle gets cited.
+3. Make the comparison more useful and quotable. Whether an answer engine cites it must be measured; honesty alone is not a ranking or citation guarantee.
 
 This reference doc lives in `skills/brand-voice/references/` because **honesty is a voice rule, not an SEO rule**. It applies to alternatives pages, landing-page heroes, cold emails, lead magnets, founder bios, and About pages. Any surface where a buyer is evaluating whether to trust the brand benefits from this discipline.
 
@@ -12,23 +12,23 @@ This reference doc lives in `skills/brand-voice/references/` because **honesty i
 
 | Surface | Honesty move | What it earns |
 |---|---|---|
-| `/alternatives/[competitor]` | "Choose [competitor] if:" section with 3 concrete tradeoffs where they win | Trust + AI-citation eligibility + conversion (reader feels seen, not sold) |
-| Landing-page hero | "Not for [persona X]. Built for [persona Y]." | Higher conversion among the right persona (lower among the wrong one — desirable filtering) |
-| Cold email | "We probably aren't the right fit if [scenario]." | Reply rate 2-3× vs generic "we help everyone" framing |
-| Pricing page | "Why we cost more than [competitor]" or "Why we're cheaper than [competitor]" | Pre-empts objection; shows the brand has thought about its own pricing |
-| Founder bio / About | "We started this because [we got burned by X]" | Authenticity signal; reader believes the brand has skin in the game |
-| Lead magnet pitch | "Don't download this if [scenario where it won't help]" | Higher download-to-conversion rate (only the right audience downloads) |
-| Comparison emails to sales prospects | "Here's what we don't do well yet" | Prospect trusts the rep more; deal cycle shortens |
+| `/alternatives/[competitor]` | "Choose [competitor] if:" section with 3 concrete tradeoffs where they win | A more decision-useful comparison; citation and conversion effects require measurement |
+| Landing-page hero | "Not for [persona X]. Built for [persona Y]." | Clearer qualification of the intended buyer |
+| Cold email | "We probably aren't the right fit if [scenario]." | A testable way to filter fit and reduce generic claims |
+| Pricing page | "Why we cost more than [competitor]" or "Why we're cheaper than [competitor]" | Makes the price tradeoff explicit before the buyer raises it |
+| Founder bio / About | "We started this because [we got burned by X]" | Provides a concrete origin story the reader can evaluate |
+| Lead magnet pitch | "Don't download this if [scenario where it won't help]" | Filters the intended audience; conversion effect requires measurement |
+| Comparison emails to sales prospects | "Here's what we don't do well yet" | Surfaces a decision-relevant limitation instead of hiding it |
 
-## The 3-tradeoff rule
+## The tradeoff evidence rule
 
-When applied to comparison content (`/alternatives` pages, `/compare` pages, sales decks), the honesty section MUST contain **at least 3 concrete tradeoffs** where the competitor wins:
+When applied to comparison content (`/alternatives` pages, `/compare` pages, sales decks), every tradeoff where the competitor wins must be:
 
 1. **Concrete** — names a specific feature, price point, integration, or scenario. Not "their UI is more polished" (vague). Yes "they support SSO on the $X/mo plan; we don't" (specific, verifiable).
-2. **Real** — actually true. Don't manufacture weakness to look humble; readers and AI engines both detect performative honesty.
+2. **Real** — actually true. Don't manufacture weakness to look humble; performative honesty undermines the trust this pattern is meant to earn.
 3. **Relevant to the buyer's decision** — the tradeoff has to matter to someone reading the page. "They have better office furniture" is honest but irrelevant.
 
-Fewer than 3 tradeoffs feels token. More than 5 starts to make your product look bad. Three is the sweet spot.
+Use enough tradeoffs to cover the material decision boundaries. Three is a practical default, not a universal optimum; include fewer or more when the evidence and buyer decision require it.
 
 ## Anti-patterns
 

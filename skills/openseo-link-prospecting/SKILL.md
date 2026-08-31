@@ -15,7 +15,7 @@ reads:
   - brand/positioning.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - link prospecting
   - find backlink opportunities
@@ -33,7 +33,7 @@ Find pages, sites, and authors that might realistically reference the user's lin
 
 ## On Activation
 
-1. **Catalog + binding**: `mktg catalog info openseo --json --fields configured` + `.seo/openseo.json`. No OpenSEO → prospect with Exa search only (queries below still apply) and label authority data `unknown`.
+1. **Readiness + binding**: `mktg seo status --json --fields readiness,catalog.endpointError,project`. `not_configured` → prospect with Exa search only (queries below still apply) and label authority data `unknown`. For a ready state, verify live access with the free `whoami` MCP tool before paid calls.
 2. **Clarify the asset**: what page/study/tool/template is being promoted and WHY someone would reference it. No clear asset + reason → fix that first; outreach without a reason is spam.
 3. Read `brand/positioning.md` for angle/audience fit (tolerate missing).
 
@@ -41,6 +41,7 @@ Find pages, sites, and authors that might realistically reference the user's lin
 
 - `get_serp_results`: find ranking articles, listicles, resource pages, comparisons, statistics pages (≤10 queries per call).
 - `get_backlinks_overview`: competitor backlink/referring-domain patterns — where do THEY get links (may be unavailable; continue without).
+- `get_backlinks_profile`: page-level source/target/anchor/dofollow/lost/broken evidence. Preserve target scope, pagination, filters, and one-per-domain mode in `.seo/backlink-targets.json` provenance.
 - `get_domain_overview`: qualify strong prospect domains.
 - `get_ranked_keywords`: topical-fit checks on prospects/competitors.
 - `research_keywords`: expand prospecting queries.

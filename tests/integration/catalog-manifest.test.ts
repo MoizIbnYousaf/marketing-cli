@@ -153,8 +153,11 @@ describe("research_adapters capability family", () => {
     expect(openseo!.license).toBe("MIT");
     expect(openseo!.transport).toBe("http");
     expect(openseo!.capabilities.research_adapters).toEqual(["openseo"]);
+    expect(openseo!.version_pinned).toBe("v0.1.6");
     expect(openseo!.mcp?.url_env).toBe("OPENSEO_MCP_URL");
     expect(openseo!.mcp?.default_url).toBe("https://app.openseo.so/mcp");
+    expect(openseo!.auth.base_env).toBe("OPENSEO_MCP_URL");
+    expect(openseo!.auth.base_default).toBe("https://app.openseo.so/mcp");
     expect(openseo!.auth.credential_envs).toEqual(["OPENSEO_API_KEY"]);
   });
 

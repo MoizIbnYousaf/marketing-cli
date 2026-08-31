@@ -11,9 +11,9 @@ import { EmptyState } from "@/components/ui/empty-state"
 type SeoStatus = SeoStatusData
 
 const READINESS_COPY: Record<SeoStatus["readiness"], { label: string; tone: "ok" | "warn" | "muted" }> = {
-  api_ready: { label: "API ready", tone: "ok" },
+  hosted_api_key_ready: { label: "Hosted API key", tone: "ok" },
+  hosted_oauth_ready: { label: "Hosted OAuth", tone: "ok" },
   selfhost_ready: { label: "Self-host ready", tone: "ok" },
-  mcp_client_only: { label: "MCP only", tone: "warn" },
   not_configured: { label: "Not configured", tone: "muted" },
 }
 
@@ -54,7 +54,11 @@ export function SeoReadinessCard() {
         </span>
       </div>
 
-      {data.bindingCorrupt ? (
+      {data.catalog.endpointError ? (
+        <p className="text-[11px] text-amber-600 dark:text-amber-300">
+          Invalid OpenSEO endpoint: {data.catalog.endpointError}
+        </p>
+      ) : data.bindingCorrupt ? (
         <p className="text-[11px] text-amber-600 dark:text-amber-300">
           .seo/openseo.json is corrupt - inspect it manually, then relink with mktg seo link-project.
         </p>

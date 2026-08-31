@@ -9,10 +9,7 @@
     },
     "openseo": {
       "type": "http",
-      "url": "https://app.openseo.so/mcp",
-      "headers": {
-        "Authorization": "Bearer ${OPENSEO_API_KEY}"
-      }
+      "url": "https://app.openseo.so/mcp"
     }
   }
 }

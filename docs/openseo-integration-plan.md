@@ -1,5 +1,8 @@
 # OpenSEO → marketing-cli Integration Plan
 
+> [!NOTE]
+> **Historical plan, superseded contract.** The implementation now targets OpenSEO v0.1.6. Current readiness states are `not_configured`, `hosted_oauth_ready`, `hosted_api_key_ready`, and `selfhost_ready`; the endpoint variable is `OPENSEO_MCP_URL`. Use `mktg seo status --json`, `catalogs-manifest.json`, and `skills/openseo/references/backend-contract.md` as the source of truth. Older names below are retained only as decision history.
+
 > Ultimate goal: make [every-app/open-seo](https://github.com/every-app/open-seo) the **first-class SEO data + workflow plane** inside `mktg`, while keeping mktg’s playbook/orchestration model (`/cmo`, brand memory, progressive enhancement).
 >
 > **This document is plan-only.** No implementation in this PR.

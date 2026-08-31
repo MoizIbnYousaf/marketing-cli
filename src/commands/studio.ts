@@ -1,12 +1,12 @@
 // mktg studio — Launch the mktg-studio dashboard
 //
 // Thin launcher for the companion mktg-studio app. Resolution priority:
-//   1. Local monorepo subfolder: `<repoRoot>/studio/bin/mktg-studio.ts`
+//   1. `MKTG_STUDIO_BIN` env override pointing at any binary or launcher file.
+//   2. Local monorepo subfolder: `<repoRoot>/studio/bin/mktg-studio.ts`
 //      (the in-repo workspace member; this is the path everyone running from
 //      source uses).
-//   2. Sibling checkout: `<repoRoot>/../mktg-studio/bin/mktg-studio.ts`
+//   3. Sibling checkout: `<repoRoot>/../mktg-studio/bin/mktg-studio.ts`
 //      (legacy two-repo layout, kept for backward compatibility).
-//   3. `MKTG_STUDIO_BIN` env override pointing at any binary or launcher file.
 //   4. `mktg-studio` on PATH (a globally installed companion binary).
 //
 // Modes:

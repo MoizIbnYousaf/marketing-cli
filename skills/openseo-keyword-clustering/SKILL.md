@@ -17,7 +17,7 @@ writes:
   - brand/keyword-plan.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - cluster keywords
   - keyword mapping
@@ -35,7 +35,7 @@ Group keywords into page-level clusters and assign each to an existing URL, a ne
 
 ## On Activation
 
-1. **Catalog + binding**: `mktg catalog info openseo --json --fields configured` and `.seo/openseo.json` for `projectId`. No binding → `openseo-project-setup` first. No OpenSEO at all → do lexical clustering with Exa context but label every cluster "SERP-unvalidated."
+1. **Readiness + binding**: `mktg seo status --json --fields readiness,catalog.endpointError,project`. No binding → `openseo-project-setup` first. `not_configured` → do lexical clustering with Exa context but label every cluster "SERP-unvalidated." For a ready state, verify live access with the free `whoami` MCP tool before paid calls.
 2. **Keyword source**: prefer (a) `brand/keyword-plan.md` populated sections, (b) `list_saved_keywords` with a tag, (c) GSC live data, (d) seed discovery via `research_keywords`. Under 10 usable terms → simple map, no clustering ceremony.
 
 ## OpenSEO MCP Tools

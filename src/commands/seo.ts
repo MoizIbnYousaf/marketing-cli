@@ -16,7 +16,6 @@ const SEO_DIR = ".seo";
 const BINDING_FILE = "openseo.json";
 const SYNC_FILE = "keywords-sync.json";
 const HOSTED_MCP_URL = "https://app.openseo.so/mcp";
-const HOSTED_APP_URL = "https://app.openseo.so";
 
 // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -30,7 +29,7 @@ type SeoBinding = {
   readonly lastKeywordsSync?: string;
 };
 
-type SeoReadiness = "not_configured" | "mcp_client_only" | "api_ready" | "selfhost_ready";
+type SeoReadiness = "not_configured" | "hosted_oauth_ready" | "hosted_api_key_ready" | "selfhost_ready";
 
 type KeywordSyncEntry = {
   readonly keyword: string;
@@ -111,6 +110,34 @@ const validateDomain = (domain: unknown): { ok: true; value: string } | { ok: fa
   return { ok: true, value };
 };
 
+const validateMcpUrl = (raw: unknown): { ok: true; value: string } | { ok: false; message: string } => {
+  if (typeof raw !== "string") return { ok: false, message: "mcpUrl must be a URL" };
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { ok: false, message: "mcpUrl must be a valid URL" };
+  }
+  const loopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]" || url.hostname === "::1";
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && loopback)) {
+    return { ok: false, message: "mcpUrl must use HTTPS; HTTP is allowed only for loopback self-hosting" };
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    return { ok: false, message: "mcpUrl must not contain credentials, query parameters, or a fragment" };
+  }
+  if (url.pathname.replace(/\/$/, "") !== "/mcp") {
+    return { ok: false, message: "mcpUrl must point to the OpenSEO /mcp endpoint" };
+  }
+  url.pathname = "/mcp";
+  return { ok: true, value: url.toString().replace(/\/$/, "") };
+};
+
+const appUrlFromMcp = (mcpUrl: string): string => {
+  const url = new URL(mcpUrl);
+  url.pathname = url.pathname.replace(/\/mcp\/?$/, "") || "/";
+  return url.toString().replace(/\/$/, "");
+};
+
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -183,11 +210,11 @@ const statusSchema: CommandSchema = {
   description: "SEO readiness snapshot: OpenSEO catalog config, project binding, .seo state inventory, and keyword-plan state. All local state — no network calls",
   flags: [],
   output: {
-    catalog: "{registered, configured, missingEnvs, mcp, resolvedBase} — OpenSEO catalog state",
-    readiness: "'not_configured' | 'mcp_client_only' | 'api_ready' | 'selfhost_ready' — named readiness (integration plan Phase 2)",
+    catalog: "{registered, configured, missingEnvs, mcp, resolvedMcpUrl} — OpenSEO catalog state; configured means headless API-key MCP readiness",
+    readiness: "'not_configured' | 'hosted_oauth_ready' | 'hosted_api_key_ready' | 'selfhost_ready' — named MCP readiness",
     project: "SeoBinding | null — .seo/openseo.json binding (projectId, domain, mcpUrl)",
     bindingCorrupt: "boolean — true when the binding file exists but fails validation",
-    state: "{rankSnapshots, hasBacklinkOverview, gscFiles, hasKeywordsSync, keywordsSyncAt} — .seo inventory",
+    state: "{rankSnapshots, backlinkSnapshots, auditSnapshots, gscFiles, ga4Files, hasKeywordsSync, keywordsSyncAt} — .seo evidence inventory",
     keywordPlan: "'missing' | 'template' | 'populated' — brand/keyword-plan.md state",
     openUrl: "string — OpenSEO app URL for the bound project (hosted or self-host base)",
   },
@@ -283,6 +310,17 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
     } catch { return 0; }
   })();
   const hasBacklinkOverview = await Bun.file(join(seoDir, "backlink-overview.json")).exists();
+  const countFiles = async (directory: string, pattern: string): Promise<number> => {
+    try {
+      const glob = new Bun.Glob(pattern);
+      let count = 0;
+      for await (const _f of glob.scan({ cwd: directory })) count++;
+      return count;
+    } catch { return 0; }
+  };
+  const backlinkSnapshots = await countFiles(join(seoDir, "backlinks"), "*.json");
+  const auditSnapshots = await countFiles(join(seoDir, "audits"), "*.json");
+  const ga4Files = await countFiles(join(seoDir, "ga4"), "*.{json,csv}");
   const gscFiles = await (async () => {
     try {
       const glob = new Bun.Glob("*.csv");
@@ -299,17 +337,25 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
     ? "missing" as const
     : isTemplateContent("keyword-plan.md", await keywordPlanFile.text()) ? "template" as const : "populated" as const;
 
-  const resolvedBase = catalogStatus?.resolvedBase ?? null;
-  const isSelfHost = resolvedBase !== null && !resolvedBase.includes("openseo.so");
-  const fullyConfigured = catalogStatus?.configured ?? false;
-  // Named readiness (integration plan Phase 2). api_ready/selfhost_ready
-  // require FULL catalog config (credential + resolved base) — a credential
-  // without a reachable base is not readiness, it's a half-configured state.
-  const readiness: SeoReadiness = fullyConfigured
-    ? (isSelfHost ? "selfhost_ready" : "api_ready")
-    : (binding || process.env.OPENSEO_MCP_CONFIGURED === "1" ? "mcp_client_only" : "not_configured");
+  const configuredMcpUrl = process.env.OPENSEO_MCP_URL ?? binding?.mcpUrl ?? catalogStatus?.resolvedBase ?? HOSTED_MCP_URL;
+  const endpointCheck = validateMcpUrl(configuredMcpUrl);
+  const resolvedMcpUrl = endpointCheck.ok ? endpointCheck.value : HOSTED_MCP_URL;
+  const mcpHostname = new URL(resolvedMcpUrl).hostname;
+  const isHosted = mcpHostname === "openseo.so" || mcpHostname.endsWith(".openseo.so");
+  const isSelfHost = !isHosted;
+  const hasApiKey = Boolean(process.env.OPENSEO_API_KEY);
+  const hasOauthClient = process.env.OPENSEO_MCP_CONFIGURED === "1";
+  const readiness: SeoReadiness = !endpointCheck.ok
+    ? "not_configured"
+    : isSelfHost && (hasApiKey || hasOauthClient || binding !== null)
+    ? "selfhost_ready"
+    : hasApiKey
+      ? "hosted_api_key_ready"
+      : hasOauthClient
+        ? "hosted_oauth_ready"
+        : "not_configured";
 
-  const openUrl = process.env.OPENSEO_API_BASE ?? (binding ? binding.mcpUrl.replace(/\/mcp$/, "") : HOSTED_APP_URL);
+  const openUrl = appUrlFromMcp(resolvedMcpUrl);
 
   return ok({
     catalog: {
@@ -317,7 +363,8 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
       configured: catalogStatus?.configured ?? false,
       missingEnvs: catalogStatus?.missingEnvs ?? [],
       mcp: openseo?.mcp ?? null,
-      resolvedBase,
+      resolvedMcpUrl,
+      endpointError: endpointCheck.ok ? null : endpointCheck.message,
     },
     readiness,
     project: binding,
@@ -325,7 +372,10 @@ const handleStatus = async (cwd: string): Promise<CommandResult> => {
     state: {
       rankSnapshots,
       hasBacklinkOverview,
+      backlinkSnapshots,
+      auditSnapshots,
       gscFiles,
+      ga4Files,
       hasKeywordsSync,
       keywordsSyncAt: binding?.lastKeywordsSync ?? null,
     },
@@ -338,7 +388,7 @@ const handleLinkProject = async (flags: { cwd: string; jsonInput: string | undef
   if (!flags.jsonInput) {
     return invalidArgs("Missing --input with binding JSON", [
       'Usage: mktg seo link-project --input \'{"projectId":"proj_123","domain":"example.com"}\' --confirm --json',
-      "Optional: mcpUrl (https, defaults to hosted MCP)",
+      "Optional: mcpUrl (HTTPS, or loopback HTTP for Docker; defaults to hosted MCP)",
     ]);
   }
   const parsed = parseJsonInput<{ projectId?: unknown; domain?: unknown; mcpUrl?: unknown }>(flags.jsonInput);
@@ -351,10 +401,9 @@ const handleLinkProject = async (flags: { cwd: string; jsonInput: string | undef
 
   let mcpUrl = HOSTED_MCP_URL;
   if (parsed.data.mcpUrl !== undefined) {
-    if (typeof parsed.data.mcpUrl !== "string" || !parsed.data.mcpUrl.startsWith("https://")) {
-      return invalidArgs("mcpUrl must be an https URL", [`Hosted default: ${HOSTED_MCP_URL}`]);
-    }
-    mcpUrl = parsed.data.mcpUrl;
+    const mcpCheck = validateMcpUrl(parsed.data.mcpUrl);
+    if (!mcpCheck.ok) return invalidArgs(mcpCheck.message, [`Hosted default: ${HOSTED_MCP_URL}`]);
+    mcpUrl = mcpCheck.value;
   }
 
   const now = new Date().toISOString();
@@ -468,8 +517,12 @@ const handleSyncKeywords = async (flags: { cwd: string; dryRun: boolean; confirm
 
 const handleOpen = async (cwd: string): Promise<CommandResult> => {
   const { binding } = await readBinding(cwd);
-  const base = process.env.OPENSEO_API_BASE ?? null;
-  const url = base ?? (binding ? binding.mcpUrl.replace(/\/mcp$/, "") : HOSTED_APP_URL);
+  const configured = process.env.OPENSEO_MCP_URL ?? binding?.mcpUrl ?? HOSTED_MCP_URL;
+  const endpointCheck = validateMcpUrl(configured);
+  if (!endpointCheck.ok) return invalidArgs(`OpenSEO MCP endpoint is invalid: ${endpointCheck.message}`, [
+    `Set OPENSEO_MCP_URL to ${HOSTED_MCP_URL}, or relink the project with a valid endpoint`,
+  ]);
+  const url = appUrlFromMcp(endpointCheck.value);
   return ok({ url, projectId: binding?.projectId ?? null });
 };
 

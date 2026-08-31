@@ -116,7 +116,7 @@ describe("mktg-backed route stubs", () => {
     };
     expect(body.ok).toBe(true);
     expect(body.data.catalog.registered).toBe(true);
-    expect(["not_configured", "mcp_client_only", "api_ready", "selfhost_ready"]).toContain(body.data.readiness);
+    expect(["not_configured", "hosted_oauth_ready", "hosted_api_key_ready", "selfhost_ready"]).toContain(body.data.readiness);
     expect(["missing", "template", "populated"]).toContain(body.data.keywordPlan);
     expect(body.data.openUrl).toMatch(/^https?:\/\//);
   });

@@ -141,11 +141,13 @@ mktg catalog add <name> --confirm --json
 mktg catalog info openseo --json --fields configured,missing_envs,mcp
 # SEO data plane (research_adapters capability). mcp.default_url is the hosted
 # MCP; OPENSEO_MCP_URL overrides for self-host. OPENSEO_API_KEY enables
-# non-interactive automation; without it, SEO metrics are `unknown` (never invented).
+# non-interactive automation. Hosted OAuth is negotiated by the MCP client.
 
 mktg seo status --json
 # SEO readiness: catalog config, .seo/openseo.json binding, .seo inventory,
-# and named readiness (not_configured | mcp_client_only | api_ready | selfhost_ready).
+# and named readiness (not_configured | hosted_oauth_ready |
+# hosted_api_key_ready | selfhost_ready). This is configuration state, not a
+# network health probe; verify access with OpenSEO's free `whoami` MCP tool.
 
 mktg seo link-project --input '{"projectId":"proj_123","domain":"example.com"}' --json
 # Bind repo to an OpenSEO project (idempotent; relinking needs --confirm).
@@ -163,7 +165,7 @@ mktg seo sync-keywords --dry-run --json   # then --confirm
 | Open-web discovery, Reddit/GitHub mining | Exa | — |
 | Fetch known-URL content | Firecrawl | — |
 
-**OpenSEO self-host (advanced).** Hosted MCP (`https://app.openseo.so/mcp`) is the default. To self-host: run OpenSEO via its Docker image (`ghcr.io/every-app/open-seo`) with your own DataForSEO key, then set `OPENSEO_API_BASE` to your instance and `OPENSEO_MCP_URL` to `https://<your-host>/mcp`. `mktg seo status` reports `selfhost_ready` when fully configured against a non-hosted base. WARNING: the Docker `local_noauth` mode disables auth — never expose it beyond localhost. Studio shows readiness + deep link on the Pulse tab (`GET /api/seo/status`).
+**OpenSEO self-host (advanced).** Hosted MCP (`https://app.openseo.so/mcp`) is the default and supports OAuth; `OPENSEO_API_KEY` is the headless alternative. To self-host, run OpenSEO's Docker image (`ghcr.io/every-app/open-seo`) with your own DataForSEO key and set `OPENSEO_MCP_URL` to the actual MCP endpoint (`https://<your-host>/mcp`, or loopback-only `http://localhost:<port>/mcp`). `mktg seo status` distinguishes hosted OAuth, hosted API-key, self-host, and unconfigured readiness. WARNING: Docker `local_noauth` disables auth — never expose it beyond loopback or a trusted authenticated proxy. Studio shows readiness + deep link on the Pulse tab (`GET /api/seo/status`).
 
 ### 5c. The SEO loop end to end
 

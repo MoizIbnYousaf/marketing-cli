@@ -245,7 +245,7 @@ describe("plan OpenSEO backend awareness (S5)", () => {
     await seedBrandTemplates(tmp);
     const { stdout } = await runWithEnv(
       ["plan", "--json", "--cwd", tmp],
-      { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" },
+      { OPENSEO_API_KEY: "k", OPENSEO_MCP_URL: undefined },
     );
     const parsed = JSON.parse(stdout);
     const linkTask = parsed.tasks.find((t: { id: string }) => t.id === "seo-link-project");
@@ -264,7 +264,7 @@ describe("plan OpenSEO backend awareness (S5)", () => {
     }));
     const { stdout } = await runWithEnv(
       ["plan", "--json", "--cwd", tmp],
-      { OPENSEO_API_KEY: "k", OPENSEO_API_BASE: "https://api.openseo.so" },
+      { OPENSEO_API_KEY: "k", OPENSEO_MCP_URL: undefined },
     );
     const parsed = JSON.parse(stdout);
     expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-link-project")).toBe(false);
@@ -277,7 +277,7 @@ describe("plan OpenSEO backend awareness (S5)", () => {
     await writeFile(join(tmp, "brand", "keyword-plan.md"), "# Keyword Plan\n\nReal researched keywords. " + "x".repeat(400));
     const { stdout } = await runWithEnv(
       ["plan", "--json", "--cwd", tmp],
-      { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined },
+      { OPENSEO_API_KEY: undefined, OPENSEO_MCP_URL: undefined },
     );
     const parsed = JSON.parse(stdout);
     expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-connect-openseo")).toBe(true);
@@ -289,7 +289,7 @@ describe("plan OpenSEO backend awareness (S5)", () => {
     await seedBrandTemplates(tmp);
     const { stdout } = await runWithEnv(
       ["plan", "--json", "--cwd", tmp],
-      { OPENSEO_API_KEY: undefined, OPENSEO_API_BASE: undefined },
+      { OPENSEO_API_KEY: undefined, OPENSEO_MCP_URL: undefined },
     );
     const parsed = JSON.parse(stdout);
     expect(parsed.tasks.some((t: { id: string }) => t.id === "seo-connect-openseo")).toBe(false);

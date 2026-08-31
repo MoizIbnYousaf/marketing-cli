@@ -20,7 +20,7 @@ writes:
   - brand/keyword-plan.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - keyword difficulty
   - search volume
@@ -38,7 +38,7 @@ Turn seed topics into a prioritized, MEASURED keyword opportunity set and land i
 
 ## On Activation
 
-1. **Catalog check**: `mktg catalog info openseo --json --fields configured` — if not configured, stop spending: state the gap and hand off to Exa-backed `keyword-research` with metrics marked `unknown`.
+1. **Readiness check**: `mktg seo status --json --fields readiness,catalog.endpointError,project` — if readiness is `not_configured`, stop spending: state the gap and hand off to Exa-backed `keyword-research` with metrics marked `unknown`. For a ready state, verify live access with the free `whoami` MCP tool before paid calls.
 2. **Project binding**: read `.seo/openseo.json` for `projectId`. Missing → run `openseo-project-setup` first (or ask the user for the project id).
 3. **Brand grounding**: read `brand/positioning.md` + existing `brand/keyword-plan.md` (tolerate templates). Business-fit beats volume-fit — the positioning file is the filter.
 
@@ -50,7 +50,7 @@ Turn seed topics into a prioritized, MEASURED keyword opportunity set and land i
 - `get_ranked_keywords`: when the brief includes a domain/page — exact ranking rows (near-misses, competitor-owned terms).
 - `get_serp_results`: inspect SERPs for top candidates when intent is ambiguous. Keep batches small (≤10 queries).
 - `list_saved_keywords`: avoid re-researching what's already saved.
-- `save_keywords`: ONLY after explicit user confirmation, with concise tags (`topic:<t>`, `intent:<i>`, `page:<slug>`).
+- `save_keywords`: a free shared-state mutation. Use only after confirmation, with concise tags (`topic:<t>`, `intent:<i>`, `page:<slug>`).
 
 ## Workflow
 
@@ -73,7 +73,7 @@ Turn seed topics into a prioritized, MEASURED keyword opportunity set and land i
 
 - **Inventing metrics when OpenSEO returns nothing** — because a hallucinated KD of "about 35" silently becomes the foundation of a content plan. If OpenSEO doesn't return a value, write `unknown`.
 - **Volume-first prioritization** — because a 10k-volume term that doesn't match the product converts nobody and burns months. Positioning filters the list before metrics rank it.
-- **`save_keywords` without explicit confirmation** — because saves mutate the user's OpenSEO account and bulk saves burn credit. Ask, state the count, then save.
+- **`save_keywords` without explicit confirmation** — saves do not burn provider credit, but they mutate shared OpenSEO account state and broad tags can disrupt other workflows. Ask, state the count and tag change, then save.
 - **Skipping the GSC-first pass when GSC is connected** — because striking-distance terms (positions 5–20) are provably the cheapest wins in SEO and they're free to read. Discovery research before first-party data is wasted spend.
 - **Overwriting a populated `keyword-plan.md` without confirmation** — because that file is brand memory other skills build on (`seo-content`, `seo-machine`). Merge; confirm destructive rewrites.
 

@@ -1,36 +1,34 @@
 # OpenSEO Backend Contract
 
-Shared readiness + fallback policy for every SEO playbook. Playbooks keep
-methodology; OpenSEO (when configured) is the measured data plane.
-
 ## Ordered resolver
 
-1. **OpenSEO configured** — `mktg catalog info openseo --json --fields configured`
-   is `true`, and preferably `.seo/openseo.json` is linked (`mktg seo status`).
-   Prefer measured MCP tools over estimates. Costly / write-side OpenSEO calls
-   require explicit user confirm.
-2. **OpenSEO absent** — continue with Exa / crawl / web evidence. Mark every
-   numeric SEO metric (`KD`, volume, CPC, authority, rank) as `unknown`.
-   Never invent numbers.
-3. **Qualitative research overlay** (seo-machine and long-arc research only) —
-   when OpenSEO covers metrics, still use Exa-stack for qualitative SERP /
-   pain-point / OSS signal. Ahrefs is an optional paid numeric overlay, never
-   the default dependency.
-4. **Manual mode** — if Exa-stack is also unavailable, follow the playbook's
-   manual-research references.
+1. Run `mktg seo status --json`. Any `*_ready` state permits the corresponding MCP client path.
+2. Prefer a linked `.seo/openseo.json` and read `get_project_context` before paid research.
+3. Use measured OpenSEO results for numeric SEO claims. Preserve market, date, target scope, filters, pagination, provider limitations, and freshness.
+4. If OpenSEO is unavailable, continue with Exa/crawl/web evidence and mark KD, volume, CPC, authority, and rank `unknown`.
+5. Manual methods remain valid when both paths are unavailable; method limitations go in the output.
 
 ## Binding handshake
 
-| Check | Command / path |
+| Check | Contract |
 |---|---|
-| Catalog ready | `mktg catalog info openseo --json --fields configured,missing_envs` |
-| Project link | `mktg seo status --json` / `.seo/openseo.json` |
-| Keyword sync | `mktg seo sync-keywords` → `brand/keyword-plan.md` `## OpenSEO Sync` |
+| Rich readiness | `mktg seo status --json` |
+| All client modes | `mktg seo status --json --fields readiness,catalog.endpointError,project` |
+| Headless env detail | `mktg catalog info openseo --json --fields configured,missing_envs,mcp` |
+| Project link | `.seo/openseo.json` / `mktg seo link-project` |
+| Keyword transfer | `.seo/keywords-sync.json` / `mktg seo sync-keywords` |
 
-## Playbook consume note
+The hosted MCP default means `OPENSEO_MCP_URL` is optional. `OPENSEO_API_KEY` is required only for non-interactive API-key clients; OAuth-capable MCP clients authenticate interactively.
 
-Each playbook should keep a one-line Backend Selection that names the OpenSEO
-tools it prefers, then point here:
+## Approval matrix
 
-> See `skills/openseo/references/backend-contract.md` for catalog check,
-> binding, `unknown` rule, and cost/confirm discipline.
+| Operation | Spend approval | Mutation approval |
+|---|---|---|
+| GSC/GA4/project/context reads | no | no |
+| save keywords / update context | no provider spend | yes for broad/shared changes |
+| research/SERP/backlinks/local/audit | preflight for material batches | no unless saving results remotely |
+| rank schedule/add/run | estimate + explicit credit ceiling | yes |
+
+Never silently convert blocked/error responses into zero-valued metrics.
+
+Reference: `catalogs-manifest.json` owns the endpoint/auth declaration; `src/commands/seo.ts` owns local readiness and project binding.

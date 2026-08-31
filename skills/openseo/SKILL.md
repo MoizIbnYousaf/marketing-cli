@@ -1,17 +1,12 @@
 ---
 name: openseo
 description: >-
-  Use OpenSEO (open-source Semrush/Ahrefs alternative) as the SEO data plane —
-  keyword difficulty, search volume, SERP results, ranked keywords, measured
-  backlink data, rank tracking, and Google Search Console. Use this skill whenever someone
-  asks for keyword difficulty, KD, search volume, SERP positions, domain
-  rankings, backlink data, rank tracking, or GSC performance. Owns backlink
-  DATA (referring domains, counts, rank tracking); for link-building campaigns
-  and outreach target lists, see /off-page-seo. ALWAYS prefer
-  OpenSEO's measured data over estimated metrics when the catalog is
-  configured; fall back to Exa-backed keyword-research (with an explicit gap
-  note) when it is not. Triggers: "keyword difficulty", "search volume",
-  "SERP results", "ranked keywords", "backlinks", "rank tracker", "GSC".
+  Uses OpenSEO as the measured SEO data plane for keyword volume and difficulty,
+  SERPs, ranked keywords, backlinks, local SEO, rank tracking, Search Console,
+  GA4, and site audits. Use for measured SEO metrics, indexing evidence,
+  organic analytics, local rankings, backlink profiles, or rank trackers.
+  Prefer OpenSEO over guessed metrics when connected; otherwise continue with
+  qualitative web research and mark numeric metrics unknown.
 category: seo
 tier: nice-to-have
 layer: strategy
@@ -22,7 +17,7 @@ writes:
   - brand/learnings.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - keyword difficulty
   - search volume
@@ -34,97 +29,89 @@ triggers:
 allowed-tools:
   - Bash(mktg catalog *)
   - Bash(mktg doctor *)
+  - Bash(mktg seo *)
   - Bash(mktg run *)
 ---
 
-# OpenSEO — SEO Data Plane
+# OpenSEO — Measured SEO Data Plane
 
-You connect mktg's SEO playbooks to a running OpenSEO instance (hosted at openseo.so or self-hosted Docker). You do NOT invent metrics. You do NOT call DataForSEO directly. You route measured data (KD, volume, SERP, ranked keywords, backlinks, rank tracking, GSC) into mktg artifacts like `brand/keyword-plan.md`.
-
-OpenSEO is a **data plane**, not a playbook. The SEO methodology lives in `keyword-research`, `seo-content`, `seo-audit`, `off-page-seo`, `ai-seo`, and `seo-machine` — this skill is how those playbooks stop guessing.
-
-## North Star
-
-1. Measured data beats estimated data. When OpenSEO is configured, metrics come from OpenSEO's MCP tools. When it is not, you say so explicitly and fall back to Exa-backed qualitative research — metrics marked `unknown`.
-2. mktg never calls DataForSEO directly. OpenSEO owns the vendor relationship; mktg talks to OpenSEO only.
-3. Expensive calls (bulk research, `save_keywords`) follow dry-run/confirm discipline — DataForSEO credit is real money.
-4. OpenSEO project state syncs into `.seo/` and `brand/keyword-plan.md`; it never becomes a competing second source of truth.
+OpenSEO supplies evidence; mktg skills supply methodology. Communicate only through OpenSEO's MCP-over-HTTP endpoint. There is no general OpenSEO REST research API, and mktg never calls DataForSEO directly.
 
 ## On Activation
 
-Run these steps before anything else. Each has a fallback that keeps the skill useful when OpenSEO is absent.
+1. Run `mktg seo status --json --fields readiness,catalog,project,bindingCorrupt,state`.
+2. Interpret readiness:
+   - `hosted_oauth_ready`: agent MCP client is authenticated interactively.
+   - `hosted_api_key_ready`: headless hosted MCP can use `OPENSEO_API_KEY`.
+   - `selfhost_ready`: bound/connected non-hosted MCP endpoint; local Docker HTTP is allowed only on loopback.
+   - `not_configured`: continue through Exa/crawl/manual evidence and label KD, volume, CPC, authority, and rank `unknown`.
+3. Read `.seo/openseo.json`. If absent and project-scoped tools are needed, use `openseo-project-setup`.
+4. Read `get_project_context` before rebuying research. Use its research log to identify still-fresh evidence.
+5. Select only the tools needed from the [v0.1.6 tool map](references/tools-v0.1.6.md).
 
-### Step 1 — Verify the catalog is registered and configured
+## Authentication
 
-```bash
-mktg catalog info openseo --json --fields configured,missing_envs,auth.credential_envs,mcp
-```
+- Root `.mcp.json` intentionally declares the hosted URL without a bearer header so MCP clients can perform OpenSEO OAuth.
+- Headless clients may add `Authorization: Bearer ${OPENSEO_API_KEY}` or `x-api-key: ${OPENSEO_API_KEY}` in their private client config. Never write a key value into the repository.
+- `OPENSEO_MCP_URL` overrides the endpoint for self-hosting. Hosted default is `https://app.openseo.so/mcp`.
+- `mktg catalog info openseo` reports **headless API-key readiness**; `mktg seo status` distinguishes OAuth, API key, and self-host modes.
 
-- Exit code 1 → the openseo catalog is not registered (upgrade marketing-cli). Stop.
-- `configured: false` → env vars are missing. Build the fix string from `missing_envs`. Canonical envs: `OPENSEO_API_KEY` (required for non-interactive automation) and `OPENSEO_API_BASE` (REST base; self-host override). The MCP URL is `mcp.default_url` (`https://app.openseo.so/mcp`) unless `OPENSEO_MCP_URL` overrides it for self-host.
-- `configured: true` → proceed. If only the MCP client is connected (OAuth login in the user's agent client) but no API key exists, treat readiness as `mcp_client_only`: MCP tools work interactively, headless automation does not.
+## Route Evidence, Do Not Duplicate Playbooks
 
-### Step 2 — Establish the data-plane connection
-
-Preferred: OpenSEO MCP tools via the agent's MCP client (root `.mcp.json` ships an `openseo` server entry — the user connects it once in their client). Hosted MCP uses OAuth login; for self-host, edit the `url` in `.mcp.json` (it is hardcoded) and set `OPENSEO_MCP_URL` so `mktg catalog` readiness reports the same base.
-
-If no MCP connection and no `OPENSEO_API_KEY`: state the gap and downgrade to the Exa/Firecrawl path (Step 3 fallback). Do not fabricate a connection.
-
-### Step 3 — Route to the playbook with measured inputs
-
-Hand the measured data to the SEO playbooks instead of running parallel research:
-
-| Job | Route | Data you supply |
+| Need | OpenSEO evidence | mktg owner |
 |---|---|---|
-| Keyword opportunity discovery | `keyword-research` | KD, volume, intent from OpenSEO research tools |
-| Programmatic SEO inputs | `seo-machine` | Validate KD/competition before page generation |
-| Backlink gaps | `off-page-seo` | OpenSEO backlink overview for the domain |
-| Rank drops / striking distance | `ai-seo`, `seo-audit` | Rank tracker + GSC snapshots |
+| Keyword demand/opportunity | keyword research, metrics, ranked terms, GSC | `openseo-keyword-research` |
+| Page mapping/cannibalization | query+page GSC, SERPs, ranked URLs | `openseo-keyword-clustering` |
+| Market/competitor | SERP competitors, domain/ranked terms, backlink profiles | competitive OpenSEO skills |
+| Technical/indexing | site audit, URL inspection, GSC | `seo-audit` |
+| Local visibility | business, local SERP, reviews, categories, rank grid | `seo-audit` with local mode/brief |
+| Organic outcomes | GA4 landing/page/event/acquisition/opportunity tools | `seo-audit`, `seo-content`, `seo-machine` |
+| AEO hypotheses | SERP, index, audit, backlink, GSC, GA4 evidence only | `ai-seo` owns direct answer-engine observations |
 
-**Fallback (no OpenSEO):** run the Exa-backed `keyword-research` path and mark every metric `unknown`. Say plainly: "OpenSEO is not configured — these are qualitative findings, not measured KD/volume. Set `OPENSEO_API_KEY` (or connect the MCP) to upgrade this run."
+## Cost and Mutation Policy
 
-## Cost Discipline
+Before a paid batch, state the exact tool(s), item counts, requested limits, and cost shape. OpenSEO's server requests confirmation above its large-credit threshold, but mktg still asks whenever the planned spend is material or recurring.
 
-- Research calls in small batches are fine. Bulk pulls (hundreds of keywords) and `save_keywords` writes REQUIRE user confirmation first — say the estimated call count out loud.
-- Default to conservative result limits; widen only when asked.
-- Log surprises (unexpected credit spend, rate limits) to `brand/learnings.md` via `mktg run openseo --learning '{...}'`.
+Separate **spend** from **mutation**:
+
+- `whoami`, project/context reads, saved-keyword reads, GSC, and GA4 are free reads.
+- `save_keywords`, `create_project`, tags, and `update_project_context` mutate shared account state but do not themselves consume DataForSEO credits; confirm broad/destructive changes.
+- research, SERP, backlinks, local SEO, site audit, and rank runs may consume credits.
+- scheduled rank tracking requires `estimate_rank_tracker_cost`, explicit approval, and the approved credit ceiling passed to the write/run call.
 
 ## State Contract
 
-| OpenSEO concept | mktg home |
+| Evidence | Local contract |
 |---|---|
-| Project id / domain | `.seo/openseo.json` (`{ projectId, domain, mcpUrl, updatedAt }`) — create on first link |
-| Saved keywords | Merge into `brand/keyword-plan.md` (confirm before overwriting) |
-| Rank snapshots | `.seo/rank-snapshots/<date>.json` + short summary md |
-| Backlink overview | `.seo/backlink-overview.json` (input for off-page-seo) |
+| project/domain/MCP URL | `.seo/openseo.json` |
+| keyword transfer | `.seo/keywords-sync.json` → `mktg seo sync-keywords --confirm` |
+| rank observations | `.seo/rank-snapshots/<date>.json` |
+| backlinks | `.seo/backlinks/<date>.json` with target scope, pagination, and provider limits |
+| GSC / GA4 exports | `.seo/gsc/`, `.seo/ga4/` when a file snapshot is needed |
+| site audits | `.seo/audits/<audit-id>.json` plus summary |
 
-One resume protocol per long-arc SEO effort: `docs/seo-machine.md` stays the single tracker; OpenSEO data feeds it, it does not fork it.
+OpenSEO remains the measurement backend; `brand/` and the active playbook tracker remain mktg's decision memory.
 
 ## Anti-Patterns
 
-- **Inventing KD/volume numbers** — because agents hallucinate plausible metrics and downstream decisions (content priorities, page generation) get built on fiction. If OpenSEO is not configured, the metric is `unknown`, full stop.
-- **Calling DataForSEO directly from mktg** — because it bypasses OpenSEO's project state, caching, and cost controls, and duplicates the vendor integration mktg deliberately does not own. Always go through OpenSEO.
-- **Saving keywords or running bulk research without confirmation** — because every call can spend DataForSEO credit; silent bulk spends are how budgets blow up. Confirm first, state the call count.
-- **Treating the OpenSEO web UI as required** — because the MCP/API surface is the agent path; the UI is a human convenience. Never block an agent run waiting for a human to click something in a dashboard.
-- **Forking SEO state into a second system of record** — because two keyword lists drift and agents stop trusting both. Sync INTO `.seo/` + `brand/keyword-plan.md`; OpenSEO stays the measurement backend, mktg stays the playbook brain.
-
-## Close the loop
-
-After writing files, log completion so `mktg plan` / `mktg status` count the work (bare `mktg run` only logs `loaded`):
-
-```bash
-mktg run openseo --complete --writes <paths written> --result success --json
-```
+- **Inventing REST endpoints** — upstream automation is MCP-over-HTTP; guessed REST paths fail and misstate the security boundary.
+- **Treating `configured: false` as proof OAuth is disconnected** — catalog readiness is headless env readiness; `mktg seo status` owns the richer truth.
+- **Calling DataForSEO directly** — this bypasses OpenSEO's project, usage, and cost controls.
+- **Calling free account mutations “paid research”** — spend and shared-state risk need different approvals.
+- **Saving only backlink totals** — scope (`exact`, `subfolder`, `domain`, `subdomains`), pagination, and provider limitations determine what totals mean.
+- **Claiming OpenSEO MCP measures AI answers** — v0.1.6 has no AI Visibility MCP tools. Use `ai-seo` direct observations and OpenSEO supporting evidence.
 
 ## Progressive Enhancement
 
 | Level | Behavior |
 |---|---|
-| L0 (no envs, no MCP) | Gap note + Exa-backed `keyword-research` fallback; metrics `unknown` |
-| L1 (`OPENSEO_API_KEY` set) | Non-interactive research calls where REST exists; MCP still preferred |
-| L2 (MCP connected) | Full tool surface: research, SERP, ranked keywords, backlinks, GSC |
-| L3 (project linked + synced) | `.seo/` snapshots feed `seo-machine` and `off-page-seo` automatically |
+| L0 | Qualitative web/manual evidence; metrics `unknown`. |
+| L1 | Hosted OAuth or API key exposes measured MCP tools. |
+| L2 | Bound project/context avoids duplicate spend and enables GSC/GA4. |
+| L3 | Synced snapshots feed mktg playbooks and long-arc trackers. |
+
+After writing artifacts, log completion with `mktg run openseo --complete --writes <paths> --result success --json`.
 
 ---
 
-*Integration shape follows the postiz catalog pattern: raw HTTP/MCP over the network boundary, never vendored code. OpenSEO is MIT-licensed ([every-app/open-seo](https://github.com/every-app/open-seo)).*
+OpenSEO integration targets [every-app/open-seo](https://github.com/every-app/open-seo) v0.1.6 over an MIT-safe HTTP/MCP boundary.

@@ -34,7 +34,7 @@ The off-page half of the SEO operation. Pairs with `seo-machine` (on-page progra
 
 ## Backend Selection
 
-Prefer OpenSEO `get_backlinks_overview` / `get_domain_overview` and `openseo-link-prospecting` outputs when configured; otherwise Exa/web with authority metrics `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+Prefer OpenSEO `get_backlinks_overview` / `get_backlinks_profile` / `get_domain_overview` and `openseo-link-prospecting` outputs when configured. Preserve backlink target scope, filters, pagination, and provider limits; totals without scope are ambiguous. Otherwise use Exa/web with authority metrics `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
 
 ```
 Brand context loaded:

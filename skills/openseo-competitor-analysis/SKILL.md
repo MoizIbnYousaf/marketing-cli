@@ -19,7 +19,7 @@ writes:
   - brand/competitors.md
 env_vars:
   - OPENSEO_API_KEY
-  - OPENSEO_API_BASE
+  - OPENSEO_MCP_URL
 triggers:
   - analyze competitor
   - competitor keywords
@@ -37,7 +37,7 @@ Analyze one competitor deeply enough to decide what to learn from, avoid, counte
 
 ## On Activation
 
-1. **Catalog + binding**: `mktg catalog info openseo --json --fields configured` + `.seo/openseo.json`. No OpenSEO → hand off to `competitive-intel` (Exa qualitative), labeling metrics `unknown`.
+1. **Readiness + binding**: `mktg seo status --json --fields readiness,catalog.endpointError,project`. `not_configured` → hand off to `competitive-intel` (Exa qualitative), labeling metrics `unknown`. For a ready state, verify live access with the free `whoami` MCP tool before paid calls.
 2. **Brand grounding**: read `brand/competitors.md` + `brand/positioning.md` (tolerate templates). If the competitor isn't named, ask — never guess the domain.
 
 ## OpenSEO MCP Tools
@@ -45,6 +45,7 @@ Analyze one competitor deeply enough to decide what to learn from, avoid, counte
 - `get_domain_overview`: baseline organic traffic + keyword count (both domains when comparing).
 - `get_ranked_keywords`: exact keyword/URL/rank/intent/traffic rows. Use `maxRank`, `minSearchVolume`, `excludeBrandTerms`, `resultTypes` filters to keep rows relevant.
 - `get_backlinks_overview`: backlink/referring-domain profile (may be unavailable — continue without it).
+- `get_backlinks_profile`: link-level sources, anchors, authority/spam signals, and lost/broken state when the decision needs more than a summary. Preserve target scope and pagination.
 - `find_serp_competitors`: validate the named competitor actually overlaps in search.
 - `get_serp_results`: head-to-head SERP checks for the important shared terms.
 - `get_search_console_performance`: when comparing to the user's domain and GSC is connected, the USER's baseline is first-party — never estimate your own side from third-party data.

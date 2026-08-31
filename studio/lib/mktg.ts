@@ -384,9 +384,10 @@ export type SeoStatusData = {
     readonly configured: boolean;
     readonly missingEnvs: readonly string[];
     readonly mcp: { readonly url_env: string; readonly default_url: string } | null;
-    readonly resolvedBase: string | null;
+    readonly resolvedMcpUrl: string;
+    readonly endpointError: string | null;
   };
-  readonly readiness: "not_configured" | "mcp_client_only" | "api_ready" | "selfhost_ready";
+  readonly readiness: "not_configured" | "hosted_oauth_ready" | "hosted_api_key_ready" | "selfhost_ready";
   readonly project: {
     readonly projectId: string;
     readonly domain: string;
@@ -397,7 +398,10 @@ export type SeoStatusData = {
   readonly state: {
     readonly rankSnapshots: number;
     readonly hasBacklinkOverview: boolean;
+    readonly backlinkSnapshots: number;
+    readonly auditSnapshots: number;
     readonly gscFiles: number;
+    readonly ga4Files: number;
     readonly hasKeywordsSync: boolean;
     readonly keywordsSyncAt: string | null;
   };

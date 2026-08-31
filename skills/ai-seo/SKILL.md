@@ -1,14 +1,25 @@
 ---
 name: ai-seo
-description: "Optimize content for AI search engines — ChatGPT, Perplexity, Claude, Gemini, and AI Overviews. Covers entity optimization, structured data, citation-worthy formatting, and platform-specific strategies. Use when someone wants visibility in AI-generated answers, says 'AI SEO', 'AI search', 'LLM optimization', 'ChatGPT ranking', 'Perplexity citations', 'AI Overviews', or wants their content cited by AI assistants. The new SEO frontier — if you're only optimizing for Google, you're already behind."
+description: "Builds, measures, and improves an Answer Engine Optimization program across ChatGPT, Perplexity, Claude, Gemini, Google AI Overviews, and Copilot. Use for AEO, GEO, LLMO, AI search visibility, AI citations, brand mentions, answer-engine monitoring, llms.txt, AI crawler audits, or questions like 'what does AI say about us?' and 'why are competitors cited instead of us?'. Produces a durable evidence report and prioritized gameplan, not a one-shot content checklist."
 category: seo
 tier: nice-to-have
+layer: execution
 reads:
   - brand/voice-profile.md
   - brand/keyword-plan.md
+  - brand/audience.md
+  - brand/positioning.md
+  - brand/competitors.md
+  - brand/landscape.md
 writes:
-  - marketing/seo/ai-seo-audit.md
-  - marketing/seo/ai-seo-content-plan.md
+  - .aeo/config.json
+  - .aeo/truth.md
+  - .aeo/attributes.md
+  - .aeo/prompts.json
+  - .aeo/report.md
+  - .aeo/gameplan.md
+  - .aeo/worklog.md
+  - .aeo/runs/
 depends-on: []
 triggers:
   - ai seo
@@ -26,379 +37,128 @@ triggers:
 allowed-tools: []
 ---
 
-# AI SEO Optimization
+# AI SEO — Durable AEO Program
 
-You optimize content so AI search engines — ChatGPT, Perplexity, Claude, Gemini, and Google AI Overviews — cite, reference, and recommend it. Traditional SEO gets you on page one of Google. AI SEO gets you into the AI's answer.
-
-This is a different game. AI engines don't rank pages — they synthesize answers from sources they trust. Your job is to become a source they trust and cite.
+Answer engines return synthesized verdicts, not ranked menus. This skill measures which brand attributes appear in those verdicts, identifies why gaps exist, and ships evidence-backed fixes. The unit of work is an **attribute**: one truthful thing the product should be known for in buyer language.
 
 ## On Activation
 
-1. Read `brand/` directory: load `voice-profile.md`, `keyword-plan.md`, `positioning.md`, `competitors.md` if present.
-2. Show what loaded:
+1. Read `brand/positioning.md`, `brand/audience.md`, `brand/competitors.md`, `brand/keyword-plan.md`, `brand/landscape.md`, and `brand/voice-profile.md` when present. Missing files reduce confidence but never block L0 work.
+2. Check for `.aeo/config.json`, `.aeo/truth.md`, and `.aeo/runs/`.
+3. Select the explicit mode, or auto-detect the next incomplete phase:
 
-## Backend Selection
-
-Prefer OpenSEO `get_ranked_keywords` / `get_serp_results` (and AI-search MCP tools when exposed) when configured; otherwise crawl/Exa with ranking data `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
-
-```
-Brand context loaded:
-├── Voice Profile   ✓/✗
-├── Keyword Plan    ✓/✗
-├── Positioning     ✓/✗
-└── Competitors     ✓/✗
-```
-3. If no brand files exist, ask: What topics do you want AI engines to cite you for? Who are your competitors in AI results?
-4. Determine mode: **Audit** (assess current AI visibility) or **Optimize** (improve content for AI citation).
-5. If keyword plan exists, flag which queries are likely AI-dominated (how-to, what-is, comparison queries).
-
----
-
-## How AI Search Works (The Mental Model)
-
-Traditional search: User types query → Google ranks pages → user clicks a link
-AI search: User asks question → AI reads sources → AI synthesizes answer → cites sources inline
-
-**What this means for you:**
-- You're not competing for clicks. You're competing to be a cited source.
-- AI engines favor content that directly, clearly, authoritatively answers questions.
-- Structure and clarity matter more than keyword density.
-- Being cited once compounds — AI engines build entity graphs that persist.
-
-## Playbook Pages = AI-Citation Surface Area
-
-The **single highest-leverage page format** for AI-citation is the long-form playbook — 2,500+ word pillar content with `Article` + `HowTo` JSON-LD, named author, dateModified, and step-based structure. AI engines (ChatGPT search, Perplexity, Claude, Gemini, Google AI Overviews) preferentially cite playbook-pattern pages over short blog posts because:
-
-| Why playbooks win citations | Detail |
+| Mode | Work |
 |---|---|
-| Step-based structure | `HowTo` schema makes the answer machine-extractable; AI engines lift the steps verbatim |
-| Named author + entity | Author bio with sameAs links to social profiles compounds the entity graph |
-| Concrete numbers | Specific stats ("73% of B2B SaaS under 50 employees post less than once a week") get cited; vague claims ("most companies struggle") don't |
-| Counter-arguments inline | AI engines reward sources that show "thinking" — playbooks with "don't do X because Y" sections demonstrate authority |
-| dateModified discipline | Recent modification dates signal freshness; AI engines deprecate stale sources |
+| `setup` | Establish identity, truth, attributes, platforms, and prompt portfolio. |
+| `audit` | Measure prompts and citations; inspect crawl/index/analytics evidence; diagnose gaps. |
+| `plan` | Rebuild the prioritized gameplan from stored findings without new paid calls. |
+| `fix` | Implement only approved on-page and technical items; brief off-page work. |
+| `remeasure` | Re-run the frozen prompt set, compare with the previous run, and report uncertainty. |
+| `report` | Regenerate report and gameplan from stored data; no network spend. |
 
-**Tie-in with seo-machine:** if you're running a programmatic sprint, ship playbook pages as Phase 4+ (after alternatives/compare/use-case ship first for conversion). `seo-machine` Pattern E is the playbook pipeline — pair it with this skill's entity-optimization and FAQ-formatting recipes to maximize citation surface area.
+4. State the mode, evidence sources available, degraded capabilities, and whether any call may cost money.
+5. Continue autonomously except at the three human checkpoints: identity/attributes, spend approval, and gameplan execution approval.
 
-**Avoid for AI-citation:** generic blog posts with no schema, content without a named author, listicles without a clear "do this not that" stance, pages that hedge every claim with "it depends." These rank but don't get cited.
+## Durable State
 
----
+Create `.aeo/` in the user's project:
 
-## Brand Integration
-
-- **voice-profile.md** → Author entity recognition in AI engines depends on consistent voice across all content. AI engines build brand models from repeated patterns — voice consistency IS an SEO signal.
-- **keyword-plan.md** → Target queries where the brand has genuine authority. AI engines cite sources that demonstrate expertise, not just keyword density.
-
-## Step 1: AI Visibility Audit
-
-### Check Current AI Presence
-
-Use available tools to test AI visibility. Not all engines will be testable — audit what you can, note what you can't.
-
-**With browser tool available:**
-1. **Perplexity**: Navigate to perplexity.ai, search "[your topic]" — check if pages appear in sources
-2. **Google AI Overviews**: Search on google.com — check if brand appears in AI Overview
-3. **ChatGPT**: Navigate to chatgpt.com, ask "[your core question]" — check citations
-
-**With web search/Exa MCP only:**
-1. Search for "[brand] + [topic]" to assess web presence that AI engines index
-2. Check if key pages appear in top results (AI engines favor high-ranking pages)
-3. Search for competitor content on the same topics to benchmark
-
-**Without browser or web search:**
-1. Review existing content structure against AI citation patterns (see references/content-patterns.md)
-2. Check schema markup on existing pages
-3. Audit content formatting for extractability
-4. Note limitation: "Live AI visibility testing requires browser access. This audit covers content optimization only."
-
-### Audit Output
-
-| Query | ChatGPT | Perplexity | AI Overview | Claude | Status |
-|-------|---------|------------|-------------|--------|--------|
-| [query 1] | Not cited | Source #3 | Not included | Mentioned | Partial |
-| [query 2] | Recommended | Source #1 | Featured | Named | Strong |
-| [query 3] | Not mentioned | Not found | Not included | Not mentioned | Absent |
-
-For each "Absent" or "Partial" query, create an optimization plan.
-
----
-
-## Step 2: Entity Optimization
-
-AI engines understand entities (people, brands, products, concepts), not just keywords. You need to establish your entity clearly.
-
-### Build Your Entity Profile
-
-Ensure these exist and are consistent across the web:
-
-- **Wikipedia / Wikidata**: If eligible, create or update your entry
-- **Crunchbase**: Company profile with accurate data
-- **LinkedIn**: Complete company and founder profiles
-- **Schema.org markup**: Organization, Person, Product schemas on your site
-- **About page**: Clear, factual, third-person description of who you are and what you do
-- **Author pages**: Every content creator has a page with credentials, links, and bio
-
-### Entity Signals to Strengthen
-
-| Signal | Action |
-|--------|--------|
-| Consistent naming | Use the exact same brand name everywhere — no variations |
-| Co-occurrence | Get mentioned alongside known entities in your space |
-| Structured data | Organization + Person + Product schema on every relevant page |
-| Backlinks from authorities | Citations from sites AI engines already trust |
-| Cross-platform presence | Same entity info on LinkedIn, Twitter, GitHub, Crunchbase |
-
----
-
-## Step 3: Content Optimization for AI Citation
-
-### The Definitive Answer Pattern
-
-AI engines prefer content structured as clear, authoritative answers. For every target query:
-
-```markdown
-## [Question as H2]
-
-[Direct answer in 1-2 sentences — this is what gets cited]
-
-[Supporting detail, evidence, examples in 2-4 paragraphs]
-
-[Data or specific numbers that add credibility]
+```text
+.aeo/
+├── config.json       # schema version, site, markets, platforms, sampling policy
+├── truth.md          # claim table grounded in code, docs, pricing, and changelog
+├── attributes.md     # approved attributes and buyer language
+├── prompts.json      # stable prompt IDs; never silently rewrite between runs
+├── report.md         # dated evidence, rates, citations, gaps, and method
+├── gameplan.md       # Now / Next / Later / Done actions linked to findings
+├── worklog.md        # action, date, files, hypothesis, deploy/reference
+└── runs/<iso-date>/  # normalized observations; raw/ contains private responses
 ```
 
-**This pattern works because:**
-- AI engines can extract the direct answer for synthesis
-- The supporting detail gives the AI confidence in your authority
-- Specific data makes your content more citable than vague competitors
+During setup, add `.aeo/runs/**/raw/` to the user's `.gitignore` before storing any raw response. Keep only the minimum raw evidence needed, never store authentication/session data, and commit normalized observations only when the user wants the AEO history versioned.
 
-### Question-Answer Formatting
+The report is what someone can audit in six months. The gameplan is what the team acts on. Every recommendation links to a finding ID; every rate carries numerator, denominator, platform, and sample size.
 
-Structure content to match how people ask AI engines questions:
+## Program Phases
 
-**Identify conversational queries:**
-- "What is the best [X] for [Y]?"
-- "How do I [accomplish Z]?"
-- "What's the difference between [A] and [B]?"
-- "[X] vs [Y] — which should I choose?"
-- "Why does [thing] happen?"
+### 0 — Foundation
 
-**For each query, create a section that:**
-1. Uses the question (or close variant) as the heading
-2. Answers directly in the first sentence
-3. Provides supporting evidence
-4. Includes specific numbers, dates, or examples
-5. Links to primary sources when citing claims
+Detect the app/site/domain, build `.aeo/truth.md` from authoritative repository evidence, and propose 3–8 attributes. Ask the user to approve identity and attributes before measuring. Follow [foundation and prompt design](references/foundation-and-prompts.md).
 
-### FAQ Sections
+### 1 — Prompt Portfolio
 
-Add FAQ sections with structured data to every key page:
+Turn each attribute into neutral buyer prompts spanning discovery, comparison, recommendation, use-case, objection, and factual verification. Freeze stable prompt IDs. Do not include the brand in unbranded discovery prompts or hint at the desired answer.
 
-```markdown
-## Frequently Asked Questions
+### 2 — Measure
 
-### [Exact question someone would ask an AI]
-[Direct, authoritative answer. 2-4 sentences. Include a specific fact or number.]
+Run the same portfolio across the available answer engines. Sample repeated observations because outputs are non-deterministic. Store mention, recommendation, factual accuracy, sentiment/position, citations, cited domains/pages, model/platform, timestamp, locale, account/mode, and response availability. Follow [measurement and statistics](references/measurement.md).
 
-### [Next question]
-[Direct answer.]
+OpenSEO v0.1.6 supplies traditional discoverability evidence through ranked keywords, SERPs, backlinks, Search Console, GA4, URL inspection, and site audit. It does **not** currently expose AI Visibility over MCP; never report OpenSEO UI AI visibility as live MCP data. Follow [OpenSEO evidence routing](references/openseo-evidence.md).
+
+### 3 — Diagnose
+
+Route each gap to one primary cause:
+
+- **Technical:** blocked crawler, indexing/canonical failure, rendering, malformed or contradictory structured data.
+- **Comprehension:** the site does not state the attribute clearly, consistently, or extractably.
+- **Trust/supply:** engines rely on third-party sources that omit, contradict, or outrank the first-party claim.
+- **Measurement:** sample too small, platform inaccessible, prompt drift, locale/account confounder.
+
+Use the citation supply chain before prescribing content. See [diagnosis](references/diagnosis.md).
+
+### 4 — Gameplan
+
+Order work by evidence strength × expected effect ÷ effort and risk. Each item must include finding ID, route, exact file/URL, owner type, expected observable effect, verification method, and status. Never promise a citation or ranking.
+
+### 5 — Execute and Remeasure
+
+After approval, implement repository-owned changes, show the diff, and leave outreach/listing/publishing to a human. Log every change as a hypothesis. Re-measure after an appropriate indexing window; do not attribute causality from one before/after movement. Follow [technical and content execution](references/execution.md) and [deliverables](references/deliverables.md).
+
+## Metrics
+
+Report per attribute and platform:
+
+- Mention rate = mentions ÷ valid observations.
+- Recommendation rate = positive recommendations ÷ valid observations.
+- Citation rate = observations citing a first-party URL ÷ valid observations.
+- Accuracy rate = correct factual claims ÷ scored factual claims.
+- Share of voice = brand mentions ÷ all tracked brand/competitor mentions, with the exact denominator disclosed.
+
+Do not combine platforms into one headline rate unless sample design and weighting are explicit. Never report a rate from one sample. Preserve missing/blocked/error observations separately from valid responses.
+
+## Anti-Patterns: Non-Negotiable Safety and Honesty
+
+1. **Never ask a leading question.** It manufactures the desired result instead of measuring buyer discovery.
+2. **Never report a rate without numerator, denominator, and sample size.** One response is an anecdote.
+3. **Never fabricate a quote, citation, source, statistic, crawler rule, or platform behavior.** Unknown stays `unknown`.
+4. **Never manufacture consensus.** No astroturfing, fake reviews, sockpuppets, or bot-only content.
+5. **Never cloak.** Serve engines and humans the same substantive content.
+6. **Never auto-publish, auto-deploy, auto-submit listings, or contact people.** Prepare diffs and briefs; a human controls external state.
+7. **Never spend without a preflight.** State provider, operation, count, and cost shape; wait for approval.
+8. **Never claim causation from one correlation.** Log the hypothesis and test it over later runs.
+9. **Never treat `llms.txt` as a ranking guarantee.** It is optional discoverability metadata, not proof of crawler support or citations.
+10. **Never recommend allowing every AI crawler by default.** Training, retrieval, and user-triggered agents have different policy implications; present the tradeoff.
+
+## Progressive Enhancement
+
+| Level | Behavior |
+|---|---|
+| L0 | Repository truth, technical inspection, prompt plan, and explicit live-measurement gaps. |
+| L1 | Brand memory narrows attributes and competitor set. |
+| L2 | Search/crawl evidence validates discoverability and citation supply. |
+| L3 | Direct platform observations produce sampled visibility metrics. |
+| L4 | OpenSEO + GSC/GA4/logs connect AI visibility hypotheses to crawl, rankings, citations, and referrals. |
+
+## Completion
+
+Write `.aeo/report.md` and `.aeo/gameplan.md`, then record completion:
+
+```bash
+mktg run ai-seo --complete --writes .aeo/report.md,.aeo/gameplan.md --result success --json
 ```
 
-Add `FAQPage` schema markup to every FAQ section.
+Route resulting work to `seo-audit`, `seo-content`, `competitor-alternatives`, `off-page-seo`, or `seo-machine`; this skill owns measurement and prioritization, not duplicate execution playbooks.
 
 ---
 
-## Step 4: Structured Data for AI
-
-### Required Schema Types
-
-| Schema | Purpose | AI Engine Benefit |
-|--------|---------|------------------|
-| Organization | Establish entity | All engines — entity recognition |
-| Person (authors) | Author authority | Perplexity, Google AI — source credibility |
-| Article | Content metadata | All engines — content classification |
-| FAQPage | Q&A content | Google AI Overviews — direct extraction |
-| HowTo | Process content | Google AI Overviews — step extraction |
-| Product | Product info | ChatGPT, Perplexity — recommendation queries |
-| Review | Credibility signal | All engines — trust signal |
-
-### Implementation
-
-Every page should have at minimum:
-- `Organization` schema (site-wide)
-- `Article` + `Person` schema (all content pages)
-- `FAQPage` schema (any page with Q&A content)
-- `BreadcrumbList` schema (all pages)
-
----
-
-## Step 5: Citation-Friendly Formatting
-
-AI engines are more likely to cite content that is easy to parse and extract from.
-
-### Formatting Rules
-
-1. **Clear hierarchy**: H1 → H2 → H3, logical flow, no skipped levels
-2. **Short paragraphs**: 2-3 sentences max, one idea per paragraph
-3. **Definition patterns**: "X is [clear definition]." — direct, extractable
-4. **Comparison tables**: AI engines love structured comparisons
-5. **Numbered lists**: Steps, rankings, processes — easy to extract
-6. **Data presentation**: Tables > prose for statistics and comparisons
-7. **Primary source citations**: Link to studies, reports, official docs
-8. **Last updated dates**: Show freshness — AI engines prefer recent content
-
-### What AI Engines Trust
-
-| Trust Signal | How to Implement |
-|-------------|-----------------|
-| Author expertise | Author page with credentials, experience, publications |
-| Original research | Proprietary data, surveys, case studies |
-| External citations | Cite reputable sources, link to primary research |
-| Freshness | Regular updates, current year stats, "last updated" dates |
-| Depth | Comprehensive coverage that other sources lack |
-| Specificity | Exact numbers, dates, examples over vague claims |
-| Consistency | Same facts across your site, no contradictions |
-
----
-
-## Step 6: Platform-Specific Strategies
-
-### Perplexity
-
-- Perplexity heavily indexes web content and favors clear, structured pages
-- Strong source attribution — your URL appears next to cited text
-- Optimize for question-based queries with direct answers
-- Technical content and comparisons perform well
-
-### ChatGPT (with browsing)
-
-- Browses the web for current information
-- Favors authoritative, well-structured content
-- Brand mentions in trusted sources increase recommendation likelihood
-- Product/comparison pages get cited for "best X" queries
-
-### Google AI Overviews
-
-- Pulls from existing Google index — traditional SEO still matters
-- Favors content that directly answers the query in 2-3 sentences
-- FAQ schema content frequently appears in AI Overviews
-- How-to and listicle formats are heavily extracted
-
-### Claude
-
-- Knowledge is training-based (less real-time web access)
-- Entity recognition from web-scale training data
-- Being mentioned across many trusted sources increases recognition
-- Wikipedia, major publications, and authoritative sites have outsized impact
-
----
-
-## Step 7: Monitoring and Iteration
-
-### Monthly AI Visibility Check
-
-1. Re-run the audit queries across all AI engines
-2. Track changes in citation status
-3. Identify new queries where AI engines are active in your space
-4. Update content that lost AI visibility
-5. Create new content for queries where you're absent
-
-### Tracking Sheet
-
-```markdown
-| Month | Query | Engine | Status | Action Taken | Result |
-|-------|-------|--------|--------|-------------|--------|
-| Mar 2026 | "best X for Y" | Perplexity | Source #5 | Added comparison table | TBD |
-| Mar 2026 | "how to Z" | ChatGPT | Not cited | Created definitive answer | TBD |
-```
-
----
-
-## Key Differences from Traditional SEO
-
-| Traditional SEO | AI SEO |
-|----------------|--------|
-| Optimize for keywords | Optimize for questions and entities |
-| Compete for page 1 ranking | Compete to be a cited source |
-| Keyword density matters | Answer clarity matters |
-| Backlinks drive authority | Being mentioned across trusted sources drives authority |
-| Meta tags for CTR | Structured data for extraction |
-| Content length signals depth | Answer directness signals usefulness |
-| One-time optimization | Continuous monitoring across multiple engines |
-
----
-
-## Anti-Patterns
-
-- **Traditional SEO is the foundation AI SEO sits on.** AI engines pull from web indexes — if your pages aren't ranking or indexed, they can't be cited. Check traditional SEO basics (/seo-audit) before investing in AI-specific optimization.
-- **FAQ schema only works when it matches real Q&A content.** Google penalizes schema that doesn't reflect what's visible on the page. Add FAQPage markup to pages with genuine questions and answers, not as a blanket optimization.
-- **AI citation is volatile — a single test proves nothing.** A page cited this week may drop next month as AI models update their indexes and weights. The monitoring step (Step 7) exists because ongoing tracking is the only way to maintain AI visibility.
-- **Write for humans, format for AI.** Over-optimizing for extractability (robotic, formulaic answers) hurts traditional SEO and user trust. The best AI-cited content is genuinely useful content that happens to be well-structured.
-- **Robots.txt is the gatekeeper.** If AI bots (GPTBot, PerplexityBot, ClaudeBot) are blocked, no amount of content optimization matters. This is the very first thing to check — see references/platform-ranking-factors.md for the full bot list.
-
----
-
-## Error States
-
-- **No web search or browser available:** Skip live audit (Step 1), proceed with content optimization (Steps 2-6) using existing content analysis. Note: "AI visibility audit requires browser or web search. Content optimization complete — recommend live audit when tools are available."
-- **No brand files exist:** Ask for target topics and competitors directly. Proceed with generic optimization. Suggest running /brand-voice and /keyword-research first.
-- **No existing content to optimize:** Shift to content planning mode — create the ai-seo-content-plan.md with priority queries and content specs. Suggest /seo-content to create the actual content.
-- **Can't access AI engines for testing:** Focus on content structure, schema markup, and formatting optimization. Flag that live testing is deferred.
-
----
-
-## File Output Format
-
-### Directory
-
-```
-marketing/seo/
-├── ai-seo-audit.md          # AI visibility audit results
-├── ai-seo-content-plan.md   # Priority queries + optimization plan
-└── ai-seo-tracking.md       # Monthly tracking sheet
-```
-
-### Frontmatter (ai-seo-audit.md)
-
-```yaml
----
-title: "AI SEO Visibility Audit"
-date_created: "{YYYY-MM-DD}"
-last_updated: "{YYYY-MM-DD}"
-queries_tested: {number}
-engines_tested: ["Perplexity", "ChatGPT", "Google AI Overviews"]
-overall_status: "strong / partial / absent"
-priority_actions: {number}
----
-```
-
-### Frontmatter (ai-seo-content-plan.md)
-
-```yaml
----
-title: "AI SEO Content Optimization Plan"
-date_created: "{YYYY-MM-DD}"
-priority_queries: {number}
-content_to_create: {number}
-content_to_optimize: {number}
----
-```
-
----
-
-## Chain Offers
-
-After completing, suggest:
-
-- `/seo-audit` — ensure traditional SEO foundations support AI visibility
-- `/seo-content` — create new content optimized for AI citation
-- `/brand-voice` — consistent authoritative voice increases citation likelihood
-- `/keyword-research` — identify which queries are AI-dominated in your space
-- "Monthly recheck" — re-run the audit to track AI visibility changes
-
----
-
-## Related Skills
-
-- **seo-audit**: Traditional SEO foundation that supports AI SEO
-- **seo-content**: Content creation with AI-friendly formatting
-- **keyword-research**: Identify which queries are AI-dominated
-- **brand-voice**: Authoritative voice increases citation likelihood
+Method informed by Initial Commit's public AEO program description at `initialcommit.co/library/skills/aeo`; this implementation is independently adapted to mktg's brand memory, OpenSEO boundary, safety model, and sprint-persistence contract.

@@ -50,7 +50,7 @@ This skill operates in three modes. Select based on what the user needs:
 
 ## Backend Selection
 
-Prefer OpenSEO `get_search_console_performance` / `get_ranked_keywords` / `get_serp_results` (snapshots in `.seo/rank-snapshots/`) when configured; otherwise crawl/Exa with ranking impact `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
+Prefer OpenSEO `run_site_audit` → `get_audit_status` → `get_audit_issues` / `get_audit_pages`, plus `inspect_urls`, Search Console, GA4, ranked-keyword, and SERP evidence when configured. Site audits are background jobs: poll the returned audit ID instead of starting duplicates. Local businesses may additionally use local SERP/profile/review/rank-grid tools with explicit location. Otherwise crawl/Exa with ranking impact `unknown`. Full contract: `skills/openseo/references/backend-contract.md`.
 
 ```
 Brand context loaded:
