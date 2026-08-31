@@ -170,6 +170,7 @@ const populateFromScrape = async (
 
   const writes: Promise<void>[] = [];
   for (const [file, content] of Object.entries(files)) {
+    if (await Bun.file(join(brandDir, file)).exists()) continue;
     populated.push(file);
     if (!dryRun) {
       writes.push(Bun.write(join(brandDir, file), content).then(() => {}));
@@ -269,14 +270,19 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
 
   // Handle --from URL scraping
   let scrapeResult: { populated: string[]; scraped: ScrapedBrand } | null = null;
-  if (initFlags.fromUrl) {
+  if (initFlags.fromUrl && !initFlags.skipBrand) {
     const urlCheck = rejectControlChars(initFlags.fromUrl, "URL");
     if (!urlCheck.ok) return invalidArgs(urlCheck.message);
     if (flags.dryRun) {
       if (isTTY() && !flags.json) {
         writeStderr(`  ${dim("dry-run: would fetch")} ${initFlags.fromUrl}`);
       }
-      scrapeResult = { populated: ["voice-profile.md", "positioning.md", "audience.md", "competitors.md"], scraped: { title: "(dry-run)", description: "(dry-run)", headings: [], url: initFlags.fromUrl } };
+      const candidates = ["voice-profile.md", "positioning.md", "audience.md", "competitors.md"];
+      const populated = [] as string[];
+      for (const file of candidates) {
+        if (!(await Bun.file(join(cwd, "brand", file)).exists())) populated.push(file);
+      }
+      scrapeResult = { populated, scraped: { title: "(dry-run)", description: "(dry-run)", headings: [], url: initFlags.fromUrl } };
     } else {
     if (isTTY() && !flags.json) {
       writeStderr(`  Fetching ${initFlags.fromUrl}...`);

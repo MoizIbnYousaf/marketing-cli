@@ -1,7 +1,7 @@
 // mktg — Structured errors, exit codes, security utilities
 // Commands return errors via err() from types.ts — never throw.
 
-import { resolve, relative, isAbsolute } from "node:path";
+import { resolve, relative, isAbsolute, sep } from "node:path";
 import { lstatSync } from "node:fs";
 import { err, type CommandResult, type ExitCode } from "../types";
 import { GITHUB_REPO_BLOB_MAIN, GITHUB_REPO_URL } from "../constants";
@@ -100,14 +100,22 @@ export const sandboxPath = (
     return { ok: false, message: "Path escapes project root" };
   }
 
-  // Check for symlink escape
-  try {
-    const stat = lstatSync(resolved);
-    if (stat.isSymbolicLink()) {
-      return { ok: false, message: "Symlinks are not allowed" };
+  // Reject a symlink at any existing path component, not only at the final
+  // path. A missing final file is valid for writes, but an existing parent
+  // symlink could otherwise redirect that write outside the sandbox.
+  let current = resolve(root);
+  for (const segment of rel.split(sep).filter(Boolean)) {
+    current = resolve(current, segment);
+    try {
+      const stat = lstatSync(current);
+      if (stat.isSymbolicLink()) {
+        return { ok: false, message: "Symlinks are not allowed" };
+      }
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === "ENOENT") break;
+      return { ok: false, message: `Could not validate path component: ${code ?? "unknown error"}` };
     }
-  } catch {
-    // File doesn't exist yet — that's fine for writes
   }
 
   return { ok: true, path: resolved };
@@ -115,8 +123,8 @@ export const sandboxPath = (
 
 // Validate JSON input with safety checks
 export const parseJsonInput = <T>(raw: string): { ok: true; data: T } | { ok: false; message: string } => {
-  // Size limit — 64KB
-  if (raw.length > 65_536) {
+  // Size limit is measured in UTF-8 bytes, matching the wire/file payload.
+  if (Buffer.byteLength(raw, "utf8") > 65_536) {
     return { ok: false, message: "JSON input exceeds 64KB limit" };
   }
 

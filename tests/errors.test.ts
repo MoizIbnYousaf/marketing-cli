@@ -173,6 +173,20 @@ describe("sandboxPath", () => {
     expect(result.message).toContain("Symlinks");
   });
 
+  test("rejects a non-final symlink when the destination does not exist", async () => {
+    const outside = await mkdtemp(join(tmpdir(), "mktg-sandbox-outside-"));
+    await symlink(outside, join(tempDir, "linked-parent"));
+
+    try {
+      const result = sandboxPath(tempDir, "linked-parent/new-file.md");
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.message).toContain("Symlinks");
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
   test("allows paths to non-existent files (for writes)", () => {
     const result = sandboxPath(tempDir, "brand/new-file.md");
     expect(result.ok).toBe(true);
@@ -214,6 +228,13 @@ describe("parseJsonInput", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.message).toContain("64KB");
+  });
+
+  test("measures the JSON limit in UTF-8 bytes", () => {
+    const multibyte = JSON.stringify({ data: "é".repeat(40_000) });
+    expect(multibyte.length).toBeLessThan(65_536);
+    const result = parseJsonInput(multibyte);
+    expect(result.ok).toBe(false);
   });
 
   test("rejects __proto__ pollution", () => {

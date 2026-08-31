@@ -272,6 +272,24 @@ describe("publishPostiz idempotency end-to-end", () => {
     expect(data.adapters[0]!.results[0]!.detail).toMatch(/already-sent/);
   });
 
+  test("unsafe campaign names cannot escape the marker directory", async () => {
+    setRoute("GET /public/v1/integrations", [
+      { status: 200, body: [{ id: "int-linkedin", identifier: "linkedin", name: "LinkedIn", picture: "", disabled: false, profile: "a" }] },
+    ]);
+    setRoute("POST /public/v1/posts", [{ status: 200, body: { id: "post-safe" } }]);
+
+    const manifest = makeManifest("../../outside", [{ content: "Contained", providers: ["linkedin"] }]);
+    const result = await handler(["--confirm", "--adapter", "postiz"], {
+      ...flags,
+      jsonInput: JSON.stringify(manifest),
+    });
+    expect(result.ok).toBe(true);
+    expect(await Bun.file(join(tempDir, "outside-postiz.json")).exists()).toBe(false);
+    const markers = await readdir(join(tempDir, ".mktg", "publish"));
+    expect(markers).toHaveLength(1);
+    expect(markers[0]).toMatch(/^campaign-[0-9a-f]{16}-postiz\.json$/);
+  });
+
   test("different content in same campaign → new POST (no false-positive skip)", async () => {
     setRoute("GET /public/v1/integrations", [
       { status: 200, body: [{ id: "int-1", identifier: "linkedin", name: "LinkedIn", picture: "", disabled: false, profile: "a" }] },

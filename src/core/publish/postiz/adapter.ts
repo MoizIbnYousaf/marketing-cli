@@ -1,6 +1,7 @@
 // mktg — Postiz publish adapter loop (AGPL firewall — NEVER import @postiz/node)
 // Spec: docs/integration/postiz-api-reference.md
 
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { writeStdout } from "../../output";
 import { type AdapterResult, type PublishItem } from "../types";
@@ -62,7 +63,10 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     results: inp.items.map((_, i) => ({ item: i, status: "failed" as const, detail })),
   });
 
-  const markerPath = join(inp.cwd, ".mktg", "publish", `${inp.campaign}-postiz.json`);
+  const campaignFilePart = /^[a-z0-9][a-z0-9._-]{0,127}$/.test(inp.campaign)
+    ? inp.campaign
+    : `campaign-${createHash("sha256").update(inp.campaign).digest("hex").slice(0, 16)}`;
+  const markerPath = join(inp.cwd, ".mktg", "publish", `${campaignFilePart}-postiz.json`);
   const marker = await loadSentMarker(markerPath, inp.campaign);
 
   const listRes = await postizFetch<readonly PostizIntegration[]>("/public/v1/integrations", { method: "GET" });

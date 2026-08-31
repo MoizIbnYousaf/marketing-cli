@@ -138,6 +138,38 @@ describe("mktg init", () => {
     expect(result.data.brand.skipped.length).toBe(0);
   });
 
+  test("--skip-brand also skips --from scraping", async () => {
+    const result = await handler([
+      "--yes",
+      "--skip-brand",
+      "--from",
+      "https://example.com",
+    ], flags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(await Bun.file(join(tempDir, "brand")).exists()).toBe(false);
+    expect(result.data).not.toHaveProperty("scraped");
+  });
+
+  test("--from dry-run reports only missing files and preserves existing work", async () => {
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# My real voice\n");
+    const dryFlags = { ...flags, dryRun: true };
+    const result = await handler([
+      "--yes",
+      "--skip-skills",
+      "--skip-agents",
+      "--from",
+      "https://example.com",
+    ], dryFlags);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const scraped = (result.data as typeof result.data & { scraped?: { filesPopulated: string[] } }).scraped;
+    expect(scraped?.filesPopulated).not.toContain("voice-profile.md");
+    expect(await Bun.file(join(tempDir, "brand", "voice-profile.md")).text()).toBe("# My real voice\n");
+  });
+
   test("--skip-skills skips skill installation", async () => {
     const result = await handler(["--yes", "--skip-skills"], flags);
     expect(result.ok).toBe(true);
