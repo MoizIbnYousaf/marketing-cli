@@ -68,9 +68,9 @@ describe("e2e: tarball size + entry count regression", () => {
     expect(packReport.size).toBeLessThan(3 * 1024 * 1024);
   });
 
-  test("entry count is reasonable (under 1000 — regression budget)", () => {
+  test("entry count is reasonable (under 1200 — includes Studio runtime source imports)", () => {
     expect(packReport.entryCount).toBeGreaterThan(100);
-    expect(packReport.entryCount).toBeLessThan(1000);
+    expect(packReport.entryCount).toBeLessThan(1200);
   });
 
   test("postpack restored package.json — no .prepack-backup file leaked", () => {
@@ -88,6 +88,9 @@ describe("e2e: required files ship in the tarball", () => {
     "README.md",
     "LICENSE",
     "dist/cli.js",
+    "src/core/studio-child-env.ts",
+    "src/core/brand.ts",
+    "src/core/publish/postiz/index.ts",
     ".claude-plugin/plugin.json",
     ".claude-plugin/marketplace.json",
     ".codex-plugin/plugin.json",
