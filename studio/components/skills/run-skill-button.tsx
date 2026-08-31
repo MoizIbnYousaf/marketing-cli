@@ -56,7 +56,7 @@ export function RunSkillButton({
       aria-label={`Run ${name}`}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-surface-1 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors",
-        "hover:border-accent/40 hover:bg-accent/10 hover:text-accent",
+        "hover:border-input hover:bg-accent hover:text-foreground",
         "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-surface-1 disabled:hover:text-muted-foreground",
         className,
       )}

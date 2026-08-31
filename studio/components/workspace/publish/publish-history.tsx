@@ -28,7 +28,7 @@ export function PublishHistory({ className }: { className?: string }) {
     <Card className={cn("gap-3 py-4", className)} data-demo-id="publish-history">
       <div className="flex items-center justify-between px-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <History className="size-4 text-accent" />
+          <History className="size-4 text-primary" />
           Recent publishes
         </h3>
         <Button

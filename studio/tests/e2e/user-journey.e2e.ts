@@ -133,6 +133,13 @@ test("2. onboarding — fresh user can walk through every step", async ({ page }
   await expect(
     page.getByRole("button", { name: /open dashboard/i }),
   ).toBeVisible();
+  const completionCard = page.locator("[data-slot='card']").first();
+  const completionBounds = await completionCard.boundingBox();
+  expect(completionBounds).not.toBeNull();
+  expect(completionBounds!.y).toBeGreaterThanOrEqual(0);
+  expect(completionBounds!.y + completionBounds!.height).toBeLessThanOrEqual(
+    page.viewportSize()!.height,
+  );
   await page.screenshot({ path: join(SHOT_DIR, "02-onboarding-done.png") });
 });
 
@@ -150,10 +157,12 @@ test(
 
     for (const label of ["Pulse", "Signals", "Publish", "Brand"]) {
       await expect(
-        page.getByRole("button", { name: new RegExp(`^${label}`, "i") }).first(),
+        page.getByRole("tab", { name: new RegExp(`^${label}`, "i") }).first(),
       ).toBeVisible({ timeout: 10_000 });
     }
-    await expect(page.getByText(/activity/i).first()).toBeVisible();
+    await expect(
+      page.getByRole("complementary", { name: "/cmo activity feed" }),
+    ).toBeVisible();
     await page.screenshot({
       path: join(SHOT_DIR, "03-dashboard-content.png"),
       fullPage: false,

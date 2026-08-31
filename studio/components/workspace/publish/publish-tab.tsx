@@ -6,8 +6,8 @@ import { m } from "framer-motion"
 import { Eye } from "lucide-react"
 import { fadeInUp, staggerContainer, staggerItem } from "@/lib/animation/variants"
 import { fetcher } from "@/lib/fetcher"
-import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { ErrorState } from "@/components/ui/error-state"
 import { ConnectedProviders } from "./connected-providers"
 import { PostComposer } from "./post-composer"
@@ -139,7 +139,7 @@ export function PublishTab() {
       ) : null}
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-semibold">Publish</h1>
+          <h1 className="text-3xl font-light">Publish</h1>
           <p className="text-xs text-muted-foreground">
             {adapter === "mktg-native"
               ? `Compose and route through the local agent-first backend with ${integrations.length} connected native account${integrations.length === 1 ? "" : "s"}.`
@@ -160,63 +160,56 @@ export function PublishTab() {
           <div
             role="radiogroup"
             aria-label="Publish backend"
-            className="inline-flex rounded-md border border-border/70 bg-background/60 p-0.5 text-[11px] font-medium"
+            className="inline-flex rounded-full border border-border bg-secondary p-1 text-[11px] font-medium"
           >
             {[
               { value: "mktg-native", label: "Native" },
               { value: ADAPTER, label: "Postiz" },
             ].map((option) => (
-              <button
+              <Button
                 key={option.value}
+                type="button"
+                variant={adapter === option.value ? "default" : "ghost"}
+                size="sm"
                 onClick={() => {
                   setAdapter(option.value)
                   setSelectedIntegrationIds([])
                 }}
                 role="radio"
                 aria-checked={adapter === option.value}
-                className={cn(
-                  "min-h-11 min-w-16 rounded-[5px] px-3 py-1",
-                  adapter === option.value
-                    ? "bg-accent/15 text-accent"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
+                className="min-h-10 min-w-16"
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
           <div
             role="radiogroup"
             aria-label="Schedule view"
-            className="inline-flex rounded-md border border-border/70 bg-background/60 p-0.5 text-[11px] font-medium"
+            className="inline-flex rounded-full border border-border bg-secondary p-1 text-[11px] font-medium"
           >
-            <button
+            <Button
+              type="button"
+              variant={view === "queue" ? "default" : "ghost"}
+              size="sm"
               onClick={() => setView("queue")}
               role="radio"
               aria-checked={view === "queue"}
-              className={cn(
-                // A19 / G2-03: 44x44 mobile tap target.
-                "min-h-11 min-w-16 rounded-[5px] px-3 py-1",
-                view === "queue"
-                  ? "bg-accent/15 text-accent"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              className="min-h-10 min-w-16"
             >
               Queue
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
+              variant={view === "calendar" ? "default" : "ghost"}
+              size="sm"
               onClick={() => setView("calendar")}
               role="radio"
               aria-checked={view === "calendar"}
-              className={cn(
-                "min-h-11 min-w-16 rounded-[5px] px-3 py-1",
-                view === "calendar"
-                  ? "bg-accent/15 text-accent"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
+              className="min-h-10 min-w-16"
             >
               Calendar
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -255,7 +248,7 @@ export function PublishTab() {
           {selectedIntegrations.length > 0 && (
             <Card className="gap-3 py-4">
               <div className="flex items-center gap-2 px-4">
-                <Eye className="size-4 text-accent" />
+                <Eye className="size-4 text-foreground" />
                 <h3 className="text-sm font-semibold">Per-provider preview</h3>
               </div>
               <div className="grid gap-2 px-4 sm:grid-cols-2">

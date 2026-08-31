@@ -194,7 +194,7 @@ export function IntegrationsSection() {
                 href="https://api.postiz.com"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-xs text-accent underline-offset-4 hover:underline"
+                className="mt-3 inline-flex items-center gap-1 text-xs text-primary underline-offset-4 hover:underline"
               >
                 Connect at postiz <ExternalLink className="size-3" />
               </a>

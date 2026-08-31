@@ -63,9 +63,9 @@ test("5.2 category filter narrows list AND chip count matches cards", async ({
     page.getByText(/skills in the playbook/i),
   ).toBeVisible({ timeout: 15_000 })
 
-  // Click the Foundation chip. CategoryChip renders as a button with role
-  // tab, label "Foundation", and a count badge as a sibling span.
-  await page.getByRole("tab", { name: /foundation/i }).click()
+  // Click the Foundation category toggle. CategoryChip is a pressed button
+  // because these filters are independent controls rather than page tabs.
+  await page.getByRole("button", { name: /foundation/i }).click()
 
   // Cards rendered now should match foundation skills count. SkillCard
   // structure: <Card><Link href=/skills/<name> /></Card>. Use the

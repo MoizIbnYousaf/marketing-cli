@@ -248,6 +248,7 @@ async function probeUtilityColor(
 interface TokenSnapshot {
   background: string;
   background95: string;
+  card95: string;
   foreground: string;
   mutedFg: string;
   sidebarFg: string;
@@ -264,6 +265,7 @@ async function snapshotTokens(page: Page): Promise<TokenSnapshot> {
   return {
     background: await probeUtilityColor(page, "bg-background", "background-color"),
     background95: await probeUtilityColor(page, "bg-background/95", "background-color"),
+    card95: await probeUtilityColor(page, "bg-card/95", "background-color"),
     foreground: await probeUtilityColor(page, "text-foreground", "color"),
     mutedFg: await probeUtilityColor(page, "text-muted-foreground", "color"),
     sidebarFg: await probeUtilityColor(page, "text-sidebar-foreground", "color"),
@@ -590,7 +592,7 @@ test.describe("demo-enabled chrome", () => {
     });
 
     // ----- Surface 4: mobile-tab-dock -----
-    await test.step("mobile dock surface uses bg-background/95 + border-border", async () => {
+    await test.step("mobile dock surface uses bg-card/95 + border-border", async () => {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.waitForSelector('nav[aria-label="Primary tabs"]', {
@@ -606,7 +608,7 @@ test.describe("demo-enabled chrome", () => {
       const border = await pill.evaluate(
         (el) => getComputedStyle(el).borderTopColor,
       );
-      expect(normalizeColor(bg)).toBe(normalizeColor(tokens.background95));
+      expect(normalizeColor(bg)).toBe(normalizeColor(tokens.card95));
       expect(normalizeColor(border)).toBe(normalizeColor(tokens.border));
     });
 
@@ -623,6 +625,52 @@ test.describe("demo-enabled chrome", () => {
       expect(normalizeColor(color)).toBe(normalizeColor(tokens.mutedFg));
     });
 
+    await test.step("mobile Activity opens as one bottom-sheet feed", async () => {
+      const trigger = page.getByRole("button", { name: "Open /cmo activity" });
+      await expect(trigger).toBeVisible();
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(
+        page.getByRole("complementary", { name: "/cmo activity feed" }),
+      ).toHaveCount(0);
+
+      await trigger.click();
+      const dialog = page.getByRole("dialog");
+      await expect(dialog).toBeVisible();
+      await expect(
+        dialog.getByRole("complementary", { name: "/cmo activity feed" }),
+      ).toBeVisible();
+      await expect(
+        dialog.getByRole("log", { name: "/cmo activity feed" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("complementary", { name: "/cmo activity feed" }),
+      ).toHaveCount(1);
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+    });
+
+    await test.step("tablet keeps Activity accessible in a right-side sheet", async () => {
+      await page.setViewportSize({ width: 1024, height: 800 });
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForSelector('[data-demo-id="workspace-tabs"]', {
+        state: "visible",
+        timeout: 30_000,
+      });
+
+      const trigger = page.getByRole("button", { name: "Open /cmo activity" });
+      await expect(trigger).toBeVisible();
+      await expect(
+        page.getByRole("complementary", { name: "/cmo activity feed" }),
+      ).toHaveCount(0);
+      await trigger.click();
+      await expect(
+        page.getByRole("dialog").getByRole("complementary", {
+          name: "/cmo activity feed",
+        }),
+      ).toBeVisible();
+      await page.keyboard.press("Escape");
+    });
+
     await test.step("mobile dock is hidden on desktop viewport", async () => {
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.reload({ waitUntil: "domcontentloaded" });
@@ -632,6 +680,12 @@ test.describe("demo-enabled chrome", () => {
       });
       await expect(
         page.locator('nav[aria-label="Primary tabs"]'),
+      ).toBeHidden();
+      await expect(
+        page.getByRole("complementary", { name: "/cmo activity feed" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Open /cmo activity" }),
       ).toBeHidden();
     });
 
@@ -654,7 +708,7 @@ test.describe("demo-enabled chrome", () => {
     });
 
     // ----- Surface 5: theme + dead-chrome regression -----
-    await test.step("html element is server-rendered with class='dark' + colorScheme: dark", async () => {
+    await test.step("html element is server-rendered with the editorial light color scheme", async () => {
       await page.waitForSelector("header", {
         state: "attached",
         timeout: 30_000,
@@ -662,11 +716,11 @@ test.describe("demo-enabled chrome", () => {
       const htmlClass = await page.evaluate(
         () => document.documentElement.className,
       );
-      expect(htmlClass.split(/\s+/)).toContain("dark");
+      expect(htmlClass.split(/\s+/)).not.toContain("dark");
       const colorScheme = await page.evaluate(
         () => document.documentElement.style.colorScheme,
       );
-      expect(colorScheme).toBe("dark");
+      expect(colorScheme).toBe("light");
     });
 
     await test.step("body resolves to bg-background token", async () => {
@@ -767,17 +821,17 @@ test.describe("demo-disabled chrome", () => {
     ).toBe(0);
   });
 
-  test("html still locks dark theme without demo gate flipping it", async ({
+  test("html keeps the light theme without the demo gate flipping it", async ({
     page,
   }) => {
     await page.goto(`${baseURL}/dashboard`, { waitUntil: "domcontentloaded" });
     const htmlClass = await page.evaluate(
       () => document.documentElement.className,
     );
-    expect(htmlClass.split(/\s+/)).toContain("dark");
+    expect(htmlClass.split(/\s+/)).not.toContain("dark");
     const colorScheme = await page.evaluate(
       () => document.documentElement.style.colorScheme,
     );
-    expect(colorScheme).toBe("dark");
+    expect(colorScheme).toBe("light");
   });
 });

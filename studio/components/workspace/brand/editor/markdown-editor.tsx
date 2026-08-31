@@ -39,7 +39,7 @@ export function MarkdownEditor({
   }, [onSaveShortcut])
 
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(205,255,38,0.04),transparent_34%)]">
+    <div className="flex min-h-0 flex-1 overflow-hidden bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--gradient-mint)_22%,transparent),transparent_34%)]">
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-5 pb-5 pt-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -55,7 +55,7 @@ export function MarkdownEditor({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder ?? "Write your brand doc in markdown…"}
           spellCheck
-          className="min-h-0 flex-1 resize-none rounded-2xl border border-border/70 bg-background/72 p-7 font-mono text-[15px] leading-8 text-foreground shadow-sm outline-none selection:bg-accent/30 placeholder:text-muted-foreground/50 lg:p-9 lg:text-[16px]"
+          className="min-h-0 flex-1 resize-none rounded-2xl border border-border bg-card p-7 font-mono text-[15px] leading-8 text-foreground shadow-sm outline-none selection:bg-secondary placeholder:text-muted-foreground/50 focus:border-ring focus:ring-3 focus:ring-ring/20 lg:p-9 lg:text-[16px]"
         />
       </div>
     </div>

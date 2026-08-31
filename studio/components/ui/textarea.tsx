@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
 
 const textareaVariants = cva(
   cn(
-    "border-input placeholder:text-muted-foreground dark:bg-input/30 flex w-full rounded-md border bg-transparent shadow-xs transition-[color,box-shadow] outline-none field-sizing-content",
+    "border-input placeholder:text-muted-foreground flex w-full rounded-lg border bg-card shadow-xs transition-[color,box-shadow] outline-none field-sizing-content",
     "disabled:cursor-not-allowed disabled:opacity-50",
     "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+    "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   ),
   {
     variants: {

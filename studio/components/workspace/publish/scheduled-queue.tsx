@@ -62,7 +62,7 @@ export function ScheduledQueue({
     <Card className={cn("gap-3 py-4", className)} data-demo-id="publish-scheduled">
       <div className="flex flex-wrap items-center justify-between gap-2 px-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <CalendarClock className="size-4 text-accent" />
+          <CalendarClock className="size-4 text-primary" />
           Scheduled queue
         </h3>
         <div className="flex items-center gap-1">
@@ -73,7 +73,7 @@ export function ScheduledQueue({
               className={cn(
                 "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
                 range === option.id
-                  ? "bg-accent/12 text-accent"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
               )}
             >
@@ -173,7 +173,7 @@ function ScheduledPostRow({ post, adapter }: { post: ScheduledPost; adapter: str
                   href={`/api/assets/file?path=${encodeURIComponent(path)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="group block overflow-hidden rounded-lg border border-accent/25 bg-accent/10 transition-colors hover:bg-accent/15"
+                  className="group block overflow-hidden rounded-lg border border-border bg-secondary transition-colors hover:bg-surface-3"
                 >
                   {isImageAsset(path) ? (
                     <Image
@@ -186,7 +186,7 @@ function ScheduledPostRow({ post, adapter }: { post: ScheduledPost; adapter: str
                       loading="lazy"
                     />
                   ) : null}
-                  <span className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium text-accent">
+                  <span className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium text-primary">
                     <ImageIcon className="size-3" />
                     {assetLabel(path)}
                   </span>

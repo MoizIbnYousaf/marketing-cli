@@ -120,6 +120,26 @@ function HydratedWizard() {
     saveState(state)
   }, [state])
 
+  // Input autofocus can move the document while the animated steps have
+  // different heights. Reset that transient scroll so the next card is never
+  // presented with its heading or completion mark above the viewport.
+  useEffect(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+      document.getElementById("onboarding-scroll-container")?.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant",
+      })
+    }
+    resetScroll()
+    const afterTransition = window.setTimeout(resetScroll, 250)
+    return () => window.clearTimeout(afterTransition)
+  }, [state.step])
+
   const update = useCallback(
     (patch: Partial<WizardState>) =>
       setState((prev) => ({ ...prev, ...patch })),
@@ -336,7 +356,7 @@ function HydratedWizard() {
         </div>
       )}
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-card/95 shadow-lg backdrop-blur">
         <CardContent className="p-8">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div

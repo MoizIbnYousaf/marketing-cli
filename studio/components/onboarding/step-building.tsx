@@ -353,7 +353,7 @@ export function StepBuilding({ onDone, from }: Props) {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="font-display text-3xl font-light tracking-tight">
           Writing your brand files…
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">

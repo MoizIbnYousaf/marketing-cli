@@ -74,7 +74,7 @@ function BrandFileListImpl({
               type="button"
               onClick={onRefresh}
               aria-label="Refresh brand files"
-              className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
               title="Refresh"
             >
               <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
@@ -97,9 +97,9 @@ function BrandFileListImpl({
                 onClick={() => onSelect(file.name)}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "flex w-full flex-col items-start gap-1 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+                  "flex w-full flex-col items-start gap-1 border-l-2 px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                   active
-                    ? "border-l-accent bg-accent/10"
+                    ? "border-l-primary bg-secondary"
                     : "border-l-transparent hover:bg-muted/40",
                 )}
               >

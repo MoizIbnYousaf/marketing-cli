@@ -11,6 +11,7 @@ import { Crosshair, RefreshCw } from "lucide-react"
 import { dataFetcher } from "@/lib/fetcher"
 import type { CompeteListData, CompeteScanData } from "@/lib/mktg"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 function hostLabel(url: string): string {
   try {
@@ -61,19 +62,21 @@ export function WarRoomList() {
     >
       <header className="mb-3 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Crosshair className="size-4 text-lime" />
+          <Crosshair className="size-4 text-foreground" />
           War room
           <span className="text-xs font-normal text-muted-foreground">{entries.length} tracked</span>
         </h2>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="xs"
           onClick={() => void scan()}
           disabled={scanning || entries.length === 0}
-          className="flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+          className="gap-1.5 text-muted-foreground"
         >
           <RefreshCw className={cn("size-3.5", scanning && "animate-spin")} />
           {scanning ? "Scanning…" : "Scan now"}
-        </button>
+        </Button>
       </header>
       {error ? (
         <p className="text-xs text-muted-foreground">Competitor list unavailable: {error.message}</p>

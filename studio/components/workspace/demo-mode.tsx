@@ -104,10 +104,10 @@ export const WORKSPACE_DEMO_STEPS: DemoStep[] = [
 ]
 
 const highlightByStepId: Record<string, string> = {
-  hq: "from-amber-400/20 via-orange-400/10 to-transparent",
-  "content-library": "from-cyan-300/20 via-sky-400/10 to-transparent",
-  publish: "from-emerald-400/20 via-lime-400/10 to-transparent",
-  activity: "from-violet-400/20 via-cyan-400/10 to-transparent",
+  hq: "from-gradient-peach/30 via-gradient-rose/15 to-transparent",
+  "content-library": "from-gradient-sky/30 via-gradient-mint/15 to-transparent",
+  publish: "from-gradient-mint/30 via-gradient-peach/15 to-transparent",
+  activity: "from-gradient-lavender/30 via-gradient-sky/15 to-transparent",
 }
 
 const measureDemoRect = (targetId: string | undefined): DemoRect | null => {
@@ -257,8 +257,8 @@ export function DemoMode() {
                 transition={{ duration: 0.24, ease: "easeOut" }}
                 className="absolute inset-x-4 bottom-4 md:inset-x-auto md:bottom-6 md:right-6 md:w-[420px]"
               >
-                <div className="overflow-hidden rounded-[28px] border border-white/12 bg-[#0d141c]/94 text-white shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-                <div className="border-b border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(87,224,255,0.18),transparent_35%),radial-gradient(circle_at_top_right,rgba(244,154,92,0.14),transparent_32%)] px-5 py-4">
+                <div className="overflow-hidden rounded-[28px] border border-white/12 bg-surface-dark-elevated/95 text-white shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                <div className="border-b border-white/10 bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--gradient-mint)_20%,transparent),transparent_35%),radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--gradient-peach)_18%,transparent),transparent_32%)] px-5 py-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Badge className="rounded-full border border-white/15 bg-white/8 px-2.5 py-1 text-[10px] uppercase tracking-[0.24em] text-white/80">
@@ -278,7 +278,7 @@ export function DemoMode() {
                     </Button>
                   </div>
 
-                  <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-cyan-200/80">
+                  <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-white/70">
                     <Target className="size-3.5" />
                     {currentStep.eyebrow}
                   </div>
@@ -381,7 +381,7 @@ export function DemoMode() {
               </m.div>
 
               {currentStep.targetId === "activity-copilot" && (
-                <div className="pointer-events-none absolute bottom-28 right-6 hidden items-center gap-2 rounded-full border border-white/12 bg-[#0f1720]/88 px-3 py-2 text-xs text-white/80 shadow-lg backdrop-blur md:flex">
+                <div className="pointer-events-none absolute bottom-28 right-6 hidden items-center gap-2 rounded-full border border-white/12 bg-surface-dark-elevated/90 px-3 py-2 text-xs text-white/80 shadow-lg backdrop-blur md:flex">
                   <ActivityIcon className="size-3.5" />
                   /cmo Activity streams every skill run your CMO kicks off in Claude Code
                 </div>

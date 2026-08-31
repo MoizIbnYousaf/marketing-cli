@@ -68,7 +68,7 @@ export function ExternalReloadDialog({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="size-4 text-accent" aria-hidden />
+            <FileText className="size-4 text-primary" aria-hidden />
             /cmo rewrote <code className="font-mono text-sm">{fileName}</code> while you were editing
           </DialogTitle>
           <DialogDescription>{summary}</DialogDescription>

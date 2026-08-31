@@ -60,13 +60,13 @@ import type {
 } from "@/lib/types/pulse"
 import { PulseSparkline } from "./sparkline"
 
-// --- Tone tokens (TODO darkbloom: swap for theme tokens) --------------------
+// Pastel tones carry atmosphere only; text and actions stay neutral ink.
 
 const TONE_CLASSES: Record<PulseActionTone, { card: string; icon: string; pill: string }> = {
-  green:  { card: "border-emerald-400/25 bg-emerald-400/[0.055]", icon: "bg-emerald-400/15 text-emerald-300", pill: "text-emerald-300" },
-  blue:   { card: "border-sky-400/25 bg-sky-400/[0.055]",         icon: "bg-sky-400/15 text-sky-300",         pill: "text-sky-300" },
-  violet: { card: "border-violet-400/25 bg-violet-400/[0.055]",   icon: "bg-violet-400/15 text-violet-300",   pill: "text-violet-300" },
-  amber:  { card: "border-amber-400/25 bg-amber-400/[0.055]",     icon: "bg-amber-400/15 text-amber-300",     pill: "text-amber-300" },
+  green:  { card: "border-border bg-gradient-mint/25", icon: "bg-gradient-mint/55 text-foreground", pill: "text-foreground" },
+  blue:   { card: "border-border bg-gradient-sky/25", icon: "bg-gradient-sky/55 text-foreground", pill: "text-foreground" },
+  violet: { card: "border-border bg-gradient-lavender/25", icon: "bg-gradient-lavender/55 text-foreground", pill: "text-foreground" },
+  amber:  { card: "border-border bg-gradient-peach/25", icon: "bg-gradient-peach/55 text-foreground", pill: "text-foreground" },
 }
 
 const ACTION_ICON: Record<PulseAction["icon"], typeof Target> = {
@@ -181,7 +181,7 @@ function PulseLayout({ snapshot }: { snapshot: PulseSnapshot }) {
       animate="visible"
       className="relative mx-auto max-w-[1580px] space-y-6 overflow-hidden p-4 lg:p-5"
     >
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_0%,rgba(197,255,35,0.13),transparent_34%),radial-gradient(circle_at_74%_12%,rgba(88,166,255,0.11),transparent_30%),radial-gradient(circle_at_92%_58%,rgba(168,85,247,0.10),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_0%,color-mix(in_srgb,var(--gradient-mint)_28%,transparent),transparent_34%),radial-gradient(circle_at_74%_12%,color-mix(in_srgb,var(--gradient-sky)_22%,transparent),transparent_30%),radial-gradient(circle_at_92%_58%,color-mix(in_srgb,var(--gradient-lavender)_20%,transparent),transparent_30%)]" />
 
       <Hero funnel={snapshot.funnel} stale={isSectionStale(stale, "funnel")} />
 
@@ -208,11 +208,12 @@ function PulseLayout({ snapshot }: { snapshot: PulseSnapshot }) {
 
 function Hero({ funnel, stale }: { funnel: PulseSnapshot["funnel"]; stale: boolean }) {
   return (
-    <header className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#080c0d]/90 px-5 py-6 shadow-2xl shadow-black/25 sm:px-7">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:42px_42px] opacity-30" />
+    <header className="relative overflow-hidden rounded-panel border border-border bg-card px-5 py-6 shadow-sm sm:px-7">
+      <div className="pointer-events-none absolute -left-24 -top-32 size-80 rounded-full bg-gradient-mint/45 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 -top-28 size-72 rounded-full bg-gradient-lavender/35 blur-3xl" />
 
       <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex items-center gap-2 rounded-full border border-lime/25 bg-lime/10 px-3 py-1 text-xs font-medium text-lime">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-foreground">
           <Radio className="size-3.5" />
           Pulse
         </div>
@@ -244,7 +245,7 @@ function FunnelNode({ node }: { node: PulseFunnelNode }) {
         <DeltaPill delta={delta} tone={tone} />
       </div>
       <div className="mt-2 flex items-end justify-between gap-3">
-        <span className="font-[var(--font-heading)] text-3xl font-semibold leading-none tabular-nums text-foreground">
+        <span className="font-[var(--font-heading)] text-3xl font-light leading-none tabular-nums text-foreground">
           {formatNumber(node.total)}
         </span>
         <PulseSparkline series={node.series} tone={tone} className="max-w-[120px]" />
@@ -262,12 +263,12 @@ function DeltaPill({
 }) {
   const base = "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums"
   if (delta.positive === null) {
-    return <span className={cn(base, "bg-white/[0.06] text-muted-foreground")}>{delta.label}</span>
+    return <span className={cn(base, "bg-secondary text-muted-foreground")}>{delta.label}</span>
   }
   if (delta.positive) {
     return <span className={cn(base, TONE_CLASSES[tone].icon)}>{delta.label}</span>
   }
-  return <span className={cn(base, "bg-red-400/15 text-red-300")}>{delta.label}</span>
+  return <span className={cn(base, "bg-red-50 text-red-700")}>{delta.label}</span>
 }
 
 // --- Mid section ------------------------------------------------------------
@@ -319,7 +320,7 @@ function ActionCard({ action }: { action: PulseAction }) {
     <a
       href={action.href}
       className={cn(
-        "group flex items-center gap-3 rounded-2xl border p-3.5 transition hover:-translate-y-0.5 hover:border-lime/40",
+        "group flex items-center gap-3 rounded-2xl border p-3.5 transition hover:-translate-y-0.5 hover:border-input hover:shadow-sm",
         tones.card,
       )}
     >
@@ -347,18 +348,18 @@ function ActivityTimeline({ activities }: { activities: Activity[] }) {
   }
   return (
     <div className="relative space-y-3">
-      <div className="absolute bottom-3 left-[17px] top-3 w-px bg-white/10" />
+      <div className="absolute bottom-3 left-[17px] top-3 w-px bg-border" />
       {activities.map((a) => (
         <div key={`${a.id}-${a.createdAt}`} className="relative flex gap-3">
-          <span className="relative z-10 mt-1 flex size-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#111819]">
-            {a.kind === "publish" ? <Send className="size-4 text-emerald-300" /> : null}
-            {a.kind === "brand-write" ? <BookOpen className="size-4 text-sky-300" /> : null}
-            {a.kind === "skill-run" ? <Sparkles className="size-4 text-violet-300" /> : null}
+          <span className="relative z-10 mt-1 flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-secondary">
+            {a.kind === "publish" ? <Send className="size-4 text-emerald-700" /> : null}
+            {a.kind === "brand-write" ? <BookOpen className="size-4 text-sky-700" /> : null}
+            {a.kind === "skill-run" ? <Sparkles className="size-4 text-violet-700" /> : null}
             {a.kind !== "publish" && a.kind !== "brand-write" && a.kind !== "skill-run" ? (
-              <ActivityIcon className="size-4 text-lime" />
+              <ActivityIcon className="size-4 text-foreground" />
             ) : null}
           </span>
-          <div className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+          <div className="min-w-0 flex-1 rounded-2xl border border-border bg-card px-3 py-2.5">
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-medium text-foreground">{a.summary}</p>
               <span className="shrink-0 text-[10px] text-muted-foreground">{relativeTime(a.createdAt)}</span>
@@ -434,7 +435,7 @@ function BrandHealthCard({ brandHealth }: { brandHealth: PulseSnapshot["brandHea
   return (
     <div className="space-y-3">
       <div className="flex items-end justify-between gap-2">
-        <span className="font-[var(--font-heading)] text-3xl font-semibold tabular-nums text-foreground">
+        <span className="font-[var(--font-heading)] text-3xl font-light tabular-nums text-foreground">
           {brandHealth.score}
           <span className="ml-1 text-sm text-muted-foreground">/ 100</span>
         </span>
@@ -456,7 +457,7 @@ function BrandHealthCard({ brandHealth }: { brandHealth: PulseSnapshot["brandHea
             return (
               <div
                 key={file.name}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-2 px-3 py-2"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">{getFileLabel(file.name)}</p>
@@ -479,8 +480,8 @@ function FreshnessBadge({ freshness }: { freshness: string }) {
       className={cn(
         "rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em]",
         isGood
-          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-          : "border-amber-400/30 bg-amber-400/10 text-amber-300",
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-amber-200 bg-amber-50 text-amber-700",
       )}
     >
       {freshness}
@@ -504,7 +505,7 @@ function RecentMediaStrip({ items }: { items: PulseMediaItem[] }) {
         <a
           key={asset.id}
           href="/dashboard?tab=signals"
-          className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-2 transition hover:-translate-y-0.5 hover:border-lime/40"
+          className="group overflow-hidden rounded-2xl border border-border bg-card p-2 transition hover:-translate-y-0.5 hover:border-input hover:shadow-sm"
         >
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black/40">
             {asset.kind === "image" ? (
@@ -517,8 +518,8 @@ function RecentMediaStrip({ items }: { items: PulseMediaItem[] }) {
                 decoding="async"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(197,255,35,0.22),transparent_38%),#070909]">
-                <Play className="size-7 text-lime" />
+              <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,var(--gradient-mint),transparent_58%),var(--surface-dark)]">
+                <Play className="size-7 text-white" />
               </div>
             )}
           </div>
@@ -548,10 +549,10 @@ function RecentPublishStrip({ items }: { items: PulsePublishItem[] }) {
         <a
           key={row.id}
           href="/dashboard?tab=publish"
-          className="group flex gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 transition hover:border-lime/40"
+          className="group flex gap-3 rounded-2xl border border-border bg-card p-3 transition hover:border-input hover:shadow-sm"
         >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]">
-            <Send className="size-4 text-lime" />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+            <Send className="size-4 text-foreground" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="line-clamp-2 block text-sm font-medium text-foreground">
@@ -585,17 +586,17 @@ function Panel({
   children: ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-panel border border-white/10 bg-[#0b1011]/82 shadow-xl shadow-black/20 backdrop-blur">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+    <section className="overflow-hidden rounded-panel border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="flex items-center gap-2">
-          <Icon className="size-4 text-lime" />
+          <Icon className="size-4 text-foreground" />
           <h2 className="text-sm font-semibold text-foreground">{title}</h2>
           {stale ? <StaleChip label="cached" /> : null}
         </div>
         {actionHref && actionLabel ? (
           <a
             href={actionHref}
-            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition hover:text-lime"
+            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
           >
             {actionLabel}
             <ArrowRight className="size-3.5" />
@@ -609,7 +610,7 @@ function Panel({
 
 function StaleChip({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300">
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-700">
       <AlertTriangle className="size-3" />
       {label}
     </span>
@@ -635,8 +636,8 @@ function LoadingSkeleton() {
 
 function SkeletonBlock({ className }: { className?: string }) {
   return (
-    <div className={cn("relative overflow-hidden border border-white/10 bg-white/[0.03]", className)}>
-      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+    <div className={cn("relative overflow-hidden border border-border bg-card", className)}>
+      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-secondary to-transparent" />
     </div>
   )
 }

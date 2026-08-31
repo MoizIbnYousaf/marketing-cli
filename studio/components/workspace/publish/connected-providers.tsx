@@ -119,7 +119,7 @@ export function ConnectedProviders({
     <Card className={cn("gap-3 py-4", className)}>
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <PlugZap className="size-4 text-accent" />
+          <PlugZap className="size-4 text-primary" />
           <h3 className="text-sm font-semibold">Connected accounts</h3>
         </div>
         <Button
@@ -161,7 +161,7 @@ export function ConnectedProviders({
               <div className="flex flex-col items-start gap-2">
                 <a
                   href="/settings?panel=api-keys"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                 >
                   Open Settings → API keys
                 </a>
@@ -190,7 +190,7 @@ export function ConnectedProviders({
                 href={`${POSTIZ_BASE}/launches`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
               >
                 Open Postiz <ExternalLink className="size-3" />
               </a>
@@ -210,8 +210,8 @@ export function ConnectedProviders({
                     className={cn(
                       "group flex w-full items-center gap-3 rounded-md border px-2.5 py-2 text-left transition-all",
                       selected
-                        ? "border-accent/40 bg-accent/5 ring-1 ring-accent/20"
-                        : "border-border/70 hover:border-accent/30 hover:bg-muted/40",
+                        ? "border-primary/40 bg-secondary ring-1 ring-primary/15"
+                        : "border-border/70 hover:border-input hover:bg-muted/40",
                       !integration.connected && "cursor-not-allowed opacity-60",
                     )}
                   >
@@ -306,7 +306,7 @@ export function ConnectedProviders({
             href={`${POSTIZ_BASE}/launches`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-accent"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             Manage primary backend in Postiz <ExternalLink className="size-3" />
           </a>

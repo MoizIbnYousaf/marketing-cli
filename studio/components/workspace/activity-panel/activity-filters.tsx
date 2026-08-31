@@ -1,6 +1,8 @@
 "use client"
 
 import type { ActivityKind } from "@/lib/types/activity"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 const ALL_KINDS: Array<{ value: ActivityKind | "all"; label: string }> = [
   { value: "all",         label: "All" },
@@ -41,44 +43,43 @@ export function ActivityFilters({
       {/* Kind filter pills */}
       <div className="flex flex-wrap gap-1">
         {ALL_KINDS.map((k) => (
-          <button
+          <Button
             key={k.value}
+            type="button"
+            variant={kind === k.value ? "default" : "outline"}
+            size="xs"
             onClick={() => onKindChange(k.value as ActivityKind | "all")}
-            className={`px-2 py-0.5 text-[10px] font-medium rounded-full border transition-colors ${
-              kind === k.value
-                ? "bg-foreground text-background border-foreground"
-                : "bg-transparent text-muted-foreground border-border hover:border-foreground/40 hover:text-foreground"
-            }`}
+            className="h-7 px-2 text-[10px]"
           >
             {k.label}
-          </button>
+          </Button>
         ))}
       </div>
 
       <div className="flex items-center gap-2">
         {/* Skill search */}
-        <input
+        <Input
           type="text"
           value={skill}
           onChange={(e) => onSkillChange(e.target.value)}
           placeholder="Filter by skill…"
-          className="flex-1 text-[11px] bg-muted border border-border rounded px-2 py-1 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
+          size="sm"
+          className="flex-1 text-[11px]"
         />
 
         {/* Time window */}
         <div className="flex gap-0.5">
           {TIME_WINDOWS.map((t) => (
-            <button
+            <Button
               key={t.value}
+              type="button"
+              variant={timeWindow === t.value ? "default" : "ghost"}
+              size="xs"
               onClick={() => onTimeWindowChange(t.value)}
-              className={`px-1.5 py-0.5 text-[10px] rounded transition-colors ${
-                timeWindow === t.value
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className="h-7 px-2 text-[10px]"
             >
               {t.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

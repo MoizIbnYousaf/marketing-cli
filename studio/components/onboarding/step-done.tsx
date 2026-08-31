@@ -10,7 +10,7 @@ export function StepDone() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <div className="space-y-10 text-center">
+    <div className="space-y-8 text-center">
       <div className="space-y-4">
         <m.div
           initial={reduceMotion ? { opacity: 1 } : { scale: 0.6, opacity: 0 }}
@@ -18,9 +18,9 @@ export function StepDone() {
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="relative mx-auto size-16"
         >
-          <div className="absolute inset-0 rounded-full bg-accent/10 blur-xl" aria-hidden />
-          <div className="relative flex size-16 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/30">
-            <Sparkles className="size-8 text-accent" />
+          <div className="absolute inset-0 rounded-full bg-gradient-mint/50 blur-xl" aria-hidden />
+          <div className="relative flex size-16 items-center justify-center rounded-full bg-gradient-mint/50 ring-1 ring-border">
+            <Sparkles className="size-8 text-foreground" />
           </div>
         </m.div>
 
@@ -28,7 +28,7 @@ export function StepDone() {
           initial={reduceMotion ? { opacity: 1 } : { y: 8, opacity: 0 }}
           animate={reduceMotion ? { opacity: 1 } : { y: 0, opacity: 1 }}
           transition={{ delay: 0.08, duration: 0.3 }}
-          className="text-2xl font-semibold tracking-tight"
+          className="font-display text-3xl font-light tracking-tight"
         >
           Your brand files are live.
         </m.h1>

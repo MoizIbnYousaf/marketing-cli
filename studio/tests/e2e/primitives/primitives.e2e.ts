@@ -27,13 +27,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPORT_PATH = join(__dirname, "REPORT.md")
 
 const TOKEN_HEX = {
-  "bg-card": "#171d21",
-  "bg-popover": "#1d2429",
-  "bg-surface-1": "#171d21",
-  "bg-surface-2": "#1d2429",
-  "bg-surface-3": "#232a30",
-  "border-input": "#1d252b",
-  "bg-background": "#11161a",
+  "bg-card": "#ffffff",
+  "bg-popover": "#ffffff",
+  "bg-surface-1": "#ffffff",
+  "bg-surface-2": "#fafafa",
+  "bg-surface-3": "#f0efed",
+  "border-input": "#d6d3d1",
+  "bg-background": "#f5f5f5",
 } as const
 
 function hexToRgb(hex: string): string {
@@ -149,7 +149,7 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
               ? "bg-card"
               : surface === "subtle"
                 ? "bg-surface-1"
-                : "bg-surface-3"
+                : "bg-card"
           expect(dump.className, id).toContain(surfaceUtility)
           expect(
             await page.getByTestId(id).getAttribute("data-radius"),
@@ -161,7 +161,7 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
           ).toBe(surface)
           const radiusPx =
             radius === "panel"
-              ? "25.6px"
+              ? "24px"
               : radius === "card"
                 ? "16px"
                 : "12px"
@@ -171,7 +171,7 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
               ? hexToRgb(TOKEN_HEX["bg-card"])
               : surface === "subtle"
                 ? hexToRgb(TOKEN_HEX["bg-surface-1"])
-                : hexToRgb(TOKEN_HEX["bg-surface-3"])
+                : hexToRgb(TOKEN_HEX["bg-card"])
           expect(dump.backgroundColor, id).toBe(expectedBg)
         })
       }
@@ -222,7 +222,7 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
             expect(dump.className, id).toContain("bg-destructive")
           } else if (variant === "outline") {
             expect(dump.className, id).toContain("border")
-            expect(dump.className, id).toContain("bg-background")
+            expect(dump.className, id).toContain("bg-transparent")
           } else if (variant === "secondary") {
             expect(dump.className, id).toContain("bg-secondary")
           } else if (variant === "ghost") {
@@ -231,13 +231,13 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
             expect(dump.className, id).toContain("text-primary")
             expect(dump.className, id).toContain("underline-offset-4")
           } else if (variant === "accent") {
-            expect(dump.className, id).toContain("bg-accent")
+            expect(dump.className, id).toContain("bg-primary")
           }
 
-          if (size === "default") expect(dump.className, id).toContain("h-9")
-          if (size === "xs") expect(dump.className, id).toContain("h-6")
-          if (size === "sm") expect(dump.className, id).toContain("h-8")
-          if (size === "lg") expect(dump.className, id).toContain("h-10")
+          if (size === "default") expect(dump.className, id).toContain("h-10")
+          if (size === "xs") expect(dump.className, id).toContain("h-7")
+          if (size === "sm") expect(dump.className, id).toContain("h-9")
+          if (size === "lg") expect(dump.className, id).toContain("h-11")
           if (size === "touch") {
             expect(dump.className, id).toContain("min-h-11")
             expect(dump.className, id).toContain("min-w-11")
@@ -250,13 +250,13 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
               id,
             ).toBeGreaterThanOrEqual(44)
           }
-          if (size === "icon") expect(dump.className, id).toContain("size-9")
+          if (size === "icon") expect(dump.className, id).toContain("size-10")
           if (size === "icon-xs")
-            expect(dump.className, id).toContain("size-6")
+            expect(dump.className, id).toContain("size-7")
           if (size === "icon-sm")
-            expect(dump.className, id).toContain("size-8")
+            expect(dump.className, id).toContain("size-9")
           if (size === "icon-lg")
-            expect(dump.className, id).toContain("size-10")
+            expect(dump.className, id).toContain("size-11")
         })
       }
     }
@@ -277,8 +277,8 @@ test.describe("Lane 6 -- Primitives variant coverage", () => {
             id,
           ).toBe(intent)
           if (size === "sm") expect(dump.className, id).toContain("h-8")
-          if (size === "default") expect(dump.className, id).toContain("h-9")
-          if (size === "lg") expect(dump.className, id).toContain("h-10")
+          if (size === "default") expect(dump.className, id).toContain("h-11")
+          if (size === "lg") expect(dump.className, id).toContain("h-12")
           if (intent === "error")
             expect(dump.className, id).toContain("border-destructive")
           if (intent === "success")

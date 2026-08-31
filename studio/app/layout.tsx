@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import {
-  Archivo,
   Geist_Mono,
+  Inter,
+  Newsreader,
 } from "next/font/google"
 import { Toaster } from "sonner"
 import { MotionProvider } from "@/components/providers/motion-provider"
@@ -12,15 +13,19 @@ import { AxeA11y } from "@/components/providers/axe-a11y"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import "./globals.css"
 
-const archivo = Archivo({
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+})
+
+const newsreader = Newsreader({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500"],
   display: "swap",
-  // Metric-matched fallback so dropping Inter_Tight (the previous --font-sans
-  // body family) does not introduce CLS during the font swap. system-ui
-  // covers macOS / iOS / Windows / Android default UI fonts.
-  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+  fallback: ["Georgia", "Times New Roman", "serif"],
 })
 
 const geistMono = Geist_Mono({
@@ -44,22 +49,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    // Studio is locked dark: ThemeToggle was removed in Wave A. The .dark class
-    // is server-rendered so token overrides at globals.css :.dark take effect on
-    // first paint without a pre-hydration script. Stale `mktg-studio-theme`
-    // localStorage entries from prior builds are harmless: nothing reads them.
     <html
       lang="en"
-      className="dark"
-      style={{ colorScheme: "dark" }}
+      style={{ colorScheme: "light" }}
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
       <head>
-        <meta name="theme-color" content="#11161a" />
+        <meta name="theme-color" content="#f5f5f5" />
       </head>
       <body
-        className={`${archivo.variable} ${geistMono.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} ${newsreader.variable} ${geistMono.variable} min-h-dvh bg-background font-sans text-foreground antialiased`}
       >
         <SWRProvider>
           <MotionProvider>

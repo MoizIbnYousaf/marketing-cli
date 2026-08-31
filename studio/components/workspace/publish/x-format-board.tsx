@@ -107,10 +107,10 @@ export function XFormatBoard({
   }
 
   return (
-    <Card className="overflow-hidden border-accent/30 bg-[radial-gradient(circle_at_top_right,rgba(207,255,38,0.10),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.04),transparent)] py-0 shadow-xl shadow-black/10">
+    <Card className="overflow-hidden bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--gradient-mint)_32%,transparent),transparent_34%)] py-0 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             X formatter
           </p>
           <h2 className="text-base font-semibold">Write, preview, then publish</h2>
@@ -157,8 +157,8 @@ export function XFormatBoard({
                     className={cn(
                       "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors",
                       selected
-                        ? "border-accent bg-accent/10 text-accent"
-                        : "border-border/70 text-muted-foreground hover:text-foreground",
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
                     )}
                   >
                     <AccountAvatar account={account} />
@@ -227,7 +227,7 @@ export function XFormatBoard({
           </div>
         </section>
 
-        <aside className="min-w-0 bg-black/20 p-4">
+        <aside className="min-w-0 bg-surface-2 p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs font-medium text-muted-foreground">Live X preview</p>
             <span className="rounded-full border border-border/70 px-2 py-1 text-[10px] text-muted-foreground">
@@ -270,18 +270,15 @@ function ModeButton({
   children: React.ReactNode
 }) {
   return (
-    <button
+    <Button
       type="button"
+      size="sm"
+      variant={active ? "default" : "outline"}
       onClick={onClick}
-      className={cn(
-        "min-h-10 rounded-full border px-3 text-xs font-semibold transition-colors",
-        active
-          ? "border-accent bg-accent/15 text-accent"
-          : "border-border/70 text-muted-foreground hover:text-foreground",
-      )}
+      className="min-h-10 text-xs"
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -301,7 +298,7 @@ function TweetPreview({
   const profile = account?.profile || "marketingcli"
 
   return (
-    <article className="rounded-2xl border border-border/80 bg-background/90 p-4 shadow-sm">
+    <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start gap-3">
         <AccountAvatar account={account} large />
         <div className="min-w-0 flex-1">

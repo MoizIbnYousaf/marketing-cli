@@ -31,7 +31,7 @@ export function SettingsSidebar() {
               scroll={false}
               className={`flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                 activePanel === s.id
-                  ? "bg-accent/15 text-accent"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               }`}
             >

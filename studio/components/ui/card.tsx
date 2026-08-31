@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils"
 // Default = `card` token; subtle pulls a lighter surface for nested cards;
 // elevated uses the highest surface plus stronger shadow.
 const cardVariants = cva(
-  "text-card-foreground flex flex-col gap-6 border py-6 shadow-sm",
+  "text-card-foreground flex flex-col gap-6 border border-border bg-card py-6 shadow-sm",
   {
     variants: {
       radius: {
@@ -31,7 +31,7 @@ const cardVariants = cva(
       surface: {
         default: "bg-card",
         subtle: "bg-surface-1",
-        elevated: "bg-surface-3 shadow-md",
+        elevated: "bg-card shadow-md",
       },
     },
     defaultVariants: {

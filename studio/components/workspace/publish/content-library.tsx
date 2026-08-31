@@ -18,6 +18,7 @@ import { fetcher } from "@/lib/fetcher"
 import type { ContentAsset, ContentManifest } from "@/lib/content-manifest"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 
@@ -72,32 +73,33 @@ export function ContentLibrary() {
 
   return (
     <div className="space-y-5" data-demo-id="publish-content-library">
-      <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-[#080b09] shadow-2xl shadow-black/25">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_15%,rgba(205,255,38,0.18),transparent_30%),radial-gradient(circle_at_82%_5%,rgba(255,255,255,0.08),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0))]" />
+      <section className="relative overflow-hidden rounded-panel border border-border bg-card shadow-sm">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,color-mix(in_srgb,var(--gradient-mint)_35%,transparent),transparent_30%),radial-gradient(circle_at_82%_5%,color-mix(in_srgb,var(--gradient-lavender)_28%,transparent),transparent_28%)]" />
         <div className="relative grid min-h-[720px] gap-0 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col p-4 sm:p-5 lg:p-6">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-accent">
+                <p className="font-mono text-[10px] uppercase tracking-[0.34em] text-muted-foreground">
                   Asset library
                 </p>
-                <h2 className="mt-3 max-w-3xl font-[var(--font-heading)] text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                <h2 className="mt-3 max-w-3xl font-[var(--font-heading)] text-4xl font-light tracking-tight text-foreground sm:text-5xl">
                   Review every generated image and video.
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                   The asset library is the visual artifact shelf. Brand memory stays in Brand; publishing decisions stay in Publish.
                 </p>
               </div>
-              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-center">
+              <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-border bg-card/85 text-center shadow-sm">
                 <Metric label="Media" value={mediaAssets.length} />
                 <Metric label="Images" value={imageAssets.length} />
                 <Metric label="Videos" value={videoAssets.length} />
               </div>
             </div>
 
-            <div className="relative flex min-h-[460px] flex-1 items-center justify-center overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.015))] p-3 shadow-inner shadow-black/60 sm:p-5">
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px] opacity-30" />
-              <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-accent">
+            <div className="relative flex min-h-[460px] flex-1 items-center justify-center overflow-hidden rounded-panel border border-border bg-surface-2 p-3 shadow-inner sm:p-5">
+              <div className="absolute -left-24 -top-24 size-72 rounded-full bg-gradient-sky/35 blur-3xl" />
+              <div className="absolute -bottom-28 -right-20 size-80 rounded-full bg-gradient-peach/30 blur-3xl" />
+              <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-border bg-card/85 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                 Media preview
               </div>
               {selectedAsset ? (
@@ -133,14 +135,14 @@ export function ContentLibrary() {
                   }}
                 />
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.025] px-4 py-5 text-sm text-muted-foreground">
+                <div className="rounded-2xl border border-dashed border-border bg-card/70 px-4 py-5 text-sm text-muted-foreground">
                   Additional generated images and videos will appear here as a selectable tray.
                 </div>
               )}
             </div>
           </div>
 
-          <aside className="border-t border-white/10 bg-black/20 p-4 backdrop-blur xl:border-l xl:border-t-0">
+          <aside className="border-t border-border bg-surface-2/75 p-4 backdrop-blur xl:border-l xl:border-t-0">
             <Inspector asset={selectedAsset} mediaCount={mediaAssets.length} />
           </aside>
         </div>
@@ -155,8 +157,8 @@ export function ContentLibrary() {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="min-w-20 border-r border-white/10 px-4 py-3 last:border-r-0">
-      <p className="font-[var(--font-heading)] text-2xl font-semibold text-foreground">{value}</p>
+    <div className="min-w-20 border-r border-border px-4 py-3 last:border-r-0">
+      <p className="font-[var(--font-heading)] text-2xl font-light text-foreground">{value}</p>
       <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
     </div>
   )
@@ -197,7 +199,7 @@ function MediaStage({ asset, onExpand }: { asset: ContentAsset; onExpand: () => 
 
   return (
     <div className="relative z-10 w-full max-w-5xl">
-      <div className="group relative overflow-hidden rounded-[1.45rem] border border-accent/25 bg-background shadow-2xl shadow-black/60">
+      <div className="group relative overflow-hidden rounded-panel border border-border bg-card shadow-lg">
         {asset.kind === "video" ? (
           <video
             ref={videoRef}
@@ -221,14 +223,16 @@ function MediaStage({ asset, onExpand }: { asset: ContentAsset; onExpand: () => 
             decoding="async"
           />
         )}
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => void handleExpand()}
-          className="absolute right-3 top-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/70 px-3 py-2 text-xs font-medium text-white opacity-0 shadow-lg backdrop-blur transition duration-150 hover:border-accent/60 hover:text-accent group-hover:opacity-100 focus:opacity-100"
+          className="absolute right-3 top-3 bg-black/75 text-xs text-white opacity-0 shadow-lg backdrop-blur hover:bg-black/90 hover:text-white group-hover:opacity-100 focus:opacity-100"
         >
           <Maximize2 className="size-3.5" />
           {asset.kind === "video" ? "Fullscreen video" : "Open full preview"}
-        </button>
+        </Button>
       </div>
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -241,7 +245,7 @@ function MediaStage({ asset, onExpand }: { asset: ContentAsset; onExpand: () => 
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-muted-foreground transition duration-150 hover:border-accent/50 hover:text-accent"
+          className="inline-flex items-center gap-2 rounded-full border border-input bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition duration-150 hover:bg-secondary hover:text-foreground"
         >
           Open file
           <ExternalLink className="size-3.5" />
@@ -261,7 +265,7 @@ function AssetTray({
   onSelect: (asset: ContentAsset) => void
 }) {
   return (
-    <div className="flex gap-3 overflow-x-auto rounded-2xl border border-white/10 bg-black/25 p-3">
+    <div className="flex gap-3 overflow-x-auto rounded-2xl border border-border bg-surface-2 p-3">
       {assets.map((asset) => (
         <AssetTile
           key={asset.id}
@@ -289,11 +293,11 @@ function AssetTile({
       type="button"
       onClick={onSelect}
       className={cn(
-        "group grid w-56 shrink-0 grid-cols-[76px_minmax(0,1fr)] gap-3 rounded-2xl border bg-white/[0.035] p-2 text-left transition duration-150 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-accent/10",
-        isSelected ? "border-accent/80 bg-accent/15" : "border-white/10",
+        "group grid w-56 shrink-0 grid-cols-[76px_minmax(0,1fr)] gap-3 rounded-2xl border bg-card p-2 text-left transition duration-150 hover:-translate-y-0.5 hover:border-input hover:shadow-sm",
+        isSelected ? "border-primary ring-1 ring-primary/20" : "border-border",
       )}
     >
-      <span className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/35">
+      <span className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl border border-border bg-surface-3">
         {asset.kind === "image" ? (
           <Image
             src={href}
@@ -306,8 +310,8 @@ function AssetTile({
             decoding="async"
           />
         ) : (
-          <span className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,rgba(205,255,38,0.2),transparent_60%)]">
-            <Play className="size-6 text-accent" />
+          <span className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle,var(--gradient-mint),transparent_68%)]">
+            <Play className="size-6 text-foreground" />
           </span>
         )}
       </span>
@@ -327,9 +331,9 @@ function AssetTile({
 function Inspector({ asset, mediaCount }: { asset?: ContentAsset; mediaCount: number }) {
   return (
     <div className="space-y-4">
-      <Card className="border-white/10 bg-white/[0.035] p-4">
+      <Card className="p-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-accent" />
+          <Sparkles className="size-4 text-foreground" />
           <h3 className="text-sm font-semibold">Asset inspector</h3>
         </div>
         {asset ? (
@@ -348,13 +352,13 @@ function Inspector({ asset, mediaCount }: { asset?: ContentAsset; mediaCount: nu
         )}
       </Card>
 
-      <Card className="border-white/10 bg-white/[0.03] p-4">
+      <Card className="p-4">
         <div className="flex items-center gap-2">
-          <FileImage className="size-4 text-accent" />
+          <FileImage className="size-4 text-foreground" />
           <h3 className="text-sm font-semibold">Pipeline handoff</h3>
         </div>
-        <div className="mt-4 rounded-2xl border border-accent/20 bg-accent/10 p-3">
-          <p className="text-xs font-medium text-accent">Asset library is review-only</p>
+        <div className="mt-4 rounded-2xl border border-border bg-gradient-mint/25 p-3">
+          <p className="text-xs font-medium text-foreground">Asset library is review-only</p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             Use Brand for markdown memory and Publish for drafts, previews, scheduling, and Postiz/native execution.
           </p>
@@ -362,21 +366,21 @@ function Inspector({ asset, mediaCount }: { asset?: ContentAsset; mediaCount: nu
         <div className="mt-3 grid grid-cols-2 gap-2">
           <a
             href="/dashboard?tab=brand"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-muted-foreground transition hover:border-accent/50 hover:text-accent"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-input bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
           >
             Brand memory
             <ArrowUpRight className="size-3" />
           </a>
           <a
             href="/dashboard?tab=publish"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-muted-foreground transition hover:border-accent/50 hover:text-accent"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-input bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
           >
             Publish
             <ArrowUpRight className="size-3" />
           </a>
         </div>
-        <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
-          <p className="font-[var(--font-heading)] text-2xl font-semibold">{mediaCount}</p>
+        <div className="mt-3 rounded-2xl border border-border bg-surface-2 p-3">
+          <p className="font-[var(--font-heading)] text-2xl font-light">{mediaCount}</p>
           <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">reviewable media assets</p>
         </div>
       </Card>
@@ -386,7 +390,7 @@ function Inspector({ asset, mediaCount }: { asset?: ContentAsset; mediaCount: nu
 
 function InspectorRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[78px_minmax(0,1fr)] gap-3 border-b border-white/10 pb-2 last:border-b-0">
+    <div className="grid grid-cols-[78px_minmax(0,1fr)] gap-3 border-b border-border pb-2 last:border-b-0">
       <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
       <span className="min-w-0 truncate text-foreground" title={value}>{value}</span>
     </div>
@@ -401,7 +405,7 @@ function MediaLightbox({ asset, onClose }: { asset: ContentAsset; onClose: () =>
         type="button"
         aria-label="Close media preview"
         onClick={onClose}
-        className="absolute right-5 top-5 inline-flex size-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:border-accent/60 hover:text-accent"
+        className="absolute right-5 top-5 inline-flex size-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
       >
         <X className="size-5" />
       </button>

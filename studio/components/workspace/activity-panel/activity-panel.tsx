@@ -8,6 +8,7 @@ import { ActivityFilters } from "./activity-filters"
 import type { Activity, ActivityKind } from "@/lib/types/activity"
 import { useActivityLiveStore } from "@/lib/stores/activity-live"
 import { ErrorState } from "@/components/ui/error-state"
+import { Button } from "@/components/ui/button"
 import { dataFetcher } from "@/lib/fetcher"
 
 // Default to same-origin so Next.js rewrites forward /api/* → Bun (:3001).
@@ -24,7 +25,7 @@ function buildUrl(base: string, kind: ActivityKind | "all", skill: string, timeW
   return `${base}?${params.toString()}`
 }
 
-export function ActivityPanel() {
+export function ActivityPanel({ id }: { id?: string }) {
   const [kind, setKind] = useState<ActivityKind | "all">("all")
   const [skill, setSkill] = useState("")
   const [timeWindow, setTimeWindow] = useState("24h")
@@ -60,6 +61,7 @@ export function ActivityPanel() {
 
   return (
     <aside
+      id={id}
       aria-label="/cmo activity feed"
       className="flex flex-col h-full w-full overflow-hidden"
     >
@@ -73,18 +75,20 @@ export function ActivityPanel() {
             <WifiOff className="size-3 text-muted-foreground/40" />
           )}
         </div>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-xs"
           onClick={() => {
             mutate()
             clearLive()
           }}
-          className="p-1 rounded hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          className="text-muted-foreground"
           title="Refresh activity"
           aria-label="Refresh activity feed"
         >
           <RefreshCw className={`size-3.5 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
-        </button>
+        </Button>
       </div>
 
       <ActivityFilters
@@ -117,7 +121,7 @@ export function ActivityPanel() {
             Loading…
           </div>
         ) : visible.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 gap-2 text-muted-foreground/60">
+          <div className="flex h-32 flex-col items-center justify-center gap-2 text-muted-foreground">
             <ActivityIcon className="size-5" />
             <p className="text-xs">No activity yet</p>
             <p className="text-[10px]">/cmo will log here when it runs skills</p>
@@ -134,7 +138,7 @@ export function ActivityPanel() {
       </div>
 
       <div className="px-3 py-1.5 border-t border-border/40">
-        <p className="text-[10px] text-muted-foreground/50">
+        <p className="text-[10px] text-muted-foreground">
           {visible.length} event{visible.length !== 1 ? "s" : ""} shown
           {liveItems.length > 0 && ` · ${liveItems.length} live`}
         </p>

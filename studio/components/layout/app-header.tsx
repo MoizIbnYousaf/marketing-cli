@@ -82,7 +82,7 @@ export function AppHeader() {
 
   return (
     <header className="relative flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/95 px-4 text-foreground backdrop-blur-xl">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(92deg,rgba(216,255,60,0.06),transparent_35%,transparent_70%,rgba(245,240,230,0.04))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(92deg,color-mix(in_srgb,var(--gradient-mint)_15%,transparent),transparent_35%,transparent_70%,color-mix(in_srgb,var(--gradient-lavender)_12%,transparent))]" />
 
       <div className="relative flex items-center gap-2">
         <SidebarTrigger className="-ml-1 rounded-lg border border-border bg-surface-1 p-1.5 text-foreground hover:bg-surface-2" />
@@ -115,7 +115,7 @@ export function AppHeader() {
           aria-label="Open command palette"
           aria-haspopup="dialog"
           aria-keyshortcuts="Meta+K Control+K"
-          className="hidden h-9 w-[min(34vw,320px)] items-center gap-2 rounded-md border border-border bg-sidebar px-3 text-left text-xs text-muted-foreground transition-colors hover:bg-surface-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 lg:flex"
+          className="hidden h-10 w-[min(34vw,320px)] items-center gap-2 rounded-full border border-input bg-card px-4 text-left text-xs text-muted-foreground shadow-xs transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 lg:flex"
         >
           <Search className="size-3.5" />
           <span className="flex-1">Search</span>

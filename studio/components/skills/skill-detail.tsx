@@ -153,7 +153,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon className="size-4 text-accent" />
+      <Icon className="size-4 text-primary" />
       <h2 className="text-sm font-semibold">{children}</h2>
     </div>
   )
@@ -177,7 +177,7 @@ function RoutingChipList({ label, items }: { label: string; items: readonly stri
           <Link
             key={item}
             href={`/skills/${item}`}
-            className="rounded-md border border-border bg-surface-1 px-2 py-0.5 font-mono text-[11px] text-muted-foreground hover:border-accent/40 hover:text-accent"
+            className="rounded-md border border-border bg-surface-1 px-2 py-0.5 font-mono text-[11px] text-muted-foreground hover:border-input hover:text-foreground"
           >
             {item}
           </Link>

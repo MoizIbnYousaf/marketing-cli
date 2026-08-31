@@ -56,9 +56,9 @@ function healthLabel(health: ProjectIdentity["health"]): string {
 }
 
 function healthClasses(health: ProjectIdentity["health"]): string {
-  if (health === "ready") return "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
-  if (health === "incomplete") return "border-amber-400/25 bg-amber-400/10 text-amber-200"
-  if (health === "needs-setup") return "border-rose-400/25 bg-rose-400/10 text-rose-200"
+  if (health === "ready") return "border-emerald-200 bg-emerald-50 text-emerald-700"
+  if (health === "incomplete") return "border-amber-200 bg-amber-50 text-amber-700"
+  if (health === "needs-setup") return "border-rose-200 bg-rose-50 text-rose-700"
   return "border-border bg-surface-1 text-muted-foreground"
 }
 
@@ -95,7 +95,7 @@ function ProjectAvatar({
 
   const initials = project.logo.kind === "initials" ? project.logo.initials : "MK"
   return (
-    <span className={cn("flex shrink-0 items-center justify-center rounded-xl border border-lime/30 bg-lime/15 font-display text-sm font-bold tracking-wide text-lime", className)}>
+    <span className={cn("flex shrink-0 items-center justify-center rounded-xl border border-border bg-gradient-mint/40 font-display text-sm font-medium tracking-wide text-foreground", className)}>
       {initials}
     </span>
   )
@@ -112,7 +112,7 @@ function ProjectDetails({ project }: { project: ProjectIdentity }) {
       <div className="flex items-start gap-3">
         <ProjectAvatar project={project} className="size-11" />
         <div className="min-w-0">
-          <div className="truncate font-display text-base font-semibold text-foreground">
+          <div className="truncate font-sans text-base font-medium text-foreground">
             {displayProjectName(project.name)}
           </div>
           <div className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -204,11 +204,11 @@ export function ProjectIdentityCard() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-surface-1 p-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition duration-150 hover:border-lime/30 hover:bg-surface-2 active:scale-[0.99] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:p-0"
+          className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left shadow-xs transition duration-150 hover:border-input hover:bg-surface-2 active:scale-[0.99] group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:rounded-xl group-data-[collapsible=icon]:p-0"
         >
           <ProjectAvatar project={project} className="size-11 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:text-[10px]" />
           <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <span className="block truncate font-display text-base font-semibold leading-tight text-foreground">
+            <span className="block truncate font-sans text-base font-medium leading-tight text-foreground">
               {displayProjectName(project.name)}
             </span>
             <span className="mt-1 flex items-center gap-1.5 truncate font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -257,7 +257,7 @@ export function ProjectIdentityChip() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="hidden max-w-[320px] items-center gap-2 rounded-full border border-border bg-surface-1 px-2.5 py-1.5 text-left transition duration-150 hover:border-lime/25 hover:bg-surface-2 active:scale-[0.99] xl:flex"
+          className="hidden max-w-[320px] items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1.5 text-left shadow-xs transition duration-150 hover:border-input hover:bg-surface-2 active:scale-[0.99] xl:flex"
         >
           <ProjectAvatar project={project} className="size-6 rounded-lg text-[10px]" />
           <span className="min-w-0">

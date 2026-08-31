@@ -69,7 +69,7 @@ export function CalendarView({
     <Card className={cn("gap-3 py-4", className)} data-demo-id="publish-calendar">
       <div className="flex items-center justify-between px-4">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <CalendarIcon className="size-4 text-accent" />
+          <CalendarIcon className="size-4 text-primary" />
           Week of {formatRange(weekStart, weekEnd)}
         </h3>
         <div className="flex items-center gap-1">
@@ -162,14 +162,14 @@ function DayCell({
     <div
       className={cn(
         "min-h-[110px] rounded-md border border-border/60 bg-background/50 p-1.5 transition-colors",
-        isToday && "border-accent/40 bg-accent/5",
+        isToday && "border-primary/30 bg-secondary",
       )}
     >
       <div className="mb-1 flex items-center justify-between text-[10px]">
-        <span className={cn("font-semibold uppercase tracking-wide", isToday ? "text-accent" : "text-muted-foreground")}>
+        <span className={cn("font-semibold uppercase tracking-wide", isToday ? "text-primary" : "text-muted-foreground")}>
           {date.toLocaleDateString(undefined, { weekday: "short" })}
         </span>
-        <span className={cn(isToday ? "text-accent" : "text-foreground/70", "font-medium")}>
+        <span className={cn(isToday ? "text-primary" : "text-foreground/70", "font-medium")}>
           {date.getDate()}
         </span>
       </div>

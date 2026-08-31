@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ErrorState } from "@/components/ui/error-state"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { dataFetcher } from "@/lib/fetcher"
 import { cn } from "@/lib/utils"
 import type { SkillEntry, SkillCategory } from "@/lib/types/mktg"
@@ -75,7 +77,7 @@ export function SkillList() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="border-b border-border bg-background/85 px-6 py-5 backdrop-blur">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Skills</h1>
+        <h1 className="font-display text-3xl font-light tracking-tight">Skills</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isLoading
             ? "Loading the marketing playbook..."
@@ -88,18 +90,18 @@ export function SkillList() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full sm:max-w-sm">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input
+              <Input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search by name or trigger..."
                 aria-label="Search skills"
-                className="h-9 w-full rounded-md border border-border bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="w-full pl-9 pr-3"
               />
             </div>
           </div>
 
-          <div role="tablist" aria-label="Filter by category" className="flex flex-wrap items-center gap-1.5">
+          <div role="group" aria-label="Filter by category" className="flex flex-wrap items-center gap-1.5">
             <CategoryChip
               active={category === "all"}
               count={counts.all ?? 0}
@@ -168,28 +170,24 @@ function CategoryChip({
   children: React.ReactNode
 }) {
   return (
-    <button
+    <Button
       type="button"
-      role="tab"
-      aria-selected={active}
+      variant={active ? "default" : "outline"}
+      size="xs"
+      aria-pressed={active}
       onClick={onClick}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-        active
-          ? "border-accent/40 bg-accent/15 text-accent"
-          : "border-border bg-surface-1 text-muted-foreground hover:bg-surface-2 hover:text-foreground",
-      )}
+      className="gap-1.5"
     >
       <span>{children}</span>
       <span
         className={cn(
           "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-          active ? "bg-accent/20 text-accent" : "bg-muted text-muted-foreground",
+          active ? "bg-white/15 text-primary-foreground" : "bg-muted text-muted-foreground",
         )}
       >
         {count}
       </span>
-    </button>
+    </Button>
   )
 }
 
@@ -201,7 +199,7 @@ function SkillCard({ skill }: { skill: SkillEntry }) {
         <div className="min-w-0">
           <Link
             href={`/skills/${skill.name}`}
-            className="font-mono text-sm font-semibold text-foreground hover:text-accent"
+            className="font-mono text-sm font-semibold text-foreground hover:underline"
           >
             {skill.name}
           </Link>
@@ -209,7 +207,7 @@ function SkillCard({ skill }: { skill: SkillEntry }) {
             <Badge variant="secondary">{CATEGORY_LABELS[skill.category]}</Badge>
             {skill.tier === "must-have" ? <Badge variant="default">core</Badge> : null}
             {skill.installed ? (
-              <Badge variant="outline" className="text-emerald-300">
+              <Badge variant="outline" className="text-emerald-700">
                 installed
               </Badge>
             ) : (

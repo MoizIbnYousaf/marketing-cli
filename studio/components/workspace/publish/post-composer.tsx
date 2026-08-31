@@ -194,7 +194,7 @@ export function PostComposer({
  <Card className={cn("gap-4 py-4", className)} data-demo-id="publish-composer">
  <div className="flex items-center justify-between px-4">
  <h3 className="flex items-center gap-2 text-sm font-semibold">
- <Sparkles className="size-4 text-accent" />
+ <Sparkles className="size-4 text-primary" />
  Compose post
  </h3>
  <ModeToggle mode={mode} onChange={setMode} />
@@ -325,7 +325,7 @@ function ModeToggle({
  // the visual chip density tight on desktop.
  "min-h-11 min-w-11 rounded-[5px] px-3 py-1 transition-colors",
  mode === m.value
- ? "bg-accent/15 text-accent"
+ ? "bg-primary text-primary-foreground"
  : "text-muted-foreground hover:text-foreground",
  )}
  >

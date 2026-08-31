@@ -22,7 +22,10 @@ import {
 import { ActivityPanel } from "./activity-panel/activity-panel"
 import { PageTitle } from "@/components/ui/page-title"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { useIsMobile, useMediaQuery } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 // Each tab carries 100-300 kB of its own client JS (charts, swr fan-out,
 // tab-specific composer/editor primitives). Eagerly importing all four
@@ -111,6 +114,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
   const setSignalFilters = useWorkspaceStore((s) => s.setSignalFilters)
   const [activityOpen, setActivityOpen] = useState(false)
   const isMobile = useIsMobile()
+  const isActivityDocked = useMediaQuery("(min-width: 1280px)")
 
   const signalStats = useSignalStats()
 
@@ -184,6 +188,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
   }, [rawTab, routeTab, updateUrlState])
 
   const workspaceTitleId = "workspace-active-tab-title"
+  const activitySheetOpen = activityOpen && !isActivityDocked
 
   return (
     // <section> + aria-labelledby instead of a second <main>: the
@@ -193,32 +198,54 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
     // announce the section via the h1 id referenced here.
     <section
       aria-labelledby={workspaceTitleId}
-      className="relative flex h-full flex-col overflow-x-hidden bg-[#11161a]"
+      className="relative flex h-full flex-col overflow-x-hidden bg-background"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_420px_at_-10%_-20%,rgba(216,255,60,0.08),transparent_70%),radial-gradient(820px_380px_at_110%_-20%,rgba(245,240,230,0.06),transparent_72%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_420px_at_-10%_-20%,color-mix(in_srgb,var(--gradient-mint)_24%,transparent),transparent_70%),radial-gradient(820px_380px_at_110%_-20%,color-mix(in_srgb,var(--gradient-lavender)_20%,transparent),transparent_72%)]" />
 
       {/* G5-01: every tab gets exactly one <h1>. Screen-reader-only so
           the visible WorkspaceTabs remain the primary tab UI and we
           don't double up on on-screen "Pulse / Signals / ..." text. */}
       <PageTitle srOnly id={workspaceTitleId} title={TAB_TITLES[activeTab]} />
 
-      <div className="relative z-10 flex h-full flex-col">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => handleTabChange(value as WorkspaceTab)}
+        className="relative z-10 flex h-full min-h-0 flex-col gap-0"
+      >
         <WorkspaceTabs
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
+          onActivityOpen={() => setActivityOpen(true)}
+          activityOpen={activitySheetOpen}
           spikeCount={signalStats?.spikeCount}
           className="hidden md:block md:border-b-0 md:px-6 md:pb-3 md:pt-0"
         />
+
+        <div className="flex shrink-0 justify-end px-4 pb-2 pt-2 md:hidden">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActivityOpen(true)}
+            className="text-muted-foreground shadow-sm"
+            aria-label="Open /cmo activity"
+            aria-expanded={activitySheetOpen}
+            aria-controls="workspace-activity-sheet"
+          >
+            <ActivityIcon className="size-4" aria-hidden />
+            Activity
+          </Button>
+        </div>
 
         <div className="min-h-0 flex-1 overflow-hidden">
           {!isMobile ? (
             <div className="h-full min-h-0 px-6 pb-5">
               <div
                 data-demo-id="workspace-shell"
-                className="h-full min-h-0 overflow-hidden rounded-2xl border border-white/10 bg-[#11161a]/95 shadow-[0_24px_80px_-50px_rgba(0,0,0,0.85)] backdrop-blur"
+                className="h-full min-h-0 overflow-hidden rounded-2xl border border-border bg-background/95 shadow-lg backdrop-blur"
               >
-                <div className="grid h-full min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]">
-                  <div className="h-full min-h-0 overflow-hidden">
+                <div className="grid h-full min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_clamp(320px,25vw,360px)]">
+                  <TabsContent
+                    value={activeTab}
+                    className="m-0 h-full min-h-0 overflow-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
+                  >
                     {activeTab === "pulse" && (
                       <div className="h-full min-h-0 overflow-auto">
                         <PulsePage groupId={groupId} />
@@ -227,33 +254,29 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
                     {activeTab === "signals" && <ContentTab />}
                     {activeTab === "publish" && <PublishTab />}
                     {activeTab === "brand" && <BrandTab />}
-                  </div>
+                  </TabsContent>
 
-                  <div className="hidden h-full min-h-0 border-l border-white/10 bg-[#0e1418]/80 xl:block">
-                    <ActivityPanel />
-                  </div>
+                  {isActivityDocked ? (
+                    <div
+                      data-demo-id="activity-rail"
+                      className="h-full min-h-0 border-l border-border bg-sidebar/80"
+                    >
+                      <ActivityPanel id="workspace-activity-rail" />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="h-full overflow-auto pb-28">
-              {activeTab === "pulse" && <PulsePage groupId={groupId} />}
-              {activeTab === "signals" && <ContentTab />}
-              {activeTab === "publish" && <PublishTab />}
-              {activeTab === "brand" && <BrandTab />}
-            </div>
+            <TabsContent value={activeTab} className="m-0 h-full overflow-auto pb-28">
+                {activeTab === "pulse" && <PulsePage groupId={groupId} />}
+                {activeTab === "signals" && <ContentTab />}
+                {activeTab === "publish" && <PublishTab />}
+                {activeTab === "brand" && <BrandTab />}
+            </TabsContent>
           )}
         </div>
-      </div>
-
-      {/* Mobile activity FAB -- above MobileTabDock */}
-      <button
-        onClick={() => setActivityOpen(true)}
-        className="fixed bottom-20 right-4 z-40 flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg md:hidden"
-        aria-label="Open /cmo activity"
-      >
-        <ActivityIcon className="size-5" />
-      </button>
+      </Tabs>
 
       <MobileTabDock
         activeTab={activeTab}
@@ -261,8 +284,17 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
         spikeCount={signalStats?.spikeCount}
       />
 
-      <Sheet open={activityOpen} onOpenChange={setActivityOpen}>
-        <SheetContent side="bottom" className="h-[88dvh] rounded-t-3xl p-0 md:hidden">
+      <Sheet open={activitySheetOpen} onOpenChange={setActivityOpen}>
+        <SheetContent
+          id="workspace-activity-sheet"
+          side={isMobile ? "bottom" : "right"}
+          className={cn(
+            "p-0 xl:hidden",
+            isMobile
+              ? "h-[88dvh] rounded-t-3xl"
+              : "w-[min(380px,90vw)] sm:max-w-none",
+          )}
+        >
           <div className="flex h-full flex-col pt-5">
             <div className="border-b border-border/70 px-4 pb-3">
               <SheetTitle className="font-serif text-lg tracking-tight">
@@ -273,7 +305,7 @@ export function BrandWorkspace({ groupId }: { groupId: string }) {
               </SheetDescription>
             </div>
             <div className="min-h-0 flex-1 [&>div]:!border-l-0">
-              <ActivityPanel />
+              {activitySheetOpen ? <ActivityPanel /> : null}
             </div>
           </div>
         </SheetContent>

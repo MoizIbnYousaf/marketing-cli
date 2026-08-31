@@ -35,7 +35,7 @@ export function SettingsPanel() {
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <SettingsPanelScroll />
       <div className="border-b border-border/60 bg-background/85 px-6 py-5 backdrop-blur">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="font-display text-3xl font-light tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Bring your own API keys. Everything local-first. /cmo runs in your Claude Code terminal.
         </p>

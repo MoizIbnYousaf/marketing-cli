@@ -139,11 +139,10 @@ test("1.4 /dashboard renders every workspace tab state", async ({ page }) => {
   await hideNextErrorOverlay(page)
 
   // Per workspace-tabs.tsx WORKSPACE_TABS: Pulse, Signals, Publish, Brand.
-  // The strip uses <button> elements with the visible labels; targeting
-  // the first match each so the assertion survives mobile-dock duplication.
+  // Desktop exposes these as an ARIA tablist; the mobile dock remains nav.
   for (const label of ["Pulse", "Signals", "Publish", "Brand"]) {
     await expect(
-      page.getByRole("button", { name: new RegExp(`^${label}`, "i") }).first(),
+      page.getByRole("tab", { name: new RegExp(`^${label}`, "i") }),
     ).toBeVisible({ timeout: 10_000 })
   }
 
@@ -158,6 +157,36 @@ test("1.4 /dashboard renders every workspace tab state", async ({ page }) => {
       page.getByRole("heading", { name: new RegExp(`^${state.heading}$`, "i") }),
     ).toBeVisible({ timeout: 10_000 })
   }
+})
+
+test("1.4b /dashboard composes workflow and live activity side by side", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await seedWorkspaceTab(page, "pulse")
+  await page.goto(`${DASHBOARD}/dashboard`)
+  await waitForDashboardChrome(page)
+
+  const workspace = page.locator('[data-slot="tabs-content"][data-state="active"]')
+  const activity = page.getByRole("complementary", {
+    name: "/cmo activity feed",
+  })
+
+  await expect(page.locator("#dashboard-main")).toBeVisible()
+  await expect(page.getByRole("region", { name: "Pulse" })).toBeVisible()
+  await expect(workspace).toBeVisible()
+  await expect(activity).toBeVisible()
+
+  const workspaceBox = await workspace.boundingBox()
+  const activityBox = await activity.boundingBox()
+  expect(workspaceBox).not.toBeNull()
+  expect(activityBox).not.toBeNull()
+  expect(activityBox!.x).toBeGreaterThanOrEqual(
+    workspaceBox!.x + workspaceBox!.width,
+  )
+
+  await page.getByRole("tab", { name: /^Signals/i }).click()
+  await expect(page).toHaveURL(/[?&]tab=signals/)
+  await expect(page.locator("#workspace-active-tab-title")).toHaveText("Signals")
+  await expect(activity).toBeVisible()
 })
 
 test("1.5 /brand redirects to the complete brand editor page state", async ({ page }) => {

@@ -100,18 +100,16 @@ export function AppSidebar() {
                         isActive={active}
                         tooltip={item.title}
                         className={cn(
-                          "rounded-xl border border-transparent text-sidebar-foreground transition-colors duration-150 hover:bg-surface-1 hover:text-foreground",
+                          "rounded-xl border border-transparent text-sidebar-foreground transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                           active &&
-                            "border-lime/30 bg-surface-3 text-lime data-[active=true]:bg-surface-3 data-[active=true]:text-lime shadow-sm"
+                            "border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground shadow-sm data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
                         )}
                       >
                         <Link href={item.href}>
                           <item.icon
                             className={cn(
                               "size-4",
-                              active
-                                ? "text-lime"
-                                : "text-muted-foreground"
+                              active ? "text-foreground" : "text-muted-foreground"
                             )}
                           />
                           <span>{item.title}</span>
