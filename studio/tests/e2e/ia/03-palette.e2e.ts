@@ -15,6 +15,7 @@
 //   3.7  Esc closes the palette
 //   3.8  "Seed demo data" item does NOT navigate to ?panel=demo (regression
 //        guard for the ghost route my fix-plan flagged)
+//   3.9  API key action navigates to the real Settings section
 
 import { test, expect } from "@playwright/test"
 import {
@@ -141,4 +142,14 @@ test("3.8 'Seed demo data' does NOT navigate to /settings?panel=demo", async ({
   const url = new URL(page.url())
   expect(url.pathname).toBe("/dashboard")
   expect(url.searchParams.get("panel")).toBeNull()
+})
+
+test("3.9 API key action navigates to the real Settings section", async ({ page }) => {
+  await openPalette(page)
+  await page
+    .locator(`[cmdk-item]`)
+    .filter({ hasText: /^Open API key settings$/ })
+    .click()
+  await page.waitForURL(/\/settings\?panel=env$/, { timeout: 10_000 })
+  await expect(page.getByText(/API keys/i).first()).toBeVisible()
 })

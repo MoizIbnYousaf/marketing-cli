@@ -273,17 +273,14 @@ export function Palette({ open, onClose }: PaletteProps) {
 
               <Command.Item
                 value="open env local settings"
-                onSelect={async () => {
-                  onClose()
-                  await studioJsonPost("/api/settings/open-env")
-                }}
+                onSelect={() => navigate("/settings?panel=env")}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none",
                   "aria-selected:bg-accent aria-selected:text-accent-foreground"
                 )}
               >
                 <FileText className="size-4 text-muted-foreground shrink-0" />
-                Open .env.local
+                Open API key settings
               </Command.Item>
 
               <Command.Item
