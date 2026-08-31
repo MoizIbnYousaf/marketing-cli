@@ -84,6 +84,9 @@ test("3.4 click Skills in palette navigates to /skills (Lane 4 new surface)", as
     .click()
   await page.waitForURL(/\/skills(?:\?|$)/, { timeout: 10_000 })
   expect(new URL(page.url()).pathname).toBe("/skills")
+  await expect(page.getByRole("heading", { name: "Skills", exact: true })).toBeVisible({
+    timeout: 10_000,
+  })
 })
 
 test("3.5 click Settings in palette navigates to /settings", async ({ page }) => {

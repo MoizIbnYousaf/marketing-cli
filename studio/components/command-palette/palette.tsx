@@ -19,23 +19,10 @@ import {
   Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
-import { fetcher } from "@/lib/fetcher"
+import { dataFetcher } from "@/lib/fetcher"
 import { studioJsonPost } from "@/lib/studio-token"
+import type { SkillEntry } from "@/lib/types/mktg"
 import { cn } from "@/lib/utils"
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface Skill {
-  name: string
-  slug: string
-  description?: string
-  category?: string
-}
-
-interface SkillsResponse {
-  ok: boolean
-  data: { skills: Skill[] }
-}
 
 // ── Navigation items ──────────────────────────────────────────────────────────
 
@@ -75,13 +62,11 @@ export function Palette({ open, onClose }: PaletteProps) {
   const [runningSkill, setRunningSkill] = useState<string | null>(null)
   const [runningPlaybook, setRunningPlaybook] = useState<string | null>(null)
 
-  const { data: skillsData, error: skillsError } = useSWR<SkillsResponse>(
+  const { data: skills = [], error: skillsError } = useSWR<SkillEntry[]>(
     open ? "/api/skills" : null,
-    fetcher,
+    dataFetcher,
     { revalidateOnFocus: false }
   )
-
-  const skills: Skill[] = skillsData?.data?.skills ?? []
 
   // Close on Escape is handled by cmdk itself; we also need to trap focus.
   useEffect(() => {
@@ -187,9 +172,9 @@ export function Palette({ open, onClose }: PaletteProps) {
               >
                 {skills.map((skill) => (
                   <Command.Item
-                    key={skill.slug}
-                    value={`skill ${skill.slug} ${skill.name} ${skill.description ?? ""}`}
-                    onSelect={() => runSkill(skill.slug)}
+                    key={skill.name}
+                    value={`skill ${skill.name} ${skill.category} ${skill.triggers.join(" ")}`}
+                    onSelect={() => runSkill(skill.name)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm cursor-pointer select-none",
                       "aria-selected:bg-accent aria-selected:text-accent-foreground"
@@ -198,16 +183,14 @@ export function Palette({ open, onClose }: PaletteProps) {
                     <Zap className="size-4 text-muted-foreground shrink-0" />
                     <span className="flex-1 min-w-0">
                       <span className="font-medium">{skill.name}</span>
-                      {skill.description && (
-                        <span className="ml-2 text-muted-foreground text-xs">
-                          {skill.description.slice(0, 60)}
-                        </span>
-                      )}
+                      <span className="ml-2 text-muted-foreground text-xs">
+                        {skill.category}
+                      </span>
                     </span>
                     <span className="font-mono text-[10px] text-muted-foreground shrink-0 bg-muted px-1.5 py-0.5 rounded">
-                      {skill.slug}
+                      {skill.name}
                     </span>
-                    {runningSkill === skill.slug && (
+                    {runningSkill === skill.name && (
                       <span className="text-xs text-primary animate-pulse">running…</span>
                     )}
                   </Command.Item>
