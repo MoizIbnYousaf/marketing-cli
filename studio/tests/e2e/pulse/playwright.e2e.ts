@@ -123,13 +123,29 @@ test("delta pills render positive percentages on a heavier-current seed", async 
   await expect(positivePill).toBeVisible({ timeout: 15_000 })
 })
 
-test("bottom strip renders 3 sub-panels (Brand health / Recent media / Recent publishes)", async ({ page }) => {
+test("bottom strip keeps all four panels readable beside the desktop Activity rail", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
   await seedWorkspaceTab(page)
   await page.goto(`${DASHBOARD}/dashboard?tab=pulse`)
   await expect(page.getByRole("heading", { name: "Pulse" })).toBeAttached({ timeout: 15_000 })
 
-  for (const title of ["Brand health", "Recent media", "Recent publishes"]) {
-    await expect(page.getByRole("heading", { name: title })).toBeVisible()
+  const strip = page.locator('[data-demo-id="pulse-bottom-strip"]')
+  const panels = strip.locator(":scope > section")
+  await expect(panels).toHaveCount(4)
+
+  for (const title of ["Brand health", "SEO readiness", "Recent media", "Recent publishes"]) {
+    const heading = page.getByRole("heading", { name: title })
+    await expect(heading).toBeVisible()
+    expect((await heading.boundingBox())!.height).toBeLessThan(28)
+  }
+
+  const layout = await strip.evaluate((element) => ({
+    columns: getComputedStyle(element).gridTemplateColumns.split(" ").length,
+    panelWidths: [...element.children].map((child) => child.getBoundingClientRect().width),
+  }))
+  expect(layout.columns).toBe(2)
+  for (const width of layout.panelWidths) {
+    expect(width).toBeGreaterThanOrEqual(320)
   }
 })
 

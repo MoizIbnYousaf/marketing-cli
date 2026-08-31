@@ -179,7 +179,7 @@ function PulseLayout({ snapshot }: { snapshot: PulseSnapshot }) {
       variants={fadeInUp}
       initial={false}
       animate="visible"
-      className="relative mx-auto max-w-[1580px] space-y-6 overflow-hidden p-4 lg:p-5"
+      className="@container/pulse relative mx-auto max-w-[1580px] space-y-6 overflow-hidden p-4 lg:p-5"
     >
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_0%,color-mix(in_srgb,var(--gradient-mint)_28%,transparent),transparent_34%),radial-gradient(circle_at_74%_12%,color-mix(in_srgb,var(--gradient-sky)_22%,transparent),transparent_30%),radial-gradient(circle_at_92%_58%,color-mix(in_srgb,var(--gradient-lavender)_20%,transparent),transparent_30%)]" />
 
@@ -393,7 +393,10 @@ function BottomStrip({
   publishStale: boolean
 }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+    <div
+      data-demo-id="pulse-bottom-strip"
+      className="grid gap-5 @min-[720px]/pulse:grid-cols-2 @min-[1180px]/pulse:grid-cols-4"
+    >
       <Panel
         title="Brand health"
         icon={BookOpen}
@@ -588,15 +591,15 @@ function Panel({
   return (
     <section className="overflow-hidden rounded-panel border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
-        <div className="flex items-center gap-2">
-          <Icon className="size-4 text-foreground" />
-          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon className="size-4 shrink-0 text-foreground" />
+          <h2 className="whitespace-nowrap text-sm font-semibold text-foreground">{title}</h2>
           {stale ? <StaleChip label="cached" /> : null}
         </div>
         {actionHref && actionLabel ? (
           <a
             href={actionHref}
-            className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
           >
             {actionLabel}
             <ArrowRight className="size-3.5" />
