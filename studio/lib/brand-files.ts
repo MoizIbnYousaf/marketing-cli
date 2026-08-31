@@ -8,7 +8,7 @@
 //     pretending an empty seed file is real research)
 
 import { createHash } from "node:crypto";
-import { existsSync, statSync, readFileSync, writeFileSync, renameSync, readdirSync, mkdirSync, realpathSync } from "node:fs";
+import { existsSync, lstatSync, statSync, readFileSync, writeFileSync, renameSync, readdirSync, mkdirSync, realpathSync } from "node:fs";
 import { dirname, join, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CLI_BRAND_TEMPLATE_SHA256 } from "./brand-template-hashes.ts";
@@ -230,7 +230,26 @@ export function resolveBrandPath(
   if (!rel.endsWith(".md")) {
     return { ok: false, message: "file must end in .md" };
   }
-  const abs = join(brandRoot(projectRoot), rel);
+  const root = brandRoot(projectRoot);
+  try {
+    if (lstatSync(root).isSymbolicLink()) {
+      return { ok: false, message: "brand directory may not be a symbolic link" };
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      return { ok: false, message: "brand directory could not be validated" };
+    }
+  }
+  const abs = join(root, rel);
+  try {
+    if (lstatSync(abs).isSymbolicLink()) {
+      return { ok: false, message: "brand file may not be a symbolic link" };
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      return { ok: false, message: "brand file could not be validated" };
+    }
+  }
   return { ok: true, abs, rel };
 }
 

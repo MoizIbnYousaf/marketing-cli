@@ -41,7 +41,7 @@ import {
   authIsDisabled,
 } from "./lib/auth.ts";
 import { basename, join } from "node:path";
-import { writeFileSync, existsSync, readFileSync, statSync } from "node:fs";
+import { chmodSync, existsSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import {
   mktgList,
   mktgSkillInfo,
@@ -1544,6 +1544,7 @@ const server = Bun.serve({
           ? ["init", "--from", body.data.from, "--yes"]
           : ["init", "--yes"];
         const proc = Bun.spawn(resolveMktgCommand(args), {
+          cwd: STUDIO_CWD,
           stdout: "pipe",
           stderr: "pipe",
           // Strip studio bearer token so it does not leak into mktg's
@@ -1585,6 +1586,9 @@ const server = Bun.serve({
         }
         const ctrlCheck = rejectControlChars(v, `value for ${k}`);
         if (!ctrlCheck.ok) return err(ctrlCheck.message, 400, corsHeaders);
+        if (v.includes("\n") || v.includes("\r")) {
+          return err(`Value for ${k} may not contain line breaks`, 400, corsHeaders);
+        }
       }
 
       if (isDryRun(url)) return json({ ok: true, dryRun: true, keys: Object.keys(body.data) }, 200, corsHeaders);
@@ -1608,17 +1612,28 @@ const server = Bun.serve({
 
       // Upsert each key
       for (const [k, v] of Object.entries(body.data)) {
-        const line = `${k}=${v}`;
+        const line = `${k}=${JSON.stringify(v)}`;
         const idx = existing.findIndex((l) => l.startsWith(`${k}=`));
         if (idx >= 0) {
           existing[idx] = line;
         } else {
           existing.push(line);
         }
-        process.env[k] = v;
       }
 
-      writeFileSync(envPath, existing.filter((l) => l !== "").join("\n") + "\n", "utf-8");
+      const nextEnv = existing.filter((l) => l !== "").join("\n") + "\n";
+      const tempEnvPath = `${envPath}.tmp-${process.pid}-${Date.now()}`;
+      try {
+        writeFileSync(tempEnvPath, nextEnv, { encoding: "utf-8", mode: 0o600 });
+        chmodSync(tempEnvPath, 0o600);
+        renameSync(tempEnvPath, envPath);
+        chmodSync(envPath, 0o600);
+      } catch {
+        return err("Could not persist .env.local", 500, corsHeaders);
+      } finally {
+        rmSync(tempEnvPath, { force: true });
+      }
+      for (const [k, v] of Object.entries(body.data)) process.env[k] = v;
 
       // Audit trail: log the key names (no values) to the activity feed so
       // the user sees in real time what was rotated. Failure to insert MUST
@@ -1664,7 +1679,7 @@ const server = Bun.serve({
 
       if (isDryRun(url)) return json({ ok: true, dryRun: true }, 200, corsHeaders);
 
-      const result = startFoundation({ from: body.data.from, seed: body.data.seed });
+      const result = startFoundation({ from: body.data.from, seed: body.data.seed }, STUDIO_CWD);
       return json(
         {
           ok: true,
@@ -1688,7 +1703,7 @@ const server = Bun.serve({
       if (!body.ok) return body.res;
       if (isDryRun(url)) return json({ ok: true, dryRun: true }, 200, corsHeaders);
 
-      const result = startFoundation({ from: body.data.from, seed: body.data.seed });
+      const result = startFoundation({ from: body.data.from, seed: body.data.seed }, STUDIO_CWD);
       return json(
         {
           ok: true,

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { BRAND_TEMPLATES } from "../../../src/core/brand.ts";
@@ -101,6 +101,33 @@ describe("resolveBrandPath", () => {
   test("rejects empty / control-char names", () => {
     expect(resolveBrandPath("").ok).toBe(false);
     expect(resolveBrandPath("evil\x00.md").ok).toBe(false);
+  });
+
+  test("rejects a symlinked brand directory", () => {
+    const project = mkdtempSync(join(tmpdir(), "mktg-brand-link-project-"));
+    const outside = mkdtempSync(join(tmpdir(), "mktg-brand-link-outside-"));
+    symlinkSync(outside, join(project, "brand"));
+    try {
+      const result = resolveBrandPath("voice-profile.md", project);
+      expect(result.ok).toBe(false);
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  test("rejects a symlinked brand file", () => {
+    const project = mkdtempSync(join(tmpdir(), "mktg-brand-file-link-"));
+    const outside = join(project, "outside.md");
+    mkdirSync(join(project, "brand"));
+    writeFileSync(outside, "# private\n", "utf8");
+    symlinkSync(outside, join(project, "brand", "voice-profile.md"));
+    try {
+      const result = resolveBrandPath("voice-profile.md", project);
+      expect(result.ok).toBe(false);
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+    }
   });
 });
 

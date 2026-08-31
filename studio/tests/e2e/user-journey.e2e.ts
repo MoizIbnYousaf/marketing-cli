@@ -356,7 +356,10 @@ test("11. publish — native backend flow works end to end", async ({ page }) =>
   await publishTab.getByRole("radio", { name: /^Schedule$/i }).click();
 
   const content = `E2E native publish ${Date.now()}`;
-  const scheduledAt = new Date(Date.now() + 60 * 60 * 1000);
+  // Keep the item inside the default "Today" queue even when this suite runs
+  // late at night. A one-hour offset crossed midnight and made the queue test
+  // depend on wall-clock time despite the post being persisted correctly.
+  const scheduledAt = new Date(Date.now() + 2 * 60 * 1000);
   await publishTab.getByPlaceholder("Write once for the native agent-first publish backend.").fill(content);
   await publishTab.getByLabel("Scheduled at").fill(formatDateTimeLocal(scheduledAt));
   await publishTab.getByRole("button", { name: /^Schedule$/i }).last().click();

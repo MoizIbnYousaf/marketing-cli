@@ -139,7 +139,9 @@ function HydratedWizard() {
     setProjectError(null)
     setProjectErrorFix(null)
     try {
-      const res = await fetch("/api/init", {
+      // Validate the request here; the building step performs the one real
+      // initialization so onboarding never runs `mktg init` twice.
+      const res = await fetch("/api/init?dryRun=true", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
         body: JSON.stringify({ from: state.url || undefined }),
@@ -425,7 +427,7 @@ function HydratedWizard() {
                 />
               )}
               {state.step === 3 && (
-                <StepBuilding onDone={handleBuildingDone} />
+                <StepBuilding from={state.url || undefined} onDone={handleBuildingDone} />
               )}
               {state.step === 4 && <StepDone />}
             </motion.div>

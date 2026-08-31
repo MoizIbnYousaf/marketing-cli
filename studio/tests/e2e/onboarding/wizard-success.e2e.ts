@@ -66,7 +66,9 @@ test("Case 1: Step 0 button uses US spelling 'Initializing' (Wave C #9)", async 
 
   // Race condition shield: capture the button text at the moment the
   // POST is in flight.
-  const reqPromise = page.waitForRequest("**/api/init")
+  const reqPromise = page.waitForRequest((request) =>
+    new URL(request.url()).pathname === "/api/init",
+  )
   await page.getByRole("button", { name: /Import brand/i }).click()
   await reqPromise
   // While loading, label flips to "Initializing…". Don't await visibility

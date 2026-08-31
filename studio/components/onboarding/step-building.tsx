@@ -40,6 +40,7 @@ interface EventEnvelope {
 
 interface Props {
   onDone: () => void
+  from?: string
 }
 
 const STUDIO_API_BASE =
@@ -148,7 +149,7 @@ function LaneRow({ lane }: { lane: Lane }) {
 // flakiness without tipping into "is this thing even working?" anxiety.
 const SSE_CONNECT_TIMEOUT_MS = 15_000
 
-export function StepBuilding({ onDone }: Props) {
+export function StepBuilding({ onDone, from }: Props) {
   const [lanes, setLanes] = useState<Lane[]>(INITIAL_LANES)
   const [error, setError] = useState<string | null>(null)
   const [connected, setConnected] = useState(false)
@@ -159,6 +160,7 @@ export function StepBuilding({ onDone }: Props) {
   const [sseTimedOut, setSseTimedOut] = useState(false)
   const [esGeneration, setEsGeneration] = useState(0)
   const esRef = useRef<EventSource | null>(null)
+  const foundationStartedRef = useRef(false)
   const demoTimersRef = useRef<number[]>([])
 
   const applyProgress = useCallback((payload: FoundationProgressPayload) => {
@@ -241,7 +243,8 @@ export function StepBuilding({ onDone }: Props) {
     try {
       const res = await fetch(`${STUDIO_API_BASE}/api/onboarding/foundation`, {
         method: "POST",
-        headers: studioAuthHeaders(),
+        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        body: JSON.stringify({ from }),
       })
       if (!res.ok) {
         setError(`Couldn't initialize brand files (HTTP ${res.status}). Retry or check the server.`)
@@ -249,13 +252,11 @@ export function StepBuilding({ onDone }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Server unreachable. Retry or check that the studio server is running on :3001.")
     }
-  }, [runDemoStream])
+  }, [from, runDemoStream])
 
   useEffect(() => {
-    // Start after mount without a synchronous effect-state cascade.
-    const startId = window.setTimeout(() => void start(), 0)
-
     if (DEMO_MODE) {
+      const startId = window.setTimeout(() => void start(), 0)
       return () => {
         window.clearTimeout(startId)
         for (const id of demoTimersRef.current) window.clearTimeout(id)
@@ -278,6 +279,10 @@ export function StepBuilding({ onDone }: Props) {
       window.clearTimeout(timeoutId)
       setConnected(true)
       setSseTimedOut(false)
+      if (!foundationStartedRef.current) {
+        foundationStartedRef.current = true
+        void start()
+      }
     }
     es.onerror = () => setConnected(false)
 
@@ -289,6 +294,10 @@ export function StepBuilding({ onDone }: Props) {
           window.clearTimeout(timeoutId)
           setConnected(true)
           setSseTimedOut(false)
+          if (!foundationStartedRef.current) {
+            foundationStartedRef.current = true
+            void start()
+          }
           return
         }
         if (envelope.type && envelope.type.startsWith("foundation:")) {
@@ -300,7 +309,6 @@ export function StepBuilding({ onDone }: Props) {
     }
 
     return () => {
-      window.clearTimeout(startId)
       window.clearTimeout(timeoutId)
       es.close()
       esRef.current = null
@@ -313,6 +321,7 @@ export function StepBuilding({ onDone }: Props) {
     setRetrying(true)
     for (const id of demoTimersRef.current) window.clearTimeout(id)
     demoTimersRef.current = []
+    foundationStartedRef.current = true
     await start()
   }
 
@@ -321,6 +330,7 @@ export function StepBuilding({ onDone }: Props) {
   function handleRetrySse() {
     setSseTimedOut(false)
     setRetrying(true)
+    foundationStartedRef.current = false
     setEsGeneration((n) => n + 1)
     // Retrying indicator only needs to show for a beat: the effect
     // clears the flag once connection lands or re-times-out.
