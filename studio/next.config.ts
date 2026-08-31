@@ -50,6 +50,21 @@ const nextConfig: NextConfig = {
       "radix-ui",
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Origin-Agent-Cluster", value: "?1" },
+          { key: "Permissions-Policy", value: "tools=(self)" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+        ],
+      },
+    ]
+  },
   async rewrites() {
     return [
       // Forward every /api/* request to the Bun studio server. The studio has

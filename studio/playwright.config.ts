@@ -7,6 +7,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const STUDIO_PORT = Number(process.env.E2E_STUDIO_PORT ?? "4801");
 const DASHBOARD_PORT = Number(process.env.E2E_DASHBOARD_PORT ?? "4800");
+const NATIVE_WEBMCP_BROWSER = process.env.WEBMCP_NATIVE_CHROMIUM;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -48,7 +49,18 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(NATIVE_WEBMCP_BROWSER
+          ? {
+              headless: false,
+              launchOptions: {
+                executablePath: NATIVE_WEBMCP_BROWSER,
+                args: ["--enable-features=WebMCPTesting"],
+              },
+            }
+          : {}),
+      },
     },
   ],
 });

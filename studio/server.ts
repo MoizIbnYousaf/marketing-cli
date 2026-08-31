@@ -245,6 +245,8 @@ function json(data: unknown, status = 200, extraHeaders: Record<string, string> 
     status,
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       ...extraHeaders,
     },
   });

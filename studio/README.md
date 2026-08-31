@@ -68,6 +68,18 @@ Settings lives at `/settings`. Bring your own keys. Studio reads them from `.env
 
 ![Settings](./docs/screenshots/settings.png)
 
+## WebMCP
+
+In ChatGPT's supported in-app browser or Chrome 149+ with WebMCP enabled,
+Studio registers 20 browser-native tools across Pulse, Signals, Publish,
+Brand, Skills, Settings, and Onboarding. Agents read and act through the same
+authenticated API and visible workspace as the human. Persistent local changes
+open a human confirmation dialog; publishing is preview-only until the human
+finalizes it in the Publish UI.
+
+See [`docs/WEBMCP.md`](./docs/WEBMCP.md) for the tool inventory, security
+boundary, browser support, and verification commands.
+
 ## What `/cmo` does for you
 
 `/cmo` is the 2,400-line Claude Code skill that ships with `marketing-cli`. It routes user intent to the right marketing skill, runs the quality gate, writes brand files, and keeps Studio in sync via five HTTP verbs (`log`, `note`, `push`, `toast`, `navigate`) plus `GET /api/schema` and `GET /api/help` for self-discovery.

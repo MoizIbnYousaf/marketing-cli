@@ -3,6 +3,7 @@ import { EnvSection } from "./env-section"
 import { IntegrationsSection } from "./integrations-section"
 import { BrandHealthSection } from "./brand-health-section"
 import { DoctorSection } from "./doctor-section"
+import { WebMCPSection } from "./webmcp-section"
 import { ResetSection } from "./reset-section"
 import { SettingsSidebar } from "./settings-sidebar"
 import { SettingsPanelScroll } from "./settings-panel-scroll"
@@ -65,6 +66,9 @@ export function SettingsPanel() {
             </section>
             <section id="doctor" className="scroll-mt-4">
               <DoctorSection />
+            </section>
+            <section id="webmcp" className="scroll-mt-4">
+              <WebMCPSection />
             </section>
             <section id="reset" className="scroll-mt-4">
               <ResetSection />

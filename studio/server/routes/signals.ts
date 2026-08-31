@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { wrapRoute } from "../../lib/dx.ts";
 import { queryAll, execute } from "../../lib/sqlite.ts";
+import { globalEmitter } from "../../lib/sse.ts";
 import { rejectControlChars } from "../../lib/validators.ts";
 import { safeJsonParse } from "../http.ts";
 
@@ -149,6 +150,10 @@ export const SIGNAL_DISMISS_ROUTE = wrapRoute<z.infer<typeof SIGNAL_ID_BODY>, { 
         fix: "GET /api/signals to list valid ids",
       };
     }
+    globalEmitter.publish("*", {
+      type: "signal-feedback",
+      payload: { id: input.id, feedback: "dismissed" },
+    });
     return { ok: true as const, data: { id: input.id, feedback: "dismissed" as const } };
   },
 });
@@ -171,6 +176,10 @@ export const SIGNAL_APPROVE_ROUTE = wrapRoute<z.infer<typeof SIGNAL_ID_BODY>, { 
         fix: "GET /api/signals to list valid ids",
       };
     }
+    globalEmitter.publish("*", {
+      type: "signal-feedback",
+      payload: { id: input.id, feedback: "approved" },
+    });
     return { ok: true as const, data: { id: input.id, feedback: "approved" as const } };
   },
 });
@@ -202,6 +211,10 @@ export const SIGNAL_FLAG_ROUTE = wrapRoute<z.infer<typeof SIGNAL_FLAG_BODY>, { i
         fix: "GET /api/signals to list valid ids",
       };
     }
+    globalEmitter.publish("*", {
+      type: "signal-feedback",
+      payload: { id: input.id, feedback: "flagged", reason: input.reason },
+    });
     return {
       ok: true as const,
       data: { id: input.id, feedback: "flagged" as const, reason: input.reason },

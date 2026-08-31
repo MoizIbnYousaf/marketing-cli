@@ -20,6 +20,7 @@ type SSEEvent =
   | { type: "brand-file-changed"; payload: { file: string; url?: string } }
   | { type: "activity-new"; payload: Activity }
   | { type: "activity-deleted"; payload: { id: number } }
+  | { type: "signal-feedback"; payload: { id: number; feedback: "approved" | "dismissed" | "flagged"; reason?: string } }
   | { type: "connected"; payload?: unknown }
   | Omit<JobSSEEvent, "ts">
   | { type: string; payload: unknown }
@@ -197,6 +198,10 @@ export function SSEBridge() {
           }
           case "opportunity-new": {
             h.mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/opportunities"))
+            return
+          }
+          case "signal-feedback": {
+            h.mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/signals"))
             return
           }
           case "skill-start":

@@ -34,7 +34,8 @@
     "eslint-config-next": "16.3.3",
     "lighthouse": "^13.3.0",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "webmcp-types": "0.1.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

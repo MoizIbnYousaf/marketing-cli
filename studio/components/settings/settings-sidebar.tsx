@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { KeyRound, Plug, FileText, Stethoscope, Trash2 } from "lucide-react"
+import { Bot, KeyRound, Plug, FileText, Stethoscope, Trash2 } from "lucide-react"
 
 const SECTIONS = [
   { id: "env", title: "API keys", icon: KeyRound },
   { id: "integrations", title: "Connected providers", icon: Plug },
   { id: "brand", title: "Brand file health", icon: FileText },
   { id: "doctor", title: "mktg doctor", icon: Stethoscope },
+  { id: "webmcp", title: "WebMCP", icon: Bot },
   { id: "reset", title: "Danger zone", icon: Trash2 },
 ] as const
 

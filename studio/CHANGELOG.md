@@ -2,6 +2,19 @@
 
 All notable changes to mktg-studio. Format per [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); project adheres to [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added a 20-tool WebMCP surface spanning Pulse, Signals, Publish, Brand,
+  Skills, Settings, Onboarding, activity, and visible Studio navigation.
+- Added origin-isolation, same-origin `tools` Permissions Policy, anti-framing
+  headers, progressive feature detection, AbortSignal lifecycle/cancellation,
+  bounded and secret-redacted results, and a live Settings readiness card.
+- Added human confirmation before persistent local WebMCP mutations. External
+  publishing is deliberately exposed as dry-run preview only.
+- Added unit and Playwright contract coverage plus `docs/WEBMCP.md`.
+
 ## [0.5.4] - 2026-05-03
 
 Version-aligned with `marketing-cli@0.5.4`. Studio surface unchanged. The CLI side ships TypeScript inside the published tarball so Next.js no longer auto-spawns pnpm install on the first `mktg studio` invocation, and `studio/package.json` now declares `pnpm.onlyBuiltDependencies: ["unrs-resolver"]` to silence the "Ignored build scripts" warning on cold boot. First-launch UX is fast and quiet.

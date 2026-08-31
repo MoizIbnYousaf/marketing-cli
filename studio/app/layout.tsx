@@ -10,6 +10,7 @@ import { PaletteProvider } from "@/components/command-palette/palette-provider"
 import { SWRProvider } from "@/components/providers/swr-provider"
 import { SSEBridge } from "@/components/providers/sse-bridge"
 import { AxeA11y } from "@/components/providers/axe-a11y"
+import { WebMCPProvider } from "@/components/providers/webmcp-provider"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import "./globals.css"
 
@@ -69,6 +70,10 @@ export default function RootLayout({
                   dashboard-layer remount (HMR, Turbopack hiccups, route
                   transitions). See docs/BUG8-DIAGNOSIS.md. */}
               <SSEBridge />
+              {/* WebMCP tools share the authenticated browser session and
+                  persist across every Studio route. Unsupported browsers
+                  treat this as a no-op progressive enhancement. */}
+              <WebMCPProvider />
               {/* ErrorBoundary wraps the route subtree, NOT the providers.
                   A runtime throw inside a workspace page used to surface
                   as a full-page Next.js dev overlay (G4-65/G4-66). Now it

@@ -40,5 +40,12 @@ The studio assumes:
 - The local network may be hostile (so the API binds to `localhost` only and is not exposed externally by default).
 - Inputs from `/cmo` over HTTP are NOT trusted — every endpoint validates path inputs, JSON shapes, and applies `?dryRun=true` / `?confirm=true` safety rails on mutations.
 - Inputs from the browser UI are NOT trusted — the same validators apply server-side.
+- WebMCP tools inherit the authenticated browser session, so authentication is
+  never treated as consent. Tools are same-origin only; persistent local
+  mutations require a visible human confirmation dialog. Credential writes,
+  destructive reset, and direct external publishing are not exposed as tools.
+- Tool outputs containing brand, signal, content, activity, or upstream data
+  are marked untrusted, secret-redacted, size-bounded, and safe to cancel via
+  the execution `AbortSignal`.
 
-See `docs/architecture.md` and `CLAUDE.md` for the full driver/dashboard contract.
+See `docs/architecture.md`, `docs/WEBMCP.md`, and `CLAUDE.md` for the full driver/dashboard contract.
