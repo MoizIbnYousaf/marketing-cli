@@ -5,6 +5,7 @@
 ### feat
 
 - opt-in TOON output via global `--format <json|toon>` (AXI principle 1) — JSON stays the default contract, errors always stay JSON
+- Studio command center, secure WebMCP tool surface, OpenSEO 0.1.6, and evidence-led strategy review shipped on `main` after `v0.7.0` and are not yet on npm
 
 ## v0.7.0
 

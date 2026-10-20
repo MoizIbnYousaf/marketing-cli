@@ -128,7 +128,7 @@ This project follows the same agent-native contract as mktg itself:
 ### 1. mktg CLI — the skill engine
 
 ```
-Repo: ~/projects/mktgmono/marketing-cli/
+Repo: the marketing-cli checkout (this package's parent). Override with MKTG_CLI_PATH when it is not a sibling.
 npm: marketing-cli@0.3.2
 Binary: mktg (global install: npm i -g marketing-cli)
 License: MIT
@@ -137,7 +137,7 @@ Tests: 2599 pass / 0 fail / 96 files
 
 **Source tree:**
 ```
-~/projects/mktgmono/marketing-cli/
+the marketing-cli checkout
 ├── src/
 │ ├── cli.ts — entry point, command router, global flag parsing
 │ ├── types.ts — ALL shared types: CommandResult<T>, CatalogEntry, CatalogsManifest, etc.
@@ -235,16 +235,16 @@ Rate limit: 30 POST /public/v1/posts per hour per org
 | `/public/v1/posts?startDate=...&endDate=...` | GET | Scheduled/published queue |
 | `/public/v1/is-connected` | GET | Heartbeat |
 
-**Full API reference:** `~/projects/mktgmono/marketing-cli/docs/integration/postiz-api-reference.md` (857 lines)
+**Full API reference:** `the marketing-cli checkoutdocs/integration/postiz-api-reference.md` (857 lines)
 
 ## /cmo — The Brain (2,400 lines of orchestration knowledge)
 
 /cmo is the single most important skill. The studio is a visual frontend for /cmo. The user talks to /cmo in Claude Code; Studio reflects the work through its HTTP API, Activity panel, and primary surfaces. Every "run this skill" request goes through /cmo. Every "what should I do next?" is /cmo routing.
 
 ```
-Source: ~/projects/mktgmono/marketing-cli/skills/cmo/SKILL.md (478 lines)
+Source: the marketing-cli checkoutskills/cmo/SKILL.md (478 lines)
 Installed: ~/.claude/skills/cmo/SKILL.md
-Rules: ~/projects/mktgmono/marketing-cli/skills/cmo/rules/ (14 files, ~1,900 lines)
+Rules: the marketing-cli checkoutskills/cmo/rules/ (14 files, ~1,900 lines)
 ```
 
 **What /cmo knows:**
@@ -271,9 +271,9 @@ The Bun server sends messages to a persistent Claude Code session with /cmo load
 ## All 50 Skills (with paths + triggers)
 
 ```
-Location pattern: ~/projects/mktgmono/marketing-cli/skills/<name>/SKILL.md
+Location pattern: the marketing-cli checkoutskills/<name>/SKILL.md
 Installed to: ~/.claude/skills/<name>/SKILL.md
-Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
+Manifest: the marketing-cli checkoutskills-manifest.json
 ```
 
 ### Foundation (11 skills)
@@ -358,8 +358,8 @@ Manifest: ~/projects/mktgmono/marketing-cli/skills-manifest.json
 
 ```
 Installed: ~/.claude/agents/<name>.md
-Source: ~/projects/mktgmono/marketing-cli/agents/<category>/<name>.md
-Manifest: ~/projects/mktgmono/marketing-cli/agents-manifest.json
+Source: the marketing-cli checkoutagents/<category>/<name>.md
+Manifest: the marketing-cli checkoutagents-manifest.json
 ```
 
 | Agent | Category | Writes | Spawned by |
@@ -376,7 +376,7 @@ Manifest: ~/projects/mktgmono/marketing-cli/agents-manifest.json
 
 ```
 Location: <project-root>/brand/
-Schema: ~/projects/mktgmono/marketing-cli/brand/SCHEMA.md
+Schema: the marketing-cli checkoutbrand/SCHEMA.md
 ```
 
 | File | Purpose | Freshness | Written by |

@@ -428,9 +428,9 @@ skills/                 # 76 SKILL.md files installed directly from the bundle
 ├── direct-response-copy/
 └── ...
 
-agents/                 # 6 agent .md files installed to ~/.claude/agents/
-├── research/           # brand-researcher, audience-researcher, competitive-scanner
-└── review/             # content-reviewer, seo-analyst
+agents/                 # 7 agent .md files installed to ~/.claude/agents/
+├── research/           # brand-researcher, audience-researcher, competitive-scanner, backlink-prospector
+└── review/             # content-reviewer, seo-analyst, strategy-reviewer
 
 skills-manifest.json    # Source of truth for skill metadata (includes external_skills section)
 agents-manifest.json    # Source of truth for agent metadata
@@ -463,7 +463,7 @@ bun run build         # Build
 
 - `src/`: CLI source (TypeScript, ~15,500 lines)
 - `skills/`: 76 SKILL.md files (manifest-backed)
-- `agents/`: 6 agent definitions
+- `agents/`: 7 agent definitions
 - `tests/`: 2,599 tests across 96 files (real file I/O, no mocks)
 - `docs/`: Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
 
