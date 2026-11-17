@@ -173,7 +173,7 @@ After the first render, sample frames at `0%, 12.5%, 37.5%, 62.5%, 90%` of durat
 
 You must load these *before* you scaffold a Remotion project — they catch the framework-fighting mistakes early:
 
-1. `/Users/moizibnyousaf/projects/mktgmono/marketing-cli/skills/remotion-best-practices/SKILL.md` — top-level entry.
+1. `remotion-best-practices/SKILL.md` in the installed skills directory (`~/.claude/skills/remotion-best-practices/SKILL.md`) — top-level entry.
 2. The specific `rules/<topic>.md` file(s) matching your intent (the table in Stage 5 lists them).
 
 If you skip this and "just start coding," you will end up writing CSS keyframes, you will hit "WebGL not enabled in render," and you will need to redo it. Loading the rules first costs ~30 seconds. Skipping costs ~30 minutes.

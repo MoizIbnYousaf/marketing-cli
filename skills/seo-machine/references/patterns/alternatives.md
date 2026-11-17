@@ -163,7 +163,7 @@ Don't link to obscure alts just to hit the count. Each link should be useful to 
 - **Fabricated honesty rows** ("they have a worse UI" is not honest, it's just a fluffy claim with no specifics). Real honest tradeoffs reference concrete features.
 - **Pricing rows with "Contact sales"** if the competitor publishes actual numbers. Use their actual numbers.
 - **"Best" claims in copy.** "ReplySocial is the best Hootsuite alternative" reads like a product page. Let the comparison speak; you provide structure and honesty.
-- **No FAQ schema.** Featured-snippet opportunity wasted.
+- **No FAQ section.** Comparison searchers arrive with questions; answer them in visible text and label the section with `FAQPage`. The markup no longer earns a Google rich result (retired May 2026), so the value is in the answers.
 - **Sitemap lastmod in the future.** A red flag to crawlers. Use today's date.
 
 ## Reference implementation

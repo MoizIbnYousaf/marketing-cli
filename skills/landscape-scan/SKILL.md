@@ -155,8 +155,8 @@ The /last30days skill searches across Reddit, X/Twitter, YouTube, Hacker News,
 and web sources for the last 30 days of activity.
 
 **Fallback if /last30days is unavailable:**
-1. Use WebSearch tool directly with the research query.
-2. Never use Claude native WebSearch. Use `exa-search` / Exa MCP for web research (and `/last30days` for social signal).
+1. Run the research query through `exa-search` / the Exa MCP.
+2. Do not fall back to Claude's native WebSearch: its results are not dated or source-attributed well enough to ground a landscape claim.
 3. If no web research is available at all, proceed with user knowledge only
    and mark every finding as `source: user-reported` in the output.
 4. Note the limitation: "Landscape based on provided information, not live

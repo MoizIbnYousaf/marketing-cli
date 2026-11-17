@@ -63,7 +63,11 @@ export const resolveRepositoryLayout = (
         : join(ecosystemRoot, "mktg-studio"),
     };
   }
-  const ecosystemRoot = join(userHome(), "projects", "mktgmono");
+  // Last resort when the package root cannot be resolved from this file:
+  // look for the conventional sibling layout under ~/projects. Both folder
+  // spellings are in use, so prefer whichever actually exists.
+  const candidates = ["mktgmono", "mktg-mono"].map((name) => join(userHome(), "projects", name));
+  const ecosystemRoot = candidates.find((dir) => existsSync(join(dir, "marketing-cli"))) ?? candidates[0]!;
   return {
     ecosystemRoot,
     cliRoot: join(ecosystemRoot, "marketing-cli"),

@@ -212,8 +212,8 @@ Structured data helps Google understand content type and can trigger rich result
 | Schema Type | Content Type | Rich Result |
 |---|---|---|
 | `Article` | Blog posts, guides, news | Headline + date in search |
-| `FAQPage` | Pages with FAQ sections | Expandable Q&A in SERPs |
-| `HowTo` | Step-by-step tutorials | Step listing with images |
+| `FAQPage` | Pages with FAQ sections | None in Google since May 2026 (feature retired); still describes visible Q&A |
+| `HowTo` | Step-by-step tutorials | None in Google (retired in 2023) |
 | `Product` | Product pages, reviews | Price, availability, rating |
 | `BreadcrumbList` | All pages with navigation | Breadcrumb trail in SERPs |
 | `LocalBusiness` | Location-based businesses | Knowledge panel, map |
@@ -224,7 +224,7 @@ Structured data helps Google understand content type and can trigger rich result
 - Place in `<head>` or at end of `<body>`
 - Validate with Google's Rich Results Test before publishing
 - One `Article` schema per page minimum
-- Add `FAQPage` whenever you have 3+ questions answered on the page
+- Add `FAQPage` when the page has a visible FAQ of 3+ questions. It no longer earns a Google rich result, so the FAQ must be worth reading on its own
 - Keep schema data consistent with visible page content (no hidden content)
 
 ### Reference

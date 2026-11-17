@@ -275,7 +275,7 @@ Open a PR only if the user has expressed they want that cadence. Otherwise let t
 | Target head terms when DR is low | "Social media management tool" at DR 8 is wasted work. KD ≤ DR+10 while DR is low. |
 | Ship pages with no inbound internal links | A new page nobody links to is an island. ≥2 inbound links from existing pages, same phase. |
 | Ship `/alternatives` pages without an "honesty" section | Three honest tradeoffs (where the competitor wins) is non-negotiable. Brand signal AND Google quality signal. |
-| Skip schema markup | FAQPage JSON-LD captures snippets. Article for playbooks. SoftwareApplication for homepage + use-case. Quality gate fails without them. |
+| Skip schema markup | FAQPage JSON-LD describes the visible FAQ (Google retired FAQ rich results in May 2026, so it is hygiene, not a snippet play). Article for playbooks. SoftwareApplication for homepage + use-case. Quality gate fails without them. |
 | Auto-commit | Always show diff summary; let the user commit (local conventions, hooks, branch naming). |
 | Restart Initialize when partial state exists | If `.seo/config.json` exists without the roadmap, prompt before wiping — they may have aborted mid-run. |
 

@@ -70,3 +70,6 @@ studio/next-env.d.ts
 
 # Amp orb portal metadata
 .amp/portals/*
+
+# Per-install metadata written when a skill is installed; never part of the source
+.skill-meta.json

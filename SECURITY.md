@@ -4,9 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.3.x   | Yes       |
-| 0.2.x   | Critical fixes only |
-| <0.2.0  | No        |
+| Latest release on npm | Yes |
+| Older releases | No. Upgrade with `mktg update --upgrade` |
 
 ## Reporting a vulnerability
 

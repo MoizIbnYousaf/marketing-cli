@@ -260,7 +260,7 @@ Implement schema.org structured data using JSON-LD to enable rich results in sea
 | Article | Blog posts, news | headline, image, datePublished, author |
 | Product | Product pages | name, image, offers |
 | SoftwareApplication | SaaS/app pages | name, offers |
-| FAQPage | FAQ content | mainEntity (Q&A array) |
+| FAQPage | FAQ content (no Google rich result since May 2026; keep for visible Q&A only) | mainEntity (Q&A array) |
 | HowTo | Tutorials | name, step |
 | BreadcrumbList | Any page with breadcrumbs | itemListElement |
 | LocalBusiness | Local business pages | name, address |
