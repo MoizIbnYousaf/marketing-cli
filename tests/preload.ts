@@ -29,6 +29,17 @@ process.env.GIT_COMMITTER_NAME ??= "mktg tests";
 process.env.GIT_COMMITTER_EMAIL ??= "tests@mktg.invalid";
 process.env.BUN_INSTALL ??= join(realHome, ".bun");
 
+// Several suites assert against the installed copies of skills and agents
+// (`mktg run --strict`, the e2e skill checks). They used to pass only when an
+// earlier file had already installed them into the developer's real home, so
+// they depended on test order. Install once here, into the isolated home, by
+// the same code path `mktg init` uses. The imports are dynamic so the modules
+// read HOME after it has been redirected above.
+const { installSkills, loadManifest } = await import("../src/core/skills");
+const { installAgents, loadAgentManifest } = await import("../src/core/agents");
+await installSkills(await loadManifest());
+await installAgents(await loadAgentManifest());
+
 process.on("exit", () => {
   try {
     rmSync(isolatedHome, { recursive: true, force: true });
