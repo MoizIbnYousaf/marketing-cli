@@ -57,6 +57,7 @@ Usage:
 Environment:
   STUDIO_PORT                  API server port (default 3001)
   DASHBOARD_PORT               Next.js port  (default 3000)
+  DASHBOARD_HOST               Next.js bind address (default 127.0.0.1; set 0.0.0.0 only on a trusted network)
   MKTG_STUDIO_OPEN             set to "false" to skip the auto-open (default: open)
   MKTG_STUDIO_BROWSER          override browser (e.g. "Google Chrome", "/usr/bin/firefox")
   BROWSER                      cross-tool fallback when MKTG_STUDIO_BROWSER not set
@@ -327,7 +328,9 @@ const server = Bun.spawn({
 });
 
 const next = Bun.spawn({
-  cmd: ["bun", "run", "next", "dev", "-p", DASHBOARD_PORT],
+  // Bind loopback explicitly: Next's default hostname is 0.0.0.0, which would
+  // expose the dashboard (and through its /api proxy, the API) to the LAN.
+  cmd: ["bun", "run", "next", "dev", "-H", env.DASHBOARD_HOST ?? "127.0.0.1", "-p", DASHBOARD_PORT],
   cwd: REPO_ROOT,
   env: nextEnv,
   stdout: "pipe",

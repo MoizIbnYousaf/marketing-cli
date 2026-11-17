@@ -19,6 +19,13 @@ beforeAll(async () => {
   writeFileSync(join(projectRoot, "brand", "assets.md"), "# Assets Log\n", "utf8")
   writeFileSync(join(projectRoot, "marketing", "images", "hero.png"), "fake-png", "utf8")
   writeFileSync(join(projectRoot, "marketing", "video", "demo.mp4"), "fake-mp4", "utf8")
+  writeFileSync(join(projectRoot, "marketing", "images", "logo.svg"), "<svg xmlns='http://www.w3.org/2000/svg'/>", "utf8")
+  // Files that live inside the project root but must never be served.
+  writeFileSync(join(projectRoot, ".env.local"), "POSTIZ_API_KEY=\"super-secret\"\n", "utf8")
+  mkdirSync(join(projectRoot, ".mktg", "native-publish"), { recursive: true })
+  writeFileSync(join(projectRoot, ".mktg", "native-publish", "account.json"), "{\"apiKey\":\"mktg_live_secret\"}", "utf8")
+  // marketing.db is created by the server itself on boot.
+  writeFileSync(join(projectRoot, "marketing", "notes.sh"), "#!/bin/sh\n", "utf8")
 
   proc = spawn({
     cmd: ["bun", "run", "server.ts"],
@@ -80,5 +87,28 @@ describe("GET /api/assets/file", () => {
     const body = (await res.json()) as { ok: false; error: { code: string } }
     expect(body.ok).toBe(false)
     expect(body.error.code).toBe("NOT_FOUND")
+  })
+  test("never serves dotfiles, dot-directories or non-content file types", async () => {
+    for (const path of [".env.local", ".mktg/native-publish/account.json", "marketing.db", "marketing/notes.sh"]) {
+      const res = await fetch(`${BASE}/api/assets/file?path=${encodeURIComponent(path)}`)
+      expect(res.status).toBe(400)
+      const text = await res.text()
+      expect(text).not.toContain("super-secret")
+      expect(text).not.toContain("mktg_live_secret")
+      expect((JSON.parse(text) as { ok: boolean }).ok).toBe(false)
+    }
+  })
+
+  test("the media route applies the same restriction", async () => {
+    const res = await fetch(`${BASE}/api/cmo/content/media?path=${encodeURIComponent(".env.local")}`)
+    expect(res.status).toBe(400)
+    expect(await res.text()).not.toContain("super-secret")
+  })
+
+  test("served files carry nosniff and a sandbox policy", async () => {
+    const res = await fetch(`${BASE}/api/assets/file?path=${encodeURIComponent("marketing/images/logo.svg")}`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff")
+    expect(res.headers.get("content-security-policy")).toContain("sandbox")
   })
 })

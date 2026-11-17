@@ -517,6 +517,26 @@ const routeHttp: RouteHttpHelpers = {
 // Route schema (for /api/schema — Agent DX axis 3)
 // ---------------------------------------------------------------------------
 
+/** Integration env keys the settings routes may report on and write. */
+const BASE_INTEGRATION_ENV_KEYS: readonly string[] = [
+  "POSTIZ_API_KEY",
+  "POSTIZ_API_BASE",
+  "TYPEFULLY_API_KEY",
+  "TYPEFULLY_SOCIAL_SET_ID",
+  "EXA_API_KEY",
+  "FIRECRAWL_API_KEY",
+  "RESEND_API_KEY",
+];
+
+const knownIntegrationEnvKeys = async (): Promise<string[]> => {
+  const known = new Set<string>(BASE_INTEGRATION_ENV_KEYS);
+  const statusResult = await mktgStatus(STUDIO_CWD);
+  if (statusResult.ok && statusResult.data.integrations) {
+    for (const key of Object.keys(statusResult.data.integrations)) known.add(key);
+  }
+  return Array.from(known).sort();
+};
+
 const ROUTE_SCHEMA = [
   // Health + meta
   { method: "GET",  path: "/api/health",                  description: "Server health check" },
@@ -1580,11 +1600,25 @@ const server = Bun.serve({
       const body = await parseBody(req, z.record(z.string(), z.string().max(512)));
       if (!body.ok) return body.res;
 
+      const allowedEnvKeys = new Set(await knownIntegrationEnvKeys());
+
       // Validate all keys and values
       for (const [k, v] of Object.entries(body.data)) {
         // Keys: uppercase + underscore only (env var convention)
         if (!/^[A-Z][A-Z0-9_]*$/.test(k)) {
           return err(`Invalid env var key: ${k}`, 400, corsHeaders);
+        }
+        // Only integration keys may be written. An arbitrary key would let a
+        // caller set MKTG_STUDIO_AUTH=disabled (auth off, persistently), or
+        // NODE_OPTIONS / PATH for every child process the studio spawns.
+        if (!allowedEnvKeys.has(k)) {
+          return errResponse(
+            "BAD_INPUT",
+            `Env var ${k} cannot be set through the studio`,
+            400,
+            `Allowed keys: ${Array.from(allowedEnvKeys).sort().join(", ")}. Edit .env.local by hand for anything else.`,
+            corsHeaders,
+          );
         }
         const ctrlCheck = rejectControlChars(v, `value for ${k}`);
         if (!ctrlCheck.ok) return err(ctrlCheck.message, 400, corsHeaders);
@@ -1793,20 +1827,7 @@ const server = Bun.serve({
       // (skills-manifest env_vars, surfaced by `mktg status` → integrations),
       // so new catalogs/skills (OPENSEO_*, GEMINI_API_KEY, MKTG_X_*, …) show
       // up here without a hand-maintained list.
-      const BASE_KNOWN = [
-        "POSTIZ_API_KEY",
-        "POSTIZ_API_BASE",
-        "TYPEFULLY_API_KEY",
-        "EXA_API_KEY",
-        "FIRECRAWL_API_KEY",
-        "RESEND_API_KEY",
-      ];
-      const known = new Set<string>(BASE_KNOWN);
-      const statusResult = await mktgStatus(STUDIO_CWD);
-      if (statusResult.ok && statusResult.data.integrations) {
-        for (const key of Object.keys(statusResult.data.integrations)) known.add(key);
-      }
-      const KNOWN = Array.from(known).sort();
+      const KNOWN = await knownIntegrationEnvKeys();
       const envPath = join(STUDIO_CWD, ".env.local");
       const fileLines = existsSync(envPath)
         ? readFileSync(envPath, "utf-8").split("\n")
