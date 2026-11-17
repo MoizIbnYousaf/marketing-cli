@@ -151,6 +151,20 @@ The npm package ships the same knowledge across multiple agent runtimes:
 | Gemini CLI | Extension metadata in `gemini-extension.json` |
 | OpenCode / shell agents | Run `mktg schema --json`, `mktg list --routing --json`, and read `skills/cmo/rules/*.md` |
 
+### Skills only, without the npm package
+
+If you want the skills and not the CLI or Studio, two installers read this repo directly and run no install script:
+
+```bash
+npx skills add MoizIbnYousaf/marketing-cli
+```
+
+```
+/plugin install marketing-cli --marketplace MoizIbnYousaf/marketing-cli
+```
+
+The first uses the cross-agent [`skills`](https://skills.sh/MoizIbnYousaf/marketing-cli) installer; the second is Claude Code's plugin command. Skills that call `mktg` (brand memory, publishing, `mktg status`) still need the npm install above; the playbook skills work on their own.
+
 Agent contract:
 
 - Use `mktg schema --json` to discover commands. Don't hardcode.

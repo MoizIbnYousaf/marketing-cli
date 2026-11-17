@@ -156,4 +156,34 @@ describe("publishTypefully (v2)", () => {
     expect(result.results[0]?.status).toBe("skipped");
     expect(captured).toHaveLength(0);
   });
+  test("a scheduled draft says so instead of reporting a plain draft", async () => {
+    process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+
+    const result = await publishTypefully([social("later", { publish_at: "next-free-slot" })], true, false);
+
+    expect(result.results[0]?.status).toBe("draft-external");
+    expect(result.results[0]?.detail).toContain("next free slot");
+    expect((captured[0]?.body as { publish_at?: string }).publish_at).toBe("next-free-slot");
+  });
+
+  test("share is sent as a boolean whether the manifest used a boolean or a string", async () => {
+    process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+    const asBoolean = { share: true } as unknown as PublishItem["metadata"];
+
+    await publishTypefully([social("a", asBoolean), social("b", { share: "true" })], true, false);
+
+    expect(captured.map((c) => (c.body as { share?: unknown }).share)).toEqual([true, true]);
+  });
+
+  test("rejects a platform whose body this adapter cannot build", async () => {
+    process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
+
+    const result = await publishTypefully([social("long form", { platforms: ["x_article"] })], true, false);
+
+    expect(result.failed).toBe(1);
+    expect(result.errors[0]).toContain("x_article");
+    expect(captured).toHaveLength(0);
+  });
 });

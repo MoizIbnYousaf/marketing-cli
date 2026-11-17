@@ -18,7 +18,9 @@ const REQUEST_TIMEOUT_MS = 10_000;
 /** Four newlines separate posts in a thread, the convention v1 content used. */
 const THREAD_SEPARATOR = /\n{4,}/;
 const DEFAULT_PLATFORMS: readonly string[] = ["x"];
-const PASSTHROUGH_FIELDS: readonly string[] = ["publish_at", "draft_title", "share"];
+const PASSTHROUGH_FIELDS: readonly string[] = ["publish_at", "draft_title"];
+/** Platforms whose v2 body is `{ enabled, posts: [{ text }] }`. `x_article` has its own schema. */
+const POST_PLATFORMS: ReadonlySet<string> = new Set(["x", "linkedin", "mastodon", "threads", "bluesky"]);
 
 type Metadata = NonNullable<PublishItem["metadata"]>;
 
@@ -57,8 +59,12 @@ export const buildTypefullyDraft = (item: PublishItem): Record<string, unknown> 
   const body: Record<string, unknown> = { platforms };
   for (const field of PASSTHROUGH_FIELDS) {
     const value = firstString(metadata[field]);
-    if (value !== undefined) body[field] = field === "share" ? value === "true" : value;
+    if (value !== undefined) body[field] = value;
   }
+  // `share` is a boolean in the API. Manifests are JSON, so it can arrive as
+  // a real boolean as well as the string "true".
+  const share: unknown = metadata.share;
+  if (share === true || share === "true") body.share = true;
   return body;
 };
 
@@ -93,6 +99,19 @@ const resolveSocialSet = async (apiKey: string, metadata: Metadata): Promise<Soc
   };
 };
 
+/** Platforms in the item this adapter cannot build a body for, if any. */
+export const unsupportedTypefullyPlatforms = (item: PublishItem): readonly string[] =>
+  platformsFor(item.metadata ?? {}).filter((platform) => !POST_PLATFORMS.has(platform));
+
+/** Describe what Typefully will do with the draft, without claiming a send. */
+const successDetail = (item: PublishItem): string => {
+  const publishAt = firstString((item.metadata ?? {}).publish_at);
+  if (publishAt === undefined) return "Draft created on Typefully";
+  if (publishAt === "now") return "Draft created on Typefully; publishing started (asynchronous, not yet confirmed)";
+  if (publishAt === "next-free-slot") return "Draft created on Typefully; queued for the next free slot";
+  return `Draft created on Typefully; scheduled for ${publishAt}`;
+};
+
 const failureDetail = async (resp: Response): Promise<string> => {
   const text = (await resp.text().catch(() => "")).trim().slice(0, 200);
   return text.length > 0 ? `HTTP ${resp.status}: ${text}` : `HTTP ${resp.status}`;
@@ -121,7 +140,10 @@ export const publishTypefully = async (
       continue;
     }
     try {
-      const socialSet = await resolveSocialSet(apiKey, item.metadata ?? {});
+      const unsupported = unsupportedTypefullyPlatforms(item);
+      const socialSet = unsupported.length > 0
+        ? { ok: false as const, detail: `Unsupported Typefully platform(s): ${unsupported.join(", ")}. Supported: ${Array.from(POST_PLATFORMS).join(", ")}` }
+        : await resolveSocialSet(apiKey, item.metadata ?? {});
       if (!socialSet.ok) {
         results.push({ item: i, status: "failed", detail: socialSet.detail });
       } else {
@@ -133,7 +155,7 @@ export const publishTypefully = async (
         });
         results.push(
           resp.ok
-            ? { item: i, status: "draft-external", detail: "Draft created on Typefully" }
+            ? { item: i, status: "draft-external", detail: successDetail(item) }
             : { item: i, status: "failed", detail: await failureDetail(resp) },
         );
       }

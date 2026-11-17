@@ -1,5 +1,14 @@
 # Ad Creative Mode
 
+> [!WARNING]
+> **Sora 2 is no longer available.** OpenAI closed the Sora app in April 2026 and
+> discontinued the `sora-2` and `sora-2-pro` API models on 24 September 2026 with
+> no direct replacement. Everything below that names Sora 2 as a third
+> comparison model is historical: run the comparison with the remaining models
+> and do not send a Sora request. Check a model's availability with its
+> provider before quoting a price or a wait time from this file.
+
+
 Generate performance-optimized paid advertising creative across Meta, Google, LinkedIn, and TikTok. Not generic images resized for ad placements — creative engineered for each platform's ad system, policy requirements, and conversion psychology.
 
 **Loaded by:** `creative/SKILL.md` when user selects Ad Creative mode (option 5).
