@@ -1,14 +1,5 @@
 # Product Video Mode
 
-> [!WARNING]
-> **Sora 2 is no longer available.** OpenAI closed the Sora app in April 2026 and
-> discontinued the `sora-2` and `sora-2-pro` API models on 24 September 2026 with
-> no direct replacement. Everything below that names Sora 2 as a third
-> comparison model is historical: run the comparison with the remaining models
-> and do not send a Sora request. Check a model's availability with its
-> provider before quoting a price or a wait time from this file.
-
-
 Transform static product images into cinematic video content. This mode handles product reveals, animated hero shots, 360 showcases, and e-commerce video — all the video types that make products feel premium and desirable.
 
 **Loaded by:** `creative/SKILL.md` when user selects mode 2 (Product Video).
@@ -50,7 +41,6 @@ As of this writing, the three video models available are:
 |------|-------|-----------------|--------------------------|
 | **Default** | Kling 2.5 Turbo Pro | Video Generation > Default Model | ~$0.40 |
 | **Comparison** | Google Veo 3.1 | Video Generation > Comparison Model: Google Veo 3.1 | ~$0.80-1.50 |
-| **Comparison** | OpenAI Sora 2 | Video Generation > Comparison Model: OpenAI Sora 2 | ~$0.60-1.20 |
 
 ### How to Call
 
@@ -59,23 +49,23 @@ As of this writing, the three video models available are:
 3. Copy the verified payload structure for the desired model
 4. Insert your constructed motion prompt, source image, and aspect ratio
 5. Execute the API call via your configured generation provider
-6. For hero content: run all three models in parallel (see Parallel Multi-Model Generation below)
+6. For hero content: run both video models in parallel (see Parallel Multi-Model Generation below)
 
 ### Cross-Model Parameter Cheat Sheet
 
 Every video model uses different parameter names for the same concept. Always consult MODEL_REGISTRY.md before writing any API call.
 
-| Concept | Kling 2.5 | Veo 3.1 | Sora 2 |
-|---------|-----------|---------|--------|
-| **Starting image** | `start_image` | `image` | `input_reference` |
-| **Duration** | `duration` (5, 10) | `duration` (4, 6, 8) | `seconds` (4-12) |
-| **Aspect ratio** | `aspect_ratio` ("16:9") | `aspect_ratio` ("16:9") | `aspect_ratio` ("landscape") |
-| **Prompt adherence** | *(removed)* | — | — |
-| **Negative prompt** | `negative_prompt` | `negative_prompt` | — |
-| **Audio generation** | Not native | `generate_audio` | Native (always on) |
-| **Ending frame** | `end_image` | `last_frame` | — |
-| **Resolution control** | Fixed 1080p | `resolution` ("720p", "1080p") | Fixed |
-| **Reproducibility** | — | `seed` | — |
+| Concept | Kling 2.5 | Veo 3.1 |
+|---------|-----------|---------|
+| **Starting image** | `start_image` | `image` |
+| **Duration** | `duration` (5, 10) | `duration` (4, 6, 8) |
+| **Aspect ratio** | `aspect_ratio` ("16:9") | `aspect_ratio` ("16:9") |
+| **Prompt adherence** | *(removed)* | — |
+| **Negative prompt** | `negative_prompt` | `negative_prompt` |
+| **Audio generation** | Not native | `generate_audio` |
+| **Ending frame** | `end_image` | `last_frame` |
+| **Resolution control** | Fixed 1080p | `resolution` ("720p", "1080p") |
+| **Reproducibility** | — | `seed` |
 
 ### Model Strengths and Weaknesses
 
@@ -97,60 +87,51 @@ Refer to MODEL_REGISTRY.md for authoritative details. Summary for prompt-routing
 - Sometimes "interprets" prompts loosely
 - No square aspect ratio support
 
-**OpenAI Sora 2:**
-- Strong prompt comprehension
-- Good motion coherence
-- Native audio generation (always on)
-- Most variable generation times
-- Sometimes over-stylizes
-- No square aspect ratio support
-
 ### When to Use Which
 
 ```
 GENERAL PRODUCT → Kling 2.5 (reliable, fast, cheapest)
 NEEDS AUDIO → Veo 3.1 (native audio, highest fidelity)
 HAS PEOPLE → Kling 2.5 (best human motion)
-HERO/FLAGSHIP → Run all 3 in parallel, pick winner
-UNCERTAIN → Run all 3 in parallel, pick winner
+HERO/FLAGSHIP → Run both in parallel, pick winner
+UNCERTAIN → Run both in parallel, pick winner
 ```
 
 ---
 
 ## Parallel Multi-Model Generation
 
-For hero content and any case where quality matters more than cost, run the same motion prompt through all three video models simultaneously.
+For hero content and any case where quality matters more than cost, run the same motion prompt through both video models simultaneously.
 
 ### Why Parallel Beats Sequential
 
 - No single model wins every prompt — the best output varies by content
-- Running in parallel takes the same wall-clock time as the slowest model (~6 min)
-- Running sequentially would take ~15 minutes for all three
-- Total cost for a parallel comparison run: ~$2.20 (see Cost Awareness below)
-- Eliminates guessing — present all three, let the user pick
+- Running in parallel takes the same wall-clock time as the slower model (~5 min)
+- Running sequentially would take ~8 minutes for both
+- Total cost for a parallel comparison run: ~$1.40 (see Cost Awareness below)
+- Eliminates guessing — present both, let the user pick
 
 ### Parallel Execution Pattern
 
-Use task agents to fire all three API calls simultaneously:
+Use task agents to fire both API calls simultaneously:
 
 ```
 PARALLEL GENERATION PLAN
 ─────────────────────────────────────────────
 Task 1: Kling 2.5     → cost ~$0.40, time ~3min
 Task 2: Veo 3.1       → cost ~$1.00, time ~5min
-Task 3: Sora 2        → cost ~$0.80, time ~6min
 ─────────────────────────────────────────────
-Total:                   ~$2.20, ~6min (parallel)
+Total:                   ~$1.40, ~5min (parallel)
 ```
 
 **Steps:**
 1. Construct the motion prompt (shared across all models)
 2. Translate the prompt into each model's API format (check MODEL_REGISTRY.md for parameter names)
-3. Launch all three API calls in parallel
-4. Poll for completion (all should finish within ~6 minutes)
-5. Present all three outputs side-by-side for user selection
+3. Launch both API calls in parallel
+4. Poll for completion (both should finish within ~5 minutes)
+5. Present both outputs side-by-side for user selection
 
-### Translating One Prompt to Three APIs
+### Translating One Prompt to Two APIs
 
 Given a motion prompt and source image, the payload differs per model. Example for a 16:9 I2V call:
 
@@ -182,19 +163,6 @@ Given a motion prompt and source image, the payload differs per model. Example f
 }
 ```
 
-**Sora 2 payload (from MODEL_REGISTRY.md):**
-```json
-{
-  "model": "{{comparison_video_model_from_stack}}",
-  "input": {
-    "prompt": "{{motion_prompt}}",
-    "input_reference": "{{source_image_url}}",
-    "seconds": 8,
-    "aspect_ratio": "landscape"
-  }
-}
-```
-
 **Critical:** Always verify these payloads against MODEL_REGISTRY.md before execution. Parameter names change when models update.
 
 ---
@@ -211,16 +179,15 @@ Before generating, always estimate and communicate the cost to the user.
 | Kling 2.5 | 10s clip | $0.60-1.00 | 4-8min |
 | Veo 3.1 | 8s clip (720p) | $0.60-0.80 | 3-6min |
 | Veo 3.1 | 8s clip (1080p) | $1.00-1.50 | 5-8min |
-| Sora 2 | 8s clip | $0.60-1.20 | 3-10min |
 
 ### Common Workflow Cost Estimates
 
 | Workflow | What You Get | Estimated Cost |
 |----------|-------------|---------------|
 | Single model, single clip | 1 video | ~$0.40-1.20 |
-| Parallel comparison (3 models) | 3 videos to compare | ~$2.00-2.50 |
+| Parallel comparison (2 models) | 2 videos to compare | ~$1.20-1.90 |
 | Multi-style exploration (3 styles x 1 model) | 3 motion approaches | ~$1.20-3.60 |
-| Multi-style x multi-model (3 styles x 3 models) | 9 videos to compare | ~$6.00-7.50 |
+| Multi-style x multi-model (3 styles x 2 models) | 6 videos to compare | ~$3.60-5.70 |
 | Multi-clip stitch (4 clips x 1 model) | 1 edited sequence | ~$1.60-4.80 |
 | Full hero production (stitch + comparison) | Complete hero video | ~$5.00-10.00 |
 
@@ -640,12 +607,6 @@ Some video models generate synchronized audio as part of the video output. This 
 - Quality is good for ambient/environmental, weaker for speech
 - Set `generate_audio: true` in the API payload (see MODEL_REGISTRY.md)
 
-**Sora 2 (audio always on):**
-- Always generates audio alongside video
-- Cannot be disabled
-- Audio quality varies — sometimes excellent, sometimes distracting
-- Review audio carefully; you may want to strip it in post
-
 **Kling 2.5 (no native audio):**
 - Does not generate audio
 - Output is silent video
@@ -820,7 +781,7 @@ Clip 3: Clean product shot with space for text overlay
 |----------------|-------|-------|---------------|----------------|
 | 15 seconds | 3 clips | Kling 2.5 | ~$1.20 | ~5min parallel |
 | 20 seconds | 4 clips | Kling 2.5 | ~$1.60 | ~5min parallel |
-| 20 seconds | 4 clips | All 3 models | ~$8.80 | ~6min parallel |
+| 20 seconds | 4 clips | Both models | ~$5.60 | ~5min parallel |
 | 25 seconds | 5 clips | Kling 2.5 | ~$2.00 | ~5min parallel |
 | 30 seconds | 6 clips | Kling 2.5 | ~$2.40 | ~5min parallel |
 
@@ -884,7 +845,7 @@ Motion: Scroll-stopping first frame
 Quality: Mobile-optimized
 ```
 
-**Note on square (1:1):** Kling 2.5 supports 1:1 natively. Veo 3.1 and Sora 2 do not — generate at 16:9 and crop to square in post. See MODEL_REGISTRY.md for supported aspect ratios per model.
+**Note on square (1:1):** Kling 2.5 supports 1:1 natively. Veo 3.1 does not — generate at 16:9 and crop to square in post. See MODEL_REGISTRY.md for supported aspect ratios per model.
 
 ### Instagram Stories/Reels
 
@@ -983,7 +944,7 @@ Proceed? [Y/n]
 
 ### Step 5: Multi-Model Generation
 
-For hero content, run the same prompt through all three models in parallel. For standard content, use the default model (Kling 2.5).
+For hero content, run the same prompt through both models in parallel. For standard content, use the default model (Kling 2.5).
 
 **Kling 2.5 (from MODEL_REGISTRY.md):**
 ```json
@@ -1013,20 +974,7 @@ For hero content, run the same prompt through all three models in parallel. For 
 }
 ```
 
-**Sora 2 (from MODEL_REGISTRY.md):**
-```json
-{
-  "model": "{{comparison_video_model_from_stack}}",
-  "input": {
-    "prompt": "[motion prompt]",
-    "input_reference": "[source image URL]",
-    "seconds": 8,
-    "aspect_ratio": "landscape"
-  }
-}
-```
-
-**Run in parallel.** Poll for completion (~2-6 minutes depending on model).
+**Run in parallel.** Poll for completion (~2-5 minutes depending on model).
 
 **Critical reminder:** Always verify payload structure against MODEL_REGISTRY.md before execution. Parameter names differ across models and may change when models update.
 
@@ -1050,13 +998,6 @@ For hero content, run the same prompt through all three models in parallel. For 
 **Video URL:** [URL]
 **Generation Time:** [actual time]
 **Estimated Cost:** ~$1.00
-**Audio:** Native audio generated
-**Notes:** [any observations]
-
-### Option 3: Sora 2
-**Video URL:** [URL]
-**Generation Time:** [actual time]
-**Estimated Cost:** ~$0.80
 **Audio:** Native audio generated
 **Notes:** [any observations]
 
@@ -1087,7 +1028,6 @@ All generated video assets are saved to the campaign directory for the product.
 ./campaigns/{product}/video/
 ├── hero-reveal-kling-v1.mp4
 ├── hero-reveal-veo-v1.mp4
-├── hero-reveal-sora-v1.mp4
 ├── hero-reveal-kling-v2.mp4        (iteration)
 ├── orbit-showcase-kling-v1.mp4
 ├── sequence/
@@ -1108,7 +1048,6 @@ All generated video assets are saved to the campaign directory for the product.
 Examples:
   slow-reveal-kling-v1.mp4
   orbit-showcase-veo-v1.mp4
-  dynamic-energy-sora-v2.mp4
   lifestyle-context-kling-v1.mp4
 ```
 
@@ -1176,8 +1115,8 @@ After the user approves a video:
 | No audio (Veo) | Not enabled | Set `generate_audio: true` |
 | Background changes | Unstable composition | Use cleaner source image |
 | API parameter error | Wrong param name for model | Check cross-model cheat sheet in MODEL_REGISTRY.md |
-| Aspect ratio rejected | Model doesn't support it | Check MODEL_REGISTRY.md — Veo/Sora have no square support |
-| Generation timeout | Model overloaded | Retry; allow extra buffer for Sora 2 |
+| Aspect ratio rejected | Model doesn't support it | Check MODEL_REGISTRY.md — Veo has no square support |
+| Generation timeout | Model overloaded | Retry after a short wait |
 | Quality dip mid-video | 10s generation issue | Use 5s clips and stitch instead |
 
 ---
@@ -1219,7 +1158,6 @@ Don't iterate on broken foundation:
 - Lower complexity prompt
 - For Kling: reduce camera speed to avoid edge warping
 - For Veo: check portrait aspect ratio for unexpected cropping
-- For Sora: ensure reference image matches aspect ratio
 ```
 
 ### When Budget Is a Concern
@@ -1492,10 +1430,10 @@ Get these four right and you'll outperform most AI product videos.
 ### Multi-Model Strategy
 
 When to invest in parallel comparison:
-- **Hero content** (website banners, launch videos) — Always run all three
+- **Hero content** (website banners, launch videos) — Always run both
 - **Social content** (feed posts, stories) — Default model is fine
 - **Product pages** (e-commerce listings) — Default model, maybe two for key products
-- **Ad creative** (paid campaigns) — Run all three, A/B test the winners
+- **Ad creative** (paid campaigns) — Run both, A/B test the winner
 
 ### Budget Management
 
@@ -1504,9 +1442,9 @@ BUDGET TIERS
 ─────────────────────────────────
 Lean:     1 model, 1 style         ~$0.40
 Standard: 1 model, 3 styles        ~$1.20
-Premium:  3 models, 1 style        ~$2.20
-Hero:     3 models, 3 styles       ~$6.60
-Campaign: 3 models, 3 styles, stitch ~$10+
+Premium:  2 models, 1 style        ~$1.40
+Hero:     2 models, 3 styles       ~$4.20
+Campaign: 2 models, 3 styles, stitch ~$7+
 ```
 
 ---
@@ -1622,15 +1560,6 @@ Ratio param: aspect_ratio ("16:9", "9:16")
 Extras: generate_audio (bool), resolution ("720p", "1080p"), negative_prompt, seed
 ```
 
-**Sora 2 I2V:**
-```
-Model: {{comparison_video_model from brand/stack.md}}
-Image param: input_reference
-Duration param: seconds (4-12)
-Ratio param: aspect_ratio ("landscape", "portrait")
-Extras: openai_api_key (optional)
-```
-
 ### Text-to-Video Call Patterns
 
 **Kling 2.5 T2V:**
@@ -1649,15 +1578,6 @@ No image param needed
 Duration param: duration (4, 6, or 8)
 Ratio param: aspect_ratio ("16:9", "9:16")
 Extras: generate_audio (bool), resolution ("720p", "1080p"), negative_prompt, seed
-```
-
-**Sora 2 T2V:**
-```
-Model: {{comparison_video_model from brand/stack.md}}
-No image param needed
-Duration param: seconds (4-12)
-Ratio param: aspect_ratio ("landscape", "portrait")
-Extras: openai_api_key (optional)
 ```
 
 ---

@@ -1,14 +1,5 @@
 # Talking Head Mode
 
-> [!WARNING]
-> **Sora 2 is no longer available.** OpenAI closed the Sora app in April 2026 and
-> discontinued the `sora-2` and `sora-2-pro` API models on 24 September 2026 with
-> no direct replacement. Everything below that names Sora 2 as a third
-> comparison model is historical: run the comparison with the remaining models
-> and do not send a Sora request. Check a model's availability with its
-> provider before quoting a price or a wait time from this file.
-
-
 Generate talking head videos, presenter content, UGC-style testimonials, and lip-synced videos. This mode handles AI presenter generation, script-to-video pipelines, lip-sync workflows, and platform-optimized delivery for every format where a person speaks to camera.
 
 **Loaded by:** `creative/SKILL.md` when user selects mode 4 (Talking Head).
@@ -64,7 +55,6 @@ As of this writing, the models used in this mode are:
 |------|-------|-----------------|--------------------------|
 | **Default** | Kling 2.5 Turbo Pro | Video Generation > Default Model | ~$0.40 |
 | **Comparison** | Google Veo 3.1 | Video Generation > Comparison Model: Google Veo 3.1 | ~$0.80-1.50 |
-| **Comparison** | OpenAI Sora 2 | Video Generation > Comparison Model: OpenAI Sora 2 | ~$0.60-1.20 |
 
 ### Lip-Sync Model
 
@@ -79,23 +69,23 @@ As of this writing, the models used in this mode are:
 3. Copy the verified payload structure for the desired model
 4. Insert your constructed prompt, source image, and parameters
 5. Execute the API call via your configured generation provider
-6. For hero content: run all three video models in parallel (see Parallel Multi-Model Generation below)
+6. For hero content: run both video models in parallel (see Parallel Multi-Model Generation below)
 
 ### Cross-Model Parameter Cheat Sheet
 
 Every video model uses different parameter names for the same concept. Always consult MODEL_REGISTRY.md before writing any API call.
 
-| Concept | Kling 2.5 | Veo 3.1 | Sora 2 |
-|---------|-----------|---------|--------|
-| **Starting image** | `start_image` | `image` | `input_reference` |
-| **Duration** | `duration` (5, 10) | `duration` (4, 6, 8) | `seconds` (4-12) |
-| **Aspect ratio** | `aspect_ratio` ("16:9") | `aspect_ratio` ("16:9") | `aspect_ratio` ("landscape") |
-| **Prompt adherence** | `guidance_scale` (0-1) | — | — |
-| **Negative prompt** | `negative_prompt` | `negative_prompt` | — |
-| **Audio generation** | Not native | `generate_audio` | Native (always on) |
-| **Ending frame** | `end_image` | `last_frame` | — |
-| **Resolution control** | Fixed 1080p | `resolution` ("720p", "1080p") | Fixed |
-| **Reproducibility** | — | `seed` | — |
+| Concept | Kling 2.5 | Veo 3.1 |
+|---------|-----------|---------|
+| **Starting image** | `start_image` | `image` |
+| **Duration** | `duration` (5, 10) | `duration` (4, 6, 8) |
+| **Aspect ratio** | `aspect_ratio` ("16:9") | `aspect_ratio` ("16:9") |
+| **Prompt adherence** | `guidance_scale` (0-1) | — |
+| **Negative prompt** | `negative_prompt` | `negative_prompt` |
+| **Audio generation** | Not native | `generate_audio` |
+| **Ending frame** | `end_image` | `last_frame` |
+| **Resolution control** | Fixed 1080p | `resolution` ("720p", "1080p") |
+| **Reproducibility** | — | `seed` |
 
 ### Model Strengths for Talking Head Content
 
@@ -115,13 +105,6 @@ Refer to MODEL_REGISTRY.md for authoritative details. Summary for presenter-spec
 - Slower generation, higher cost
 - No square aspect ratio support
 
-**OpenAI Sora 2:**
-- Strong prompt comprehension
-- Good at character-driven content
-- Native audio generation (always on)
-- Most variable generation times
-- No square aspect ratio support
-
 ### When to Use Which — Talking Head Specific
 
 ```
@@ -138,41 +121,40 @@ FOR UGC AUTHENTICITY:
     → Kling 2.5 (handles casual movements well)
 
 FOR CORPORATE/FORMAL:
-    → Kling 2.5 or Sora 2 (cleaner, more controlled)
+    → Kling 2.5 (cleaner, more controlled)
 
 FOR HERO/FLAGSHIP:
-    → Run all 3 in parallel, pick winner
+    → Run both in parallel, pick winner
 ```
 
 ---
 
 ## Parallel Multi-Model Generation
 
-For hero content and any case where quality matters more than cost, run the same presenter prompt through all three video models simultaneously.
+For hero content and any case where quality matters more than cost, run the same presenter prompt through both video models simultaneously.
 
 ### Why Parallel Beats Sequential
 
 - No single model wins every prompt — the best output varies by content
-- Running in parallel takes the same wall-clock time as the slowest model (~6 min)
-- Running sequentially would take ~15 minutes for all three
-- Total cost for a parallel comparison run: ~$2.20 (see Cost Awareness below)
-- Eliminates guessing — present all three, let the user pick
+- Running in parallel takes the same wall-clock time as the slower model (~5 min)
+- Running sequentially would take ~8 minutes for both
+- Total cost for a parallel comparison run: ~$1.40 (see Cost Awareness below)
+- Eliminates guessing — present both, let the user pick
 
 ### Parallel Execution Pattern
 
-Use task agents to fire all three API calls simultaneously:
+Use task agents to fire both API calls simultaneously:
 
 ```
 PARALLEL GENERATION PLAN
 ─────────────────────────────────────────────
 Task 1: Kling 2.5     → cost ~$0.40, time ~3min
 Task 2: Veo 3.1       → cost ~$1.00, time ~5min
-Task 3: Sora 2        → cost ~$0.80, time ~6min
 ─────────────────────────────────────────────
-Total:                   ~$2.20, ~6min (parallel)
+Total:                   ~$1.40, ~5min (parallel)
 ```
 
-### Translating One Prompt to Three APIs
+### Translating One Prompt to Two APIs
 
 Given a presenter prompt, the payload differs per model. Example for a 16:9 talking head T2V call:
 
@@ -203,18 +185,6 @@ Given a presenter prompt, the payload differs per model. Example for a 16:9 talk
 }
 ```
 
-**Sora 2 payload (from MODEL_REGISTRY.md):**
-```json
-{
-  "model": "{{comparison_video_model_from_stack}}",
-  "input": {
-    "prompt": "{{presenter_prompt}}",
-    "seconds": 8,
-    "aspect_ratio": "landscape"
-  }
-}
-```
-
 **Critical:** Always verify these payloads against MODEL_REGISTRY.md before execution. Parameter names change when models update.
 
 ---
@@ -231,7 +201,6 @@ Before generating, always estimate and communicate the cost to the user.
 | Kling 2.5 | 10s clip | $0.60-1.00 | 4-8min |
 | Veo 3.1 | 8s clip (720p) | $0.60-0.80 | 3-6min |
 | Veo 3.1 | 8s clip (1080p) | $1.00-1.50 | 5-8min |
-| Sora 2 | 8s clip | $0.60-1.20 | 3-10min |
 | Kling Lip-Sync | 2-10s clip | $0.30-0.60 | 1-3min |
 
 ### Common Workflow Cost Estimates
@@ -239,10 +208,10 @@ Before generating, always estimate and communicate the cost to the user.
 | Workflow | What You Get | Estimated Cost |
 |----------|-------------|---------------|
 | Single model presenter | 1 video | ~$0.40-1.20 |
-| Parallel comparison (3 models) | 3 videos to compare | ~$2.00-2.50 |
+| Parallel comparison (2 models) | 2 videos to compare | ~$1.20-1.90 |
 | Style exploration (5 styles x 1 model) | 5 presenter approaches | ~$2.00-6.00 |
 | Presenter + lip-sync | 1 presenter video + 1 synced video | ~$0.70-1.80 |
-| Full pipeline (generate + lip-sync + 3 models) | 3 videos + lip-sync on winner | ~$2.50-3.10 |
+| Full pipeline (generate + lip-sync + 2 models) | 2 videos + lip-sync on winner | ~$1.50-2.50 |
 | UGC batch (5 variants, single model) | 5 different UGC videos | ~$2.00-5.00 |
 
 ### Cost Communication Template
@@ -1398,18 +1367,6 @@ business casual in modern office environment
 }
 ```
 
-```json
-// Sora 2
-{
-  "model": "{{comparison_video_model_from_stack}}",
-  "input": {
-    "prompt": "[presenter prompt]",
-    "seconds": 8,
-    "aspect_ratio": "landscape"
-  }
-}
-```
-
 **Then add lip-sync if specific script needed (from MODEL_REGISTRY.md):**
 ```json
 {
@@ -1562,9 +1519,8 @@ Use this formula:
 Run same prompt through:
 1. Kling 2.5 (~3min) — default, best for faces
 2. Veo 3.1 (~5min) — with audio, highest fidelity
-3. Sora 2 (~6min) — strong prompt adherence
 
-Present all three to user for selection.
+Present both to user for selection.
 ```
 
 For standard content (not hero), use default model only (Kling 2.5).
@@ -1662,7 +1618,6 @@ All generated talking head assets are saved to the campaign directory.
 ├── generation/
 │   ├── presenter-kling-v1.mp4
 │   ├── presenter-veo-v1.mp4
-│   ├── presenter-sora-v1.mp4
 │   └── presenter-kling-v2.mp4       (iteration)
 ├── audio/
 │   ├── script-v1-elevenlabs.mp3
@@ -1686,7 +1641,6 @@ Examples:
   presenter-kling-v1.mp4
   ugc-testimonial-kling-v1.mp4
   corporate-intro-veo-v1.mp4
-  product-explainer-sora-v1.mp4
   presenter-synced-v1.mp4            (lip-synced version)
   presenter-synced-spanish-v1.mp4    (localized lip-sync)
 ```
@@ -1777,8 +1731,8 @@ After the user approves a video:
 | Side profile sync fails | Non-frontal face | Use front-facing presenter videos for lip-sync |
 | Script too long for duration | Word count miscalculation | Recalculate: ~150 words per minute |
 | API parameter error | Wrong param name for model | Check cross-model cheat sheet in MODEL_REGISTRY.md |
-| Aspect ratio rejected | Model doesn't support it | Check MODEL_REGISTRY.md — Veo/Sora have no square support |
-| Generation timeout | Model overloaded | Retry; allow extra buffer for Sora 2 |
+| Aspect ratio rejected | Model doesn't support it | Check MODEL_REGISTRY.md — Veo has no square support |
+| Generation timeout | Model overloaded | Retry after a short wait |
 | Presenter inconsistent across videos | Not using saved spec | Load presenter prompt from creative-kit.md |
 
 ---
@@ -1911,9 +1865,8 @@ Don't iterate on broken foundation:
 
 **Kling 2.5:** [URL] (~$0.40)
 **Veo 3.1:** [URL] (includes audio) (~$1.00)
-**Sora 2:** [URL] (~$0.80)
 
-**Total generation cost:** ~$2.20
+**Total generation cost:** ~$1.40
 
 **Prompt Used:**
 > [full prompt for reference]
@@ -2090,7 +2043,7 @@ Route to product-video mode:
 2. **Kling v2.5 for faces** — Most realistic human generation
 3. **Shorter is safer** — 5-10 second clips avoid quality degradation
 4. **Explicit energy levels** — "calm and measured" vs "enthusiastic and dynamic"
-5. **Multi-model approach** — Always generate with 2-3 models for hero content, let user pick
+5. **Multi-model approach** — Always generate with both models for hero content, let user pick
 6. **Lip-sync extends value** — One good video can become many scripts
 7. **External TTS for production** — ElevenLabs voice quality far exceeds model built-in TTS
 8. **Save everything to creative-kit.md** — Presenter spec + voice_id = instant reuse
@@ -2123,10 +2076,10 @@ Get these four right, and you'll get good results.
 ### Multi-Model Strategy
 
 When to invest in parallel comparison:
-- **Hero content** (website presenters, launch videos) — Always run all three
+- **Hero content** (website presenters, launch videos) — Always run both
 - **Social content** (feed posts, stories) — Default model is fine
 - **UGC batch** (multiple testimonial variants) — Default model, iterate on scripts
-- **Ad creative** (paid campaigns) — Run all three, A/B test the winners
+- **Ad creative** (paid campaigns) — Run both, A/B test the winner
 - **Personalized outreach** (sales videos) — Default model + lip-sync
 
 ### Budget Management
@@ -2136,8 +2089,8 @@ BUDGET TIERS
 ─────────────────────────────────
 Lean:     1 model, no lip-sync           ~$0.40
 Standard: 1 model + lip-sync            ~$0.70-1.00
-Premium:  3 models, lip-sync on winner   ~$2.50-3.10
-Hero:     3 models + exploration + sync  ~$4.50-6.00
+Premium:  2 models, lip-sync on winner   ~$1.50-2.50
+Hero:     2 models + exploration + sync  ~$3.50-5.40
 Campaign: 5 variants + 3 languages       ~$5.00-10.00+
 ```
 
@@ -2147,7 +2100,7 @@ Campaign: 5 variants + 3 languages       ~$5.00-10.00+
 
 | Task | Model | Process |
 |------|-------|---------|
-| Generate presenter video | All 3 models | Multi-model parallel, user picks |
+| Generate presenter video | Both models | Multi-model parallel, user picks |
 | Add speech to existing video | Kling Lip-Sync | Direct, ~1min |
 | Presenter + specific script | Generate → TTS → Lip-Sync | Three-step pipeline |
 | Video with built-in audio | Veo 3.1 | Single generation |
@@ -2181,14 +2134,6 @@ Model: google/veo-3.1
 Duration param: duration (4, 6, or 8)
 Ratio param: aspect_ratio ("16:9", "9:16")
 Extras: generate_audio (bool), resolution ("720p", "1080p"), negative_prompt, seed
-```
-
-**Sora 2 T2V (Presenter Generation):**
-```
-Model: {{comparison_video_model from brand/stack.md}}
-Duration param: seconds (4-12)
-Ratio param: aspect_ratio ("landscape", "portrait")
-Extras: openai_api_key (optional)
 ```
 
 ### Lip-Sync Call Patterns
