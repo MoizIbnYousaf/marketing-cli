@@ -73,7 +73,7 @@ Then authenticate:
 
 **Without an authed Higgsfield account**, the CLI itself surfaces the auth prompt — no special handling needed in the skill.
 
-**Fallback for image generation only:** if the user just needs a one-off image and doesn't have a Higgsfield account, route them to `image-gen` (Gemini, model `gemini-3.1-flash-image-preview`, free tier). The product-photoshoot mode enhancer and all product-specific modes require Higgsfield.
+**Fallback for image generation only:** if the user just needs a one-off image and doesn't have a Higgsfield account, route them to `image-gen` (Gemini, model `gemini-nano-banana-2.1`, free tier). The product-photoshoot mode enhancer and all product-specific modes require Higgsfield.
 
 ## Step 0 — Bootstrap
 

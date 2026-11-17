@@ -1,4 +1,4 @@
-// mktg — Built-in publish adapters (typefully, resend, file, mktg-native)
+// mktg — Built-in publish adapters (resend, file, mktg-native). Typefully: ./typefully.ts
 
 import { join } from "node:path";
 import { type PublishPostType } from "../../types";
@@ -56,50 +56,6 @@ export const listNativeIntegrations = async (
       })),
     },
   };
-};
-
-export const publishTypefully = async (
-  items: PublishItem[],
-  confirm: boolean,
-  ndjson: boolean,
-): Promise<AdapterResult> => {
-  const apiKey = process.env.TYPEFULLY_API_KEY;
-  const results: AdapterResultItem[] = [];
-
-  if (!apiKey) {
-    return {
-      adapter: "typefully", items: items.length, published: 0, failed: items.length,
-      errors: ["TYPEFULLY_API_KEY not set"],
-      results: items.map((_, i) => ({ item: i, status: "failed" as const, detail: "API key missing" })),
-    };
-  }
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!;
-    if (!confirm) {
-      pushDryRunSkip(results, "typefully", i, `Would publish: ${item.content.slice(0, 80)}...`, ndjson);
-      continue;
-    }
-    try {
-      const resp = await fetch("https://api.typefully.com/v1/drafts/", {
-        method: "POST",
-        headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ content: item.content, ...item.metadata }),
-        signal: AbortSignal.timeout(10000),
-      });
-      if (resp.ok) {
-        // Typefully's API creates DRAFTS — never imply a send happened.
-        results.push({ item: i, status: "draft-external", detail: "Draft created on Typefully" });
-      } else {
-        results.push({ item: i, status: "failed", detail: `HTTP ${resp.status}` });
-      }
-    } catch (e) {
-      results.push({ item: i, status: "failed", detail: e instanceof Error ? e.message : "Unknown error" });
-    }
-    if (ndjson) writeStdout(JSON.stringify({ adapter: "typefully", item: i, status: results[results.length - 1]!.status }));
-  }
-
-  return finalizeAdapterResult("typefully", items, results);
 };
 
 export const publishResend = async (

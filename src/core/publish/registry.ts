@@ -1,7 +1,8 @@
 // mktg — Publish adapter registry (built-ins + env var metadata)
 
 import { type AdapterResult, type PublishItem } from "./types";
-import { publishFile, publishNative, publishResend, publishTypefully } from "./adapters";
+import { publishFile, publishNative, publishResend } from "./adapters";
+import { publishTypefully } from "./typefully";
 import { publishPostiz } from "./postiz";
 
 // Built-in publish adapters — catalog-independent. Catalogs cannot

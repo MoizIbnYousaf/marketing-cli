@@ -20,9 +20,10 @@ export type IntegrationConfig = {
 export const INTEGRATION_CONFIG: Record<string, IntegrationConfig> = {
   typefully: {
     envVar: "TYPEFULLY_API_KEY",
-    testEndpoint: "https://api.typefully.com/v1/drafts/",
+    // API v2: v1 was retired on 15 June 2026. /v2/me verifies the key.
+    testEndpoint: "https://api.typefully.com/v2/me",
     docsUrl: "https://typefully.com/settings/api",
-    testHeaders: (key) => ({ "X-API-KEY": key }),
+    testHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   resend: {
     envVar: "RESEND_API_KEY",

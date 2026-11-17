@@ -3,7 +3,7 @@ name: image-gen
 description: >
   Generate images using the brand's visual identity and Gemini API. Reads
   brand/creative-kit.md for visual style, crafts narrative prompts, and produces
-  images via Nano Banana Pro (gemini-3-pro-image-preview). Supports on-brand
+  images via Gemini's Nano Banana image models. Supports on-brand
   and freestyle modes. Use when the user needs a blog header, social graphic,
   product shot, hero image, banner, thumbnail, or any generated image. Also use
   proactively when building content that would benefit from visuals. Triggers on
@@ -175,7 +175,7 @@ from google.genai import types
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",
+    model="gemini-nano-banana-2.1",
     contents=["<narrative prompt>"],
     config=types.GenerateContentConfig(
         response_modalities=['TEXT', 'IMAGE'],
@@ -194,7 +194,7 @@ for part in response.parts:
         image.save("output.png")
 ```
 
-**Default to `gemini-3.1-flash-image-preview` (Nano Banana 2).** Launched Feb 26, 2026. Pro quality at Flash speed/pricing. 4K support, up to 14 reference images for style consistency. Use `gemini-3-pro-image-preview` (Nano Banana Pro) only when text-heavy infographics or premium quality justify the higher cost.
+**Default to `gemini-nano-banana-2.1` (Nano Banana 2.1).** GA since October 2026: Flash-level speed and cost, 1K/2K/4K output, and better text rendering and multi-turn consistency than Nano Banana 2. Use `gemini-3-pro-image` (Nano Banana Pro) only when text-heavy infographics or premium quality justify the higher cost. The older `-preview` image model IDs were shut down on 25 June 2026 and return errors. If a model ID is rejected, check https://aistudio.google.com/docs/deprecations for its replacement instead of guessing.
 
 ### Save and Log
 
@@ -220,7 +220,7 @@ After generating, show the image and offer:
 For adjustments, use Gemini's multi-turn chat API for iterative refinement — pass the previous image + adjustment prompt.
 
 ```python
-chat = client.chats.create(model="gemini-3-pro-image-preview")
+chat = client.chats.create(model="gemini-3-pro-image")
 response = chat.send_message("Make the lighting warmer and add more negative space on the left for text")
 ```
 
@@ -235,7 +235,7 @@ from PIL import Image
 
 img = Image.open("input.png")
 response = client.models.generate_content(
-    model="gemini-3-pro-image-preview",
+    model="gemini-3-pro-image",
     contents=["<edit instruction>", img],
     config=types.GenerateContentConfig(
         response_modalities=['TEXT', 'IMAGE'],

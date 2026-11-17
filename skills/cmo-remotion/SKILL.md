@@ -122,7 +122,7 @@ Project lives at `marketing/video/<slug>/project/`. Add `out/`, `node_modules/`,
 If the video is **code-driven** (CRT shader, type-only, geometric) — skip this stage. The composition needs no PNGs.
 
 Otherwise:
-- Use `/codex:image` (preferred for craft-grade prompting) or `/image-gen` (Gemini Nano Banana 2 — model `gemini-3.1-flash-image-preview`, never older).
+- Use `/codex:image` (preferred for craft-grade prompting) or `/image-gen` (Gemini Nano Banana 2.1 — model `gemini-nano-banana-2.1`, never older).
 - Cap the asset count: ≤ 12 generated images for a single-scene 8s video, ≤ 8 per scene for multi-scene work. More than that and you're bloating cost and inviting style drift.
 - Cut every transparent-background asset through `rembg`. Image models lie about transparency.
 - Drop final assets into `<project>/public/`.

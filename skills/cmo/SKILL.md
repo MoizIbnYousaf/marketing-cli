@@ -380,7 +380,7 @@ import io
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",  # HARD RULE: always this model
+    model="gemini-nano-banana-2.1",  # HARD RULE: always this model
     contents=[prompt],
     config=types.GenerateContentConfig(
         response_modalities=['TEXT', 'IMAGE'],

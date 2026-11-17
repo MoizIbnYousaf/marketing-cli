@@ -94,7 +94,7 @@ No -- all optional. Each key unlocks a subset of skills:
 - Firecrawl → scraping-heavy skills (landscape-scan, mktg init --from <url>)
 - Typefully → `typefully` skill (X / LinkedIn threads)
 - Resend → `email-sequences`, `send-email`, `resend-inbound`, `newsletter`
-- Gemini → `image-gen`, `creative` image modes (uses `gemini-3.1-flash-image-preview` per project rule)
+- Gemini → `image-gen`, `creative` image modes (uses `gemini-nano-banana-2.1` per project rule)
 
 ### Why no Twitter / X API support?
 The `mktg-x` skill reads via authenticated scraping, not the X API (`xterminal` under the hood). Faster + no paid tier. Publishing to X starts in the native local queue/history, then uses Typefully, Postiz, or browser automation for real external posting depending on the configured credentials and workflow.

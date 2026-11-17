@@ -312,14 +312,14 @@ marketing/creative/{campaign}/
 
 ## Image Generation Model (HARD RULE)
 
-When generating images via Gemini API, ALWAYS use `gemini-3.1-flash-image-preview` (Nano Banana 2). Never use older models. Use the Python SDK:
+When generating images via Gemini API, ALWAYS use `gemini-nano-banana-2.1` (Nano Banana 2.1). Never use older models. Use the Python SDK:
 
 ```python
 from google import genai
 from google.genai import types
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",
+    model="gemini-nano-banana-2.1",
     contents=[prompt],
     config=types.GenerateContentConfig(
         response_modalities=['TEXT', 'IMAGE'],
