@@ -5,7 +5,8 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir } from "node:os";
+import { userHome } from "../../src/core/user-home";
 import {
   handler as verifyHandler,
   parseBunTestStats,
@@ -188,7 +189,7 @@ describe("mktg verify execute — marketing-cli-typecheck", () => {
     // Summary landed at ~/.mktg/verify/<ts>.json
     expect(res.data.execution?.summaryPath).toBeDefined();
     const summaryPath = res.data.execution!.summaryPath;
-    expect(summaryPath.startsWith(join(homedir(), ".mktg", "verify"))).toBe(true);
+    expect(summaryPath.startsWith(join(userHome(), ".mktg", "verify"))).toBe(true);
     expect(existsSync(summaryPath)).toBe(true);
     const summary = JSON.parse(await readFile(summaryPath, "utf-8")) as VerifyReport;
     expect(summary.mode).toBe("execute");

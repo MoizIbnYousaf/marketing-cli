@@ -11,10 +11,10 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../../../src/core/user-home";
 
 const projectRoot = import.meta.dir.replace("/tests/e2e/skills", "");
-const installedPath = join(homedir(), ".claude", "skills", "brand-voice", "SKILL.md");
+const installedPath = join(userHome(), ".claude", "skills", "brand-voice", "SKILL.md");
 const sourcePath = join(projectRoot, "skills", "brand-voice", "SKILL.md");
 const schemaPath = join(projectRoot, "brand", "SCHEMA.md");
 

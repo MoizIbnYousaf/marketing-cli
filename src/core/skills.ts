@@ -4,12 +4,12 @@
 import { spawnSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { mkdir, chmod, stat } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import type { SkillsManifest, SkillManifestEntry, ExternalSkillEntry } from "../types";
 import { getPackageRoot } from "./paths";
 
 // Where skills get installed for the agent
-const SKILLS_INSTALL_DIR = join(homedir(), ".claude", "skills");
+const SKILLS_INSTALL_DIR = join(userHome(), ".claude", "skills");
 
 // Load the manifest from package root
 export const loadManifest = async (): Promise<SkillsManifest> => {
@@ -360,7 +360,7 @@ export const installSkillsWithAiAgentSkills = async (
 // Search for an external skill by name across known locations.
 // Returns the directory path if found, null if not.
 export const findExternalSkill = async (nameOrPath: string): Promise<string | null> => {
-  const home = homedir();
+  const home = userHome();
 
   // If it looks like a path (contains /), try it directly
   if (nameOrPath.includes("/")) {

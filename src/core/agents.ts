@@ -3,12 +3,12 @@
 
 import { join, dirname } from "node:path";
 import { mkdir } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import type { AgentsManifest } from "../types";
 import { getPackageRoot } from "./paths";
 
 // Where agents get installed — auto-discovered by Claude Code
-const AGENTS_INSTALL_DIR = join(homedir(), ".claude", "agents");
+const AGENTS_INSTALL_DIR = join(userHome(), ".claude", "agents");
 
 // Namespace prefix to avoid collisions with other agents
 const AGENT_PREFIX = "mktg-";

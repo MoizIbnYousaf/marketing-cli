@@ -22,7 +22,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../core/user-home";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
@@ -572,7 +572,7 @@ const runAll = async (
 };
 
 const writeSummary = async (report: VerifyReport): Promise<string> => {
-  const summaryDir = join(homedir(), ".mktg", "verify");
+  const summaryDir = join(userHome(), ".mktg", "verify");
   await mkdir(summaryDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const p = join(summaryDir, `${stamp}.json`);

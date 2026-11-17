@@ -37,6 +37,7 @@
     "studio/postcss.config.mjs",
     "studio/scripts",
     "studio/server.ts",
+    "studio/server",
     "studio/skills",
     "studio/tsconfig.json",
     "studio/AGENTS.md",
@@ -49,6 +50,8 @@
     "studio/SECURITY.md",
     "LICENSE",
     "README.md",
+    "CONTEXT.md",
+    "AGENTS.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
     "CODE_OF_CONDUCT.md"

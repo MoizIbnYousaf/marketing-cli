@@ -4,7 +4,8 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir } from "node:os";
+import { userHome } from "../src/core/user-home";
 import {
   loadManifest,
   getSkillNames,
@@ -189,7 +190,7 @@ describe("getSkillsInstallDir", () => {
   test("returns path under ~/.claude/skills", () => {
     const dir = getSkillsInstallDir();
     expect(dir).toContain(".claude/skills");
-    expect(dir).toContain(homedir());
+    expect(dir).toContain(userHome());
   });
 });
 

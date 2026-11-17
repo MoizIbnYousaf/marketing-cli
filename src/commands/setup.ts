@@ -8,7 +8,7 @@ import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { hasFlag } from "../core/args";
 import { bold, dim, green, isTTY } from "../core/output";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { userHome } from "../core/user-home";
 import { dirname, join } from "node:path";
 
 export const HOOK_EVENT = "SessionStart";
@@ -59,7 +59,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 /** Resolve the target settings.json. HOME is honoured so tests can redirect --global. */
 export const resolveSettingsPath = (cwd: string, global: boolean): string =>
   global
-    ? join(process.env.HOME || homedir(), ".claude", "settings.json")
+    ? join(userHome(), ".claude", "settings.json")
     : join(cwd, ".claude", "settings.json");
 
 const readSettings = (path: string): { ok: true; settings: Settings } | { ok: false; message: string } => {

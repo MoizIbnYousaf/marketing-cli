@@ -3,7 +3,7 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../src/core/user-home";
 import {
   loadAgentManifest,
   getAgentNames,
@@ -146,7 +146,7 @@ describe("getAgentsInstallDir", () => {
   test("returns path under ~/.claude/agents", () => {
     const dir = getAgentsInstallDir();
     expect(dir).toContain(".claude/agents");
-    expect(dir).toContain(homedir());
+    expect(dir).toContain(userHome());
   });
 });
 

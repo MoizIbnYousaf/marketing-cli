@@ -101,6 +101,10 @@ describe("e2e: required files ship in the tarball", () => {
     ".mcp.json",
     "scripts/postinstall.cjs",
     "studio/server.ts",
+    "studio/server/http.ts",
+    "studio/server/routes/brand.ts",
+    "CONTEXT.md",
+    "AGENTS.md",
     "studio/package.json",
     "studio/bin/mktg-studio.ts",
   ];

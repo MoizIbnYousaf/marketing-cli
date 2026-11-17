@@ -18,12 +18,12 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../../../src/core/user-home";
 import type { SkillsManifest } from "../../../src/types";
 
 const projectRoot = import.meta.dir.replace("/tests/e2e/skills", "");
-const cmoPath = join(homedir(), ".claude", "skills", "cmo", "SKILL.md");
-const playbooksPath = join(homedir(), ".claude", "skills", "cmo", "rules", "playbooks.md");
+const cmoPath = join(userHome(), ".claude", "skills", "cmo", "SKILL.md");
+const playbooksPath = join(userHome(), ".claude", "skills", "cmo", "rules", "playbooks.md");
 const manifestPath = join(projectRoot, "skills-manifest.json");
 
 const runMktg = async (args: string[]): Promise<{ stdout: string; exitCode: number }> => {

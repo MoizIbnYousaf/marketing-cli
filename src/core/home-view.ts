@@ -2,7 +2,7 @@
 // Returns a compact live snapshot (health, brand, skills, next commands) instead
 // of static help. `mktg --help` still prints the full command list.
 
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import { ok, type CommandResult, type GlobalFlags } from "../types";
 import { bold, dim, green, red, yellow } from "./output";
 
@@ -20,7 +20,7 @@ export type HomeView = {
 export const HOME_DESCRIPTION = "Agent-native marketing playbook CLI";
 
 /** Collapse a leading $HOME to `~` so paths are short and machine-portable. */
-export const collapseHome = (p: string, home: string = homedir()): string =>
+export const collapseHome = (p: string, home: string = userHome()): string =>
   home && (p === home || p.startsWith(`${home}/`)) ? `~${p.slice(home.length)}` : p;
 
 const helpForHealth = (health: HomeView["health"]): readonly string[] => {

@@ -17,12 +17,12 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../../../src/core/user-home";
 import type { SkillsManifest } from "../../../src/types";
 
 const projectRoot = import.meta.dir.replace("/tests/e2e/skills", "");
 const manifestPath = join(projectRoot, "skills-manifest.json");
-const installRoot = join(homedir(), ".claude", "skills");
+const installRoot = join(userHome(), ".claude", "skills");
 
 const TIER_2_SKILLS = new Set([
   "image-gen",

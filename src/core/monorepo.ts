@@ -4,7 +4,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 
 export interface RepositoryLayout {
   readonly ecosystemRoot: string;
@@ -63,7 +63,7 @@ export const resolveRepositoryLayout = (
         : join(ecosystemRoot, "mktg-studio"),
     };
   }
-  const ecosystemRoot = join(homedir(), "projects", "mktgmono");
+  const ecosystemRoot = join(userHome(), "projects", "mktgmono");
   return {
     ecosystemRoot,
     cliRoot: join(ecosystemRoot, "marketing-cli"),
