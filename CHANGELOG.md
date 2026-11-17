@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`mktg studio` could not start from an npm install.** The package shipped `studio/server.ts` without the `studio/server/` directory it imports. `studio/server` is now in `files`, and the tarball test requires it.
+- **Commands that spawn a process failed under Node.** The Bun compatibility shim had no `Bun.spawn`, so `mktg cmo`, `mktg transcribe`, `mktg verify` and `mktg update --upgrade` could not run from the published binary. The shim's `Glob.scan` also ignored the `{ cwd }` form, so `status`, `plan`, `dashboard` and `seo` counted zero files under Node.
+- **Typefully publishing used a retired API.** The adapter and the `doctor` key probe now use Typefully API v2 (`/v2/social-sets/{id}/drafts`, bearer auth). v1 was retired on 15 June 2026. Set `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set.
+- **Image skills named retired Gemini models.** `gemini-3.1-flash-image-preview` and `gemini-3-pro-image-preview` were shut down on 25 June 2026. Skills now use `gemini-nano-banana-2.1` and `gemini-3-pro-image`.
+- **`mktg release` reported success when a stage failed.** A failed tag, npm publish or GitHub release now exits 4 with `failed_stage` and `recovery` steps, and a failed npm publish no longer creates a GitHub release. The `--confirm` check runs before the test suite instead of after it.
+- **The test suite wrote into the developer's real home directory.** Running `bun test` reinstalled every skill and agent under `~/.claude` and wrote summaries to `~/.mktg`. The CLI now resolves the home directory through `HOME`, and a test preload points the suite at a temp directory.
+
+### Changed
+
+- **Optional third-party CLIs are no longer installed automatically.** A global install used to run `npm i -g @higgsfield/cli` silently. It now prints the install hint; set `MKTG_INSTALL_OPTIONAL_DEPS=1` to opt in. `mktg doctor` still reports what is missing.
+- `CONTEXT.md`, `AGENTS.md` and a new `THIRD_PARTY_NOTICES.md` ship in the npm package. The notices file carries the MIT notice for the skills adapted from Corey Haines' Marketing Skills.
+
+
 ### feat
 
 - opt-in TOON output via global `--format <json|toon>` (AXI principle 1) — JSON stays the default contract, errors always stay JSON

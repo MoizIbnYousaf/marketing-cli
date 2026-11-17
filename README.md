@@ -482,13 +482,13 @@ Contributions welcome. The fastest ways to help:
 
 ## License
 
-[MIT](LICENSE). Use freely. Build on it.
+[MIT](LICENSE). Use freely. Build on it. Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
 ## Acknowledgments
 
-- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills): the breadth skill collection that inspired many of mktg's 76 skills
+- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills) (MIT): the breadth skill collection several of mktg's skills were adapted from. The skills involved and the license notice are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 - [Postiz](https://github.com/gitroomhq/postiz-app) by [@gitroomhq](https://github.com/gitroomhq): the upstream catalog for 30+ social provider integrations (LinkedIn, Reddit, Bluesky, Mastodon, Threads, Instagram, TikTok, YouTube, Pinterest, Discord, Slack, etc.). mktg connects via REST API; license stays firewalled.
 - [last30days-skill](https://github.com/mvanhorn/last30days-skill) by [@mvanhorn](https://github.com/mvanhorn): live research across Reddit, X, YouTube, Hacker News, GitHub, and the web. `/cmo` chains it before any market claim, so the playbook stays grounded in what's actually happening this month, not training-data folklore.
 - [`@steipete/summarize`](https://github.com/steipete/summarize) by [@steipete](https://github.com/steipete): the text-compression CLI that mktg's `summarize` skill wraps with rules and budgets.

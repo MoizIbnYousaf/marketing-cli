@@ -54,7 +54,7 @@ src/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
 skills/                  # 76 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
-agents/                  # 6 agent .md files installed to ~/.claude/agents/
+agents/                  # Agent .md files (research/ + review/) installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
 catalogs-manifest.json   # Upstream catalog registry (postiz v1, openseo; parallel to skills/agents)
 studio/                  # Studio dashboard workspace member (ships inside the tarball)

@@ -87,6 +87,7 @@ describe("e2e: required files ship in the tarball", () => {
     "package.json",
     "README.md",
     "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
     "dist/cli.js",
     "src/core/studio-child-env.ts",
     "src/core/brand.ts",

@@ -20,7 +20,7 @@ mktg catalog info postiz --json --fields configured,missing_envs,resolved_base
 |---|---|---|---|
 | `mktg-native` | Local agent-first publish backend | None | Stores workspace account, providers, queue, history under `.mktg/native-publish/`. This is the current native Studio backend. |
 | `postiz` | External social provider catalog | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` | Creates Postiz drafts through the REST API. Hosted or self-hosted; Docker roots like `http://localhost:4007` are retried through `/api`. |
-| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` | Creates Typefully drafts. Best for threads and X-specific workflows. |
+| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` (+ `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set) | Creates Typefully drafts through API v2. Best for threads and X-specific workflows. Per item: `metadata.social_set_id`, `metadata.platforms`, `metadata.publish_at`. |
 | `resend` | Email send path | `RESEND_API_KEY` | Transactional/email distribution. |
 | `file` | Always-on local export | None | Writes publish artifacts to disk for manual or later posting. |
 

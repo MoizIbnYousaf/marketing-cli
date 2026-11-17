@@ -42,6 +42,10 @@ export type ReleaseResult = {
   readonly gh_release_created: boolean;
   readonly dry_run: boolean;
   readonly ok: boolean;
+  /** First stage that failed after the release commit, or null. */
+  readonly failed_stage: "tag" | "npm_publish" | "gh_release" | null;
+  /** What to do next when a stage failed. Empty on success. */
+  readonly recovery: readonly string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -70,7 +74,9 @@ export const schema: CommandSchema = {
     npm_published: "boolean — `bun publish` succeeded (false in dry-run / --skip-publish)",
     gh_release_created: "boolean — `gh release create` succeeded (false in dry-run / --skip-publish)",
     dry_run: "boolean — true when --dry-run; no side effects occurred",
-    ok: "boolean — true when the requested pipeline completed without errors",
+    ok: "boolean — true when the requested pipeline completed without errors. When false the process exits 4 and failed_stage names the stage",
+    failed_stage: "'tag' | 'npm_publish' | 'gh_release' | null — first stage that failed after the release commit was created",
+    recovery: "string[] — next steps when a stage failed (empty on success); the version bump commit is left in place",
   },
   examples: [
     { args: "mktg release patch --dry-run --json", description: "Preview a patch release plan" },
@@ -209,6 +215,23 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     }
   }
 
+  // Destructive-publish guard: actual publish requires --confirm. Checked
+  // before the test run so a missing flag fails in milliseconds, not after
+  // the full suite. Tag/commit
+  // alone don't require --confirm because they're local-only (the user can
+  // git reset). Pushing to remote would require it but we don't push.
+  const willPublish = !isDryRun && !wantsSkipPublish;
+  if (willPublish && !wantsConfirm) {
+    return invalidArgs(
+      "release will publish to npm and create a GitHub release — pass --confirm to proceed, or --skip-publish to stop after the local tag",
+      [
+        `mktg release ${bump} --skip-publish --json`,
+        `mktg release ${bump} --dry-run --json`,
+        `mktg release ${bump} --confirm --json`,
+      ],
+    );
+  }
+
   // Run tests (skippable for tests-of-tests via env var)
   const skipTestsEnv = process.env.MKTG_RELEASE_SKIP_TESTS === "1";
   let testsPassed = true;
@@ -233,21 +256,6 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
   const grouped = groupChangelog(changelog_entries);
   const changelogBody = `## v${versionNew}\n\n${grouped || "_No notable changes._"}\n`;
 
-  // Destructive-publish guard: actual publish requires --confirm. Tag/commit
-  // alone don't require --confirm because they're local-only (the user can
-  // git reset). Pushing to remote would require it but we don't push.
-  const willPublish = !isDryRun && !wantsSkipPublish;
-  if (willPublish && !wantsConfirm) {
-    return invalidArgs(
-      "release will publish to npm and create a GitHub release — pass --confirm to proceed, or --skip-publish to stop after the local tag",
-      [
-        `mktg release ${bump} --skip-publish --json`,
-        `mktg release ${bump} --dry-run --json`,
-        `mktg release ${bump} --confirm --json`,
-      ],
-    );
-  }
-
   // Dry-run: report the plan and exit cleanly
   if (isDryRun) {
     return ok({
@@ -263,6 +271,8 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       gh_release_created: false,
       dry_run: true,
       ok: true,
+      failed_stage: null,
+      recovery: [],
     });
   }
 
@@ -316,12 +326,14 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     );
   }
 
-  const tagRes = runCmd("git", ["tag", `v${versionNew}`, "-m", `Release v${versionNew}`], flags.cwd, 10_000);
-  const tagged = tagRes.ok;
-
-  // Stop here if --skip-publish
-  if (wantsSkipPublish) {
-    return ok({
+  // A stage that fails after the release commit exists is reported as a
+  // finding with a non-zero exit (the ship-check convention): the caller gets
+  // the full state of what did and did not happen, plus how to recover, and a
+  // script that only checks the exit code still sees the failure.
+  const finish = (
+    partial: Pick<ReleaseResult, "tagged" | "npm_published" | "gh_release_created" | "failed_stage" | "recovery">,
+  ): CommandResult<ReleaseResult> => {
+    const data: ReleaseResult = {
       version_old: versionOld,
       version_new: versionNew,
       bump_type: bump,
@@ -329,35 +341,68 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       tests_skipped: testsSkipped,
       changelog_entries,
       committed,
-      tagged,
+      dry_run: false,
+      ok: partial.failed_stage === null,
+      ...partial,
+    };
+    return data.ok
+      ? ok(data)
+      : ({ ok: true, data, exitCode: 4 } as unknown as CommandResult<ReleaseResult>);
+  };
+
+  const tag = `v${versionNew}`;
+  const tagRes = runCmd("git", ["tag", tag, "-m", `Release ${tag}`], flags.cwd, 10_000);
+  if (!tagRes.ok) {
+    return finish({
+      tagged: false,
       npm_published: false,
       gh_release_created: false,
-      dry_run: false,
-      ok: tagged,
+      failed_stage: "tag",
+      recovery: [
+        `git tag failed: ${tagRes.stderr.trim() || `exit ${tagRes.exitCode}`}`,
+        `If ${tag} already exists, delete it (git tag -d ${tag}) or pick another bump`,
+        `The release commit is in place. Undo it with: git reset --hard HEAD~1`,
+      ],
     });
   }
 
-  // Publish to npm
+  // Stop here if --skip-publish
+  if (wantsSkipPublish) {
+    return finish({ tagged: true, npm_published: false, gh_release_created: false, failed_stage: null, recovery: [] });
+  }
+
+  // Publish to npm. If this fails, do not create a GitHub release that
+  // announces a version nobody can install.
   const publishRes = runCmd("bun", ["publish"], flags.cwd, 300_000);
-  const npm_published = publishRes.ok;
+  if (!publishRes.ok) {
+    return finish({
+      tagged: true,
+      npm_published: false,
+      gh_release_created: false,
+      failed_stage: "npm_publish",
+      recovery: [
+        `bun publish failed: ${publishRes.stderr.trim().split("\n").slice(-3).join(" | ") || `exit ${publishRes.exitCode}`}`,
+        "Check npm auth (npm whoami), then retry the publish from this commit: bun publish",
+        `Then create the release: gh release create ${tag} --title ${tag} --generate-notes`,
+        `To abandon instead: git tag -d ${tag} && git reset --hard HEAD~1`,
+      ],
+    });
+  }
 
-  // Create GitHub release with CHANGELOG body. Use stdin via printf piped
-  // through a temp file would be cleaner; for now we pass --notes inline.
-  const ghRes = runCmd("gh", ["release", "create", `v${versionNew}`, "--title", `v${versionNew}`, "--notes", changelogBody], flags.cwd, 60_000);
-  const gh_release_created = ghRes.ok;
+  // Create GitHub release with the CHANGELOG body.
+  const ghRes = runCmd("gh", ["release", "create", tag, "--title", tag, "--notes", changelogBody], flags.cwd, 60_000);
+  if (!ghRes.ok) {
+    return finish({
+      tagged: true,
+      npm_published: true,
+      gh_release_created: false,
+      failed_stage: "gh_release",
+      recovery: [
+        `gh release create failed: ${ghRes.stderr.trim() || `exit ${ghRes.exitCode}`}`,
+        `${tag} is published on npm. Push the commit and tag (git push --follow-tags), then retry: gh release create ${tag} --title ${tag} --generate-notes`,
+      ],
+    });
+  }
 
-  return ok({
-    version_old: versionOld,
-    version_new: versionNew,
-    bump_type: bump,
-    tests_passed: testsPassed,
-    tests_skipped: testsSkipped,
-    changelog_entries,
-    committed,
-    tagged,
-    npm_published,
-    gh_release_created,
-    dry_run: false,
-    ok: committed && tagged && npm_published && gh_release_created,
-  });
+  return finish({ tagged: true, npm_published: true, gh_release_created: true, failed_stage: null, recovery: [] });
 };

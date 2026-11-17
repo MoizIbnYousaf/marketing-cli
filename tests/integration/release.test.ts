@@ -341,3 +341,56 @@ describe("schema introspection", () => {
     expect(fields).toContain("ok");
   });
 });
+
+// =========================================================================
+// Failed stages exit non-zero and say how to recover
+// =========================================================================
+
+describe("a failed stage is not reported as success", () => {
+  test("tag collision exits 4 with failed_stage 'tag' and recovery steps", async () => {
+    await initRepo(scratch, "3.0.0", ["feat: thing"]);
+    // Occupy the tag the release would create, so `git tag` genuinely fails.
+    expect(sh("git", ["tag", "v3.0.1"], scratch).ok).toBe(true);
+
+    const { stdout, exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+
+    expect(exitCode).toBe(4);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ok).toBe(false);
+    expect(parsed.failed_stage).toBe("tag");
+    expect(parsed.committed).toBe(true);
+    expect(parsed.tagged).toBe(false);
+    expect(parsed.npm_published).toBe(false);
+    expect(parsed.recovery.join(" ")).toContain("git reset --hard HEAD~1");
+  });
+
+  test("a successful --skip-publish run reports no failed stage", async () => {
+    await initRepo(scratch, "3.1.0", ["feat: thing"]);
+
+    const { stdout, exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.failed_stage).toBeNull();
+    expect(parsed.recovery).toEqual([]);
+  });
+
+  test("missing --confirm is rejected before the test run starts", async () => {
+    await initRepo(scratch, "3.2.0", ["feat: thing"]);
+
+    // MKTG_RELEASE_SKIP_TESTS is cleared: if the guard ran after the tests,
+    // this would launch `bun test` in the scratch repo instead of returning.
+    const started = Date.now();
+    const { stdout, exitCode } = await runCli(["release", "patch", "--json"], scratch, {
+      MKTG_RELEASE_SKIP_TESTS: "0",
+    });
+
+    expect(exitCode).toBe(2);
+    expect(JSON.parse(stdout).error.message).toContain("--confirm");
+    expect(Date.now() - started).toBeLessThan(10_000);
+    // Nothing was bumped.
+    const pkg = JSON.parse(await readFile(join(scratch, "package.json"), "utf-8"));
+    expect(pkg.version).toBe("3.2.0");
+  });
+});
