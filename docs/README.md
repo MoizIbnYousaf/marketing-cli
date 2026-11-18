@@ -21,4 +21,3 @@ indexes under `skills/cmo/rules/`:
 | `integration/` | Ecosystem integration notes and contracts |
 | `thermo/` | Thermo (release/health) reports |
 | `solutions/` | Past solutions and learnings |
-| `dogfood-*/`, `utilized-offline-*/` | Dated dogfood / offline-usage session logs |

@@ -4,7 +4,7 @@
 import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
-import { rejectControlChars, validateResourceId } from "../core/errors";
+import { rejectControlChars } from "../core/errors";
 import { validatePublicUrl, fetchWithSizeCap } from "../core/url-validation";
 import { isTTY, writeStderr, bold, dim, green, yellow, red } from "../core/output";
 
@@ -216,7 +216,7 @@ const handleScan = async (cwd: string, dryRun: boolean, ndjson = false): Promise
     if (dryRun) {
       const result: ScanResult = {
         url: entry.url, status: previous ? "unchanged" : "new",
-        title: entry.lastTitle ?? "", changes: [dryRun ? "dry-run: would fetch and compare" : ""],
+        title: entry.lastTitle ?? "", changes: ["dry-run: would fetch and compare"],
         suggestedSkill: null,
       };
       results.push(result);
@@ -232,7 +232,7 @@ const handleScan = async (cwd: string, dryRun: boolean, ndjson = false): Promise
     }
 
     if (!previous) {
-      if (!dryRun) await saveSnapshot(cwd, current);
+      await saveSnapshot(cwd, current);
       const result: ScanResult = { url: entry.url, status: "new", title: current.title, changes: ["First scan — baseline captured"], suggestedSkill: null };
       results.push(result);
       if (ndjson) writeStderr(JSON.stringify({ type: "scan-result", data: result }));
@@ -247,16 +247,14 @@ const handleScan = async (cwd: string, dryRun: boolean, ndjson = false): Promise
     if (newHeadings.length > 0) changes.push(`New headings: ${newHeadings.join(", ")}`);
     if (removedHeadings.length > 0) changes.push(`Removed headings: ${removedHeadings.join(", ")}`);
 
-    if (!dryRun) await saveSnapshot(cwd, current);
+    await saveSnapshot(cwd, current);
 
     // Update watchlist entry
-    if (!dryRun) {
-      const idx = watchlist.entries.findIndex(e => e.url === entry.url);
-      if (idx >= 0) {
-        (watchlist.entries as WatchEntry[])[idx] = { ...entry, lastScan: current.fetchedAt, lastTitle: current.title };
-      }
-      await saveWatchlist(cwd, watchlist);
+    const idx = watchlist.entries.findIndex(e => e.url === entry.url);
+    if (idx >= 0) {
+      (watchlist.entries as WatchEntry[])[idx] = { ...entry, lastScan: current.fetchedAt, lastTitle: current.title };
     }
+    await saveWatchlist(cwd, watchlist);
 
     const result: ScanResult = {
       url: entry.url,

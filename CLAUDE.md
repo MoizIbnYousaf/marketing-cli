@@ -31,7 +31,7 @@ This is a bun-workspaces monorepo with one publishable package: `marketing-cli`.
 | Path | Component | Launched via |
 |---|---|---|
 | (root) | `marketing-cli` (CLI: skills, agents, brand memory, `/cmo`) | `mktg <command>` |
-| `studio/` | Studio dashboard (Next.js + Bun API + Drizzle) | `mktg studio` |
+| `studio/` | Studio dashboard (Next.js + Bun API + SQLite) | `mktg studio` |
 
 ## Architecture
 
@@ -61,7 +61,7 @@ studio/                  # Studio dashboard workspace member (ships inside the t
 ├── app/                 # Next.js dashboard
 ├── server.ts            # Bun API server
 ├── server/http.ts       # HTTP helpers for the API
-└── server/routes/       # activity, brand, content, publish, signals
+└── server/routes/       # activity, brand, content, plan, publish, signals
 ├── bin/mktg-studio.ts   # Local launcher (mktg studio resolves this first)
 ├── components/          # React UI
 └── package.json         # Workspace package.json: Next.js deps + build scripts (no separate publish)

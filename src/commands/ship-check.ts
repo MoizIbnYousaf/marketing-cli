@@ -28,8 +28,7 @@
 //  - Axis 5: --skip values validated against known check names
 //  - Axis 6: --dry-run lists what would run, zero side effects
 //
-// M3 consumes M1's exported helpers (parseBunTestStats, runSuite) and
-// M1's summary file at ~/.mktg/verify/<ts>.json. This keeps M3 thin.
+// Spawns mktg verify, or reads its summary file at ~/.mktg/verify/<ts>.json.
 
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";

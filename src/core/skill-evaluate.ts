@@ -32,7 +32,7 @@ export const evaluateSkill = (
   const fm = parseFrontmatter(content);
   if (!fm) return { error: "No valid frontmatter found" };
 
-  const validation = validateSkill(content, manifest);
+  const validation = validateSkill(content);
   const fmTriggers = fm.triggers ?? [];
   const fmReads = (fm.reads ?? []).map(f => f.replace(/^brand\//, ""));
   const fmWrites = (fm.writes ?? []).map(f => f.replace(/^brand\//, ""));

@@ -1,7 +1,7 @@
 // mktg — Agent registry, install, and integrity verification
 // Reads agents-manifest.json, copies bundled agents to ~/.claude/agents/
 
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { userHome } from "./user-home";
 import type { AgentsManifest } from "../types";
@@ -162,14 +162,3 @@ export const updateAgents = async (
 
 // Get the agents install directory path
 export const getAgentsInstallDir = (): string => AGENTS_INSTALL_DIR;
-
-// Synchronous manifest reader (cached)
-let _cachedAgentManifest: AgentsManifest | null = null;
-
-export const readAgentManifest = (): AgentsManifest => {
-  if (_cachedAgentManifest) return _cachedAgentManifest;
-  const manifestPath = join(getPackageRoot(), "agents-manifest.json");
-  const raw = require(manifestPath) as AgentsManifest;
-  _cachedAgentManifest = raw;
-  return raw;
-};

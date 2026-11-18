@@ -5,7 +5,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { logRun, getRunHistory, getLastRun, getRunSummary, getRunStats, isCompletedRecord } from "../src/core/run-log";
+import { logRun, getRunHistory, getLastRun, getRunSummary, isCompletedRecord } from "../src/core/run-log";
 import type { SkillRunRecord } from "../src/types";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
@@ -170,40 +170,6 @@ describe("getRunSummary", () => {
     const summary = await getRunSummary(tmpDir);
     expect(summary["a"]!.runCount).toBe(3);
     expect(summary["b"]!.runCount).toBe(1);
-  });
-});
-
-describe("getRunStats", () => {
-  let tmpDir: string;
-
-  beforeEach(async () => {
-    tmpDir = await mkdtemp(join(tmpdir(), "mktg-runlog-"));
-  });
-
-  afterEach(async () => {
-    await rm(tmpDir, { recursive: true, force: true });
-  });
-
-  test("returns zeros when no history", async () => {
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(0);
-    expect(stats.uniqueSkills).toBe(0);
-    expect(stats.successRate).toBe(0);
-  });
-
-  test("calculates aggregate stats correctly", async () => {
-    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T10:00:00.000Z", result: "success", brandFilesChanged: [] });
-    await logRun(tmpDir, { skill: "b", timestamp: "2026-03-13T11:00:00.000Z", result: "failed", brandFilesChanged: [] });
-    await logRun(tmpDir, { skill: "a", timestamp: "2026-03-13T12:00:00.000Z", result: "success", brandFilesChanged: [] });
-    await logRun(tmpDir, { skill: "c", timestamp: "2026-03-13T13:00:00.000Z", result: "partial", brandFilesChanged: [] });
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(4);
-    expect(stats.uniqueSkills).toBe(3);
-    expect(stats.successCount).toBe(2);
-    expect(stats.failedCount).toBe(1);
-    expect(stats.partialCount).toBe(1);
-    expect(stats.successRate).toBe(50);
   });
 });
 
@@ -384,16 +350,5 @@ describe("completedOnly filtering", () => {
     expect(summary["seo-content"]!.event).toBe("completed");
     expect(summary["seo-content"]!.result).toBe("success");
     expect(summary["legacy-load"]!.event).toBe("loaded");
-  });
-
-  test("stats count loaded vs completed separately; rate uses outcome records only", async () => {
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(4);
-    expect(stats.completedCount).toBe(2);
-    expect(stats.loadedCount).toBe(2);
-    // 3 records carry an outcome field (completed + both legacy records);
-    // only the explicit load event has none.
-    expect(stats.successCount).toBe(3);
-    expect(stats.successRate).toBe(100);
   });
 });

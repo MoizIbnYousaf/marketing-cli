@@ -10,7 +10,6 @@ import {
   mergeManifests,
   resolveManifest,
   loadManifest,
-  readManifest,
   getSkillNames,
 } from "../src/core/skills";
 import type { SkillsManifest } from "../src/types";
@@ -367,7 +366,7 @@ describe("resolveManifest", () => {
   });
 });
 
-// ---------- loadManifest + readManifest ----------
+// ---------- loadManifest ----------
 
 describe("loadManifest", () => {
   test("returns manifest with version, skills, and redirects", async () => {
@@ -395,15 +394,6 @@ describe("loadManifest", () => {
       expect(Array.isArray(entry.triggers)).toBe(true);
       expect(typeof entry.review_interval_days).toBe("number");
     }
-  });
-});
-
-describe("readManifest (sync)", () => {
-  test("returns same data as loadManifest", async () => {
-    const asyncManifest = await loadManifest();
-    const syncManifest = readManifest();
-    expect(Object.keys(syncManifest.skills).length).toBe(Object.keys(asyncManifest.skills).length);
-    expect(syncManifest.version).toBe(asyncManifest.version);
   });
 });
 

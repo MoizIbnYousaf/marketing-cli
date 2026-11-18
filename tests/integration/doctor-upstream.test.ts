@@ -100,6 +100,7 @@ describe("doctor upstream-mirrored skills check", () => {
       JSON.stringify({ version: 1, sources: [] }),
     );
     const result = await doctorHandler([], flags);
+    expect(result.ok).toBe(true);
     if (!result.ok) return;
     const check = findUpstreamCheck(result.data.checks, "no-fetched-at");
     expect(check).toBeDefined();

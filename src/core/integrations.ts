@@ -12,24 +12,17 @@ export type IntegrationStatus = {
 // Static metadata for named integrations that support --configure
 export type IntegrationConfig = {
   readonly envVar: string;
-  readonly testEndpoint?: string;
   readonly docsUrl: string;
-  readonly testHeaders?: (key: string) => Record<string, string>;
 };
 
 export const INTEGRATION_CONFIG: Record<string, IntegrationConfig> = {
   typefully: {
     envVar: "TYPEFULLY_API_KEY",
-    // API v2: v1 was retired on 15 June 2026. /v2/me verifies the key.
-    testEndpoint: "https://api.typefully.com/v2/me",
     docsUrl: "https://typefully.com/settings/api",
-    testHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
   resend: {
     envVar: "RESEND_API_KEY",
-    testEndpoint: "https://api.resend.com/api-keys",
     docsUrl: "https://resend.com/api-keys",
-    testHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
 };
 

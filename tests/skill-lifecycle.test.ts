@@ -791,7 +791,7 @@ describe("mktg skill unregister", () => {
 // ==================== Unit tests: parseFrontmatter ====================
 
 import { parseFrontmatter, buildGraph, validateSkill, evaluateSkill, triggerSimilarity, tokenize, jaccardSimilarity } from "../src/core/skill-lifecycle";
-import { readManifest } from "../src/core/skills";
+import { loadManifest } from "../src/core/skills";
 
 describe("parseFrontmatter", () => {
   test("parses basic key-value frontmatter", () => {
@@ -961,38 +961,36 @@ describe("buildGraph (unit)", () => {
 // ==================== Unit tests: validateSkill ====================
 
 describe("validateSkill (unit)", () => {
-  const emptyManifest = { version: 1, skills: {}, redirects: {} };
-
   test("valid minimal skill passes", () => {
-    const result = validateSkill("---\nname: good-skill\ndescription: Does good things\n---\n", emptyManifest);
+    const result = validateSkill("---\nname: good-skill\ndescription: Does good things\n---\n");
     expect(result.valid).toBe(true);
     expect(result.errors.length).toBe(0);
   });
 
   test("no frontmatter fails", () => {
-    const result = validateSkill("just text", emptyManifest);
+    const result = validateSkill("just text");
     expect(result.valid).toBe(false);
   });
 
   test("uppercase name fails", () => {
-    const result = validateSkill("---\nname: BadName\ndescription: test\n---\n", emptyManifest);
+    const result = validateSkill("---\nname: BadName\ndescription: test\n---\n");
     expect(result.valid).toBe(false);
   });
 
   test("name with spaces fails", () => {
-    const result = validateSkill("---\nname: bad name\ndescription: test\n---\n", emptyManifest);
+    const result = validateSkill("---\nname: bad name\ndescription: test\n---\n");
     expect(result.valid).toBe(false);
   });
 
   test("name over 64 chars fails", () => {
     const longName = "a" + "-b".repeat(33);
-    const result = validateSkill(`---\nname: ${longName}\ndescription: test\n---\n`, emptyManifest);
+    const result = validateSkill(`---\nname: ${longName}\ndescription: test\n---\n`);
     expect(result.valid).toBe(false);
   });
 
   test("description over 1024 chars fails", () => {
     const longDesc = "x".repeat(1025);
-    const result = validateSkill(`---\nname: test\ndescription: ${longDesc}\n---\n`, emptyManifest);
+    const result = validateSkill(`---\nname: test\ndescription: ${longDesc}\n---\n`);
     expect(result.valid).toBe(false);
   });
 });
@@ -1114,9 +1112,9 @@ describe("mktg skill evaluate", () => {
 
 // ==================== evaluateSkill (unit) ====================
 
-describe("evaluateSkill (unit)", () => {
-  const manifest = readManifest();
+const manifest = await loadManifest();
 
+describe("evaluateSkill (unit)", () => {
   test("returns error for missing frontmatter", () => {
     const result = evaluateSkill("no frontmatter", manifest);
     expect("error" in result).toBe(true);

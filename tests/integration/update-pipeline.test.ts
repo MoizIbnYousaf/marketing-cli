@@ -4,7 +4,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readdir, writeFile, readFile, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, readdir, writeFile, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { userHome } from "../../src/core/user-home";
 import type { GlobalFlags } from "../../src/types";

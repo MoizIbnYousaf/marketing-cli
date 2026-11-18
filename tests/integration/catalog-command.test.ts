@@ -4,7 +4,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 const runCli = async (args: readonly string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {

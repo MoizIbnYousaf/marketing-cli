@@ -286,8 +286,6 @@ Every new command in `src/commands/` must satisfy:
 
 After creating the handler, register it in `src/cli.ts`.
 
-<!-- Track E (frostbyte) — added 2026-05-04 — Upstream-Mirrored Skill Contract -->
-
 ## Upstream-Mirrored Skill Contract
 
 Some skills (e.g. `remotion-best-practices`) mirror an external upstream repository. Their bundled SKILL.md and `rules/` content are vendored from upstream and stay in sync via a provenance manifest plus a drift-checker script. **Distinct** from chained-in CLI skills (e.g. `firecrawl`) — those shell out to a separately-installed CLI binary and have no provenance manifest.
@@ -341,8 +339,6 @@ Every upstream-mirrored skill ships an executable `scripts/check-upstream.sh`. I
 | `mktg doctor [--check-upstream]` | every `<skill>/upstream.json` | nothing | Default mode warns on `fetched_at > 30 days`. With `--check-upstream`, additionally invokes each skill's drift script for a live verdict. |
 
 When porting a new upstream into mktg, the contract is: ship `upstream.json` + `scripts/check-upstream.sh`, and the three CLI commands above start working automatically. No CLI code changes — drop-in by design.
-
-<!-- end Track E section -->
 
 ## 3-Way Sync (mktg-site mirror + Ai-Agent-Skills registry)
 

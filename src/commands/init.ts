@@ -2,14 +2,16 @@
 // Non-TTY never prompts. Agent-first.
 
 import { join } from "node:path";
-import { ok, err, type CommandHandler, type CommandResult, type CommandSchema, type BrandFile } from "../types";
-import { scaffoldBrand, BRAND_TEMPLATES } from "../core/brand";
+import { ok, type CommandHandler, type CommandResult, type CommandSchema, type BrandFile } from "../types";
+import { scaffoldBrand } from "../core/brand";
 import { loadManifest, installSkills, installSkillsWithAiAgentSkills } from "../core/skills";
 import { loadAgentManifest, installAgents } from "../core/agents";
 import { invalidArgs, parseJsonInput, rejectControlChars } from "../core/errors";
 import { validatePublicUrl, fetchWithSizeCap } from "../core/url-validation";
 import { isTTY, writeStderr, green, bold, dim, yellow } from "../core/output";
 import { handler as doctorHandler } from "./doctor";
+import { toolInstallHint } from "../core/tool-registry";
+import { GITHUB_REPO_BLOB_MAIN } from "../constants";
 import { mkdir } from "node:fs/promises";
 
 export const schema: CommandSchema = {
@@ -82,13 +84,6 @@ const parseInitFlags = (args: readonly string[]) => {
     else if (arg === "--from" && args[i + 1]) { fromUrl = args[i + 1]; i++; }
     else if (arg.startsWith("--from=")) fromUrl = arg.slice(7);
     else if (!arg.startsWith("--")) jsonInput ??= arg;
-  }
-
-  // Handle --json 'value' pattern (next positional after --json flag)
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--json" && args[i + 1] && !args[i + 1]!.startsWith("--")) {
-      jsonInput = args[i + 1];
-    }
   }
 
   return { skipBrand, skipSkills, skipAgents, yes, jsonInput, fromUrl };
@@ -215,7 +210,6 @@ const detectProject = async (cwd: string): Promise<{ name: string; hasPackageJso
 
 // Get input from TTY (interactive) or JSON (non-interactive)
 const getInput = async (
-  args: readonly string[],
   flags: ReturnType<typeof parseInitFlags>,
   projectName: string,
   globalJson = false,
@@ -304,7 +298,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
   }
 
   // Get user input
-  const inputResult = await getInput(args, initFlags, project.name, flags.json);
+  const inputResult = await getInput(initFlags, project.name, flags.json);
   if (!inputResult.ok) return inputResult;
   const input = inputResult.data;
   const projectName = input.business ?? project.name;
@@ -419,27 +413,14 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
     const cliChecks = checks.filter((c: any) => c.name.startsWith("cli-"));
     const brandChecks = checks.filter((c: any) => c.name.startsWith("brand-"));
 
-    const CLI_INSTALL_HINTS: Record<string, string> = {
-      bun: "curl -fsSL https://bun.sh/install | bash",
-      ffmpeg: "brew install ffmpeg",
-      remotion: "npm i -g @remotion/cli",
-      firecrawl: "npm i -g firecrawl",
-      "playwright-cli": "npm i -g @playwright/cli",
-      gws: "npm i -g gws",
-      "whisper-cpp": "brew install whisper-cpp",
-      "yt-dlp": "brew install yt-dlp",
-      summarize: "npm i -g @steipete/summarize",
-      gh: "brew install gh",
-    };
-
     const INTEGRATION_DOCS: Record<string, string> = {
       TYPEFULLY_API_KEY: "https://typefully.com/settings/api",
       RESEND_API_KEY: "https://resend.com/api-keys",
       RESEND_WEBHOOK_SECRET: "https://resend.com/webhooks",
       GEMINI_API_KEY: "https://aistudio.google.com/apikey",
       FIRECRAWL_API_KEY: "https://firecrawl.dev",
-      MKTG_X_AUTH_TOKEN: "https://github.com/MoizIbnYousaf/marketing-cli/blob/main/skills/mktg-x/SKILL.md",
-      MKTG_X_CT0: "https://github.com/MoizIbnYousaf/marketing-cli/blob/main/skills/mktg-x/SKILL.md",
+      MKTG_X_AUTH_TOKEN: `${GITHUB_REPO_BLOB_MAIN}/skills/mktg-x/SKILL.md`,
+      MKTG_X_CT0: `${GITHUB_REPO_BLOB_MAIN}/skills/mktg-x/SKILL.md`,
     };
 
     const configuredIntegrations = integrationChecks
@@ -468,7 +449,7 @@ export const handler: CommandHandler<InitResult> = async (args, flags) => {
         const name = c.name.replace("cli-", "");
         return {
           name,
-          install: CLI_INSTALL_HINTS[name] ?? null,
+          install: toolInstallHint(name) ?? null,
           required: c.status === "fail",
         };
       });

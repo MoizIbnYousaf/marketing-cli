@@ -27,7 +27,7 @@ const buildCreatePostDraft = (
 
 // Defensively read item.metadata.providers across current-narrow and
 // future-wide types. Validates at runtime so the adapter works regardless
-// of the PublishItem.metadata type promotion in src/types.ts.
+// of the PublishItem.metadata type promotion in src/core/publish/types.ts.
 const extractProviders = (item: PublishItem): { ok: true; providers: readonly string[] } | { ok: false; detail: string } => {
   const meta = (item as { metadata?: Record<string, unknown> }).metadata;
   if (!meta || typeof meta !== "object") {

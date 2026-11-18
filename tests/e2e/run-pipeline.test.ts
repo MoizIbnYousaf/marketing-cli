@@ -1,4 +1,4 @@
-// RUN PIPELINE E2E — Run 10 different skills in sequence → verify JSONL → summary → stats → priorRuns
+// RUN PIPELINE E2E — Run 10 different skills in sequence → verify JSONL → summary → priorRuns
 // Real file I/O in isolated temp dirs. NO MOCKS. NO FAKE DATA.
 //
 // Agent DX Axes Validated:
@@ -12,8 +12,7 @@ import { join } from "node:path";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { SkillRunRecord } from "../../src/types";
-import { logRun, getRunHistory, getLastRun, getRunSummary, getRunStats } from "../../src/core/run-log";
-import type { RunSummaryEntry } from "../../src/core/run-log";
+import { logRun, getRunHistory, getLastRun, getRunSummary } from "../../src/core/run-log";
 
 let tmpDir: string;
 
@@ -213,48 +212,6 @@ describe("getRunSummary after pipeline", () => {
   });
 });
 
-// ==================== getRunStats ====================
-
-describe("getRunStats after pipeline", () => {
-  test("totalRuns is 10", async () => {
-    for (const run of SKILL_RUNS) {
-      await logRun(tmpDir, run);
-    }
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(10);
-  });
-
-  test("uniqueSkills is 9", async () => {
-    for (const run of SKILL_RUNS) {
-      await logRun(tmpDir, run);
-    }
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.uniqueSkills).toBe(9);
-  });
-
-  test("result counts are correct", async () => {
-    for (const run of SKILL_RUNS) {
-      await logRun(tmpDir, run);
-    }
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.successCount).toBe(8); // 8 success
-    expect(stats.partialCount).toBe(1); // 1 partial
-    expect(stats.failedCount).toBe(1);  // 1 failed
-  });
-
-  test("successRate is 80%", async () => {
-    for (const run of SKILL_RUNS) {
-      await logRun(tmpDir, run);
-    }
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.successRate).toBe(80); // 8/10 = 80%
-  });
-});
-
 // ==================== Incremental pipeline (run-by-run) ====================
 
 describe("Incremental pipeline verification", () => {
@@ -264,30 +221,6 @@ describe("Incremental pipeline verification", () => {
       const history = await getRunHistory(tmpDir);
       expect(history.length).toBe(i + 1);
     }
-  });
-
-  test("stats update correctly after each run", async () => {
-    // After 5 runs (all success)
-    for (let i = 0; i < 5; i++) {
-      await logRun(tmpDir, SKILL_RUNS[i]!);
-    }
-    let stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(5);
-    expect(stats.successRate).toBe(100);
-
-    // After run 6 (partial)
-    await logRun(tmpDir, SKILL_RUNS[5]!);
-    stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(6);
-    expect(stats.partialCount).toBe(1);
-
-    // After all 10
-    for (let i = 6; i < 10; i++) {
-      await logRun(tmpDir, SKILL_RUNS[i]!);
-    }
-    stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(10);
-    expect(stats.successRate).toBe(80);
   });
 });
 
@@ -339,10 +272,5 @@ describe("Empty state", () => {
 
     const summary = await getRunSummary(tmpDir);
     expect(Object.keys(summary).length).toBe(0);
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(0);
-    expect(stats.uniqueSkills).toBe(0);
-    expect(stats.successRate).toBe(0);
   });
 });

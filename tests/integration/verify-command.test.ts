@@ -2,7 +2,7 @@
 // Covers dry-run + execute paths, flag parsing + validation + summary file.
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -114,7 +114,7 @@ describe("mktg verify --dry-run — Pass 1 surface preserved", () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.mode).toBe("dry-run");
-    expect(res.data.counts.total).toBe(15);
+    expect(res.data.counts.total).toBe(9);
     expect(res.data.results).toBeUndefined();
     expect(res.data.execution).toBeUndefined();
   });

@@ -3,7 +3,7 @@
 // Context: `bun build src/cli.ts --outdir dist --target node` produces a
 // bundle that preserves Bun.* API calls in the output. Without a runtime
 // polyfill, running `node dist/cli.js` crashes with "Bun is not defined"
-// — which breaks the `npm install -g mktg && mktg ...` install path for
+// — which breaks the `npm install -g marketing-cli && mktg ...` install path for
 // every user who doesn't already have bun installed.
 //
 // The fix (see src/core/runtime-compat.ts) installs a node-compatible

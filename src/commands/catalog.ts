@@ -2,7 +2,7 @@
 // Subcommands: list, info, sync, status, add. Read-only except `add`.
 
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema, type CatalogEntry, type GlobalFlags, type CatalogLoadResult } from "../types";
-import { invalidArgs, notFound, rejectControlChars, validateResourceId, parseJsonInput } from "../core/errors";
+import { invalidArgs, rejectControlChars, validateResourceId, parseJsonInput } from "../core/errors";
 import { loadCatalogManifest, getCatalog, computeConfiguredStatus, DEFAULT_BUILTIN_PUBLISH_ADAPTERS } from "../core/catalogs";
 
 // ---------------------------------------------------------------------------

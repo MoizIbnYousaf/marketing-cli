@@ -33,7 +33,6 @@ import {
   detectDoubleEncoding,
 } from "../core/errors";
 import { validateSkill } from "../core/skill-lifecycle";
-import { resolveManifest } from "../core/skills";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -266,8 +265,7 @@ const restoreSnapshots = async (snapshots: Snapshot[]): Promise<void> => {
 const bumpManifestVersion = async (
   cwd: string,
   skillName: string,
-  dryRun: boolean,
-): Promise<{ from: string | null; to: string | null; manifestPath: string | null }> => {
+): Promise<{ from: string | null; to: string | null }> => {
   const candidatePaths = [join(cwd, "skills-manifest.json")];
   for (const p of candidatePaths) {
     if (!(await fileExists(p))) continue;
@@ -279,13 +277,11 @@ const bumpManifestVersion = async (
     while (parts.length < 3) parts.push(0);
     parts[2] = (parts[2] ?? 0) + 1;
     const to = parts.join(".");
-    if (!dryRun) {
-      entry.version = to;
-      await writeFile(p, JSON.stringify(raw, null, 2) + "\n");
-    }
-    return { from, to, manifestPath: p };
+    entry.version = to;
+    await writeFile(p, JSON.stringify(raw, null, 2) + "\n");
+    return { from, to };
   }
-  return { from: null, to: null, manifestPath: null };
+  return { from: null, to: null };
 };
 
 // ---------------------------------------------------------------------------
@@ -438,15 +434,14 @@ export const handler: CommandHandler<SkillUpgradeResult> = async (args, flags) =
     await writeFile(upstreamJsonPath, JSON.stringify(refreshedManifest, null, 2) + "\n");
 
     // Bump version (best effort — non-fatal if entry missing)
-    const bump = await bumpManifestVersion(flags.cwd, skillName, false);
+    const bump = await bumpManifestVersion(flags.cwd, skillName);
 
     // Validate post-upgrade SKILL.md if it exists
     let validation_passed = true;
     const skillMdPath = join(skillDir, "SKILL.md");
     if (await fileExists(skillMdPath)) {
       const content = await readFile(skillMdPath, "utf-8");
-      const skillsManifest = await resolveManifest(flags.cwd);
-      const result = validateSkill(content, skillsManifest);
+      const result = validateSkill(content);
       validation_passed = result.valid;
     }
 

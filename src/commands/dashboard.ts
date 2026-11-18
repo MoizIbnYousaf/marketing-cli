@@ -4,7 +4,6 @@ import { join, basename } from "node:path";
 import {
   DASHBOARD_COMPETE_VERSION,
   DASHBOARD_PUBLISH_VERSION,
-  DASHBOARD_ACTION_TYPES,
   DASHBOARD_OUTPUTS_VERSION,
   DASHBOARD_PLAN_VERSION,
   DASHBOARD_SNAPSHOT_VERSION,
@@ -36,7 +35,7 @@ import {
 import { handler as doctorHandler } from "./doctor";
 import { handler as planHandler } from "./plan";
 import { handler as statusHandler } from "./status";
-import { getRunHistory, isCompletedRecord, type RunSummaryEntry } from "../core/run-log";
+import { getRunHistory, isCompletedRecord } from "../core/run-log";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { invalidArgs, parseJsonInput, validatePathInput } from "../core/errors";
@@ -183,12 +182,6 @@ const parseDashboardArgs = (args: readonly string[]): { subcommand?: string } =>
   if (!first || first.startsWith("-")) return {};
   return { subcommand: first };
 };
-
-const isCommandError = (value: unknown): value is CommandResult =>
-  typeof value === "object" &&
-  value !== null &&
-  "ok" in value &&
-  (value as { ok?: unknown }).ok === false;
 
 const isSafeCommand = (command: string): boolean =>
   command.startsWith("mktg status") ||
@@ -649,14 +642,12 @@ const discoverPublishManifests = async (cwd: string): Promise<DashboardPublishMa
 
 const buildPublishResponse = async (
   flags: GlobalFlags,
-): Promise<DashboardPublishResponse | CommandResult> => {
+): Promise<DashboardPublishResponse> => {
   const outputs = await buildOutputsResponse(flags);
-  if (isCommandError(outputs)) return outputs;
 
-  const outputData = outputs as DashboardOutputsResponse;
   const manifests = await discoverPublishManifests(flags.cwd);
   const adapters = buildPublishAdapters();
-  const recentActions = outputData.recentRuns.filter((entry) =>
+  const recentActions = outputs.recentRuns.filter((entry) =>
     ["publish", "content-atomizer", "email-sequences", "newsletter", "postiz", "typefully", "send-email"].some((token) =>
       entry.skill.includes(token),
     ),
@@ -683,7 +674,7 @@ const buildPublishResponse = async (
       manifests.length > 0
         ? `Found ${manifests.length} publish manifest(s) and ${adapters.filter((a) => a.configured).length} configured adapter(s).`
         : `No publish manifests found yet. ${adapters.filter((a) => a.configured).length} adapter(s) are currently configured.`,
-    publishReadiness: outputData.publishReadiness,
+    publishReadiness: outputs.publishReadiness,
     adapters,
     manifests,
     recentActions,
@@ -817,11 +808,7 @@ const handlePlan = async (_args: readonly string[], flags: GlobalFlags): Promise
 
 const handleOutputs = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => ok(await buildOutputsResponse(flags));
 
-const handlePublish = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
-  const response = await buildPublishResponse(flags);
-  if ("ok" in response && response.ok === false) return response;
-  return ok(response);
-};
+const handlePublish = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => ok(await buildPublishResponse(flags));
 
 const handleSystem = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
   const response = await buildSystemResponse(flags);

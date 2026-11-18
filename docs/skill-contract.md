@@ -84,10 +84,10 @@ Every skill must also have an entry in `skills-manifest.json`:
 
 | Field | Values | Description |
 |-------|--------|-------------|
-| `source` | `new`, `v1`, `v2` | Origin — `new` for skills created from scratch |
+| `source` | `new`, `v1`, `v2`, `third-party` | Origin — `new` for skills created from scratch |
 | `category` | `foundation`, `strategy`, `copy-content`, `distribution`, `creative`, `seo`, `conversion`, `growth`, `knowledge` | Functional grouping |
-| `layer` | `foundation`, `strategy`, `execution`, `orchestrator` | Stack position |
-| `tier` | `must-have`, `nice-to-have`, `experimental` | Installation priority |
+| `layer` | `foundation`, `strategy`, `execution`, `distribution`, `orchestrator` | Stack position |
+| `tier` | `must-have`, `nice-to-have` | Installation priority |
 | `reads` | string[] | Brand files the skill reads for context |
 | `writes` | string[] | Brand files the skill creates or appends to |
 | `depends_on` | string[] | Skills that should run before this one |

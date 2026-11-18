@@ -3,7 +3,7 @@
 // Purpose: `bun build src/cli.ts --outdir dist --target node` preserves Bun
 // API calls (Bun.file, Bun.write, Bun.Glob, Bun.CryptoHasher, Bun.which) in
 // the bundled output. When the resulting dist/cli.js runs under node — which
-// happens via `npm install -g mktg && mktg ...` — every Bun.* reference
+// happens via `npm install -g marketing-cli && mktg ...` — every Bun.* reference
 // crashes with "Bun is not defined".
 //
 // This module installs a node-compatible subset of the Bun global when one
@@ -143,7 +143,7 @@ if (typeof (globalThis as { Bun?: unknown }).Bun === "undefined") {
   // -------------------------------------------------------------------------
   class Glob {
     private readonly regex: RegExp;
-    constructor(private readonly pattern: string) {
+    constructor(pattern: string) {
       this.regex = globToRegex(pattern);
     }
     // Bun accepts both scan("dir") and scan({ cwd: "dir" }); callers use both.
