@@ -29,4 +29,3 @@ export function normalizeExpiration(expires) {
     // seconds epoch
     return Math.round(value);
 }
-//# sourceMappingURL=expire.js.map

@@ -100,7 +100,7 @@ A phase is NOT done until all of these pass. Use `scripts/word_count.py` and `sc
   - `BreadcrumbList` (auto from meta helper, but verify present)
   - `FAQPage` (from the FAQ section)
   - `SoftwareApplication` or `Product` representing the user's product
-- [ ] **OG image generated** (defer to `og-image` skill if not yet wired).
+- [ ] **OG image generated** (defer to `image-gen` skill if not yet wired).
 - [ ] **Sitemap updated** with the new URL + today's lastmod. Never future-date.
 
 ## Worked example (skeleton)

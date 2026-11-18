@@ -7,4 +7,3 @@ export declare function dpapiUnprotect(data: Buffer, options?: {
     ok: false;
     error: string;
 }>;
-//# sourceMappingURL=windowsDpapi.d.ts.map

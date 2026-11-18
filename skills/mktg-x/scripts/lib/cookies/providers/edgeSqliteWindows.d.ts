@@ -4,4 +4,3 @@ export declare function getCookiesFromEdgeSqliteWindows(options: {
     includeExpired?: boolean;
     debug?: boolean;
 }, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=edgeSqliteWindows.d.ts.map

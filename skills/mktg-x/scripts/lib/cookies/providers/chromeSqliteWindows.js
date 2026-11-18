@@ -35,4 +35,3 @@ export async function getCookiesFromChromeSqliteWindows(options, origins, allowl
         dbOptions.debug = options.debug;
     return await getCookiesFromChromeSqliteDb(dbOptions, origins, allowlistNames, decrypt);
 }
-//# sourceMappingURL=chromeSqliteWindows.js.map

@@ -15,7 +15,7 @@ mktg-x hits **X's web GraphQL API** — the same endpoints that the x.com web ap
 https://x.com/i/api/graphql/<queryId>/<OperationName>
 ```
 
-All requests are GET (reads) or POST (mutations) with:
+All requests are GET (`TweetDetail` retries as POST when the GET returns 404) with:
 - `Authorization: Bearer <public-web-app-token>` (hard-coded, same token every browser uses)
 - `x-csrf-token: <ct0>` (from `MKTG_X_CT0` env var)
 - `Cookie: auth_token=<token>; ct0=<ct0>`
@@ -30,8 +30,6 @@ All requests are GET (reads) or POST (mutations) with:
 | `Bookmarks` | GET | Fetch the authenticated user's bookmarks (paginated) | `getBookmarks`, `getAllBookmarks` |
 | `UserTweets` | GET | Fetch a user's tweet timeline (paginated) | `getUserTweetsPaged` |
 | `UserByScreenName` | GET | Resolve `@handle` → numeric user ID | `getUserIdByUsername` |
-| `CreateBookmark` | POST | Add a tweet to bookmarks | `bookmark` |
-| `DeleteBookmark` | POST | Remove a tweet from bookmarks | `unbookmark` |
 
 ## Why web GraphQL, not Twitter API v2?
 

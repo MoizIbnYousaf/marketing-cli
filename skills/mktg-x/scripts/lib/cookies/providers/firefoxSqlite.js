@@ -254,4 +254,3 @@ function dedupeCookies(cookies) {
     }
     return Array.from(merged.values());
 }
-//# sourceMappingURL=firefoxSqlite.js.map

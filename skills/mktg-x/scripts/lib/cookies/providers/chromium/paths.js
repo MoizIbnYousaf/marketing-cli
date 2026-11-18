@@ -40,4 +40,3 @@ export function resolveCookiesDbFromProfileOrRoots(options) {
     }
     return null;
 }
-//# sourceMappingURL=paths.js.map

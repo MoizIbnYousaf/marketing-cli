@@ -30,4 +30,3 @@ export function resolveChromiumCookiesDbLinux(options) {
     }
     return null;
 }
-//# sourceMappingURL=linuxPaths.js.map

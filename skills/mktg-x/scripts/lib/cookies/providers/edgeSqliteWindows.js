@@ -35,4 +35,3 @@ export async function getCookiesFromEdgeSqliteWindows(options, origins, allowlis
         dbOptions.debug = options.debug;
     return await getCookiesFromChromeSqliteDb(dbOptions, origins, allowlistNames, decrypt);
 }
-//# sourceMappingURL=edgeSqliteWindows.js.map

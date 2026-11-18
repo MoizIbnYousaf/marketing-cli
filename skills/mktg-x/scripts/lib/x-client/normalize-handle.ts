@@ -20,22 +20,3 @@ export function normalizeHandle(input?: string | null): string | null {
 
   return handle;
 }
-
-export function mentionsQueryFromUserOption(userOption?: string | null): {
-  query: string | null;
-  error: string | null;
-} {
-  if (typeof userOption === 'undefined') {
-    return { query: null, error: null };
-  }
-
-  const handle = normalizeHandle(userOption);
-  if (!handle) {
-    return {
-      query: null,
-      error: 'Invalid --user handle. Expected something like @jack (letters, digits, underscore; max 15).',
-    };
-  }
-
-  return { query: `@${handle}`, error: null };
-}

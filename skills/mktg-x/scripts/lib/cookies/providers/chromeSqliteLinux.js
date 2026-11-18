@@ -48,4 +48,3 @@ export async function getCookiesFromChromeSqliteLinux(options, origins, allowlis
     result.warnings.unshift(...keyringWarnings);
     return result;
 }
-//# sourceMappingURL=chromeSqliteLinux.js.map

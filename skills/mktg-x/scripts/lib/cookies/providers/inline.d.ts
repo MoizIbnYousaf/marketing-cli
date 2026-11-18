@@ -5,4 +5,3 @@ type InlineSource = {
 };
 export declare function getCookiesFromInline(inline: InlineSource, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
 export {};
-//# sourceMappingURL=inline.d.ts.map

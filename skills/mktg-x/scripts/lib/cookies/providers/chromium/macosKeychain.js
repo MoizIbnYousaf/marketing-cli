@@ -27,4 +27,3 @@ export async function readKeychainGenericPasswordFirst(options) {
         error: `Failed to read macOS Keychain (${options.label}): ${lastError ?? 'permission denied / keychain locked / entry missing.'}`,
     };
 }
-//# sourceMappingURL=macosKeychain.js.map

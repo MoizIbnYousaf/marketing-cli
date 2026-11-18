@@ -22,4 +22,3 @@ export declare function getLinuxChromeSafeStoragePassword(options?: {
     password: string;
     warnings: string[];
 }>;
-//# sourceMappingURL=linuxKeyring.d.ts.map

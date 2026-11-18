@@ -8,4 +8,3 @@ export declare function resolveCookiesDbFromProfileOrRoots(options: {
     profile?: string;
     roots: string[];
 }): string | null;
-//# sourceMappingURL=paths.d.ts.map

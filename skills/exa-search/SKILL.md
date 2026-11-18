@@ -25,7 +25,7 @@ metadata:
 ## On Activation
 
 1. Read `brand/positioning.md`, `brand/competitors.md`, and `brand/landscape.md` if present. Use them to sharpen queries and exclusions. All optional - works at zero brand context.
-2. Confirm Exa auth: Exa MCP connected, or `EXA_API_KEY` set (`mktg doctor --json --fields integrations`). If neither, stop and surface: get a key at https://dashboard.exa.ai/api-keys then `export EXA_API_KEY=...`.
+2. Confirm Exa auth: Exa MCP connected, or `EXA_API_KEY` set (`mktg status --json --fields integrations`, look at `EXA_API_KEY.configured`). If neither, stop and surface: get a key at https://dashboard.exa.ai/api-keys then `export EXA_API_KEY=...`.
 3. Prefer MCP tools when present; otherwise use the cURL examples below.
 4. After discovery, chain `firecrawl` or `exa-contents` only when a known URL needs deeper extraction.
 

@@ -23,4 +23,3 @@ export async function dpapiUnprotect(data, options = {}) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };
     }
 }
-//# sourceMappingURL=windowsDpapi.js.map

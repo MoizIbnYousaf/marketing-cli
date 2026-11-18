@@ -4,4 +4,3 @@ export declare function getCookiesFromChromeSqliteMac(options: {
     includeExpired?: boolean;
     debug?: boolean;
 }, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=chromeSqliteMac.d.ts.map

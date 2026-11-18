@@ -153,18 +153,6 @@ async function readTwitterCookiesFromBrowser(options: {
   return { cookies: out, warnings };
 }
 
-export async function extractCookiesFromSafari(): Promise<CookieExtractionResult> {
-  return readTwitterCookiesFromBrowser({ source: 'safari' });
-}
-
-export async function extractCookiesFromChrome(profile?: string): Promise<CookieExtractionResult> {
-  return readTwitterCookiesFromBrowser({ source: 'chrome', chromeProfile: profile });
-}
-
-export async function extractCookiesFromFirefox(profile?: string): Promise<CookieExtractionResult> {
-  return readTwitterCookiesFromBrowser({ source: 'firefox', firefoxProfile: profile });
-}
-
 /**
  * Resolve Twitter credentials from multiple sources.
  * Priority: CLI args > environment variables > browsers (ordered).
