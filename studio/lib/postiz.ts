@@ -12,12 +12,8 @@ import {
   type PostizResult,
 } from "../../src/core/publish/postiz";
 
-// ─── Error types ──────────────────────────────────────────────────────────
-
-export type { PostizError, PostizResult };
-
 // ─── Domain types inferred from postiz-api-reference.md ──────────────────
-// Source: ~/projects/mktgmono/marketing-cli/docs/integration/postiz-api-reference.md §1.1-1.2
+// Source: ../../docs/integration/postiz-api-reference.md §1.1-1.2
 // Upstream: apps/backend/src/public-api/routes/v1/public.integrations.controller.ts:176-195
 
 export type PostizIntegration = {
@@ -55,19 +51,6 @@ export type PostizDiagnostics = {
 
 type PostizPostsEnvelope = {
   readonly posts: readonly PostizPost[];
-};
-
-// CreatePostDto -- used internally by createDraft helper
-// Source: libraries/nestjs-libraries/src/dtos/posts/create.post.dto.ts
-export type CreatePostDto = {
-  readonly type: "draft" | "schedule" | "now" | "update";
-  readonly shortLink: boolean;
-  readonly date: string;
-  readonly tags: readonly { readonly value: string; readonly label: string }[];
-  readonly posts: readonly {
-    readonly integration: { readonly id: string };
-    readonly value: readonly { readonly content: string; readonly image: readonly unknown[] }[];
-  }[];
 };
 
 

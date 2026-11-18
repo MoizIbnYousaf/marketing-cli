@@ -13,13 +13,10 @@ import { resolveProjectRoot } from "./project-root";
 import type {
   CommandResult,
   StatusData,
-  DoctorData,
   ListData,
   SkillEntry,
   PlanData,
   PlanNextData,
-  InitData,
-  RunData,
   CatalogEntry,
   CatalogListData,
   CatalogStatusData,
@@ -30,7 +27,6 @@ import type {
   NativeAccountData,
   NativeProviderData,
   NativePostsData,
-  SchemaData,
   MktgError,
   ExitCode,
 } from "./types/mktg";
@@ -41,7 +37,7 @@ import type {
 // bin/mktg-studio.ts does so the child `mktg` process sees user-configured
 // keys regardless of how the studio was booted. Shell env always wins.
 //
-// Cached per-cwd by mtime so repeated `mktgDoctor()` calls don't re-parse
+// Cached per-cwd by mtime so repeated `run()` calls don't re-parse
 // the file every turn. Exported for tests.
 
 interface EnvCache {
@@ -236,14 +232,6 @@ export function mktgStatus(cwd?: string): Promise<CommandResult<StatusData>> {
 }
 
 /**
- * mktg doctor --json
- * Returns health checks for brand files, skills, agents, and CLI dependencies.
- */
-export function mktgDoctor(cwd?: string): Promise<CommandResult<DoctorData>> {
-  return run<DoctorData>(["doctor"], { cwd });
-}
-
-/**
  * mktg list --json [--routing]
  * Returns all skills and agents with install status.
  */
@@ -296,14 +284,6 @@ export function mktgPlan(cwd?: string): Promise<CommandResult<PlanData>> {
  */
 export function mktgPlanNext(cwd?: string): Promise<CommandResult<PlanNextData>> {
   return run<PlanNextData>(["plan", "next"], { cwd });
-}
-
-/**
- * mktg run <skill> --json
- * Logs a skill execution and returns the result.
- */
-export function mktgRun(skill: string, opts: { cwd?: string } = {}): Promise<CommandResult<RunData>> {
-  return run<RunData>(["run", skill], { cwd: opts.cwd });
 }
 
 /**

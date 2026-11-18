@@ -84,6 +84,5 @@ export const STUDIO_ERROR_CODES = new Set([
   "UPSTREAM_FAILED",
   "PARSE_ERROR",
   "INTERNAL",
-  "DRY_RUN_ONLY",
   "CONFIRM_REQUIRED",
 ]);

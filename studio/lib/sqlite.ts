@@ -37,18 +37,6 @@ export function getDb(): Database {
   return _db;
 }
 
-// Convenience singleton -- call after server init.
-export const db: Database = (() => {
-  // Lazily resolved when first accessed -- modules importing `db` directly
-  // get a Proxy that forwards to the real db once initialized.
-  const handler: ProxyHandler<object> = {
-    get(_target, prop) {
-      return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
-    },
-  };
-  return new Proxy({}, handler) as Database;
-})();
-
 // ---------------------------------------------------------------------------
 // Migration runner
 // Files: db/migrations/NNN_description.sql

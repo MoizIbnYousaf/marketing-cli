@@ -3,13 +3,12 @@
 import { useState } from "react"
 import { Play, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { studioAuthHeaders } from "@/lib/studio-token"
 import { cn } from "@/lib/utils"
 
 // Posts to /api/skill/run, the same endpoint the Command Palette uses.
-// Lane 1 wraps that endpoint in Bearer middleware (Wave A); we pass the
-// token via studioAuthHeaders() so a public install can't run skills
-// without the launch-issued token.
+// The endpoint sits behind the Studio auth perimeter; the browser
+// authenticates with the HttpOnly session cookie, so no auth header is
+// attached here.
 export function RunSkillButton({
   name,
   disabled,
@@ -27,7 +26,7 @@ export function RunSkillButton({
     try {
       const res = await fetch("/api/skill/run", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       })
       if (!res.ok) {

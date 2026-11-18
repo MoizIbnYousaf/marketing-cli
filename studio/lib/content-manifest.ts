@@ -8,7 +8,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, isAbsolute, join } from "node:path";
 import { parseAssetsMarkdown } from "./brand-assets.ts";
 import { resolveProjectPath, resolveProjectRoot } from "./project-root.ts";
 

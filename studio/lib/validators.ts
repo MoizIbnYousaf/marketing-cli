@@ -1,5 +1,5 @@
 // lib/validators.ts -- Input hardening for mktg-studio
-// Ported from ~/projects/mktgmono/marketing-cli/src/core/errors.ts
+// Ported from ../../src/core/errors.ts
 // "The agent is not a trusted operator." -- 6 validators, pure TypeScript, no side effects.
 
 import { resolve, relative, isAbsolute } from "node:path";

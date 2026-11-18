@@ -21,23 +21,16 @@ import { wantsNdjson, streamNdjson } from "./ndjson.ts";
 // Error vocabulary -- every code documented with a deterministic fix hint.
 // ---------------------------------------------------------------------------
 
-// All ErrorCode values are also valid `StudioErrorCode` consumers (the wider
-// vocabulary in lib/output.ts). The audit suite (tests/agent-dx.test.ts) and
-// the cmo-api.md contract treat the canonical input-rejection code as
-// `BAD_INPUT`; the granular variants below (INVALID_JSON, etc.) are kept for
-// detailed logging but parseBodyStrict + apiError surface BAD_INPUT to the
-// wire so downstream consumers don't have to branch on every flavor.
+// The audit suite (tests/agent-dx.test.ts) and the cmo-api.md contract treat
+// the canonical input-rejection code as `BAD_INPUT`; parseBodyStrict +
+// apiError surface it on the wire so downstream consumers don't have to
+// branch on every flavor of malformed input.
 export type ErrorCode =
   | "BAD_INPUT"             // canonical input-rejection, used at the wire
-  | "INVALID_INPUT"         // alias for BAD_INPUT (legacy)
-  | "INVALID_JSON"          // alias for BAD_INPUT (legacy)
   | "PAYLOAD_TOO_LARGE"
   | "UNSAFE_JSON_KEYS"
   | "CONTROL_CHARS_REJECTED"
-  | "DOUBLE_ENCODING"
   | "PATH_TRAVERSAL"
-  | "PATH_ABSOLUTE"
-  | "SYMLINK_REJECTED"
   | "INVALID_RESOURCE_ID"
   | "NOT_FOUND"
   | "METHOD_NOT_ALLOWED"
@@ -45,23 +38,15 @@ export type ErrorCode =
   | "CONFLICT"
   | "RATE_LIMITED"
   | "UPSTREAM_FAILED"       // generic upstream non-200
-  | "MKTG_CLI_FAILED"
-  | "POSTIZ_UNREACHABLE"
-  | "SCHEMA_MISMATCH"
   | "INTERNAL_ERROR";
 
 export const ERROR_FIX_HINTS: Record<ErrorCode, string> = {
   BAD_INPUT: "Check the request body against GET /api/schema",
-  INVALID_INPUT: "Check the request body against GET /api/schema",
-  INVALID_JSON: "Send a valid JSON object as the request body",
   PAYLOAD_TOO_LARGE: "Keep the JSON body under 64 KB",
   UNSAFE_JSON_KEYS: "Remove __proto__ or constructor keys from the payload",
   CONTROL_CHARS_REJECTED:
     "Strip control characters from the value (tabs and newlines are the only ones allowed)",
-  DOUBLE_ENCODING: "Send plain paths, not URL-encoded ones",
   PATH_TRAVERSAL: "Drop `..` segments -- paths must stay inside the project root",
-  PATH_ABSOLUTE: "Use a project-relative path, not an absolute one",
-  SYMLINK_REJECTED: "Replace the symlink with a regular file",
   INVALID_RESOURCE_ID:
     "Use lowercase a-z, 0-9, dots, hyphens, underscores (≤128 chars)",
   NOT_FOUND: "Check GET /api/schema for valid routes and GET /api/jobs/:id for valid job ids",
@@ -70,11 +55,6 @@ export const ERROR_FIX_HINTS: Record<ErrorCode, string> = {
   CONFLICT: "Reload the resource and merge -- your expected version is stale",
   RATE_LIMITED: "Back off -- this client exceeded 60 requests/minute",
   UPSTREAM_FAILED: "Upstream service failed -- retry; if persistent, check the upstream health",
-  MKTG_CLI_FAILED:
-    "Check that mktg is installed (npm i -g marketing-cli) and `mktg doctor` passes",
-  POSTIZ_UNREACHABLE:
-    "Check POSTIZ_API_KEY + POSTIZ_API_BASE; verify with `mktg doctor`",
-  SCHEMA_MISMATCH: "The upstream response didn't match the expected shape -- file a bug",
   INTERNAL_ERROR: "Check the server logs. This is a bug -- please report.",
 };
 
@@ -122,24 +102,6 @@ export function apiError(
 // Field mask -- dot-path filtering for Agent DX axis 4.
 // Works on arrays (masks every element) and nested objects.
 // ---------------------------------------------------------------------------
-
-export function getNestedValue(obj: unknown, path: string): unknown {
-  if (obj == null) return undefined;
-  const parts = path.split(".");
-  let cursor: unknown = obj;
-  for (const part of parts) {
-    if (cursor == null) return undefined;
-    if (Array.isArray(cursor)) {
-      return cursor.map((item) => getNestedValue(item, parts.slice(parts.indexOf(part)).join(".")));
-    }
-    if (typeof cursor === "object") {
-      cursor = (cursor as Record<string, unknown>)[part];
-    } else {
-      return undefined;
-    }
-  }
-  return cursor;
-}
 
 function pickDotPath(target: Record<string, unknown>, source: unknown, path: string): void {
   if (source == null || typeof source !== "object") return;
@@ -288,27 +250,6 @@ export function applyFieldMaskStrict(
   const out: Record<string, unknown> = {};
   for (const path of paths) pickDotPath(out, data, path);
   return { ok: true, data: out };
-}
-
-/**
- * Backward-compatible wrapper that silently drops unknown fields.
- * Prefer `applyFieldMaskStrict` for new code.
- */
-export function applyFieldMask(data: unknown, fieldsParam: string | null): unknown {
-  if (!fieldsParam || data == null || typeof data !== "object") return data;
-  const paths = fieldsParam
-    .split(",")
-    .map((p) => p.trim())
-    .filter((p) => p.length > 0 && /^[a-zA-Z0-9_.]+$/.test(p));
-  if (paths.length === 0) return data;
-
-  if (Array.isArray(data)) {
-    return data.map((item) => applyFieldMask(item, fieldsParam));
-  }
-
-  const out: Record<string, unknown> = {};
-  for (const path of paths) pickDotPath(out, data, path);
-  return out;
 }
 
 // ---------------------------------------------------------------------------

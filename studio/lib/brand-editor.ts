@@ -16,7 +16,6 @@
  */
 
 import { extractErrorFix, extractErrorMessage } from "@/lib/api-error"
-import { studioAuthHeaders } from "@/lib/studio-token"
 
 export type BrandFreshness = "fresh" | "stale" | "empty" | "missing" | "template"
 
@@ -181,16 +180,12 @@ async function parseJson<T>(res: Response, fallback: string): Promise<T> {
 }
 
 export async function listBrandFiles(): Promise<BrandFile[]> {
-  const res = await fetch("/api/brand/files", {
-    headers: { ...studioAuthHeaders() },
-  })
+  const res = await fetch("/api/brand/files")
   return parseJson<BrandFile[]>(res, "Couldn't load brand files")
 }
 
 export async function readBrandFile(name: string): Promise<BrandFileReadResponse> {
-  const res = await fetch(`/api/brand/read?file=${encodeURIComponent(name)}`, {
-    headers: { ...studioAuthHeaders() },
-  })
+  const res = await fetch(`/api/brand/read?file=${encodeURIComponent(name)}`)
   return parseJson<BrandFileReadResponse>(res, `Couldn't read ${name}`)
 }
 
@@ -201,7 +196,7 @@ export async function writeBrandFile(args: {
 }): Promise<BrandFileSaveResult> {
   const res = await fetch("/api/brand/write", {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(args),
   })
   return parseJson<BrandFileSaveResult>(res, "Save failed")
@@ -210,7 +205,7 @@ export async function writeBrandFile(args: {
 export async function regenerateBrandFile(file: string): Promise<BrandRegenerateResult> {
   const res = await fetch("/api/brand/regenerate", {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ file }),
   })
   return parseJson<BrandRegenerateResult>(res, "Regenerate failed")

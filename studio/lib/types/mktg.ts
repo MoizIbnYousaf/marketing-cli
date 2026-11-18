@@ -1,5 +1,5 @@
 // lib/types/mktg.ts
-// Copied from ~/projects/mktgmono/marketing-cli/src/types.ts -- DO NOT import cross-project.
+// Hand copy of the CLI types in ../../src/types.ts.
 // Sync manually when mktg types change. Last synced: 2026-04-16.
 
 // ─── Core result envelope ───
@@ -23,29 +23,6 @@ export type MktgError = {
 export type CommandResult<T = unknown> =
   | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string }
   | { readonly ok: false; readonly error: MktgError; readonly exitCode: ExitCode };
-
-// ─── Brand files ───
-
-export type BrandFile =
-  | "voice-profile.md"
-  | "positioning.md"
-  | "audience.md"
-  | "competitors.md"
-  | "landscape.md"
-  | "keyword-plan.md"
-  | "creative-kit.md"
-  | "stack.md"
-  | "assets.md"
-  | "learnings.md";
-
-export type FreshnessLevel = "current" | "stale" | "template" | "missing";
-
-export type BrandFileStatus = {
-  readonly file: BrandFile;
-  readonly exists: boolean;
-  readonly freshness: FreshnessLevel;
-  readonly ageDays: number | null;
-};
 
 // ─── mktg status ───
 
@@ -94,21 +71,6 @@ export type StatusData = {
   readonly health: "ready" | "incomplete" | "needs-setup";
 };
 
-// ─── mktg doctor ───
-
-export type DoctorCheck = {
-  readonly name: string;
-  readonly status: "pass" | "fail" | "warn";
-  readonly detail: string;
-  readonly fix?: string;
-};
-
-export type DoctorData = {
-  readonly passed: boolean;
-  readonly checks: readonly DoctorCheck[];
-  readonly fixes?: readonly { readonly check: string; readonly action: string; readonly result: string; readonly detail: string }[];
-};
-
 // ─── mktg list ───
 
 export type SkillCategory =
@@ -121,13 +83,6 @@ export type SkillCategory =
   | "seo"
   | "growth"
   | "knowledge";
-
-export type SkillLayer =
-  | "foundation"
-  | "strategy"
-  | "execution"
-  | "distribution"
-  | "orchestrator";
 
 export type SkillRoutingEntry = {
   readonly triggers: readonly string[];
@@ -198,26 +153,6 @@ export type PlanNextData = {
   readonly task: PlanTask;
 };
 
-// ─── mktg init ───
-
-export type InitData = {
-  readonly project: string;
-  readonly brandDir: string;
-  readonly filesCreated: readonly string[];
-  readonly skillsInstalled: readonly string[];
-  readonly agentsInstalled?: readonly string[];
-};
-
-// ─── mktg run ───
-
-export type RunData = {
-  readonly skill: string;
-  readonly status: "success" | "partial" | "failed";
-  readonly brandFilesChanged?: readonly string[];
-  readonly durationMs?: number;
-  readonly note?: string;
-};
-
 // ─── mktg catalog ───
 
 export type CatalogTransport = "sdk" | "http";
@@ -247,11 +182,6 @@ export type CatalogEntry = {
   readonly sdk_reference: string | null;
   readonly auth: CatalogAuth;
   readonly skills: readonly string[];
-};
-
-export type CatalogsManifest = {
-  readonly version: number;
-  readonly catalogs: Record<string, CatalogEntry>;
 };
 
 // Mirrors `mktg catalog list --json` - raw manifest entries only. `configured`
@@ -380,28 +310,4 @@ export type NativePostsData = {
     readonly createdAt: string;
     readonly updatedAt: string;
   }[];
-};
-
-// ─── mktg schema ───
-
-type CommandFlagBase = {
-  readonly name: string;
-  readonly required: boolean;
-  readonly description: string;
-};
-
-export type CommandFlag =
-  | CommandFlagBase & { readonly type: "string"; readonly default?: string }
-  | CommandFlagBase & { readonly type: "boolean"; readonly default?: boolean }
-  | CommandFlagBase & { readonly type: "string[]"; readonly default?: readonly string[] };
-
-export type SchemaData = {
-  readonly name: string;
-  readonly description: string;
-  readonly flags: readonly CommandFlag[];
-  readonly positional?: { readonly name: string; readonly description: string; readonly required: boolean };
-  readonly subcommands?: readonly SchemaData[];
-  readonly output: Readonly<Record<string, string>>;
-  readonly examples: readonly { readonly args: string; readonly description: string }[];
-  readonly vocabulary?: readonly string[];
 };
