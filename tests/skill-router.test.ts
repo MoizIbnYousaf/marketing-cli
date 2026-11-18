@@ -6,7 +6,6 @@
 import { describe, test, expect } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { readdirSync } from "node:fs";
 
 const ROOT = join(import.meta.dir, "..");
 
@@ -45,14 +44,5 @@ describe("playbook table ⋈ playbooks.md drift lock", () => {
       // Phrases must be non-empty and lowercase-routable
       expect(playbook.phrases.length).toBeGreaterThan(0);
     }
-  });
-});
-
-// Keep the subagent-file count assertion trivially satisfied via readdir
-// (guards against accidental deletion of the rules directory).
-describe("cmo rules directory sanity", () => {
-  test("playbooks.md lives alongside the other cmo rules", () => {
-    const rules = readdirSync(join(ROOT, "skills", "cmo", "rules"));
-    expect(rules).toContain("playbooks.md");
   });
 });

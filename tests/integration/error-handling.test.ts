@@ -21,7 +21,7 @@ import {
 } from "../../src/core/errors";
 import { formatOutput, applyFieldsFilter } from "../../src/core/output";
 import { ok, err } from "../../src/types";
-import type { GlobalFlags, ExitCode, MktgError } from "../../src/types";
+import type { GlobalFlags, ExitCode } from "../../src/types";
 
 const CLI_PATH = join(import.meta.dir, "../../src/cli.ts");
 const jsonFlags: GlobalFlags = { json: true, dryRun: false, fields: [], cwd: "." };

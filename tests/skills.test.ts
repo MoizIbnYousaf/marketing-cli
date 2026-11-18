@@ -1,10 +1,8 @@
 // E2E tests for skills.ts — manifest loading, skill install, update, redirects
 // No mocks. Real file I/O, real manifest, real skill installation.
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { userHome } from "../src/core/user-home";
 import {
   loadManifest,

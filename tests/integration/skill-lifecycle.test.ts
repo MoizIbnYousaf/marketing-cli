@@ -4,14 +4,13 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readFile, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
   loadManifest,
   getSkillNames,
   getSkill,
   installSkills,
-  updateSkills,
   getInstallStatus,
   readSkillVersions,
 } from "../../src/core/skills";
@@ -400,26 +399,19 @@ describe("mktg skill subcommands return parseable JSON", () => {
   test("skill graph --json returns DAG structure", async () => {
     // graph requires --cwd to resolve project manifest
     const result = await run(["skill", "graph", "--json", `--cwd=${process.cwd()}`]);
-    // If the command exists and runs, check the output
-    if (result.exitCode === 0) {
-      const data = parseJson(result.stdout) as {
-        nodes: unknown[];
-        edges: unknown[];
-        roots: string[];
-        hasCycles: boolean;
-        order: string[];
-      };
-      expect(data.nodes.length).toBeGreaterThan(0);
-      expect(Array.isArray(data.roots)).toBe(true);
-      expect(data.roots.length).toBeGreaterThan(0);
-      expect(data.hasCycles).toBe(false);
-      expect(data.order.length).toBe(data.nodes.length);
-    } else {
-      // Graph command may fail if skill graph subcommand routing requires positional arg
-      // Verify it at least returns parseable JSON error
-      const data = parseJson(result.stdout) as { error: { code: string } };
-      expect(data.error).toBeDefined();
-    }
+    expect(result.exitCode).toBe(0);
+    const data = parseJson(result.stdout) as {
+      nodes: unknown[];
+      edges: unknown[];
+      roots: string[];
+      hasCycles: boolean;
+      order: string[];
+    };
+    expect(data.nodes.length).toBeGreaterThan(0);
+    expect(Array.isArray(data.roots)).toBe(true);
+    expect(data.roots.length).toBeGreaterThan(0);
+    expect(data.hasCycles).toBe(false);
+    expect(data.order.length).toBe(data.nodes.length);
   });
 
   test("skill info for nonexistent skill returns exit code 1", async () => {

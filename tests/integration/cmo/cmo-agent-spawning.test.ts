@@ -5,7 +5,6 @@
 import { describe, test, expect } from "bun:test";
 import { loadAgentManifest, getAgentNames } from "../../../src/core/agents";
 import { loadManifest } from "../../../src/core/skills";
-import type { AgentsManifest } from "../../../src/types";
 
 const EXPECTED_AGENTS = [
   "brand-researcher",

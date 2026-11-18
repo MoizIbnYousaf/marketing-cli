@@ -2,7 +2,7 @@
 // Covers dry-run + execute paths, flag parsing + validation + summary file.
 
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { mkdtemp, rm, readdir, readFile } from "node:fs/promises";
+import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";

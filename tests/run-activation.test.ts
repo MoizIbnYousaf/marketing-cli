@@ -51,7 +51,7 @@ describe("run --with-context", () => {
 
   test("returns context files from the skill's declared reads", async () => {
     const { stdout, exitCode } = await run(["run", "brand-voice", "--with-context", "--json", "--cwd", tmpDir]);
-    if (exitCode !== 0) return; // skill not installed — acceptable environment skip
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.context).not.toBeNull();
     expect(parsed.context.layer).toBe("reads");
@@ -62,7 +62,7 @@ describe("run --with-context", () => {
 
   test("template files are excluded and named in templatesSkipped (nothing silent)", async () => {
     const { stdout, exitCode } = await run(["run", "seo-content", "--with-context", "--json", "--cwd", tmpDir]);
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(Object.keys(parsed.context.files)).not.toContain("audience.md");
     expect(parsed.context.templatesSkipped).toContain("audience.md");
@@ -73,7 +73,7 @@ describe("run --with-context", () => {
     // budget=1: the top-priority file consumes the entire budget immediately
     // (newline-preserving truncation), so the second file MUST overflow.
     const { stdout, exitCode } = await run(["run", "seo-content", "--with-context", "--budget", "1", "--json", "--cwd", tmpDir]);
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.context.budgetDropped).toContain("keyword-plan.md");
     expect(parsed.context.files["keyword-plan.md"].truncated).toBe(true);
@@ -82,7 +82,7 @@ describe("run --with-context", () => {
 
   test("context is null without --with-context", async () => {
     const { stdout, exitCode } = await run(["run", "brand-voice", "--json", "--cwd", tmpDir]);
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.context).toBeNull();
   });
@@ -96,7 +96,7 @@ describe("run --with-context", () => {
 
   test("--fields can trim the context payload", async () => {
     const { stdout, exitCode } = await run(["run", "brand-voice", "--with-context", "--fields", "skill,context.tokenEstimate,context.templatesSkipped", "--json", "--cwd", tmpDir]);
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.skill).toBe("brand-voice");
     expect(parsed.context.tokenEstimate).toBeGreaterThan(0);
@@ -125,7 +125,7 @@ describe("run --strict + rich prerequisites", () => {
       ["run", "postiz", "--json", "--cwd", tmpDir],
       { POSTIZ_API_KEY: undefined, POSTIZ_API_BASE: undefined },
     );
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     expect(parsed.prerequisites.satisfied).toBe(false);
     expect(parsed.prerequisites.missing.envs).toContain("POSTIZ_API_KEY");
@@ -164,14 +164,13 @@ describe("run --strict + rich prerequisites", () => {
       ["run", "brainstorm", "--strict", "--json", "--cwd", tmpDir],
       { POSTIZ_API_KEY: undefined, POSTIZ_API_BASE: undefined, EXA_API_KEY: undefined, FIRECRAWL_API_KEY: undefined },
     );
-    if (exitCode === 1) return; // skill not installed — environment skip
     expect(exitCode).toBe(0);
   });
 
   test("skill with missing CLI tool reports it in missing.tools with doctor-identical hint", async () => {
     // firecrawl CLI is not installed in this environment
     const { stdout, exitCode } = await run(["run", "firecrawl", "--json", "--cwd", tmpDir], { FIRECRAWL_API_KEY: "k" });
-    if (exitCode !== 0) return;
+    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
     if (parsed.prerequisites.missing.tools.includes("firecrawl")) {
       expect(parsed.prerequisites.remediation.join(" ")).toContain("npm i -g firecrawl");

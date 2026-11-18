@@ -9,12 +9,11 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readdir } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { BRAND_FILES, type BrandFile } from "../../src/types";
 import {
   scaffoldBrand,
-  getBrandStatus,
   isTemplateContent,
   exportBrand,
   importBrand,

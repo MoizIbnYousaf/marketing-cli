@@ -1,6 +1,6 @@
 // E2E Test: `mktg cmo --dry-run --json` orchestration coverage.
 //
-// We test three input shapes per TEST-PLAN.md row 10:
+// We test three input shapes:
 //   - VAGUE: "I don't know what to do" → routing table should suggest brainstorm
 //   - SPECIFIC: "write me a landing page" → direct-response-copy
 //   - WRONG-SKILL-MENTION: user names a skill that's been redirected

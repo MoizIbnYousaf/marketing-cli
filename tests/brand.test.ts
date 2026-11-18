@@ -3,7 +3,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, writeFile, utimes } from "node:fs/promises";
+import { mkdtemp, rm, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { BRAND_FILES } from "../src/types";
 import {

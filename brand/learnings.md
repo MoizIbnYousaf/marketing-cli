@@ -9,4 +9,4 @@
 | 2026-07-18 | Native LinkedIn queue works as staging; empty content can publish if manifest is broken — always verify post length | mktg-native | Check `posts.json` previews after confirm |
 | 2026-07-18 | Lead with compounding brand memory + skill counts; avoid AI-CMO framing | brand voice | Show HN / LI atoms |
 
-Artifacts: `docs/utilized-offline-2026-07-18/` (+ gitignored `marketing/`).
+Artifacts: generated under gitignored marketing/ (tracked mirror removed; see commit f69c3d8).

@@ -468,17 +468,17 @@ cd marketing-cli
 
 bun install
 bun run dev doctor    # Run locally
-bun test              # 2,599 tests, real file I/O, no mocks
+bun test              # real file I/O, no mocks
 bun x tsc --noEmit    # Type check
 bun run build         # Build
 ```
 
 ### Project Structure
 
-- `src/`: CLI source (TypeScript, ~15,500 lines)
+- `src/`: CLI source (TypeScript)
 - `skills/`: 76 SKILL.md files (manifest-backed)
 - `agents/`: 7 agent definitions
-- `tests/`: 2,599 tests across 96 files (real file I/O, no mocks)
+- `tests/`: unit, integration and e2e suites (real file I/O, no mocks)
 - `docs/`: Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
 
 ---

@@ -13,7 +13,6 @@ import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { SkillRunRecord } from "../../src/types";
 import { logRun, getRunHistory, getLastRun, getRunSummary } from "../../src/core/run-log";
-import type { RunSummaryEntry } from "../../src/core/run-log";
 
 let tmpDir: string;
 

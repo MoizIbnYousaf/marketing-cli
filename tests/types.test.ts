@@ -3,7 +3,7 @@
 
 import { describe, test, expect } from "bun:test";
 import { ok, err, BRAND_FILES, BRAND_APPEND_FILES } from "../src/types";
-import type { CommandResult, ExitCode, BrandFile, SkillCategory, SkillLayer } from "../src/types";
+import type { ExitCode } from "../src/types";
 
 describe("Result constructors", () => {
   test("ok() creates success result with exit code 0", () => {
