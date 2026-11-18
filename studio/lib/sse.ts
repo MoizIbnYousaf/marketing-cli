@@ -198,37 +198,3 @@ export function useSSE<T = unknown>(url: string): SSEEvent<T> | null {
 
   return latest;
 }
-
-/**
- * Subscribe to an SSE URL and accumulate all events into an array.
- * Useful for job log streams.
- */
-export function useSSELog<T = unknown>(url: string): SSEEvent<T>[] {
-  const [log, setLog] = useState<{ url: string; events: SSEEvent<T>[] }>({ url, events: [] });
-  const esRef = useRef<EventSource | null>(null);
-
-  useEffect(() => {
-    esRef.current?.close();
-
-    const es = new EventSource(url);
-    esRef.current = es;
-
-    es.onmessage = (ev) => {
-      try {
-        const parsed = JSON.parse(ev.data) as SSEEvent<T>;
-        setLog((prev) => ({
-          url,
-          events: prev.url === url ? [...prev.events, parsed] : [parsed],
-        }));
-      } catch {
-        // Ignore malformed frames
-      }
-    };
-
-    return () => {
-      es.close();
-    };
-  }, [url]);
-
-  return log.url === url ? log.events : [];
-}

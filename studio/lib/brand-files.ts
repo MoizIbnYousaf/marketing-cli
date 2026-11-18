@@ -50,8 +50,6 @@ export const BRAND_FILE_SPECS: readonly BrandFileSpec[] = [
   { name: "learnings.md",     skill: null,                  freshnessDays: null, purpose: "What worked/didn't (append-only)" },
 ] as const;
 
-export const BRAND_FILE_NAMES: readonly string[] = BRAND_FILE_SPECS.map((s) => s.name);
-
 const BY_NAME = new Map<string, BrandFileSpec>(
   BRAND_FILE_SPECS.map((s) => [s.name, s]),
 );

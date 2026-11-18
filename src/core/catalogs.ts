@@ -292,10 +292,6 @@ export const loadCatalogManifest = async (
   return { ok: true, manifest: shape.manifest };
 };
 
-// Get all catalog names — mirrors src/core/skills.ts:30
-export const getCatalogNames = (manifest: CatalogsManifest): string[] =>
-  Object.keys(manifest.catalogs);
-
 // Get a catalog entry by name (no redirects for catalogs — names are stable).
 export const getCatalog = (
   manifest: CatalogsManifest,

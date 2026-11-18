@@ -163,21 +163,6 @@ export const updateAgents = async (
 // Get the agents install directory path
 export const getAgentsInstallDir = (): string => AGENTS_INSTALL_DIR;
 
-// Remove a single installed agent by name
-export const removeAgent = async (
-  name: string,
-  dryRun: boolean = false,
-): Promise<{ removed: boolean; path: string }> => {
-  const agentFile = join(AGENTS_INSTALL_DIR, installedName(name));
-  const exists = await Bun.file(agentFile).exists();
-  if (!exists) return { removed: false, path: agentFile };
-  if (!dryRun) {
-    const { unlink } = await import("node:fs/promises");
-    await unlink(agentFile);
-  }
-  return { removed: true, path: agentFile };
-};
-
 // Synchronous manifest reader (cached)
 let _cachedAgentManifest: AgentsManifest | null = null;
 

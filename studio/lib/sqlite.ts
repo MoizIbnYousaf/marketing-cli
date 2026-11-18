@@ -1,6 +1,6 @@
 // lib/sqlite.ts -- SQLite connection + typed query helpers
 // Uses bun:sqlite (built-in, no extra dep).
-// Runs migrations from db/schema.sql and db/migrations/*.sql on startup.
+// Runs migrations from db/migrations/*.sql on startup.
 
 import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { existsSync, readdirSync, readFileSync } from "node:fs";

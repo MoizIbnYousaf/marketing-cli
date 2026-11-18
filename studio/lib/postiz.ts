@@ -216,32 +216,3 @@ export async function diagnosePostiz(): Promise<PostizDiagnostics> {
     checks,
   };
 }
-
-/**
- * POST /public/v1/posts
- * Creates a draft post. Rate-limited to 30 POST /posts per hour per org.
- * Source: public.integrations.controller.ts:137-151
- */
-export function createPost(dto: CreatePostDto): Promise<PostizResult<unknown>> {
-  return postizFetch<unknown>("/public/v1/posts", { method: "POST", body: dto as unknown as Record<string, unknown> });
-}
-
-/**
- * Builds a draft CreatePostDto for multiple provider integrations.
- * Helper to avoid repeating the DTO shape everywhere in the studio.
- */
-export function buildDraftDto(
-  content: string,
-  integrationIds: string[],
-): CreatePostDto {
-  return {
-    type: "draft",
-    shortLink: false,
-    date: new Date().toISOString(),
-    tags: [],
-    posts: integrationIds.map((id) => ({
-      integration: { id },
-      value: [{ content, image: [] }],
-    })),
-  };
-}

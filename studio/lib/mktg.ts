@@ -299,23 +299,6 @@ export function mktgPlanNext(cwd?: string): Promise<CommandResult<PlanNextData>>
 }
 
 /**
- * mktg init --json [--from <url>] [--yes] [--dry-run]
- * Bootstraps a project with brand/ files and installs skills.
- */
-export function mktgInit(opts: {
-  from?: string;
-  yes?: boolean;
-  dryRun?: boolean;
-  cwd?: string;
-} = {}): Promise<CommandResult<InitData>> {
-  const args = ["init"];
-  if (opts.from) args.push("--from", opts.from);
-  if (opts.yes) args.push("--yes");
-  if (opts.dryRun) args.push("--dry-run");
-  return run<InitData>(args, { cwd: opts.cwd });
-}
-
-/**
  * mktg run <skill> --json
  * Logs a skill execution and returns the result.
  */
@@ -502,18 +485,4 @@ export function mktgPublishNativeUpsertProvider(
  */
 export function mktgPublishNativeListPosts(cwd?: string): Promise<CommandResult<NativePostsData>> {
   return run<NativePostsData>(["publish", "--native-list-posts"], { cwd });
-}
-
-// NOTE: there is no `mktg brand read` subcommand (brand SUBCOMMANDS =
-// export|import|update|freshness|diff|append-learning|claims|kit|delete|reset).
-// Brand file reads go through lib/brand-files.ts, not the CLI.
-
-/**
- * mktg schema [<cmd>] --json
- * Returns schema for a specific command (or all commands if no cmd given).
- */
-export function mktgSchema(cmd?: string): Promise<CommandResult<SchemaData>> {
-  const args = ["schema"];
-  if (cmd) args.push(cmd);
-  return run<SchemaData>(args);
 }

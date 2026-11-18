@@ -557,11 +557,3 @@ export function assertProjectMediaPath(path: string, rootArg?: string): { ok: tr
   if (!stat.isFile()) return { ok: false, message: `${resolved.rel} is not a file` };
   return resolved;
 }
-
-export function relativePathFromAbsolute(absPath: string, rootArg?: string): string | null {
-  const root = safeRoot(rootArg);
-  const resolvedRoot = resolve(root);
-  const resolvedAbs = resolve(absPath);
-  if (resolvedAbs !== resolvedRoot && !resolvedAbs.startsWith(`${resolvedRoot}${sep}`)) return null;
-  return normalizeRelPath(relative(resolvedRoot, resolvedAbs));
-}

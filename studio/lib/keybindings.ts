@@ -27,10 +27,6 @@ export const KEYMAP: readonly Keybinding[] = [
   { id: "nav:settings", sequence: ["g", ","], scope: "dashboard", description: "Open Settings", group: "Navigation" },
 ] as const
 
-export function formatSequence(seq: readonly string[]): string {
-  return seq.join(" ")
-}
-
 export function isTypingContext(el: Element | null): boolean {
   if (!el) return false
   const tag = el.tagName

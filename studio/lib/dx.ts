@@ -424,11 +424,6 @@ export function checkRateLimit(req: Request): RateCheckOk | RateCheckBlocked {
   return { ok: true };
 }
 
-/** Reset all rate buckets. Test-only. */
-export function resetRateLimits(): void {
-  getRateLimitStore().reset();
-}
-
 // ---------------------------------------------------------------------------
 // wrapRoute -- the route-handler wrapper.
 // ---------------------------------------------------------------------------
@@ -625,11 +620,3 @@ function shapeOk<O>(
     headers: { "Content-Type": "application/json", ...ctx.corsHeaders },
   });
 }
-
-// ---------------------------------------------------------------------------
-// Exports for tests + server.ts interop with the legacy helpers.
-// ---------------------------------------------------------------------------
-
-export const __internals = {
-  pickDotPath,
-};

@@ -74,7 +74,3 @@ export const resolveRepositoryLayout = (
     studioRoot: join(ecosystemRoot, "mktg-studio"),
   };
 };
-
-/** Compatibility accessor for reports that expose the ecosystem root. */
-export const resolveMonorepoRoot = (fromUrl: string = import.meta.url): string =>
-  resolveRepositoryLayout(fromUrl).ecosystemRoot;

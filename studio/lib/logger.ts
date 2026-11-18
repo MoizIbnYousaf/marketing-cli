@@ -39,18 +39,3 @@ export function logAccess(req: Request, status: number, durationMs: number): voi
 
   process.stderr.write(JSON.stringify(line) + "\n");
 }
-
-/**
- * Wrap a fetch handler with automatic access logging.
- * The wrapped handler times itself and emits one line per request.
- */
-export function withAccessLog(
-  handler: (req: Request) => Response | Promise<Response>,
-): (req: Request) => Promise<Response> {
-  return async (req: Request) => {
-    const started = performance.now();
-    const res = await handler(req);
-    logAccess(req, res.status, performance.now() - started);
-    return res;
-  };
-}

@@ -31,11 +31,3 @@ export function extractErrorFix(json: StudioErrorJson | unknown): string | undef
   const fix = (error as StudioErrorEnvelope).fix
   return typeof fix === "string" && fix ? fix : undefined
 }
-
-export function extractErrorCode(json: StudioErrorJson | unknown): string | undefined {
-  if (!json || typeof json !== "object") return undefined
-  const error = (json as StudioErrorJson).error
-  if (!error || typeof error === "string") return undefined
-  const code = (error as StudioErrorEnvelope).code
-  return typeof code === "string" && code ? code : undefined
-}
