@@ -114,7 +114,7 @@ describe("mktg verify --dry-run — Pass 1 surface preserved", () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.mode).toBe("dry-run");
-    expect(res.data.counts.total).toBe(15);
+    expect(res.data.counts.total).toBe(9);
     expect(res.data.results).toBeUndefined();
     expect(res.data.execution).toBeUndefined();
   });

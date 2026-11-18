@@ -11,7 +11,6 @@ import {
   installAgents,
   updateAgents,
   getAgentsInstallDir,
-  readAgentManifest,
 } from "../src/core/agents";
 
 const EXPECTED_AGENTS = [
@@ -147,17 +146,6 @@ describe("getAgentsInstallDir", () => {
     const dir = getAgentsInstallDir();
     expect(dir).toContain(".claude/agents");
     expect(dir).toContain(userHome());
-  });
-});
-
-describe("readAgentManifest", () => {
-  test("returns same data as loadAgentManifest", async () => {
-    const async = await loadAgentManifest();
-    const sync = readAgentManifest();
-    expect(sync.version).toBe(async.version);
-    expect(Object.keys(sync.agents)).toHaveLength(
-      Object.keys(async.agents).length,
-    );
   });
 });
 

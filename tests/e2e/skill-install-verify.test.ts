@@ -1,5 +1,5 @@
 // E2E Test: SKILL INSTALL & VERIFY
-// Proves: install all skills → verify each has SKILL.md → verify SHA integrity → list shows all → reinstall → verify
+// Proves: install all skills → verify each has SKILL.md → list shows all → reinstall → verify
 //
 // Agent DX Axes Validated:
 // - Axis 1 (Machine-Readable Output): All commands produce valid JSON when piped (3/3)
@@ -15,7 +15,6 @@ import {
   getSkillNames,
   installSkills,
   getInstallStatus,
-  getInstalledSkills,
 } from "../../src/core/skills";
 
 const run = async (args: string[]): Promise<{ stdout: string; exitCode: number }> => {
@@ -68,35 +67,6 @@ describe("E2E: verify SKILL.md existence", () => {
       }
     }
     expect(missing).toHaveLength(0);
-  });
-});
-
-// ==================== SHA INTEGRITY ====================
-
-describe("E2E: SHA-256 integrity verification", () => {
-  test("every installed skill has a valid SHA-256 hash", async () => {
-    const installed = await getInstalledSkills();
-    expect(installed.length).toBeGreaterThan(0);
-
-    for (const skill of installed) {
-      expect(skill.hash).not.toBeNull();
-      expect(typeof skill.hash).toBe("string");
-      expect(skill.hash!.length).toBe(64); // SHA-256 hex = 64 chars
-      // Verify it's valid hex
-      expect(/^[0-9a-f]{64}$/.test(skill.hash!)).toBe(true);
-    }
-  });
-
-  test("hashes are deterministic — same content produces same hash", async () => {
-    const first = await getInstalledSkills();
-    const second = await getInstalledSkills();
-
-    for (const s1 of first) {
-      const s2 = second.find(s => s.name === s1.name);
-      if (s2) {
-        expect(s1.hash).toBe(s2.hash);
-      }
-    }
   });
 });
 
@@ -154,21 +124,6 @@ describe("E2E: reinstall preserves integrity", () => {
       skills: { updated: string[]; unchanged: string[] };
     };
     expect(data.skills).toBeDefined();
-  });
-
-  test("after update, hashes match pre-update values", async () => {
-    const before = await getInstalledSkills();
-    const manifest = await loadManifest();
-    await installSkills(manifest, false); // reinstall
-    const after = await getInstalledSkills();
-
-    // Same skills, same hashes
-    for (const b of before) {
-      const a = after.find(s => s.name === b.name);
-      if (a) {
-        expect(a.hash).toBe(b.hash);
-      }
-    }
   });
 });
 

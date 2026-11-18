@@ -21,7 +21,7 @@
 
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 import { userHome } from "../core/user-home";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
@@ -33,7 +33,7 @@ import { resolveRepositoryLayout, type RepositoryLayout } from "../core/monorepo
 // Suite registry — data-driven, single source of truth
 // ------------------------------------------------------------------
 
-type SuiteKind = "unit" | "integration" | "e2e" | "dx" | "lint" | "typecheck";
+type SuiteKind = "unit" | "integration" | "e2e" | "dx" | "typecheck";
 
 export interface SuiteDefinition {
   readonly name: string;
@@ -127,7 +127,7 @@ const SUITES: readonly SuiteDefinition[] = [
     cmd: ["bun", "test", "tests"],
     requiredEnv: [],
     estimatedMs: 60_000,
-    description: "marketing-cli full test suite (2488+ tests across 88 files)",
+    description: "marketing-cli full test suite",
   },
   {
     name: "marketing-cli-typecheck",
@@ -193,60 +193,6 @@ const SUITES: readonly SuiteDefinition[] = [
     description: "Real-pipeline E2E harness self-test (E1 scaffold validation)",
   },
   {
-    name: "real-pipeline-postiz",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-postiz.test.ts"],
-    requiredEnv: ["POSTIZ_API_KEY", "POSTIZ_API_BASE"],
-    estimatedMs: 120_000,
-    description: "Real Postiz API coverage (I1) — every endpoint, every field",
-  },
-  {
-    name: "real-pipeline-resend",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-resend.test.ts"],
-    requiredEnv: ["RESEND_API_KEY", "RESEND_TEST_DOMAIN"],
-    estimatedMs: 120_000,
-    description: "Real Resend send + inbound + bounce coverage (I2)",
-  },
-  {
-    name: "real-pipeline-exa-firecrawl",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-exa-firecrawl.test.ts"],
-    requiredEnv: ["EXA_API_KEY", "FIRECRAWL_API_KEY", "TYPEFULLY_API_KEY"],
-    estimatedMs: 120_000,
-    description: "Real Exa + Firecrawl + Typefully coverage (I3)",
-  },
-  {
-    name: "real-pipeline-sqlite",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-sqlite-watcher.test.ts"],
-    requiredEnv: [],
-    estimatedMs: 60_000,
-    description: "SQLite integrity + file watcher reliability (I4)",
-  },
-  {
-    name: "real-pipeline-chaos",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-chaos.test.ts"],
-    requiredEnv: [],
-    estimatedMs: 180_000,
-    description: "Chaos: kill server mid-flow, flaky network, partial fs (H3)",
-  },
-  {
-    name: "real-pipeline-full",
-    kind: "e2e",
-    cwdFrom: "mktg-studio",
-    cmd: ["bun", "test", "tests/e2e/real-pipeline/e2e-pipeline.test.ts"],
-    requiredEnv: ["POSTIZ_API_KEY"],
-    estimatedMs: 300_000,
-    description: "Full pipeline: marketing-cli → studio → /cmo → postiz (E2)",
-  },
-  {
     name: "studio-playwright",
     kind: "e2e",
     cwdFrom: "mktg-studio",
@@ -306,12 +252,12 @@ export const schema: CommandSchema = {
     },
   ],
   output: {
-    mode: "'dry-run' | 'execute' — which mode produced this report. Pass 1 is always 'dry-run'.",
+    mode: "'dry-run' | 'execute' — which mode produced this report",
     mktgmonoRoot: "string — absolute path to the monorepo root used to resolve suite cwds",
     suites:
       "SuitePlan[] — every suite considered, annotated with reachable, envSatisfied, willRun, skipReason",
     "suites.*.name": "string — stable identifier",
-    "suites.*.kind": "'unit' | 'integration' | 'e2e' | 'dx' | 'lint' | 'typecheck'",
+    "suites.*.kind": "'unit' | 'integration' | 'e2e' | 'dx' | 'typecheck'",
     "suites.*.cwd": "string — resolved absolute working directory",
     "suites.*.cmd": "string[] — exact argv the runner will spawn",
     "suites.*.requiredEnv": "string[] — env vars the suite needs",
@@ -447,18 +393,6 @@ const runSuite = async (
   const startedAt = new Date().toISOString();
   const started = performance.now();
 
-  if (!plan.willRun) {
-    return {
-      name: plan.name,
-      kind: plan.kind,
-      status: "skipped",
-      startedAt,
-      durationMs: 0,
-      exitCode: null,
-      skipReason: plan.skipReason ?? "willRun is false",
-    };
-  }
-
   try {
     const proc = Bun.spawn({
       cmd: [...plan.cmd],
@@ -475,7 +409,7 @@ const runSuite = async (
     const durationMs = Math.round(performance.now() - started);
     const stats = parseBunTestStats(stdout) ?? parseBunTestStats(stderr);
     const status: SuiteOutcome =
-      exitCode === 0 ? "pass" : (stats && stats.fail > 0) ? "fail" : "fail";
+      exitCode === 0 ? "pass" : "fail";
 
     let captureFiles: SuiteResult["captureFiles"];
     if (capturePath) {
@@ -538,7 +472,7 @@ const runAll = async (
   while (queue.length > 0 || inFlight.size > 0) {
     while (queue.length > 0 && inFlight.size < concurrency && !aborted) {
       const plan = queue.shift()!;
-      const p = runSuite(plan, capturePath).finally(() => {});
+      const p = runSuite(plan, capturePath);
       inFlight.set(plan.name, p);
     }
     if (inFlight.size === 0) break;
@@ -579,10 +513,6 @@ const writeSummary = async (report: VerifyReport): Promise<string> => {
   await writeFile(p, JSON.stringify(report, null, 2));
   return p;
 };
-
-// ------------------------------------------------------------------
-// Flag parsing (Pass 2 additions: --fail-fast, --parallel, --capture)
-// ------------------------------------------------------------------
 
 // ------------------------------------------------------------------
 // Handler

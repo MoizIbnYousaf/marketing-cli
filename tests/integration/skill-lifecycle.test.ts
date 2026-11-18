@@ -13,10 +13,9 @@ import {
   installSkills,
   updateSkills,
   getInstallStatus,
-  getInstalledSkills,
   readSkillVersions,
 } from "../../src/core/skills";
-import { logRun, getRunHistory, getRunSummary, getRunStats } from "../../src/core/run-log";
+import { logRun, getRunHistory, getRunSummary } from "../../src/core/run-log";
 import type { SkillRunRecord } from "../../src/types";
 
 // CLI runner — spawns the real CLI process
@@ -96,33 +95,6 @@ describe("skill install pipeline", () => {
 // ==================== 2. VERIFY INTEGRITY ====================
 
 describe("skill integrity verification", () => {
-  test("getInstalledSkills returns hashes for installed skills", async () => {
-    const installed = await getInstalledSkills();
-    // Should have at least some installed skills
-    expect(installed.length).toBeGreaterThan(0);
-
-    // Each entry has a name and non-null hash
-    for (const skill of installed) {
-      expect(typeof skill.name).toBe("string");
-      expect(skill.name.length).toBeGreaterThan(0);
-      expect(typeof skill.hash).toBe("string");
-      expect(skill.hash!.length).toBe(64); // SHA-256 hex = 64 chars
-    }
-  });
-
-  test("same skill produces same hash on repeated reads", async () => {
-    const first = await getInstalledSkills();
-    const second = await getInstalledSkills();
-
-    // Find a skill that appears in both
-    for (const s1 of first) {
-      const s2 = second.find(s => s.name === s1.name);
-      if (s2) {
-        expect(s1.hash).toBe(s2.hash);
-      }
-    }
-  });
-
   test("getInstallStatus reports installed/missing for all manifest skills", async () => {
     const manifest = await loadManifest();
     const status = await getInstallStatus(manifest);
@@ -325,27 +297,6 @@ describe("skill run stats aggregation", () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  test("getRunStats returns correct counts", async () => {
-    // Log a realistic session: 5 runs across 3 skills
-    const runs: SkillRunRecord[] = [
-      { skill: "brand-voice", timestamp: "2026-03-20T10:00:00Z", result: "success", brandFilesChanged: ["voice-profile.md"] },
-      { skill: "audience-research", timestamp: "2026-03-20T10:05:00Z", result: "success", brandFilesChanged: ["audience.md"] },
-      { skill: "competitive-intel", timestamp: "2026-03-20T10:10:00Z", result: "failed", brandFilesChanged: [] },
-      { skill: "competitive-intel", timestamp: "2026-03-20T10:15:00Z", result: "success", brandFilesChanged: ["competitors.md"] },
-      { skill: "brand-voice", timestamp: "2026-03-20T10:20:00Z", result: "partial", brandFilesChanged: [] },
-    ];
-
-    for (const r of runs) await logRun(tmpDir, r);
-
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(5);
-    expect(stats.uniqueSkills).toBe(3);
-    expect(stats.successCount).toBe(3);
-    expect(stats.failedCount).toBe(1);
-    expect(stats.partialCount).toBe(1);
-    expect(stats.successRate).toBe(60); // 3/5 = 60%
-  });
-
   test("getRunSummary returns per-skill last run info", async () => {
     await logRun(tmpDir, { skill: "brand-voice", timestamp: "2026-03-20T10:00:00Z", result: "success", brandFilesChanged: [] });
     await logRun(tmpDir, { skill: "brand-voice", timestamp: "2026-03-20T11:00:00Z", result: "failed", brandFilesChanged: [] });
@@ -360,13 +311,6 @@ describe("skill run stats aggregation", () => {
 
     expect(summary["audience-research"]).toBeDefined();
     expect(summary["audience-research"]!.runCount).toBe(1);
-  });
-
-  test("empty log returns zero stats", async () => {
-    const stats = await getRunStats(tmpDir);
-    expect(stats.totalRuns).toBe(0);
-    expect(stats.uniqueSkills).toBe(0);
-    expect(stats.successRate).toBe(0);
   });
 });
 

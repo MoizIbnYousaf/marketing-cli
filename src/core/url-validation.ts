@@ -5,7 +5,7 @@
 // 1. `validatePublicUrl` — reject URLs that point at private networks,
 //    localhost, cloud metadata services, or non-http(s) schemes. Used at
 //    every handler that fetches a user-supplied URL (`mktg init --from`,
-//    `mktg compete add`). Blocks the classic SSRF → IMDS credential theft
+//    `mktg compete watch`). Blocks the classic SSRF → IMDS credential theft
 //    primitive.
 //
 // 2. `fetchWithSizeCap` — fetch a URL with a hard body size limit and a

@@ -15,17 +15,6 @@ export type RunSummaryEntry = {
   readonly daysSince: number;
 };
 
-export type RunStats = {
-  readonly totalRuns: number;
-  readonly uniqueSkills: number;
-  readonly successCount: number;
-  readonly failedCount: number;
-  readonly partialCount: number;
-  readonly loadedCount: number;
-  readonly completedCount: number;
-  readonly successRate: number;
-};
-
 export type RunHistoryFilter = {
   /** Keep only records that represent completed work (see isCompletedRecord). */
   readonly completedOnly?: boolean;
@@ -116,28 +105,4 @@ export const getRunSummary = async (
     (summary as Record<string, RunSummaryEntry>)[skill] = { ...entry, runCount: counts[skill] ?? 0 };
   }
   return summary;
-};
-
-export const getRunStats = async (
-  cwd: string,
-): Promise<RunStats> => {
-  const history = await getRunHistory(cwd, undefined, 10000);
-  const skills = new Set(history.map(r => r.skill));
-  // Result counts cover only records that carry an outcome (completed runs
-  // and pre-event legacy records). Load events have no result by design.
-  const outcomeRecords = history.filter(r => r.result !== undefined);
-  const successCount = outcomeRecords.filter(r => r.result === "success").length;
-  const failedCount = outcomeRecords.filter(r => r.result === "failed").length;
-  const partialCount = outcomeRecords.filter(r => r.result === "partial").length;
-  const completedCount = history.filter(isCompletedRecord).length;
-  return {
-    totalRuns: history.length,
-    uniqueSkills: skills.size,
-    successCount,
-    failedCount,
-    partialCount,
-    loadedCount: history.length - completedCount,
-    completedCount,
-    successRate: outcomeRecords.length > 0 ? Math.round((successCount / outcomeRecords.length) * 100) : 0,
-  };
 };

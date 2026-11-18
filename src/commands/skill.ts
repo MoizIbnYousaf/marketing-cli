@@ -16,20 +16,16 @@ import { addExternalSkill } from "../core/skill-add";
 import { logRun, getRunHistory, getRunSummary } from "../core/run-log";
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
-// --- Track E (frostbyte) wiring: 2026-05-04 ---
 import { handler as checkUpstreamHandler, checkUpstreamSubcommand } from "./skill-check-upstream";
 import { handler as upgradeHandler, upgradeSubcommand } from "./skill-upgrade";
-// --- end Track E imports ---
 
 const SUBCOMMANDS = {
   info: "Show skill metadata, dependencies, and install status",
   validate: "Validate a SKILL.md file against platform and mktg specs",
   graph: "Show skill dependency graph as DAG",
   check: "Check if skill prerequisites are satisfied",
-  // Track E (frostbyte) — added 2026-05-04
   "check-upstream": "Check provenance drift for skills with upstream.json",
   upgrade: "Apply upstream drift to an upstream-mirrored skill",
-  // end Track E
   register: "Register a new skill in the project manifest",
   evaluate: "Analyze a skill for overlap, novelty, and graph fit",
   unregister: "Remove a skill from the project manifest",
@@ -44,10 +40,8 @@ export const schema: CommandSchema = {
   flags: [],
   positional: { name: "subcommand", description: "Subcommand to run", required: true },
   subcommands: [
-    // --- Track E (frostbyte) — added 2026-05-04 ---
     checkUpstreamSubcommand,
     upgradeSubcommand,
-    // --- end Track E ---
     {
       name: "info",
       description: "Show skill metadata, dependencies, and install status",
@@ -284,8 +278,7 @@ const handleValidate = async (args: readonly string[], flags: { cwd: string }): 
   }
 
   const content = await readFile(skillMdPath, "utf-8");
-  const manifest = await resolveManifest(flags.cwd);
-  const result = validateSkillContent(content, manifest);
+  const result = validateSkillContent(content);
 
   return ok(result);
 };
@@ -334,7 +327,7 @@ const handleRegister = async (args: readonly string[], flags: { cwd: string; dry
     const skillMdPath = fullPath.endsWith("SKILL.md") ? fullPath : join(fullPath, "SKILL.md");
     try {
       const content = await readFile(skillMdPath, "utf-8");
-      const validated = validateSkillContent(content, manifest);
+      const validated = validateSkillContent(content);
       return ok({ name: validated.valid ? "(valid, would register)" : "(invalid, would fail)", action: "dry-run", manifestPath: join(flags.cwd, "skills-manifest.json"), validation: validated });
     } catch {
       return ok({ name: "(dry-run)", action: "dry-run", manifestPath: join(flags.cwd, "skills-manifest.json"), validation: null });
@@ -497,18 +490,15 @@ export const handler: CommandHandler = async (args, flags) => {
   }
 
   // Pass all args after the subcommand name (including --flags like --confirm)
-  const subcommandIndex = args.indexOf(subcommand);
-  const subArgs = subcommandIndex >= 0 ? args.slice(subcommandIndex + 1) : args.filter(a => a !== subcommand);
+  const subArgs = args.slice(args.indexOf(subcommand) + 1);
 
   switch (subcommand) {
     case "info": return handleInfo(subArgs, flags);
     case "validate": return handleValidate(subArgs, flags);
     case "graph": return handleGraph(subArgs, flags);
     case "check": return handleCheck(subArgs, flags);
-    // --- Track E (frostbyte) — added 2026-05-04 ---
     case "check-upstream": return checkUpstreamHandler(subArgs, flags);
     case "upgrade": return upgradeHandler(subArgs, flags);
-    // --- end Track E ---
     case "register": return handleRegister(subArgs, flags);
     case "evaluate": return handleEvaluate(subArgs, flags);
     case "unregister": return handleUnregister(subArgs, flags);

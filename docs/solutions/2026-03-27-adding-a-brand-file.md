@@ -19,7 +19,7 @@ Adding landscape.md as the 10th brand file touched 50+ files and broke 107 tests
 - `getBrandStatus()` iterates `BRAND_FILES`
 - `exportBrand()` / `importBrand()` iterate `BRAND_FILES`
 - `getTemplateHashes()` iterates `BRAND_FILES`
-- `checkBrand()` in doctor iterates `BRAND_PROFILE_FILES`
+- `checkBrand()` in doctor treats every `BRAND_FILES` entry outside `BRAND_APPEND_FILES` as a profile file
 
 **Manual-cascade (must update by hand):**
 - `plan.ts`: `foundationOrder` array + `skillMap` record

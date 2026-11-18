@@ -7,7 +7,6 @@ import { resolveManifest } from "../core/skills";
 import { join } from "node:path";
 
 import { mkdir, writeFile, rm, unlink } from "node:fs/promises";
-import type { BrandFile } from "../types";
 
 const SUBCOMMANDS = {
   "export": "Export brand memory as portable JSON bundle",

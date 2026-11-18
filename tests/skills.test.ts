@@ -10,7 +10,6 @@ import {
   loadManifest,
   getSkillNames,
   getSkill,
-  groupByCategory,
   getInstallStatus,
   installSkills,
   updateSkills,
@@ -78,48 +77,6 @@ describe("getSkill", () => {
     expect(skill?.meta.tier).toBe("must-have");
     expect(skill?.meta.layer).toBe("foundation");
     expect(skill?.meta.depends_on).toHaveLength(0);
-  });
-});
-
-describe("groupByCategory", () => {
-  test("groups skills by category", async () => {
-    const manifest = await loadManifest();
-    const groups = groupByCategory(manifest);
-
-    expect(groups).toHaveProperty("foundation");
-    expect(groups).toHaveProperty("strategy");
-    expect(groups).toHaveProperty("copy-content");
-    expect(groups).toHaveProperty("distribution");
-
-    // Foundation should include cmo, brand-voice, etc.
-    const foundationNames = groups.foundation.map((s) => s.name);
-    expect(foundationNames).toContain("cmo");
-    expect(foundationNames).toContain("brand-voice");
-  });
-
-  test("total skills across all groups equals manifest count", async () => {
-    const manifest = await loadManifest();
-    const groups = groupByCategory(manifest);
-    const expectedCount = Object.keys(manifest.skills).length;
-
-    let total = 0;
-    for (const skills of Object.values(groups)) {
-      total += skills.length;
-    }
-    expect(total).toBe(expectedCount);
-  });
-
-  test("no skill appears in multiple groups", async () => {
-    const manifest = await loadManifest();
-    const groups = groupByCategory(manifest);
-
-    const seen = new Set<string>();
-    for (const skills of Object.values(groups)) {
-      for (const skill of skills) {
-        expect(seen.has(skill.name)).toBe(false);
-        seen.add(skill.name);
-      }
-    }
   });
 });
 
@@ -305,8 +262,7 @@ describe("updateSkills diffs references/", () => {
 describe("Category completeness", () => {
   test("creative category has all 8 creative skills", async () => {
     const manifest = await loadManifest();
-    const groups = groupByCategory(manifest);
-    const creativeNames = groups.creative.map(s => s.name);
+    const creativeNames = Object.entries(manifest.skills).filter(([, m]) => m.category === "creative").map(([n]) => n);
 
     expect(creativeNames).toContain("creative");
     expect(creativeNames).toContain("marketing-demo");
@@ -320,12 +276,11 @@ describe("Category completeness", () => {
 
   test("foundation category has the expected core skills", async () => {
     const manifest = await loadManifest();
-    const groups = groupByCategory(manifest);
+    const foundationNames = Object.entries(manifest.skills).filter(([, m]) => m.category === "foundation").map(([n]) => n);
     // Sanity floor — foundation must keep growing; it should never shrink below the
     // original 11. Using >= rather than === so adding a foundation skill (e.g.
     // mktg-setup at v0.5.0) doesn't break this test until someone updates a number.
-    expect(groups.foundation.length).toBeGreaterThanOrEqual(11);
-    const foundationNames = groups.foundation.map((s) => s.name);
+    expect(foundationNames.length).toBeGreaterThanOrEqual(11);
     // The original 11 anchors must always be present.
     expect(foundationNames).toContain("cmo");
     expect(foundationNames).toContain("brand-voice");

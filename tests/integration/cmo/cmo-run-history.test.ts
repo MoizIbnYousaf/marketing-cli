@@ -11,7 +11,6 @@ import {
   logRun,
   getRunHistory,
   getRunSummary,
-  getRunStats,
   getLastRun,
 } from "../../../src/core/run-log";
 import type { SkillRunRecord } from "../../../src/types";
@@ -40,11 +39,8 @@ const makeRecord = (
 describe("CMO Run History Visibility", () => {
   it("CMO sees empty history on fresh project", async () => {
     const summary = await getRunSummary(cwd);
-    const stats = await getRunStats(cwd);
 
     expect(Object.keys(summary)).toHaveLength(0);
-    expect(stats.totalRuns).toBe(0);
-    expect(stats.uniqueSkills).toBe(0);
   });
 
   it("CMO sees which foundation skills have been run", async () => {
@@ -70,7 +66,6 @@ describe("CMO Run History Visibility", () => {
     await logRun(cwd, makeRecord("brand-voice", "success", ["voice-profile.md"]));
 
     const summary = await getRunSummary(cwd);
-    const stats = await getRunStats(cwd);
 
     // Foundation skills that should be recommended next
     const foundationSkills = ["brand-voice", "audience-research", "competitive-intel", "positioning-angles"];
@@ -81,7 +76,6 @@ describe("CMO Run History Visibility", () => {
     expect(missingFoundation).toContain("audience-research");
     expect(missingFoundation).toContain("competitive-intel");
     expect(missingFoundation).toContain("positioning-angles");
-    expect(stats.uniqueSkills).toBe(1);
   });
 
   it("CMO sees priorRuns for a specific skill before re-running", async () => {
@@ -109,7 +103,6 @@ describe("CMO Run History Visibility", () => {
     await logRun(cwd, makeRecord("keyword-research", "partial"));
 
     const summary = await getRunSummary(cwd);
-    const stats = await getRunStats(cwd);
 
     // CMO should prioritize retrying failed skills
     const failedSkills = Object.entries(summary)
@@ -121,9 +114,6 @@ describe("CMO Run History Visibility", () => {
 
     expect(failedSkills).toContain("seo-content");
     expect(partialSkills).toContain("keyword-research");
-    expect(stats.failedCount).toBe(1);
-    expect(stats.partialCount).toBe(1);
-    expect(stats.successRate).toBe(33); // 1/3
   });
 
   it("CMO sees brandFilesChanged to know what's been updated", async () => {
@@ -153,12 +143,7 @@ describe("CMO Run History Visibility", () => {
     await logRun(cwd, makeRecord("direct-response-copy", "success"));
     await logRun(cwd, makeRecord("content-atomizer", "success"));
 
-    const stats = await getRunStats(cwd);
     const summary = await getRunSummary(cwd);
-
-    expect(stats.totalRuns).toBe(8);
-    expect(stats.uniqueSkills).toBe(8);
-    expect(stats.successRate).toBe(100);
 
     // CMO knows all foundation skills are done
     const foundationDone = ["brand-voice", "audience-research", "competitive-intel", "positioning-angles"]

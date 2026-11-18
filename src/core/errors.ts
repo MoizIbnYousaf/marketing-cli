@@ -3,15 +3,14 @@
 
 import { resolve, relative, isAbsolute, sep } from "node:path";
 import { lstatSync } from "node:fs";
-import { err, type CommandResult, type ExitCode } from "../types";
-import { GITHUB_REPO_BLOB_MAIN, GITHUB_REPO_URL } from "../constants";
+import { err, type CommandResult } from "../types";
+import { GITHUB_REPO_BLOB_MAIN } from "../constants";
 
 // Documentation URLs for common errors. Anchors/paths are verified to resolve
 // against the live repo; see src/constants.ts for the base URL.
 export const DOCS = {
   skills: `${GITHUB_REPO_BLOB_MAIN}/docs/skill-contract.md`,
   brand: `${GITHUB_REPO_BLOB_MAIN}/brand/SCHEMA.md`,
-  commands: `${GITHUB_REPO_URL}#commands`,
 } as const;
 
 // Named error constructors for common cases
@@ -264,18 +263,4 @@ export const validatePathInput = (
 
   // Step 3: Validate with sandboxPath (traversal, symlinks, absolute)
   return sandboxPath(root, untrusted);
-};
-
-// Map exit code to human label (for TTY output)
-export const exitCodeLabel = (code: ExitCode): string => {
-  const labels: Record<ExitCode, string> = {
-    0: "success",
-    1: "not found",
-    2: "invalid args",
-    3: "dependency missing",
-    4: "skill failed",
-    5: "network error",
-    6: "not implemented",
-  };
-  return labels[code];
 };
