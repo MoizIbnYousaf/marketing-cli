@@ -1,6 +1,6 @@
 # Exa-Native Research Cookbook
 
-The 7 recipes below replace the Ahrefs-only flow with mktg's native research stack: **Exa MCP** (primary) + **Firecrawl** (SERP scraping) + **gh CLI** (OSS competitor signal) + **last30days** (Reddit/X/HN aggregation) + **mktg-x** (auth-walled Twitter) + **company-research** / **people-research** skills (already in mktg's catalog).
+The 7 recipes below replace the Ahrefs-only flow with mktg's native research stack: **Exa MCP** (primary) + **Firecrawl** (SERP scraping) + **gh CLI** (OSS competitor signal) + **last30days** (Reddit/X/HN aggregation) + **mktg-x** (auth-walled Twitter) + **company-research** and **exa-search** skills.
 
 The trade vs Ahrefs: less numeric precision on volume/KD/TP, but live data, broader signal surface, no paid subscription gate, and recipes that compound multiple APIs in ways a single tool can't.
 

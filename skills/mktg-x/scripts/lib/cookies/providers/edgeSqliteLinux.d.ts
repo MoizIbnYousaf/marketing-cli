@@ -4,4 +4,3 @@ export declare function getCookiesFromEdgeSqliteLinux(options: {
     includeExpired?: boolean;
     debug?: boolean;
 }, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=edgeSqliteLinux.d.ts.map

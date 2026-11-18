@@ -56,7 +56,7 @@ function getCount(): number {
 }
 
 function extractId(input: string): string {
-  const match = input.match(/status\/(\d+)/);
+  const match = input.match(/(?:status|article)\/(\d+)/);
   return match ? match[1] : input;
 }
 

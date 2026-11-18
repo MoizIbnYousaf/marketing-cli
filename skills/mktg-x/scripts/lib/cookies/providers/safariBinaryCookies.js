@@ -170,4 +170,3 @@ function dedupeCookies(cookies) {
     }
     return Array.from(merged.values());
 }
-//# sourceMappingURL=safariBinaryCookies.js.map

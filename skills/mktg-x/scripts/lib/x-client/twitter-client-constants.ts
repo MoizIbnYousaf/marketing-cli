@@ -3,14 +3,13 @@
 import queryIds from './query-ids.json' with { type: 'json' };
 
 export const TWITTER_API_BASE = 'https://x.com/i/api/graphql';
-export const TWITTER_GRAPHQL_POST_URL = 'https://x.com/i/api/graphql';
 export const SETTINGS_SCREEN_NAME_REGEX = /"screen_name":"([^"]+)"/;
 export const SETTINGS_USER_ID_REGEX = /"user_id"\s*:\s*"(\d+)"/;
 export const SETTINGS_NAME_REGEX = /"name":"([^"\\]*(?:\\.[^"\\]*)*)"/;
 
-// Query IDs rotate frequently; the values in query-ids.json are refreshed by
-// scripts/update-query-ids.ts. The fallback values keep the client usable if
-// the file is missing or incomplete.
+// Query IDs rotate frequently. query-ids.json is a hand-maintained baseline;
+// runtime-query-ids.ts refreshes IDs at runtime on a 404. The fallback values
+// keep the client usable if the file is missing or incomplete.
 export const FALLBACK_QUERY_IDS = {
   CreateTweet: 'TAJw1rBsjAtdNgTdlo2oeg',
   CreateRetweet: 'ojPdsZsimiJrUGLR1sjUtA',

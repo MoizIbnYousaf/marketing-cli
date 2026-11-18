@@ -50,4 +50,3 @@ export async function getCookiesFromEdgeSqliteLinux(options, origins, allowlistN
     result.warnings.unshift(...keyringWarnings);
     return result;
 }
-//# sourceMappingURL=edgeSqliteLinux.js.map

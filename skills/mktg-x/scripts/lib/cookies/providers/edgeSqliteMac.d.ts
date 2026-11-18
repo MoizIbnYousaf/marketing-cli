@@ -5,4 +5,3 @@ export declare function getCookiesFromEdgeSqliteMac(options: {
     debug?: boolean;
     timeoutMs?: number;
 }, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=edgeSqliteMac.d.ts.map

@@ -57,4 +57,3 @@ function resolveEdgeCookiesDb(profile) {
         args.profile = profile;
     return resolveCookiesDbFromProfileOrRoots(args);
 }
-//# sourceMappingURL=edgeSqliteMac.js.map

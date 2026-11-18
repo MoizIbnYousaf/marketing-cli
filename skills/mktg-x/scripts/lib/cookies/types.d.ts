@@ -118,4 +118,3 @@ export interface CookieHeaderOptions {
     /** Sorting strategy for the emitted header. */
     sort?: 'name' | 'none';
 }
-//# sourceMappingURL=types.d.ts.map

@@ -131,7 +131,7 @@ Follow `references/exa-recipes.md` — 7 Exa-native recipes that replace the Ahr
 | F. Backlink prospecting | Referring-domain proxy via Exa | Exa search + DR proxy (see `off-page-seo` skill) |
 | G. Content gap | Their indexed keywords − ours, ranked by DR-cap fit | Recipes B + own-site Exa lookup |
 
-Then pull cross-API compound recipes from `references/api-stack-recipes.md` for moves Ahrefs alone can't do — pain-point cluster discovery (`/last30days` + `mktg-x` + Exa deep search), OSS competitor teardown (`gh` + DeepWiki + Exa), outreach prospect discovery (Exa Websets + people-research), newcomer surveillance (Exa Websets cron).
+Then pull cross-API compound recipes from `references/api-stack-recipes.md` for moves Ahrefs alone can't do — pain-point cluster discovery (`/last30days` + `mktg-x` + Exa deep search), OSS competitor teardown (`gh` + DeepWiki + Exa), outreach prospect discovery (Exa Websets + exa-search people queries), newcomer surveillance (Exa Websets cron).
 
 When Exa is unavailable, fall back to `references/manual-research.md` (paste-from-UI workflow). When the user has paid Ahrefs, layer it on top per the appendix in `exa-recipes.md` — don't replace.
 

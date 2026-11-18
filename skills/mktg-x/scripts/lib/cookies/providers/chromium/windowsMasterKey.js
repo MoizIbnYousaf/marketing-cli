@@ -38,4 +38,3 @@ export async function getWindowsChromiumMasterKey(userDataDir, label) {
     }
     return { ok: true, value: unprotected.value };
 }
-//# sourceMappingURL=windowsMasterKey.js.map

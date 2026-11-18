@@ -135,7 +135,7 @@ Catalogs extend mktg via external REST APIs (postiz = 30+ social providers; futu
 | `mktg update --upgrade --dry-run --json` | Preview the npm upgrade command without spawning. Returns the planned `upgradeCommand`. |
 | `mktg update --upgrade --json` | Run `npm i -g marketing-cli@latest`. Surfaces EACCES guidance when the npm prefix is root-owned (suggest `sudo` or a user-owned prefix via nvm/fnm/volta). The package's postinstall re-syncs skills/agents automatically. |
 | `mktg transcribe <url\|path> --json` | Audio/video → transcript. Wraps `whisper-cli` (whisper.cpp) + `yt-dlp` + `ffmpeg`. Used before `content-atomizer` for podcast/video source material. |
-| `mktg studio` | Launch the studio dashboard (Bun API + Next.js UI). Prefers sibling `mktg-studio/bin/mktg-studio.ts`, then `MKTG_STUDIO_BIN`, then PATH. |
+| `mktg studio` | Launch the studio dashboard (Bun API + Next.js UI). Resolves `MKTG_STUDIO_BIN` first, then the bundled `studio/bin/mktg-studio.ts`, then a legacy sibling `mktg-studio/bin/mktg-studio.ts`, then PATH. |
 | `mktg studio --open` | Same, plus open the dashboard in the default browser. |
 | `mktg studio --open --intent cmo --session <id>` | Launch Studio into a CMO-aware dashboard session at `/dashboard?mode=cmo&session=<id>`. Use this for visual command-center startup. |
 | `mktg studio --dry-run --json --intent cmo --session <id>` | Structured preview envelope: resolved launcher, version, forwarded argv, ports, URLs. Zero side effects. Agent-safe for self-discovery. |

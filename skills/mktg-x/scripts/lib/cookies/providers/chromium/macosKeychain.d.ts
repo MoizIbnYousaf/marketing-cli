@@ -21,4 +21,3 @@ export declare function readKeychainGenericPasswordFirst(options: {
     ok: false;
     error: string;
 }>;
-//# sourceMappingURL=macosKeychain.d.ts.map

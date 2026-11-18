@@ -24,4 +24,3 @@ export async function getCookiesFromChrome(options, origins, allowlistNames) {
     }
     return { cookies: [], warnings };
 }
-//# sourceMappingURL=chrome.js.map
