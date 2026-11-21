@@ -156,22 +156,22 @@ const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
 const applyProjectEnvIsolation = (): void => {
   const repoRoot = process.cwd();
   const repoEnv = loadEnvLocal(repoRoot);
-  // The project's .env.local is repository input, not operator config: apply
-  // the CLI's rule so it cannot turn off auth or redirect a shell secret.
-  const projectFile = loadEnvLocal(STUDIO_CWD);
-  const shellEnv = { ...process.env };
-  const projectEnv = Object.fromEntries(
-    Object.entries(projectFile).filter(([key]) => isEnvLocalKeyAllowed(key, projectFile, shellEnv)),
-  );
+  // Bun auto-loaded the Studio package's own .env.local (repoRoot). When
+  // Studio is bound to another project, drop those values first so they
+  // neither leak into the project nor count as shell env below.
   if (STUDIO_CWD !== repoRoot) {
     for (const [key, value] of Object.entries(repoEnv)) {
-      if (projectEnv[key] === undefined && process.env[key] === value) {
-        delete process.env[key];
-      }
+      if (process.env[key] === value) delete process.env[key];
     }
   }
-  for (const [key, value] of Object.entries(projectEnv)) {
-    process.env[key] = value;
+  // The project's .env.local is repository input, not operator config: apply
+  // the CLI's rule so it cannot turn off auth or redirect a shell secret, and
+  // never let it override the shell (the launcher's precedence).
+  const projectFile = loadEnvLocal(STUDIO_CWD);
+  const shellEnv = { ...process.env };
+  for (const [key, value] of Object.entries(projectFile)) {
+    if (!isEnvLocalKeyAllowed(key, projectFile, shellEnv)) continue;
+    if (process.env[key] === undefined) process.env[key] = value;
   }
 };
 

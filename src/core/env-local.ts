@@ -47,6 +47,9 @@ export const loadEnvLocal = (cwd: string): Record<string, string> => {
 // 1. Variables that change how processes run or which binary gets executed.
 //    A hostile repository could otherwise run its own code through
 //    NODE_OPTIONS, PATH, or a *_BIN override the moment any mktg command runs.
+//    Studio's own control keys belong here too: where Studio binds, which
+//    token it accepts, which directories it serves, where its /api proxy
+//    points.
 // 2. A service base URL whose API key comes from the operator's shell. That
 //    combination would send the operator's real key to a host the repository
 //    chose. The base URL is honoured when the key sits in the same file,
@@ -54,6 +57,10 @@ export const loadEnvLocal = (cwd: string): Record<string, string> => {
 const BLOCKED_KEYS: ReadonlySet<string> = new Set([
   "PATH", "HOME", "SHELL", "NODE_OPTIONS", "NODE_PATH", "BUN_INSTALL", "BUN_OPTIONS",
   "MKTG_STUDIO_BIN", "MKTG_STUDIO_AUTH", "MKTG_POSTINSTALL_FORCE",
+  "MKTG_STUDIO_TOKEN", "MKTG_STUDIO_TOKEN_PATH", "MKTG_STUDIO_TOKEN_DIR",
+  "MKTG_PROJECT_ROOT", "MKTG_BRAND_DIR", "MKTG_STUDIO_DB",
+  "STUDIO_API_BASE", "NEXT_PUBLIC_STUDIO_API_BASE", "DASHBOARD_HOST",
+  "MKTG_STUDIO_BROWSER", "BROWSER", "MKTG_STUDIO_DEBUG",
 ]);
 const BLOCKED_PREFIXES: readonly string[] = ["LD_", "DYLD_", "npm_config_", "NPM_CONFIG_", "GIT_"];
 

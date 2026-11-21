@@ -28,7 +28,11 @@ bun --cwd studio run start:studio:open     # same, plus open the dashboard
    equivalent.
 2. **Loads `.env.local`.** Plain `KEY=VALUE` (single- and double-quoted values
    supported, `#` comments skipped). Shell env always wins — the file only
-   fills in what the shell didn't set.
+   fills in what the shell didn't set. The project's file goes through the
+   CLI's key rule (`src/core/env-local.ts`): process-control keys and Studio's
+   own control keys (`MKTG_STUDIO_AUTH`, `MKTG_STUDIO_TOKEN*`,
+   `MKTG_PROJECT_ROOT`, `MKTG_BRAND_DIR`, `MKTG_STUDIO_DB`, `DASHBOARD_HOST`,
+   `STUDIO_API_BASE`) are taken from the shell only.
 3. **Resolves ports.** `STUDIO_PORT` (API, default 3001) and `DASHBOARD_PORT`
    (Next.js, default 3000).
 4. **Probes each port.** If either is taken, exits with a non-zero code and a

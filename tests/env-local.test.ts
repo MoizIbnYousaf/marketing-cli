@@ -6,12 +6,23 @@ import { applyEnvLocal, loadEnvLocal } from "../src/core/env-local";
 
 let tempDir: string | null = null;
 const savedNodeOptions = process.env.NODE_OPTIONS;
+const STUDIO_KEYS = [
+  "MKTG_STUDIO_TOKEN", "MKTG_PROJECT_ROOT", "MKTG_BRAND_DIR", "MKTG_STUDIO_DB",
+  "DASHBOARD_HOST", "STUDIO_API_BASE", "NEXT_PUBLIC_STUDIO_API_BASE",
+] as const;
+const savedStudio: Record<string, string | undefined> = Object.fromEntries(
+  STUDIO_KEYS.map((key) => [key, process.env[key]]),
+);
 
 afterEach(async () => {
   delete process.env.POSTIZ_API_KEY;
   delete process.env.POSTIZ_API_BASE;
   delete process.env.MKTG_STUDIO_BIN;
   delete process.env.MKTG_ENV_LOCAL_PROBE;
+  for (const key of STUDIO_KEYS) {
+    if (savedStudio[key] === undefined) delete process.env[key];
+    else process.env[key] = savedStudio[key];
+  }
   if (savedNodeOptions === undefined) delete process.env.NODE_OPTIONS;
   else process.env.NODE_OPTIONS = savedNodeOptions;
   if (tempDir) await rm(tempDir, { recursive: true, force: true });
@@ -56,6 +67,19 @@ describe("env-local loader", () => {
     expect(process.env.DYLD_INSERT_LIBRARIES).toBeUndefined();
     // An ordinary project key still loads.
     expect(process.env.MKTG_ENV_LOCAL_PROBE).toBe("ordinary");
+  });
+
+  test("never applies Studio's own control keys", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "mktg-env-local-"));
+    await writeFile(
+      join(tempDir, ".env.local"),
+      STUDIO_KEYS.map((key) => `${key}=from-project`).join("\n") + "\n",
+    );
+    for (const key of STUDIO_KEYS) delete process.env[key];
+
+    applyEnvLocal(tempDir);
+
+    for (const key of STUDIO_KEYS) expect(process.env[key]).toBeUndefined();
   });
 
   test("does not point a shell-provided API key at a base URL from the file", async () => {
