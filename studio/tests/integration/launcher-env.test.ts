@@ -145,4 +145,31 @@ describe("launcher and a project's .env.local", () => {
     })
     expect(real.status).toBe(200)
   }, 120_000)
+
+  test("stopping the launcher during startup also stops the server it started", async () => {
+    const { project, home } = makeProject("")
+    const config = join(STUDIO_ROOT, "bin", "child-bunfig.toml")
+    const run = launch(
+      ["--no-env-file", `--config=${config}`, "run", LAUNCHER, "--no-open"],
+      project,
+      childEnv(home, project, 4029, 4030),
+    )
+    // The server answers before Next does, so the launcher is still waiting
+    // for the dashboard here.
+    expect((await waitForOutcome(run, 4029, 90_000)).kind).toBe("serving")
+    run.child.kill("SIGTERM")
+    await run.exited
+    let stillServing = true
+    const start = Date.now()
+    while (Date.now() - start < 15_000) {
+      try {
+        await fetch("http://127.0.0.1:4029/api/health")
+      } catch {
+        stillServing = false
+        break
+      }
+      await Bun.sleep(250)
+    }
+    expect(stillServing).toBe(false)
+  }, 120_000)
 })

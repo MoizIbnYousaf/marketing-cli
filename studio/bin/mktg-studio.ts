@@ -350,6 +350,31 @@ const next = Bun.spawn({
 });
 
 // ---------------------------------------------------------------------------
+// Graceful shutdown. Registered right after spawning, so a signal during
+// the (up to 30s) startup wait still stops both children.
+// ---------------------------------------------------------------------------
+
+let shuttingDown = false;
+
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`\n[mktg-studio] received ${signal}, stopping...`);
+  server.kill("SIGINT");
+  next.kill("SIGTERM");
+  await Promise.race([
+    Promise.all([server.exited, next.exited]),
+    Bun.sleep(5_000),
+  ]);
+  if (server.exitCode === null) server.kill("SIGKILL");
+  if (next.exitCode === null) next.kill("SIGKILL");
+  process.exit(0);
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+
+// ---------------------------------------------------------------------------
 // Next.js output filter -- suppress known cold-boot noise (pnpm install
 // progress, telemetry notice, build-script warnings, version-drift hints).
 // Lines that don't match the SUPPRESSED list pass through unchanged, so
@@ -529,30 +554,6 @@ if (openFlag) {
     // fine -- user can open the URL printed in the banner above manually
   }
 }
-
-// ---------------------------------------------------------------------------
-// Graceful shutdown
-// ---------------------------------------------------------------------------
-
-let shuttingDown = false;
-
-async function shutdown(signal: NodeJS.Signals): Promise<void> {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  console.log(`\n[mktg-studio] received ${signal}, stopping...`);
-  server.kill("SIGINT");
-  next.kill("SIGTERM");
-  await Promise.race([
-    Promise.all([server.exited, next.exited]),
-    Bun.sleep(5_000),
-  ]);
-  if (server.exitCode === null) server.kill("SIGKILL");
-  if (next.exitCode === null) next.kill("SIGKILL");
-  process.exit(0);
-}
-
-process.on("SIGINT", () => void shutdown("SIGINT"));
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 // ---------------------------------------------------------------------------
 // If either child exits unexpectedly, take the whole thing down
