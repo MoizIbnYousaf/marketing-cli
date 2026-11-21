@@ -26,6 +26,7 @@ import { startZombieSweeper } from "./lib/sweep.ts";
 import { backupBrandDir, resetBrandDir } from "./lib/brand-backup.ts";
 import { childProcessEnv } from "./lib/child-env.ts";
 import { resolveMktgCommand } from "./lib/mktg-command.ts";
+import { isEnvLocalKeyAllowed } from "../src/core/env-local.ts";
 import { createJob, runJob, getJob, listJobs } from "./lib/jobs.ts";
 import {
   rejectControlChars,
@@ -135,7 +136,13 @@ const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
 const applyProjectEnvIsolation = (): void => {
   const repoRoot = process.cwd();
   const repoEnv = loadEnvLocal(repoRoot);
-  const projectEnv = loadEnvLocal(STUDIO_CWD);
+  // The project's .env.local is repository input, not operator config: apply
+  // the CLI's rule so it cannot turn off auth or redirect a shell secret.
+  const projectFile = loadEnvLocal(STUDIO_CWD);
+  const shellEnv = { ...process.env };
+  const projectEnv = Object.fromEntries(
+    Object.entries(projectFile).filter(([key]) => isEnvLocalKeyAllowed(key, projectFile, shellEnv)),
+  );
   if (STUDIO_CWD !== repoRoot) {
     for (const [key, value] of Object.entries(repoEnv)) {
       if (projectEnv[key] === undefined && process.env[key] === value) {

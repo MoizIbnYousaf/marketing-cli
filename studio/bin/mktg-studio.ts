@@ -21,6 +21,7 @@ import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { childProcessEnv, nextProcessEnv } from "../lib/child-env.ts";
 import { loadEnvLocal } from "../lib/mktg.ts";
+import { isEnvLocalKeyAllowed } from "../../src/core/env-local.ts";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -176,7 +177,13 @@ if (projectRoot !== REPO_ROOT) {
   }
 }
 
-const env = { ...projectEnvFromFile, ...inheritedEnv }; // shell wins
+// The project's .env.local is repository input; the Studio package's own
+// (REPO_ROOT) is not. Apply the CLI's rule to the project file only.
+const projectEnvAllowed = Object.fromEntries(
+  Object.entries(projectEnvFromFile).filter(([key]) =>
+    isEnvLocalKeyAllowed(key, projectEnvFromFile, inheritedEnv)),
+);
+const env = { ...projectEnvAllowed, ...inheritedEnv }; // shell wins
 
 const STUDIO_PORT = env.STUDIO_PORT ?? "3001";
 const DASHBOARD_PORT = env.DASHBOARD_PORT ?? "3000";

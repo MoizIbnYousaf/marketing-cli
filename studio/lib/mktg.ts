@@ -9,6 +9,7 @@ import { resolve } from "node:path";
 import { childProcessEnv } from "./child-env";
 import { resolveMktgCommand } from "./mktg-command";
 import { resolveProjectRoot } from "./project-root";
+import { isEnvLocalKeyAllowed } from "../../src/core/env-local.ts";
 
 import type {
   CommandResult,
@@ -90,8 +91,13 @@ export async function run<T>(
   const cwd = opts.cwd ?? resolveProjectRoot(process.cwd());
   // Shell env wins; fallback to .env.local so `mktg doctor` sees
   // TYPEFULLY_API_KEY / POSTIZ_API_KEY / etc. even on a bare `bun run`.
+  // cwd is the user's project, so its .env.local passes the CLI's key rule.
+  const fileEnv = loadEnvLocal(cwd);
+  const allowedFileEnv = Object.fromEntries(
+    Object.entries(fileEnv).filter(([key]) => isEnvLocalKeyAllowed(key, fileEnv)),
+  );
   const env = childProcessEnv({
-    ...loadEnvLocal(cwd),
+    ...allowedFileEnv,
     ...(process.env as Record<string, string>),
   });
 

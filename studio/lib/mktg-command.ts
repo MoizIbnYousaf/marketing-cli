@@ -12,14 +12,17 @@ export function resolveMktgCommand(args: readonly string[]): string[] {
     (root): root is string => Boolean(root),
   );
 
+  // The child runs in the user's project. Bun would auto-load that project's
+  // .env.local with no filtering; --no-env-file leaves it to the CLI's own
+  // applyEnvLocal, which refuses process-control keys.
   for (const root of roots) {
     const sourceEntry = join(root, "src", "cli.ts");
     if (existsSync(sourceEntry)) {
-      return [process.execPath, "run", sourceEntry, ...args];
+      return [process.execPath, "--no-env-file", "run", sourceEntry, ...args];
     }
 
     const distEntry = join(root, "dist", "cli.js");
-    if (existsSync(distEntry)) return [process.execPath, distEntry, ...args];
+    if (existsSync(distEntry)) return [process.execPath, "--no-env-file", distEntry, ...args];
   }
 
   return ["mktg", ...args];
