@@ -1,7 +1,7 @@
 // mktg — transcribe core: source detection, whisper/yt-dlp/ffmpeg orchestration, SRT parsing.
 // @attribution: crafter-station/trx (MIT, © 2026 Crafter Station, 836e7abf). See ATTRIBUTION.md.
 
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { unlink } from "node:fs/promises";
 import { basename, extname, join, resolve } from "node:path";
 import { userHome } from "./user-home";
@@ -207,6 +207,16 @@ export const runWhisper = async (
   return { ok: true, srtPath, srt };
 };
 
+// True when both paths exist and name the same file (same device + inode).
+export const isSameFile = (a: string, b: string): boolean => {
+  try {
+    const x = statSync(a), y = statSync(b);
+    return x.dev === y.dev && x.ino === y.ino;
+  } catch {
+    return false;
+  }
+};
+
 // The three paths a run writes for a given input file: the cleaned wav
 // (ffmpeg -y, deleted afterwards unless --keep-wav), whisper's `<wav>.srt`,
 // and the plain-text `.txt`. Single source of truth for the pipeline and the
@@ -217,7 +227,9 @@ export const plannedOutputPaths = (
 ): { readonly wav: string; readonly srt: string; readonly txt: string } => {
   const name = basename(inputFile).replace(/\.[^.]+$/, "");
   let wav = resolve(outputDir, `${name}.wav`);
-  if (wav === resolve(inputFile)) wav = resolve(outputDir, `${name}_clean.wav`);
+  // Compare identity, not spelling: on a case-insensitive (default macOS) or
+  // normalising filesystem `Tone.WAV` and `Tone.wav` are the same file.
+  if (wav === resolve(inputFile) || isSameFile(wav, inputFile)) wav = resolve(outputDir, `${name}_clean.wav`);
   return { wav, srt: `${wav}.srt`, txt: wav.replace(/\.wav$/, ".txt") };
 };
 

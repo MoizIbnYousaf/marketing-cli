@@ -10,7 +10,8 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 type RunOut = { stdout: string; stderr: string; exitCode: number };
@@ -402,9 +403,22 @@ const runWithHome = async (args: readonly string[], home: string): Promise<RunOu
   return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode: await proc.exited };
 };
 
+// A real, decodable 16 kHz mono PCM WAV (0.1 s, 440 Hz). ffmpeg probes content,
+// not the extension, so the same bytes serve as a real source named .mp3/.mp4.
+const realWav = (): Buffer => {
+  const rate = 16000, samples = 1600;
+  const buf = Buffer.alloc(44 + samples * 2);
+  buf.write("RIFF", 0); buf.writeUInt32LE(36 + samples * 2, 4); buf.write("WAVE", 8);
+  buf.write("fmt ", 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(rate, 24); buf.writeUInt32LE(rate * 2, 28); buf.writeUInt16LE(2, 32); buf.writeUInt16LE(16, 34);
+  buf.write("data", 36); buf.writeUInt32LE(samples * 2, 40);
+  for (let i = 0; i < samples; i++) buf.writeInt16LE(Math.round(8000 * Math.sin((2 * Math.PI * 440 * i) / rate)), 44 + i * 2);
+  return buf;
+};
+
 describe("overwrite guard", () => {
   test("existing <name>.txt in --output → INVALID_ARGS exit 2, file untouched", async () => {
-    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
     await mkdir(join(tempDir, "out"));
     await writeFile(join(tempDir, "out", "talk.txt"), "keep me");
     const { stdout, exitCode } = await runWithHome([
@@ -419,7 +433,7 @@ describe("overwrite guard", () => {
   });
 
   test("names every existing output: .wav, .wav.srt and .txt", async () => {
-    await writeFile(join(tempDir, "talk.mp4"), "video");
+    await writeFile(join(tempDir, "talk.mp4"), realWav());
     for (const f of ["talk.wav", "talk.wav.srt", "talk.txt"]) await writeFile(join(tempDir, f), "old");
     const { stdout, exitCode } = await runWithHome([
       "--cwd", tempDir, "transcribe", "talk.mp4", "--json",
@@ -432,7 +446,7 @@ describe("overwrite guard", () => {
   });
 
   test("unrelated files in --output do not trigger the guard", async () => {
-    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
     await writeFile(join(tempDir, "other.txt"), "x");
     const { stdout } = await runWithHome([
       "--cwd", tempDir, "transcribe", "talk.mp3", "--dry-run", "--json",
@@ -442,7 +456,7 @@ describe("overwrite guard", () => {
   });
 
   test("--dry-run reports would_overwrite, exits 0, writes nothing", async () => {
-    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
     await writeFile(join(tempDir, "talk.wav.srt"), "old srt");
     const { stdout, exitCode } = await runWithHome([
       "--cwd", tempDir, "transcribe", "talk.mp3", "--dry-run", "--json",
@@ -456,13 +470,73 @@ describe("overwrite guard", () => {
   });
 
   test("a .wav source inside --output uses the _clean names and is not itself reported", async () => {
-    await writeFile(join(tempDir, "rec.wav"), "audio");
+    await writeFile(join(tempDir, "rec.wav"), realWav());
     await writeFile(join(tempDir, "rec_clean.txt"), "old");
     const { stdout } = await runWithHome([
       "--cwd", tempDir, "transcribe", "rec.wav", "--dry-run", "--json",
     ], tempDir);
     const body = parseJson(stdout) as { would_overwrite: string[] };
     expect(body.would_overwrite).toEqual([join(tempDir, "rec_clean.txt")]);
+  });
+
+  test("a source spelled with another case (Tone.WAV) is recognised by identity, not string", async () => {
+    // On a case-insensitive filesystem (the macOS default) Tone.wav IS Tone.WAV;
+    // on a case-sensitive one they differ. Either way the source must never be
+    // planned as an output, and a --confirm run must leave it intact.
+    await writeFile(join(tempDir, "Tone.WAV"), realWav());
+    const before = await readFile(join(tempDir, "Tone.WAV"));
+    const caseInsensitive = existsSync(join(tempDir, "tone.wav"));
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "Tone.WAV", "--dry-run", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(0);
+    expect((parseJson(stdout) as { would_overwrite: string[] }).would_overwrite).toEqual([]);
+    const real = await runWithHome(["--cwd", tempDir, "transcribe", "Tone.WAV", "--json"], tempDir);
+    expect(real.exitCode).toBe(3);
+    expect(await readFile(join(tempDir, "Tone.WAV"))).toEqual(before);
+    if (caseInsensitive) {
+      // The pipeline would write Tone_clean.wav, never Tone.wav (= the source).
+      await writeFile(join(tempDir, "Tone_clean.txt"), "old");
+      const again = await runWithHome(["--cwd", tempDir, "transcribe", "Tone.WAV", "--dry-run", "--json"], tempDir);
+      expect((parseJson(again.stdout) as { would_overwrite: string[] }).would_overwrite).toEqual([join(tempDir, "Tone_clean.txt")]);
+    }
+  });
+
+  test("a dangling symlink at a planned output is refused, even with --confirm and in --dry-run", async () => {
+    const outside = await mkdtemp(join(tmpdir(), "mktg-transcribe-outside-"));
+    try {
+      await writeFile(join(tempDir, "tone.mp3"), realWav());
+      await symlink(join(outside, "victim.wav"), join(tempDir, "tone.wav"));
+      for (const extra of [["--dry-run"], [], ["--confirm"]]) {
+        const { stdout, exitCode } = await runWithHome([
+          "--cwd", tempDir, "transcribe", "tone.mp3", ...extra, "--json",
+        ], tempDir);
+        expect(exitCode).toBe(2);
+        const body = parseJson(stdout) as { error: { code: string; message: string } };
+        expect(body.error.code).toBe("INVALID_ARGS");
+        expect(body.error.message).toContain(join(tempDir, "tone.wav"));
+      }
+      expect(existsSync(join(outside, "victim.wav"))).toBe(false);
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  test("a symlink to an existing file outside the project is refused with --confirm; target untouched", async () => {
+    const outside = await mkdtemp(join(tmpdir(), "mktg-transcribe-outside-"));
+    try {
+      await writeFile(join(tempDir, "tone.mp3"), realWav());
+      await writeFile(join(outside, "existing.txt"), "ORIGINAL");
+      await symlink(join(outside, "existing.txt"), join(tempDir, "tone.txt"));
+      const { stdout, exitCode } = await runWithHome([
+        "--cwd", tempDir, "transcribe", "tone.mp3", "--confirm", "--json",
+      ], tempDir);
+      expect(exitCode).toBe(2);
+      expect((parseJson(stdout) as { error: { message: string } }).error.message).toContain(join(tempDir, "tone.txt"));
+      expect(await readFile(join(outside, "existing.txt"), "utf8")).toBe("ORIGINAL");
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
   });
 
   test("URL source: would_overwrite is empty (fresh mktg-<timestamp> name)", async () => {
@@ -474,9 +548,14 @@ describe("overwrite guard", () => {
     expect(body.would_overwrite).toEqual([]);
   });
 
-  test("--confirm passes the guard (run stops later at the missing whisper model / tool, exit 3)", async () => {
-    await writeFile(join(tempDir, "talk.mp3"), "audio");
+  // The --confirm half alone would pass on code with no guard at all (it just
+  // runs on to the missing model), so each test first proves the same setup is
+  // refused without --confirm, then that --confirm gets past the guard.
+  test("same setup: refused without --confirm, passes the guard with it (stops at missing model, exit 3)", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
     await writeFile(join(tempDir, "talk.txt"), "keep me");
+    const refused = await runWithHome(["--cwd", tempDir, "transcribe", "talk.mp3", "--json"], tempDir);
+    expect(refused.exitCode).toBe(2);
     const { stdout, exitCode } = await runWithHome([
       "--cwd", tempDir, "transcribe", "talk.mp3", "--confirm", "--json",
     ], tempDir);
@@ -486,14 +565,27 @@ describe("overwrite guard", () => {
     expect(await readFile(join(tempDir, "talk.txt"), "utf8")).toBe("keep me");
   });
 
-  test("--input {confirm:true} passes the guard like --confirm", async () => {
-    await writeFile(join(tempDir, "talk.mp3"), "audio");
+  test("same setup: --input without confirm is refused, {confirm:true} passes the guard like --confirm", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
     await writeFile(join(tempDir, "talk.txt"), "keep me");
+    const refused = await runWithHome([
+      "--cwd", tempDir, "transcribe", "--input", JSON.stringify({ source: "talk.mp3" }), "--json",
+    ], tempDir);
+    expect(refused.exitCode).toBe(2);
     const { stdout, exitCode } = await runWithHome([
       "--cwd", tempDir, "transcribe", "--input", JSON.stringify({ source: "talk.mp3", confirm: true }), "--json",
     ], tempDir);
     expect(exitCode).toBe(3);
     expect((parseJson(stdout) as { error: { code: string } }).error.code).toBe("MISSING_DEPENDENCY");
+  });
+
+  test("--confirm=<value> is rejected instead of being silently ignored", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), realWav());
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp3", "--confirm=true", "--dry-run", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(2);
+    expect((parseJson(stdout) as { error: { message: string } }).error.message).toContain("--confirm takes no value");
   });
 });
 
