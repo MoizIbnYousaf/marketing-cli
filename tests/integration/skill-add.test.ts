@@ -233,3 +233,78 @@ describe("mktg skill add — input validation", () => {
     expect(data.error.code).toBe("INVALID_ARGS");
   });
 });
+
+// `--mode` was declared but never read, and its value was taken as the source.
+// It is gone: the schema no longer lists it, the router rejects it, and no
+// dash-prefixed arg is ever read as the source.
+describe("mktg skill add — no --mode flag", () => {
+  let home: string;
+  let projectDir: string;
+
+  beforeEach(async () => {
+    home = await mkdtemp(join(tmpdir(), "mktg-skill-add-home-"));
+    projectDir = join(home, "project");
+    await mkdir(projectDir, { recursive: true });
+    // Two real skills under HOME/.claude/skills — one named like the old flag value.
+    await scaffoldExternalSkill(join(home, ".claude", "skills"), "foo");
+    await scaffoldExternalSkill(join(home, ".claude", "skills"), "recreate");
+  });
+
+  afterEach(async () => {
+    await rm(home, { recursive: true, force: true });
+  });
+
+  const runHome = async (args: string[]): Promise<{ stdout: string; exitCode: number }> => {
+    const proc = Bun.spawn(["bun", "run", "src/cli.ts", ...args], {
+      cwd: import.meta.dir.replace("/tests/integration", ""),
+      stdout: "pipe",
+      stderr: "pipe",
+      env: { ...process.env, NO_COLOR: "1", HOME: home },
+    });
+    const stdout = await new Response(proc.stdout).text();
+    return { stdout: stdout.trim(), exitCode: await proc.exited };
+  };
+
+  test("schema for skill add declares no --mode and mode is always 'chain'", async () => {
+    const result = await runHome(["schema", "skill", "add", "--json"]);
+    expect(result.exitCode).toBe(0);
+    const schema = parseJson(result.stdout) as { flags: { name: string }[]; output: Record<string, string> };
+    expect(schema.flags.map(f => f.name)).not.toContain("--mode");
+    expect(schema.output.mode).not.toContain("recreate");
+  });
+
+  for (const argv of [
+    ["skill", "add", "--mode", "recreate", "foo"],
+    ["skill", "add", "foo", "--mode", "recreate"],
+    ["skill", "add", "--mode=recreate", "foo"],
+  ]) {
+    test(`${argv.join(" ")} → UNKNOWN_FLAG exit 2, nothing written`, async () => {
+      const result = await runHome([...argv, "--json", `--cwd=${projectDir}`]);
+      expect(result.exitCode).toBe(2);
+      const data = parseJson(result.stdout) as { error: { code: string; message: string } };
+      expect(data.error.code).toBe("UNKNOWN_FLAG");
+      expect(data.error.message).toContain("--mode");
+      expect(await Bun.file(join(projectDir, "skills-manifest.json")).exists()).toBe(false);
+    });
+  }
+
+  test("a known short flag before the source is not read as the source", async () => {
+    const result = await runHome(["skill", "add", "-y", "foo", "--dry-run", "--json", `--cwd=${projectDir}`]);
+    expect(result.exitCode).toBe(0);
+    const data = parseJson(result.stdout) as { name: string; mode: string; action: string };
+    expect(data.name).toBe("foo");
+    expect(data.mode).toBe("chain");
+    expect(data.action).toBe("dry-run");
+  });
+
+  test("skill add foo (by name from HOME) adds with mode 'chain'", async () => {
+    const result = await runHome(["skill", "add", "foo", "--json", `--cwd=${projectDir}`]);
+    expect(result.exitCode).toBe(0);
+    const data = parseJson(result.stdout) as { name: string; mode: string; action: string };
+    expect(data).toMatchObject({ name: "foo", mode: "chain", action: "added" });
+    const manifest = JSON.parse(await readFile(join(projectDir, "skills-manifest.json"), "utf-8")) as {
+      external_skills: Record<string, unknown>;
+    };
+    expect(Object.keys(manifest.external_skills)).toEqual(["foo"]);
+  });
+});
