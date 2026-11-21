@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S bun --no-env-file
 // bin/mktg-studio -- single-command launch for the marketing studio.
 //
 // Starts the Bun API server (server.ts on STUDIO_PORT, default 3001) and the
@@ -99,6 +99,39 @@ function dashboardUrl(): string {
   if (session) params.set("session", session);
   const query = params.toString();
   return `http://localhost:${DASHBOARD_PORT}/dashboard${query ? `?${query}` : ""}`;
+}
+
+// ---------------------------------------------------------------------------
+// Started without --no-env-file (`bun run bin/mktg-studio.ts` from a project,
+// a service file), Bun has already merged the cwd's .env.local into
+// process.env as if it were shell env, before any filtering here could run.
+// Refuse to start when that put a key there the CLI's rule refuses, rather
+// than guess which values came from the shell. A value that uses `$` is
+// treated as from the file, since Bun expands it and it no longer matches.
+// The Studio package's own .env.local (cwd = REPO_ROOT) is not project input.
+// ---------------------------------------------------------------------------
+
+if (!process.execArgv.includes("--no-env-file") && resolve(process.cwd()) !== REPO_ROOT) {
+  const cwdFile = loadEnvLocal(process.cwd());
+  const fromFile = (key: string): boolean => {
+    const value = cwdFile[key];
+    return value !== undefined && process.env[key] !== undefined &&
+      (process.env[key] === value || value.includes("$"));
+  };
+  const shellApprox = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !fromFile(key)),
+  );
+  const planted = Object.keys(cwdFile).filter(
+    (key) => fromFile(key) && !isEnvLocalKeyAllowed(key, cwdFile, shellApprox),
+  );
+  if (planted.length > 0) {
+    console.error(
+      `\n✗ Bun loaded ${planted.join(", ")} from ./.env.local as shell env, and Studio does not take ` +
+        "those from a project's file.\n" +
+        "  Fix:   start Studio with `mktg studio`, or with `bun --no-env-file run <path>/bin/mktg-studio.ts`\n",
+    );
+    process.exit(1);
+  }
 }
 
 // ---------------------------------------------------------------------------

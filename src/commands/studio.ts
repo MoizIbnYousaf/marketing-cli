@@ -28,7 +28,7 @@
 //     long-running foreground process (axis 4: context window discipline,
 //     axis 6: safety rails — --dry-run always available).
 
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { spawn as spawnChild } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { ok, type CommandHandler, type CommandSchema } from "../types";
@@ -210,7 +210,17 @@ export const resolveStudioLauncher = (): ResolvedStudioLauncher | null => {
   }
 
   const pathBinary = Bun.which(STUDIO_BIN, { PATH: process.env.PATH ?? "" });
-  if (pathBinary) return { binary: pathBinary, cmd: [pathBinary] };
+  if (pathBinary) {
+    // A PATH entry that is a link to a .ts launcher gets the same Bun flags
+    // as a local one instead of relying on its shebang.
+    let real = pathBinary;
+    try {
+      real = realpathSync(pathBinary);
+    } catch {
+      // keep the PATH entry as found
+    }
+    return { binary: pathBinary, cmd: real.endsWith(".ts") ? launcherCommand(real) : [pathBinary] };
+  }
 
   return null;
 };
