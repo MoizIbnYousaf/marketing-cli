@@ -159,4 +159,12 @@ describe("brand routes", () => {
     await expectRefused(res)
     expect(readFileSync(join(outside, "secret.md"), "utf8")).toBe("outside secret\n")
   })
+  test("GET /api/brand/files reports a symlinked brand file as missing, not the outside file's size", async () => {
+    const res = await fetch(`${BASE}/api/brand/files`, { headers: AUTH })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { data: Array<{ name: string; exists: boolean; bytes: number; mtime: string }> }
+    const entry = body.data.find((file) => file.name === "voice-profile.md")
+    expect(entry).toBeDefined()
+    expect({ exists: entry!.exists, bytes: entry!.bytes, mtime: entry!.mtime }).toEqual({ exists: false, bytes: 0, mtime: "" })
+  })
 })
