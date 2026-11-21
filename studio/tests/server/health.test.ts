@@ -6,6 +6,7 @@
 
 import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { spawn } from "bun";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const TEST_PORT = 3999;
@@ -62,6 +63,16 @@ describe("GET /api/health", () => {
     expect(body.ok).toBe(true);
     expect(typeof body.version).toBe("string");
     expect(Number.isNaN(Date.parse(body.ts))).toBe(false);
+  });
+
+  test("reports the marketing-cli package version Studio ships in", async () => {
+    const rootPkg = JSON.parse(
+      readFileSync(join(PROJECT_ROOT, "..", "package.json"), "utf-8"),
+    ) as { name: string; version: string };
+    expect(rootPkg.name).toBe("marketing-cli");
+    const res = await fetch(`${BASE_URL}/api/health`);
+    const body = (await res.json()) as { version: string };
+    expect(body.version).toBe(rootPkg.version);
   });
 });
 

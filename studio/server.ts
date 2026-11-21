@@ -129,6 +129,26 @@ import { createPlanCompeteRoutes } from "./server/routes/plan.ts";
 // ---------------------------------------------------------------------------
 
 const PORT = parseInt(process.env.STUDIO_PORT ?? "3001", 10);
+
+// Studio ships inside the marketing-cli package (<package>/studio/server.ts),
+// so the version a user has is <package>/package.json. studio/package.json is
+// only a fallback for when that file cannot be read.
+const STUDIO_VERSION = ((): string => {
+  const candidates: Array<{ path: string; name?: string }> = [
+    { path: join(import.meta.dir, "..", "package.json"), name: "marketing-cli" },
+    { path: join(import.meta.dir, "package.json") },
+  ];
+  for (const { path, name } of candidates) {
+    try {
+      const pkg = JSON.parse(readFileSync(path, "utf-8")) as { name?: unknown; version?: unknown };
+      if (name && pkg.name !== name) continue;
+      if (typeof pkg.version === "string" && pkg.version.length > 0) return pkg.version;
+    } catch {
+      // try the next candidate
+    }
+  }
+  return "unknown";
+})();
 const STUDIO_CWD = resolveProjectRoot(process.cwd());
 const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
   createPlanCompeteRoutes(STUDIO_CWD);
@@ -844,7 +864,7 @@ const server = Bun.serve({
       return json(
         {
           ok: true,
-          version: "0.1.0",
+          version: STUDIO_VERSION,
           ts: new Date().toISOString(),
           subscribers: globalEmitter.size,
         },
