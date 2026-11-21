@@ -153,7 +153,7 @@ const STUDIO_CWD = resolveProjectRoot(process.cwd());
 const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
   createPlanCompeteRoutes(STUDIO_CWD);
 
-const applyProjectEnvIsolation = (): void => {
+const applyProjectEnvIsolation = (): Readonly<Record<string, string | undefined>> => {
   const repoRoot = process.cwd();
   const repoEnv = loadEnvLocal(repoRoot);
   // Bun auto-loaded the Studio package's own .env.local (repoRoot). When
@@ -173,9 +173,12 @@ const applyProjectEnvIsolation = (): void => {
     if (!isEnvLocalKeyAllowed(key, projectFile, shellEnv)) continue;
     if (process.env[key] === undefined) process.env[key] = value;
   }
+  return shellEnv;
 };
 
-applyProjectEnvIsolation();
+// The operator's env as it was before the project file was applied. POST
+// /api/settings/env checks base URLs against it, as boot does.
+const SHELL_ENV_AT_BOOT = applyProjectEnvIsolation();
 
 // Studio auth perimeter v1. Generate or load the token
 // before we accept any requests so the very first inbound has a token to
@@ -1580,6 +1583,23 @@ const server = Bun.serve({
             `Env var ${k} cannot be set through the studio`,
             400,
             `Allowed keys: ${Array.from(allowedEnvKeys).sort().join(", ")}. Edit .env.local by hand for anything else.`,
+            corsHeaders,
+          );
+        }
+        // Same rule as a project's .env.local: a base URL may not redirect a
+        // key that is still the shell's. Sending the key in the same request
+        // replaces it, so then nothing from the shell goes to the new host.
+        const shellStill = Object.fromEntries(
+          Object.entries(SHELL_ENV_AT_BOOT).filter(
+            ([key, value]) => body.data[key] === undefined && process.env[key] === value,
+          ),
+        );
+        if (!isEnvLocalKeyAllowed(k, body.data, shellStill)) {
+          return errResponse(
+            "BAD_INPUT",
+            `Env var ${k} would send the API key from the shell to a new host`,
+            400,
+            `Send the matching API key in the same request, or set ${k} in the shell that starts Studio.`,
             corsHeaders,
           );
         }
