@@ -1,4 +1,5 @@
-import { join, relative, resolve, sep } from "node:path"
+import { lstatSync, realpathSync } from "node:fs"
+import { dirname, join, relative, resolve, sep } from "node:path"
 
 /**
  * Resolve the target marketing project root that the studio should operate on.
@@ -48,11 +49,43 @@ export function resolveProjectPath(
   if (candidate !== root && !candidate.startsWith(`${root}${sep}`)) {
     return { ok: false, message: "path escapes the project root" }
   }
+  if (!realLocationInsideRoot(candidate, root)) {
+    return { ok: false, message: "path resolves outside the project root through a symbolic link" }
+  }
 
   return {
     ok: true,
     root,
     abs: candidate,
     rel: relative(root, candidate),
+  }
+}
+
+/**
+ * Follow symlinks: the deepest existing part of `candidate` (the file, or the
+ * nearest existing parent for a path not yet written) must really live under
+ * the real project root. A root reached through a symlink (/tmp on macOS) is
+ * fine because both sides are resolved.
+ */
+function realLocationInsideRoot(candidate: string, root: string): boolean {
+  try {
+    const realRoot = realpathSync(root)
+    let existing = candidate
+    while (true) {
+      try {
+        lstatSync(existing)
+        break
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") return false
+        const parent = dirname(existing)
+        if (parent === existing) return false
+        existing = parent
+      }
+    }
+    // Throws for a dangling symlink, which is refused too.
+    const real = realpathSync(existing)
+    return real === realRoot || real.startsWith(`${realRoot}${sep}`)
+  } catch {
+    return false
   }
 }
