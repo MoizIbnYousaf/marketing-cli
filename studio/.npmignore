@@ -25,6 +25,3 @@ test-results/
 playwright-report/
 tsconfig.tsbuildinfo
 next-env.d.ts
-
-# CI configs (root .github/workflows is what runs CI; studio/.github is dead weight)
-.github/

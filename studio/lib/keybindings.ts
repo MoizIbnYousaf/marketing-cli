@@ -1,13 +1,11 @@
-export type KeyScope = "global" | "dashboard"
 export type KeyGroup = "Navigation" | "Actions" | "Help"
 
 export interface Keybinding {
   /** Key sequence. Single entry = single keypress. Two entries = chord. */
   sequence: readonly [string] | readonly [string, string]
-  scope: KeyScope
   description: string
   group: KeyGroup
-  /** Stable id used by consumers to hook dispatch. */
+  /** Stable unique id, used as the React key in the help overlay. */
   id: string
 }
 
@@ -15,16 +13,16 @@ export const CHORD_WINDOW_MS = 600
 
 export const KEYMAP: readonly Keybinding[] = [
   // Global
-  { id: "help", sequence: ["?"], scope: "global", description: "Show keyboard shortcuts", group: "Help" },
-  { id: "palette", sequence: ["/"], scope: "global", description: "Focus command palette", group: "Actions" },
+  { id: "help", sequence: ["?"], description: "Show keyboard shortcuts", group: "Help" },
+  { id: "palette", sequence: ["/"], description: "Focus command palette", group: "Actions" },
 
   // Dashboard tab navigation (g-prefix)
-  { id: "nav:hq", sequence: ["g", "h"], scope: "dashboard", description: "Go to HQ", group: "Navigation" },
-  { id: "nav:hq-legacy", sequence: ["g", "p"], scope: "dashboard", description: "Go to HQ", group: "Navigation" },
-  { id: "nav:content", sequence: ["g", "c"], scope: "dashboard", description: "Go to Content", group: "Navigation" },
-  { id: "nav:publish", sequence: ["g", "u"], scope: "dashboard", description: "Go to Publish", group: "Navigation" },
-  { id: "nav:brand", sequence: ["g", "b"], scope: "dashboard", description: "Go to Brand", group: "Navigation" },
-  { id: "nav:settings", sequence: ["g", ","], scope: "dashboard", description: "Open Settings", group: "Navigation" },
+  { id: "nav:pulse-legacy", sequence: ["g", "h"], description: "Go to Pulse", group: "Navigation" },
+  { id: "nav:pulse", sequence: ["g", "p"], description: "Go to Pulse", group: "Navigation" },
+  { id: "nav:signals", sequence: ["g", "c"], description: "Go to Signals", group: "Navigation" },
+  { id: "nav:publish", sequence: ["g", "u"], description: "Go to Publish", group: "Navigation" },
+  { id: "nav:brand", sequence: ["g", "b"], description: "Go to Brand", group: "Navigation" },
+  { id: "nav:settings", sequence: ["g", ","], description: "Open Settings", group: "Navigation" },
 ] as const
 
 export function isTypingContext(el: Element | null): boolean {

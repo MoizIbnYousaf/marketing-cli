@@ -12,14 +12,14 @@
 
 import { test, expect, beforeEach, afterEach } from "bun:test"
 import { Database } from "bun:sqlite"
-import { mkdtempSync, rmSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, "..", "..", "..")
-const SCHEMA_SQL = join(REPO_ROOT, "db", "schema.sql")
+const MIGRATIONS_DIR = join(REPO_ROOT, "db", "migrations")
 const SEEDER = join(REPO_ROOT, "scripts", "seed-demo.ts")
 
 let workDir: string
@@ -44,11 +44,10 @@ beforeEach(async () => {
   dbPath = join(workDir, "marketing.db")
 
   // Materialize an empty schema-shaped DB so the seeder can open it.
-  // Real schema, not a mock: copies the production schema.sql verbatim.
+  // Real schema, not a mock: applies the production migrations in order.
   const db = new Database(dbPath)
   db.exec("PRAGMA journal_mode=WAL")
-  const schema = await Bun.file(SCHEMA_SQL).text()
-  db.exec(schema)
+  for (const f of readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith(".sql")).sort()) db.exec(readFileSync(join(MIGRATIONS_DIR, f), "utf-8"))
   db.close()
 })
 

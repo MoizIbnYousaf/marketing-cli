@@ -1,5 +1,3 @@
-import { studioAuthHeaders } from "@/lib/studio-token"
-
 const MAX_RESULT_BYTES = 128_000
 const MAX_TEXT_CHARS = 48_000
 const SECRET_KEY = /(?:authorization|password|secret|api[_-]?key|token)/i
@@ -46,7 +44,6 @@ export async function studioWebMCPRequest(
     headers: {
       Accept: "application/json",
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),
-      ...studioAuthHeaders(),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,

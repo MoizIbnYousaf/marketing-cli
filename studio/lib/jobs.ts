@@ -19,7 +19,7 @@ import { execute } from "./sqlite.ts";
 // Types
 // ---------------------------------------------------------------------------
 
-export type JobStatus = "queued" | "running" | "success" | "failed" | "cancelled";
+export type JobStatus = "queued" | "running" | "success" | "failed";
 
 export interface Job {
   id: string;

@@ -1,9 +1,6 @@
 // lib/sse.ts -- Server-Sent Events system for mktg-studio
 //
 // Server side:  SSEEmitter -- manages subscriber streams, publishes typed events.
-// Client side:  useSSE<T>  -- React hook that subscribes to an SSE URL.
-
-import { useEffect, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // Shared event shape -- all SSE events use this envelope.
@@ -19,8 +16,7 @@ export type JobSSEEvent =
   | SSEEvent<{ id: string; kind: string; status: "running" }, "job-started">
   | SSEEvent<{ jobId: string; message: string }, "job-log">
   | SSEEvent<{ id: string; kind: string; status: "success"; durationMs: number }, "job-completed">
-  | SSEEvent<{ id: string; kind: string; status: "failed"; error: string; durationMs: number }, "job-failed">
-  | SSEEvent<{ id: string; kind: string; status: "cancelled" }, "job-cancelled">;
+  | SSEEvent<{ id: string; kind: string; status: "failed"; error: string; durationMs: number }, "job-failed">;
 
 export type JobSSEEventInput = JobSSEEvent extends infer E
   ? E extends SSEEvent ? Omit<E, "ts"> : never
@@ -90,9 +86,9 @@ export class SSEEmitter {
         "Cache-Control": "no-cache, no-transform",
         Connection: "keep-alive",
         "X-Accel-Buffering": "no",
-        // Pass through CORS so a dashboard on a different origin (e.g.
-        // Playwright's scratch port) can open the EventSource. Same-origin
-        // setups get an empty record and behave identically.
+        // Pass through CORS so a dashboard on a different origin can open
+        // the EventSource. Same-origin setups get an empty record and behave
+        // identically.
         ...corsHeaders,
       },
     });
@@ -155,46 +151,4 @@ export function getJobEmitter(jobId: string): SSEEmitter {
 
 export function removeJobEmitter(jobId: string): void {
   jobEmitters.delete(jobId);
-}
-
-// ---------------------------------------------------------------------------
-// Client-side useSSE hook (TypeScript/React)
-// ---------------------------------------------------------------------------
-
-/**
- * Subscribe to an SSE URL and return the latest parsed event payload.
- *
- * @example
- * const event = useSSE<BrandFileChangedPayload>("/api/events");
- */
-export function useSSE<T = unknown>(url: string): SSEEvent<T> | null {
-  const [latest, setLatest] = useState<SSEEvent<T> | null>(null);
-  const esRef = useRef<EventSource | null>(null);
-
-  useEffect(() => {
-    // Close any existing connection before opening a new one
-    esRef.current?.close();
-
-    const es = new EventSource(url);
-    esRef.current = es;
-
-    es.onmessage = (ev) => {
-      try {
-        const parsed = JSON.parse(ev.data) as SSEEvent<T>;
-        setLatest(parsed);
-      } catch {
-        // Ignore malformed frames
-      }
-    };
-
-    es.onerror = () => {
-      // EventSource auto-reconnects; nothing to do here
-    };
-
-    return () => {
-      es.close();
-    };
-  }, [url]);
-
-  return latest;
 }

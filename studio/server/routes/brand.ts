@@ -16,13 +16,12 @@ import {
   getSpec as getBrandSpec,
 } from "../../lib/brand-files.ts";
 import {
-  BRAND_FILE_NAME_SCHEMA,
   BRAND_WRITE_BODY,
   BRAND_REGENERATE_BODY,
 } from "../../lib/schemas.ts";
 
 // Re-export SSOT body schemas (lib/schemas.ts) for registerRouteSchema callers.
-export { BRAND_FILE_NAME_SCHEMA, BRAND_WRITE_BODY, BRAND_REGENERATE_BODY };
+export { BRAND_WRITE_BODY, BRAND_REGENERATE_BODY };
 
 export const BRAND_FILES_ROUTE = wrapRoute({
   method: "GET",

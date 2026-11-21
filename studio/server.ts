@@ -19,7 +19,7 @@
 import "./lib/crash-handlers.ts";
 
 import { z } from "zod";
-import { getDb, closeDb, queryAll, execute } from "./lib/sqlite.ts";
+import { getDb, closeDb, queryAll, queryOne, execute } from "./lib/sqlite.ts";
 import { globalEmitter, getJobEmitter } from "./lib/sse.ts";
 import { startBrandWatcher, startContentWatcher, stopBrandWatcher, stopContentWatcher } from "./lib/watcher.ts";
 import { startZombieSweeper } from "./lib/sweep.ts";
@@ -43,6 +43,7 @@ import {
 import { basename, join } from "node:path";
 import { chmodSync, existsSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import {
+  loadEnvLocal,
   mktgList,
   mktgSkillInfo,
   mktgCatalogList,
@@ -131,32 +132,10 @@ const STUDIO_CWD = resolveProjectRoot(process.cwd());
 const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
   createPlanCompeteRoutes(STUDIO_CWD);
 
-const readEnvFile = (root: string): Record<string, string> => {
-  const envPath = join(root, ".env.local");
-  if (!existsSync(envPath)) return {};
-  const env: Record<string, string> = {};
-  for (const raw of readFileSync(envPath, "utf-8").split("\n")) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
-    const eq = line.indexOf("=");
-    if (eq < 0) continue;
-    const key = line.slice(0, eq).trim();
-    let value = line.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    env[key] = value;
-  }
-  return env;
-};
-
 const applyProjectEnvIsolation = (): void => {
   const repoRoot = process.cwd();
-  const repoEnv = readEnvFile(repoRoot);
-  const projectEnv = readEnvFile(STUDIO_CWD);
+  const repoEnv = loadEnvLocal(repoRoot);
+  const projectEnv = loadEnvLocal(STUDIO_CWD);
   if (STUDIO_CWD !== repoRoot) {
     for (const [key, value] of Object.entries(repoEnv)) {
       if (projectEnv[key] === undefined && process.env[key] === value) {
@@ -171,7 +150,7 @@ const applyProjectEnvIsolation = (): void => {
 
 applyProjectEnvIsolation();
 
-// Studio auth perimeter v1 (Lane 1, Wave A). Generate or load the token
+// Studio auth perimeter v1. Generate or load the token
 // before we accept any requests so the very first inbound has a token to
 // compare against. The token PATH is gated behind MKTG_STUDIO_DEBUG=1 to
 // match cabinet's invisible-token UX: default boot does not surface where
@@ -186,16 +165,12 @@ if (authIsDisabled()) {
   );
 }
 
-// Origins allowed to make cross-origin requests (CORS + EventSource). The
-// dev dashboard runs on :3000; Playwright's scratch dashboard on :4800. Add
-// new entries here when integrating a fresh frontend host.
+// Origins allowed to make cross-origin requests (CORS + EventSource): the
+// dev dashboard on :3000. Add new entries here when integrating a fresh
+// frontend host.
 const ALLOWED_ORIGINS = new Set([
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  "http://localhost:4840",
-  "http://127.0.0.1:4840",
-  "http://localhost:4800",
-  "http://127.0.0.1:4800",
 ]);
 
 // ---------------------------------------------------------------------------
@@ -389,7 +364,7 @@ async function parseBody<T>(req: Request, schema: z.ZodSchema<T>): Promise<{ ok:
     };
   }
 
-  // Lane 1 / Wave A: route through parseJsonInput so inline-handled routes
+  // Route through parseJsonInput so inline-handled routes
   // get the same 64 KB cap and `__proto__`/`constructor` proto-pollution
   // guard as wrapRoute (lib/dx.ts::parseBodyStrict). The two paths used to
   // diverge -- inline routes (~12 sites) silently accepted 10 MB JSON and
@@ -546,26 +521,24 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/auth/bootstrap",           description: "Localhost-only browser bootstrap. Establishes an HttpOnly, same-site Studio session without exposing the bearer token to JavaScript.", errors: [] },
 
   // HQ legacy signal endpoints
-  { method: "GET",  path: "/api/pulse/decision-feed",     description: "Decision feed cards (brand status + next action)", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/what-changed",      description: "Recent brand file changes", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/spike-stack",       description: "Spike signal stack", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/fresh-intel",       description: "Fresh intelligence from signals", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/social-highlights", description: "Social performance highlights", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/archetype-cards",   description: "Audience archetype cards", params: ["groupId"] },
-  { method: "GET",  path: "/api/pulse/live-proof",        description: "Live social proof feed", params: ["groupId"] },
+  { method: "GET",  path: "/api/pulse/decision-feed",     description: "Decision feed cards (brand status + next action)" },
+  { method: "GET",  path: "/api/pulse/what-changed",      description: "Recent brand file changes" },
+  { method: "GET",  path: "/api/pulse/spike-stack",       description: "Spike signal stack" },
+  { method: "GET",  path: "/api/pulse/fresh-intel",       description: "Fresh intelligence from signals" },
+  { method: "GET",  path: "/api/pulse/social-highlights", description: "Social performance highlights" },
+  { method: "GET",  path: "/api/pulse/archetype-cards",   description: "Audience archetype cards" },
+  { method: "GET",  path: "/api/pulse/live-proof",        description: "Live social proof feed" },
 
-  // Pulse snapshot (Lane 5): coalesced single-shot read for the rebuilt
-  // Pulse page. Wave A is a stubbed aggregator owned by silverspark; the
-  // route slot ships in Lane 1's auth PR so the dashboard can compile
-  // against the contract. PulseSnapshot type lives at lib/types/pulse.ts.
+  // Pulse snapshot: coalesced single-shot read for the rebuilt Pulse page.
+  // PulseSnapshot type lives at lib/types/pulse.ts.
   { method: "GET",  path: "/api/pulse/snapshot",          description: "Coalesced Pulse snapshot: funnel + brand health + actions + activity + media + publish", params: ["fields"], errors: [] },
 
   // Signals / Trend radar
-  { method: "GET",  path: "/api/trends/hot-context",      description: "Hot market context (landscape + competitors)", params: ["groupId"] },
-  { method: "GET",  path: "/api/trends/feed",             description: "Trends feed", params: ["groupId"] },
+  { method: "GET",  path: "/api/trends/hot-context",      description: "Hot market context (landscape + competitors)" },
+  { method: "GET",  path: "/api/trends/feed",             description: "Trends feed" },
 
   // Signals tab
-  { method: "GET",  path: "/api/signals",                 description: "Signal feed with optional filter", params: ["filter", "platform", "stream", "time"] },
+  { method: "GET",  path: "/api/signals",                 description: "Signal feed with optional filter", params: ["filter", "platform"] },
   { method: "GET",  path: "/api/signals/:id",             description: "Get signal by id" },
   { method: "GET",  path: "/api/signals/baseline",        description: "Metric baselines" },
   { method: "POST", path: "/api/signals/dismiss",         description: "Dismiss a signal", body: { id: "number" }, dryRun: true, errors: ["BAD_INPUT", "NOT_FOUND", "RATE_LIMITED"] },
@@ -579,15 +552,15 @@ const ROUTE_SCHEMA = [
   { method: "GET",  path: "/api/compete/scan",            description: "Scan tracked competitors for changes {results, changed, new, errors} (mktg compete scan --json). Network call; slow.", params: ["fields"], errors: ["BAD_INPUT", "UPSTREAM_FAILED"] },
 
   // HQ audience summary
-  { method: "GET",  path: "/api/audience/profiles",       description: "Parsed audience persona cards", params: ["groupId"] },
+  { method: "GET",  path: "/api/audience/profiles",       description: "Parsed audience persona cards" },
 
   // HQ next actions
-  { method: "GET",  path: "/api/opportunities",           description: "Ranked action opportunities from /cmo", params: ["groupId"] },
+  { method: "GET",  path: "/api/opportunities",           description: "Ranked action opportunities from /cmo" },
 
   // Intelligence + Briefs
-  { method: "GET",  path: "/api/intelligence/latest",     description: "Latest intelligence briefs", params: ["groupId"] },
-  { method: "GET",  path: "/api/briefs",                  description: "All generated briefs", params: ["groupId"] },
-  { method: "GET",  path: "/api/research/active",         description: "Active research jobs", params: ["groupId"] },
+  { method: "GET",  path: "/api/intelligence/latest",     description: "Latest intelligence briefs" },
+  { method: "GET",  path: "/api/briefs",                  description: "All generated briefs" },
+  { method: "GET",  path: "/api/research/active",         description: "Active research jobs" },
 
   // Skills
   { method: "GET",  path: "/api/skills",                  description: "All installed skills from mktg list --json --routing" },
@@ -819,7 +792,7 @@ const server = Bun.serve({
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    // Auth perimeter v1 (Lane 1, Wave A). Public allowlist (`/api/health`,
+    // Auth perimeter v1. Public allowlist (`/api/health`,
     // `/api/schema`, `/api/help`) bypasses the bearer check; the Host-header
     // allowlist always applies (DNS rebinding mitigation).
     const auth = checkAuth(req, url);
@@ -1065,9 +1038,9 @@ const server = Bun.serve({
       return EMPTY_LIST_ROUTE(req, corsHeaders);
     }
 
-    // GET /api/pulse/snapshot -- Lane 5.
+    // GET /api/pulse/snapshot
     //
-    // Single-shot Pulse aggregator owned by silverspark (lib/pulse-snapshot.ts).
+    // Single-shot Pulse aggregator (lib/pulse-snapshot.ts).
     // Replaces 7 SWR round-trips. Per-section try/catch lives inside the
     // aggregator; failures push into `staleSections` rather than throw, so
     // the only failure mode reaching this handler is a wedged SQLite
@@ -1075,8 +1048,7 @@ const server = Bun.serve({
     //
     // recentMedia: passing [] today (Pulse renders EmptyState). Wiring
     // `buildContentManifest(STUDIO_CWD).assets` mapped to PulseMediaItem
-    // is a follow-up that lives in Lane 5's content-strip work; not
-    // gating Pulse on it.
+    // is a follow-up; not gating Pulse on it.
     //
     // Auth: GETs go through the same perimeter as every other private
     // route -- the auth gate at the top of `fetch()` enforces (1) the
@@ -1112,7 +1084,6 @@ const server = Bun.serve({
     // GET /api/signals/:id  (must come after /baseline)
     const signalMatch = url.pathname.match(/^\/api\/signals\/(\d+)$/);
     if (method === "GET" && signalMatch) {
-      const { queryOne } = await import("./lib/sqlite.ts");
       const signal = queryOne<Record<string, unknown>>("SELECT * FROM signals WHERE id = ?", [signalMatch[1]]);
       if (!signal) return err("Signal not found", 404, corsHeaders);
       return json({ ok: true, data: normalizeSignalRow(signal) }, 200, corsHeaders);
@@ -1239,15 +1210,7 @@ const server = Bun.serve({
 
     // POST /api/opportunities/push — push a ranked action onto HQ
     if (method === "POST" && url.pathname === "/api/opportunities/push") {
-      const body = await parseBody(
-        req,
-        z.object({
-          skill: z.string().min(1).max(128),
-          reason: z.string().min(1).max(2_000),
-          priority: z.number().int().min(0).max(100).optional(),
-          prerequisites: z.record(z.string(), z.unknown()).optional(),
-        }),
-      );
+      const body = await parseBody(req, OPPORTUNITIES_PUSH_BODY);
       if (!body.ok) return body.res;
 
       const idCheck = validateResourceId(body.data.skill, "skill");
@@ -1324,14 +1287,7 @@ const server = Bun.serve({
 
     // POST /api/toast — transient toast notification
     if (method === "POST" && url.pathname === "/api/toast") {
-      const body = await parseBody(
-        req,
-        z.object({
-          level: z.enum(["info", "success", "warn", "error"]),
-          message: z.string().min(1).max(500),
-          duration: z.number().int().min(500).max(60_000).optional(),
-        }),
-      );
+      const body = await parseBody(req, TOAST_BODY);
       if (!body.ok) return body.res;
 
       const c = rejectControlChars(body.data.message, "message");
@@ -1353,14 +1309,7 @@ const server = Bun.serve({
 
     // POST /api/highlight — highlight a tab/element to draw attention
     if (method === "POST" && url.pathname === "/api/highlight") {
-      const body = await parseBody(
-        req,
-        z.object({
-          tab: z.string().min(1).max(64),
-          selector: z.string().max(256).optional(),
-          reason: z.string().max(500).optional(),
-        }),
-      );
+      const body = await parseBody(req, HIGHLIGHT_BODY);
       if (!body.ok) return body.res;
 
       for (const [field, value] of Object.entries({
@@ -1414,13 +1363,7 @@ const server = Bun.serve({
 
     // POST /api/brand/note — note a brand file write into the activity feed
     if (method === "POST" && url.pathname === "/api/brand/note") {
-      const body = await parseBody(
-        req,
-        z.object({
-          file: z.string().min(1).max(512),
-          excerpt: z.string().min(1).max(8_000),
-        }),
-      );
+      const body = await parseBody(req, BRAND_NOTE_BODY);
       if (!body.ok) return body.res;
 
       const sandboxCheck = validatePathInput(STUDIO_CWD, body.data.file);
@@ -1491,20 +1434,11 @@ const server = Bun.serve({
 
     // POST /api/skill/run — queue a skill via /cmo
     if (method === "POST" && url.pathname === "/api/skill/run") {
-      const body = await parseBody(
-        req,
-        z.object({
-          name: z.string().min(1).max(128),
-          args: z.record(z.string(), z.unknown()).optional(),
-        }),
-      );
+      const body = await parseBody(req, SKILL_RUN_BODY);
       if (!body.ok) return body.res;
 
       const idCheck = validateResourceId(body.data.name, "skill");
       if (!idCheck.ok) return err(idCheck.message, 400, corsHeaders);
-
-      const ctrlCheck = rejectControlChars(body.data.name, "skill name");
-      if (!ctrlCheck.ok) return err(ctrlCheck.message, 400, corsHeaders);
 
       if (isDryRun(url)) {
         return json({ ok: true, dryRun: true, name: body.data.name }, 200, corsHeaders);
@@ -1554,7 +1488,7 @@ const server = Bun.serve({
     // Init + Settings + Onboarding
     // -----------------------------------------------------------------------
     if (method === "POST" && url.pathname === "/api/init") {
-      const body = await parseBody(req, z.object({ from: z.string().url().optional() }));
+      const body = await parseBody(req, INIT_BODY);
       if (!body.ok) return body.res;
 
       if (isDryRun(url)) return json({ ok: true, dryRun: true }, 200, corsHeaders);
@@ -1588,7 +1522,7 @@ const server = Bun.serve({
 
     // POST /api/settings/env -- write API keys to .env.local
     //
-    // Lane 1 / Wave A: this endpoint mutates `.env.local` and `process.env`.
+    // This endpoint mutates `.env.local` and `process.env`.
     // The auth perimeter above already gates it behind a bearer token, but
     // we additionally:
     //   - require `?confirm=true` (matches /api/brand/reset's destructive
@@ -1597,7 +1531,7 @@ const server = Bun.serve({
     //     trail shows when API keys were touched. Values are never logged.
     if (method === "POST" && url.pathname === "/api/settings/env") {
       // Schema: { POSTIZ_API_KEY: "...", POSTIZ_API_BASE: "...", etc. }
-      const body = await parseBody(req, z.record(z.string(), z.string().max(512)));
+      const body = await parseBody(req, SETTINGS_ENV_BODY);
       if (!body.ok) return body.res;
 
       const allowedEnvKeys = new Set(await knownIntegrationEnvKeys());

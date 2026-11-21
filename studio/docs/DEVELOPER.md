@@ -73,8 +73,6 @@ voice. The fixtures read like a real product would, not lorem ipsum.
 **From the dashboard:** the command palette (`Cmd+K`) has a **"Seed demo
 data"** entry that opens a copy-to-clipboard dialog with the runnable
 command — same one-liner as above, but no terminal switch required.
-`components/demo/demo-seed-button.tsx` surfaces the same action inline
-on the empty-state screens of each tab.
 
 > Seeding writes to `marketing.db` — that's the same SQLite file the live
 > server reads. Don't leave demo rows in a production-like environment;
@@ -115,7 +113,7 @@ lib/
   output.ts                errEnv(), applyFieldsFromUrl(), ndjsonResponse()
   validators.ts            rejectControlChars, sandboxPath, parseJsonInput, ...
   sqlite.ts                getDb(), queryAll, queryOne, execute
-  sse.ts                   globalEmitter + per-job emitters + useSSE hook
+  sse.ts                   globalEmitter + per-job emitters
   jobs.ts                  in-memory job queue (skill runs, mktg init, ...)
   mktg.ts                  typed wrapper around `mktg <cmd> --json`
   postiz.ts                raw fetch client for the postiz REST API (AGPL firewall)
@@ -131,10 +129,9 @@ app/
   onboarding/              first-run wizard
   (dashboard)/             the real dashboard (layout, tabs, sidebar)
 db/
-  schema.sql               first-boot DDL
   migrations/*.sql         idempotent migrations (tracked in schema_version)
 tests/
-  unit/                    validators, severity, sqlite, ndjson
+  unit/                    validators, sqlite, ndjson
   server/                  health + schema smoke tests
   integration/             full server spawn + round-trip (dryrun, fields, SSE, etc.)
   dx/probes.test.ts        reusable Agent DX probe functions

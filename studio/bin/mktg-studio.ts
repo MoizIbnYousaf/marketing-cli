@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { childProcessEnv, nextProcessEnv } from "../lib/child-env.ts";
+import { loadEnvLocal } from "../lib/mktg.ts";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -131,35 +132,6 @@ function readOrCreateStudioToken(): string {
   writeFileSync(STUDIO_TOKEN_PATH, token, { mode: 0o600 });
   try { chmodSync(STUDIO_TOKEN_PATH, 0o600); } catch { /* best effort */ }
   return token;
-}
-
-// ---------------------------------------------------------------------------
-// .env.local loader -- simple KEY=VALUE, "#" comments, no escapes.
-// Shell env always wins.
-// ---------------------------------------------------------------------------
-
-function loadEnvLocal(root: string): Record<string, string> {
-  const envPath = resolve(root, ".env.local");
-  if (!existsSync(envPath)) return {};
-
-  const out: Record<string, string> = {};
-  const text = readFileSync(envPath, "utf-8");
-  for (const raw of text.split("\n")) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
-    const eq = line.indexOf("=");
-    if (eq < 0) continue;
-    const key = line.slice(0, eq).trim();
-    let value = line.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    out[key] = value;
-  }
-  return out;
 }
 
 // When Studio ships as the `studio/` workspace member inside marketing-cli,
@@ -356,7 +328,6 @@ const NEXT_NOISE_PATTERNS: RegExp[] = [
   /^\[next\]\s*\+ @types\//,
   /^\[next\]\s*\+ eslint(-\S+)?(\s|$)/,
   /^\[next\]\s*\+ typescript(\s|$)/,
-  /^\[next\]\s*\+ vitest(\s|$)/,
   /^\[next\]\s*\+ @playwright\/test(\s|$)/,
   /^\[next\]\s*\+ @axe-core\/react(\s|$)/,
   /^\[next\]\s*Done in \d+(\.\d+)?s using pnpm/,
@@ -464,7 +435,7 @@ const api = `http://localhost:${STUDIO_PORT}`;
 // product-shaped boot, not a security artifact. MKTG_STUDIO_DEBUG=1 exposes
 // the path for power users debugging auth. Auth itself is unchanged; token
 // still lives at STUDIO_TOKEN_PATH (mode 0o600), still required for every
-// /api/* request, still injected into the auto-opened dashboard URL.
+// /api/* request.
 const tokenLine =
   process.env.MKTG_STUDIO_DEBUG === "1"
     ? `\n    → token      ${STUDIO_TOKEN_PATH}`

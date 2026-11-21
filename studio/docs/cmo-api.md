@@ -615,7 +615,7 @@ Enums surface too — `POST /api/navigate`:
 
 ```bash
 curl -s "http://localhost:3001/api/schema?route=/api/navigate" | jq '.routes[0].inputSchema.properties.tab'
-# → {"type":"string","enum":["pulse","signals","publish","brand","hq","content"]}   (hq/content = legacy aliases)
+# → {"type":"string","enum":["pulse","signals","publish","brand"]}
 ```
 
 Unknown paths 404 with the structured error envelope:
@@ -659,7 +659,7 @@ All events flow through `GET /api/events` with envelope `{type, payload, ts}`.
 | `foundation:complete` | `{durationMs, success, lanes:[FoundationProgressPayload]}` | foundation initializer — fires once after all 3 lanes settle |
 | `skill-start` | `{skill, file?, jobId?}` | `POST /api/brand/regenerate` — fires immediately when a skill is queued |
 | `skill-complete` | `{skill, file?, filesChanged?, jobId?}` | /cmo posts back via `POST /api/activity/log` after the skill writes its output |
-| `job-created` / `job-started` / `job-log` / `job-completed` / `job-failed` / `job-cancelled` | job summary | `lib/jobs.ts` |
+| `job-created` / `job-started` / `job-log` / `job-completed` / `job-failed` | job summary | `lib/jobs.ts` |
 
 ---
 

@@ -730,15 +730,6 @@ a, button, [role="button"] {
   --sidebar-accent-foreground: #0c0a09;
   --sidebar-border: #e7e5e4;
   --sidebar-ring: #292524;
-
-  /* Agent phase colors */
-  --phase-parsing: #8B5CF6;
-  --phase-scanning: #3B82F6;
-  --phase-filtering: #06B6D4;
-  --phase-scoring: #F59E0B;
-  --phase-briefing: #EC4899;
-  --phase-delivering: #10B981;
-  --phase-complete: #059669;
 }
 
 /* Subtle workspace radial gradient */

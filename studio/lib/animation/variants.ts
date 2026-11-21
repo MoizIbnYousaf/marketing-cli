@@ -1,19 +1,9 @@
-import { SPRING, STAGGER, DURATION } from "./constants"
+import { SPRING, STAGGER } from "./constants"
 import type { Variants } from "framer-motion"
-
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: DURATION.normal } },
-}
 
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: SPRING.smooth },
-}
-
-export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: SPRING.snappy },
 }
 
 export const staggerContainer: Variants = {
@@ -30,12 +20,4 @@ export const staggerContainer: Variants = {
 export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: SPRING.smooth },
-}
-
-export const reportStagger: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: STAGGER.slow, delayChildren: 0.15 },
-  },
 }

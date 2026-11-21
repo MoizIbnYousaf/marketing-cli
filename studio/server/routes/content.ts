@@ -304,11 +304,7 @@ export async function tryContentRoutes(
     return serveProjectAsset(req, fileQ, corsHeaders, cwd, h);
   }
 
-  if (
-    method === "GET" &&
-    (url.pathname === "/api/cmo/content/events" ||
-      url.pathname === "/api/cmo/content/events/stream")
-  ) {
+  if (method === "GET" && url.pathname === "/api/cmo/content/events/stream") {
     return globalEmitter.subscribe("*", corsHeaders);
   }
 
