@@ -10,12 +10,10 @@ const POSTIZ_HOURLY_LIMIT = 30
 export function RateLimitBadge({
   used,
   limit = POSTIZ_HOURLY_LIMIT,
-  resetsAt,
   className,
 }: {
   used: number
   limit?: number
-  resetsAt?: string
   className?: string
 }) {
   const ratio = limit === 0 ? 0 : used / limit
@@ -24,13 +22,6 @@ export function RateLimitBadge({
     if (ratio >= 0.75) return "warn"
     return "ok"
   }, [ratio])
-
-  const resetsLabel = useMemo(() => {
-    if (!resetsAt) return null
-    const date = new Date(resetsAt)
-    if (Number.isNaN(date.getTime())) return null
-    return `at ${date.toISOString().slice(11, 16)} UTC`
-  }, [resetsAt])
 
   return (
     <Tooltip>
@@ -58,7 +49,6 @@ export function RateLimitBadge({
       </TooltipTrigger>
       <TooltipContent side="bottom" className="text-xs">
         Postiz public API limit: {limit} POST /posts per hour, per org.
-        {resetsLabel ? ` Window resets ${resetsLabel}.` : ""}
       </TooltipContent>
     </Tooltip>
   )

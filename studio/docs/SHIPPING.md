@@ -11,12 +11,7 @@ to `studio/bin/mktg-studio.ts`.
 
 ## The binary
 
-Source: `studio/bin/mktg-studio.ts`. Registered inside the workspace
-`package.json`:
-
-```json
-"bin": { "mktg-studio": "./bin/mktg-studio.ts" }
-```
+Source: `studio/bin/mktg-studio.ts`.
 
 The CLI's `mktg studio` command shells out to this file. From a checkout
 of `marketing-cli`, run it directly via the workspace script aliases:
@@ -88,8 +83,8 @@ current workaround.
 
 - Dashboard output is Next.js' default (pretty printed).
 - Server output is whatever `server.ts` emits today (plain prints) +
-  structured JSON lines from `lib/logger.ts::logAccess` (when/if they are
-  wired). The shape is `{ts, method, path, status, ms, ip?, ua?}` — one line
+  structured JSON lines from `lib/logger.ts::logAccess`, written to stderr.
+  The shape is `{ts, method, path, status, ms, ip?, ua?}` — one line
   per request, JSON-parseable with `jq`.
 
 Tail the launcher with `bun run start:studio | jq -R 'fromjson? // .'` to

@@ -20,7 +20,7 @@ workspace member. Run all commands from a checkout of `marketing-cli`.
 ```bash
 # from the marketing-cli repo root
 bun install                              # wires the workspace
-cp studio/.env.example studio/.env.local # fill POSTIZ_API_KEY etc. if you have them
+cp .env.example .env.local               # fill POSTIZ_API_KEY etc. if you have them
 bun --cwd studio run start:studio        # API + dashboard, single launcher
 # or:
 bun --cwd studio run start:studio:open   # also opens the dashboard
@@ -66,7 +66,7 @@ Every inserted row is tagged with a `demo:` sentinel prefix on its
 summary / reason / content_preview field, so `--reset` only clears
 seeded rows — real `/cmo` data is never touched. Safe to run repeatedly.
 
-**Imagined brand:** _Parallel_ — a SaaS that lets marketing teams run
+**Imagined brand:** _DemoCo_ — a SaaS that lets marketing teams run
 agent workflows across their stack. Mid-market, bootstrapped, indie-tech
 voice. The fixtures read like a real product would, not lorem ipsum.
 
@@ -120,7 +120,7 @@ lib/
   watcher.ts               Bun.watch on brand/ → SSE events
 components/
   workspace/               tabs: pulse, signals, publish, brand
-  activity-panel/          the right-hand feed (powered by SSE)
+    activity-panel/        the right-hand feed (powered by SSE)
   command-palette/         ⌘K palette (drives skills + navigation)
   settings/                API-key onboarding + doctor health
   providers/               sse-bridge, swr-provider, motion-provider
@@ -141,7 +141,7 @@ docs/
   DEVELOPER.md             this file
   SHIPPING.md              how the bin works + ops notes
   (audit artifacts archived in 0.2.1; see git history at tag v0.2.0)
-brand/                     marketing memory (10 files — see mktg/brand/SCHEMA.md)
+brand/                     marketing memory (10 files — see brand/SCHEMA.md at the repo root)
 ```
 
 ## Adding a new API route
@@ -161,8 +161,10 @@ brand/                     marketing memory (10 files — see mktg/brand/SCHEMA.
 ## Adding a new dashboard tab
 
 1. Create `components/workspace/<tab>/` with an index component that uses SWR
-   for reads and `useSSEBridge` for live updates.
-2. Export it from the tab registry so the workspace switcher knows about it.
+   for reads. Live updates arrive through the root `<SSEBridge />`
+   (`components/providers/sse-bridge.tsx`).
+2. Register the tab by adding it to `WORKSPACE_TABS` in
+   `components/workspace/workspace-tabs.tsx`.
 3. Add a case to `components/workspace/brand-workspace.tsx` in both the
    desktop and mobile switch blocks.
 4. Add an icon + label to `components/workspace/workspace-tabs.tsx` and

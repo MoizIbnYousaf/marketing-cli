@@ -64,5 +64,3 @@ export default defineConfig({
     },
   ],
 });
-
-export { STUDIO_PORT, DASHBOARD_PORT };

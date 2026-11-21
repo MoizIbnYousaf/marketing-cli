@@ -6,7 +6,7 @@
 // helpers wrap that contract so every IA spec hits the same surfaces with
 // no per-file boot logic.
 
-import type { Page, Request as PWRequest } from "@playwright/test"
+import type { Page } from "@playwright/test"
 
 export const STUDIO_PORT = Number(process.env.E2E_STUDIO_PORT ?? "4801")
 export const DASHBOARD_PORT = Number(process.env.E2E_DASHBOARD_PORT ?? "4800")

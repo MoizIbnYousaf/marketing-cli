@@ -51,7 +51,7 @@ mktg studio                           # launches both processes
 ```
 **Fix (working from a marketing-cli checkout):**
 ```sh
-cd ~/projects/mktgmono/marketing-cli  # repo root
+cd <marketing-cli repo root>
 bun install                           # wires the workspace
 bun --cwd studio run start:studio     # boots Bun server + Next dashboard
 # then open http://localhost:3000
@@ -351,7 +351,7 @@ sqlite3 marketing.db "VACUUM;"
 
 ### 6.1 A tab won't load (spinner forever)
 **Symptom:** a workspace tab stays in its loading skeleton past 15 s; network tab shows the API call is pending.
-**Cause:** the server is slow or the endpoint threw. Known hot spots: Settings at wide viewports (A6, issue #51), Trends when `/api/trends/feed` is down (G4-10).
+**Cause:** the server is slow or the endpoint threw. Known hot spots: Settings at wide viewports.
 **Fix:**
 ```sh
 # check server health
@@ -371,23 +371,16 @@ tail -n 100 /tmp/studio.log
 
 ### 6.3 Updates aren't live (SSE issue -- Bug #8)
 **Symptom:** /cmo runs a skill but the Activity panel never shows the row. Only full page reload shows it.
-**Cause:** SSE subscription dropped. The fix for this landed at `4957afd` (Bug #8). If you're on that commit or later and still seeing it, the connection is dropping mid-session.
+**Cause:** SSE subscription dropped. The fix for this has landed (Bug #8). If you are still seeing it, the connection is dropping mid-session.
 **Fix:**
 ```sh
-# verify you're post-fix
-git log --oneline 4957afd -1
 # live subscriber count
 curl -s http://localhost:3001/api/health | python3 -c "import json,sys; print(json.load(sys.stdin).get('subscribers'))"
 # open the dashboard; subscribers should go to 1
 # if it stays at 0, the SSEBridge didn't mount -- hard-refresh (Cmd+Shift+R)
 ```
 
-### 6.4 Dark mode / theme glitches (buttons with no background)
-**Symptom:** default buttons look like plain text -- no background color, hard to click.
-**Cause:** the shadcn `Button` default variant references `--color-primary` which is not defined in the theme (G1 F01). Fix is landing in A7 / task #52.
-**Workaround:** use `variant="accent"` or `variant="outline"` for any button you author until A7 lands. Existing default buttons will visually repair themselves automatically once the token is defined.
-
-### 6.5 Command palette (Cmd+K) doesn't open
+### 6.4 Command palette (Cmd+K) doesn't open
 **Symptom:** pressing Cmd+K does nothing.
 **Cause:** focus was inside an input/textarea, and the shortcut was intercepted by the browser or the element.
 **Fix:** click outside any input first, then press Cmd+K. Or focus the page body.
@@ -397,10 +390,9 @@ curl -s http://localhost:3001/api/health | python3 -c "import json,sys; print(js
 ## 7. Performance
 
 ### 7.1 Dashboard is slow with a large `brand/`
-**Symptom:** Settings page hangs 10+ s; Brand tab is laggy.
-**Cause:** `Settings → Brand file health` is rendered by an async server component that stats every brand/ file at render time (G4-48). Larger files + slow disk = long render. This is the root of issue #51 (A6).
-**Fix (workaround until A6 lands):**
-- Navigate to a different section of Settings (API keys, Integrations) which don't pay that cost.
+**Symptom:** Settings shows a "Brand file scan unavailable" card; Brand tab is laggy.
+**Cause:** `Settings → Brand file health` stats every brand/ file at render time. The scan is capped at 3 s; when it times out, Settings shows an inline "Brand file scan unavailable" card instead of hanging.
+**Fix:**
 - Keep `brand/` under 1 MB per file.
 - Close extra brand files in your editor to reduce disk pressure.
 
@@ -520,7 +512,6 @@ Open at: `https://github.com/MoizIbnYousaf/marketing-cli/issues/new`. Studio shi
 | Studio server on :3001 unreachable | 2.2 / 2.4 |
 | `mktg studio` not found | 1.2 |
 | Settings page very slow or blank | 7.1 |
-| Default buttons invisible | 6.4 |
 | Brand editor lost edits | 5.3 |
 | `/cmo` regenerate clobbers manual edits | 5.4 |
 | Runtime TypeError red page | 6.2 |

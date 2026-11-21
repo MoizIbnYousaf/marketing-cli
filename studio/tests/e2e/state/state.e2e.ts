@@ -25,10 +25,7 @@
 //   - components/layout/project-identity.tsx (soft signal)
 //   - components/layout/studio-status.tsx (rose dot on /cmo activity)
 //
-// Surfaces NOT covered here and why (see REPORT.md):
-//   - components/workspace/workspace-header.tsx — orphan post-Lane-4 IA
-//     consolidation; no rendered surface mounts it. Hook contract is
-//     exercised by useAsyncAction's runtime, the wiring is dead UI.
+// Surfaces NOT covered here and why:
 //   - app/(dashboard)/error.tsx — render-time crash injection without
 //     instrumenting a page is unsupported in this test harness; would need
 //     a `?throw=1` debug flag added to a route component.
