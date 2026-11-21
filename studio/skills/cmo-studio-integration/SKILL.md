@@ -37,7 +37,9 @@ server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
 `/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
 at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
 `MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
-`Authorization: Bearer <token>`. Set it once per turn; every recipe below sends it:
+`Authorization: Bearer <token>`. If Studio was started with a
+`MKTG_STUDIO_TOKEN` of 32+ characters in its env, that value is the token and
+the file is not read. Set it once per turn; every recipe below sends it:
 
 ```bash
 AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"

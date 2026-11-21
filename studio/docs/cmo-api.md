@@ -31,7 +31,12 @@ server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
 `/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
 at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
 `MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
-`Authorization: Bearer <token>`.
+`Authorization: Bearer <token>`. If Studio was started with a
+`MKTG_STUDIO_TOKEN` of 32+ characters in its env, that value is the token and
+the file is not read.
+`/api/auth/bootstrap` hands a session cookie holding this token to any caller
+on this machine, so the token keeps out other machines and cross-site browser
+pages, not other local processes.
 
 ```bash
 curl -H "Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)" http://127.0.0.1:3001/api/skills
