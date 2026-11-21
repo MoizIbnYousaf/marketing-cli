@@ -33,7 +33,9 @@ bun --cwd studio run start:studio:open     # same, plus open the dashboard
    (Next.js, default 3000).
 4. **Probes each port.** If either is taken, exits with a non-zero code and a
    `fix` line telling you exactly how to free it (`lsof -ti:PORT | xargs kill -9`).
-5. **Spawns both children.** `bun run server.ts` and `bun run next dev -p $DASHBOARD_PORT`.
+5. **Spawns both children.** `bun run server.ts` and `bun run next dev -H $DASHBOARD_HOST -p $DASHBOARD_PORT`.
+   `DASHBOARD_HOST` defaults to `127.0.0.1`; the `dev`, `dev:all` and `start`
+   package scripts bind the same loopback default.
 6. **Tags their output.** Prefixes every line with `[server]` or `[next]`.
 7. **Waits for readiness.** Polls `GET /api/health` and `GET /` with a 30 s
    timeout; if either side misses the window, both are killed.
