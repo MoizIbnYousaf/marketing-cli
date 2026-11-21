@@ -572,6 +572,7 @@ export type BrandDiffResult = {
   readonly baselineTimestamp: string | null;
   readonly changes: readonly BrandDiffChange[];
   readonly hasChanges: boolean;
+  readonly baselineSaved: boolean;
 };
 
 export const computeBrandHashes = async (cwd: string): Promise<Record<string, string>> => {
@@ -608,7 +609,11 @@ export const loadBrandHashes = async (cwd: string): Promise<BrandHashesFile | nu
   }
 };
 
-export const diffBrand = async (cwd: string): Promise<BrandDiffResult> => {
+// Compares brand/ against the baseline in .mktg/brand-hashes.json. With
+// `save`, the hashes just compared become the new baseline, so the next diff
+// reports changes since this one. Nothing is saved when there is neither a
+// baseline nor a brand file to track (no stray .mktg/ in unrelated dirs).
+export const diffBrand = async (cwd: string, opts: { readonly save?: boolean } = {}): Promise<BrandDiffResult> => {
   const [baseline, currentHashes] = await Promise.all([
     loadBrandHashes(cwd),
     computeBrandHashes(cwd),
@@ -634,10 +639,14 @@ export const diffBrand = async (cwd: string): Promise<BrandDiffResult> => {
     }
   }
 
+  const baselineSaved = opts.save === true && (baseline !== null || Object.keys(currentHashes).length > 0);
+  if (baselineSaved) await saveBrandHashes(cwd, currentHashes);
+
   return {
     baselineTimestamp: baseline?.timestamp ?? null,
     changes,
     hasChanges: changes.some(c => c.status !== "unchanged"),
+    baselineSaved,
   };
 };
 

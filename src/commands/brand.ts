@@ -13,7 +13,7 @@ const SUBCOMMANDS = {
   "import": "Import brand memory from a JSON bundle",
   "update": "Write brand files from raw JSON payload via --input",
   "freshness": "Check brand file freshness against skill review intervals",
-  "diff": "Show brand file changes since last status baseline",
+  "diff": "Show brand file changes since the last brand diff, then record the current state as the new baseline (--dry-run compares without recording)",
   "append-learning": "Append a structured learning entry to brand/learnings.md",
   "claims": "Extract Claims Blacklist from landscape.md as structured JSON",
   "kit": "Parse creative-kit.md into structured brand tokens (colors, typography, visual)",
@@ -44,7 +44,14 @@ export const schema: CommandSchema = {
               { name: "--include-learnings", type: "boolean" as const, required: false, description: "Also clear learnings.md entries" },
             ]
           : [],
-    output: {},
+    output: name === "diff"
+      ? {
+          baselineTimestamp: "string | null — when the baseline being compared against was recorded (the previous brand diff); null on the first run, when every existing file is reported as 'added'",
+          changes: "Array<{file, status}> — status: 'added' | 'modified' | 'deleted' | 'unchanged' per brand file, compared with the baseline",
+          hasChanges: "boolean — true when any file is not 'unchanged'",
+          baselineSaved: "boolean — true when this run wrote the current hashes to .mktg/brand-hashes.json as the next baseline; false with --dry-run, or when there is no brand file and no baseline",
+        }
+      : {},
     examples: [{ args: `mktg brand ${name} --json`, description }],
   })),
   output: {},
@@ -70,7 +77,7 @@ const handleExport = async (_args: readonly string[], flags: GlobalFlags): Promi
 };
 
 const handleDiff = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
-  const result = await diffBrand(flags.cwd);
+  const result = await diffBrand(flags.cwd, { save: !flags.dryRun });
   return ok(result);
 };
 
