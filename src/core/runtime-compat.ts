@@ -3,7 +3,7 @@
 // Purpose: `bun build src/cli.ts --outdir dist --target node` preserves Bun
 // API calls (Bun.file, Bun.write, Bun.Glob, Bun.CryptoHasher, Bun.which) in
 // the bundled output. When the resulting dist/cli.js runs under node — which
-// happens via `npm install -g mktg && mktg ...` — every Bun.* reference
+// happens via `npm install -g marketing-cli && mktg ...` — every Bun.* reference
 // crashes with "Bun is not defined".
 //
 // This module installs a node-compatible subset of the Bun global when one
@@ -15,7 +15,7 @@
 // - Under Bun: typeof globalThis.Bun !== "undefined", polyfill is a no-op.
 // - Under node: polyfill installs the subset of Bun APIs mktg actually uses.
 // - Covers the exact surface grepped from src/: Bun.file({text,json,arrayBuffer,exists}),
-//   Bun.write, Bun.Glob{scan}, Bun.CryptoHasher, Bun.which. Nothing else.
+//   Bun.write, Bun.Glob{scan}, Bun.CryptoHasher, Bun.which, Bun.spawn. Nothing else.
 // - No new deps. Uses only node built-ins (fs/promises, fs, crypto, path,
 //   child_process).
 //
@@ -35,6 +35,8 @@ import { constants as fsConstants } from "node:fs";
 import { createHash, type Hash } from "node:crypto";
 import { dirname, join, delimiter } from "node:path";
 import { accessSync, constants as syncFsConstants } from "node:fs";
+import { spawn as nodeSpawn } from "node:child_process";
+import { Readable } from "node:stream";
 
 // Short-circuit under Bun — the real Bun global is already present.
 if (typeof (globalThis as { Bun?: unknown }).Bun === "undefined") {
@@ -141,10 +143,12 @@ if (typeof (globalThis as { Bun?: unknown }).Bun === "undefined") {
   // -------------------------------------------------------------------------
   class Glob {
     private readonly regex: RegExp;
-    constructor(private readonly pattern: string) {
+    constructor(pattern: string) {
       this.regex = globToRegex(pattern);
     }
-    async *scan(cwd: string): AsyncIterable<string> {
+    // Bun accepts both scan("dir") and scan({ cwd: "dir" }); callers use both.
+    async *scan(target: string | { cwd?: string } = "."): AsyncIterable<string> {
+      const cwd = typeof target === "string" ? target : (target.cwd ?? ".");
       for await (const rel of walk(cwd, "")) {
         if (this.regex.test(rel)) yield rel;
       }
@@ -284,6 +288,70 @@ if (typeof (globalThis as { Bun?: unknown }).Bun === "undefined") {
   };
 
   // -------------------------------------------------------------------------
+  // Bun.spawn — the subset mktg uses: spawn(cmd[], opts) and spawn({cmd,...}),
+  // piped stdout/stderr readable via `new Response(proc.stdout).text()`,
+  // a writable stdin with write()/end(), `exited` as a Promise<number>, and
+  // kill(signal). No shell is involved: argv is passed straight to the OS.
+  // -------------------------------------------------------------------------
+  type StdioMode = "pipe" | "inherit" | "ignore";
+  type SpawnOptions = {
+    cwd?: string;
+    env?: Record<string, string | undefined>;
+    stdin?: StdioMode;
+    stdout?: StdioMode;
+    stderr?: StdioMode;
+  };
+  type SpawnInput = SpawnOptions & { cmd: readonly string[] };
+
+  const emptyStream = (): ReadableStream<Uint8Array> =>
+    new ReadableStream<Uint8Array>({ start: (controller) => controller.close() });
+
+  const spawn = (
+    first: readonly string[] | SpawnInput,
+    second: SpawnOptions = {},
+  ) => {
+    const isArgv = Array.isArray(first);
+    const cmd = isArgv ? (first as readonly string[]) : (first as SpawnInput).cmd;
+    const opts = isArgv ? second : (first as SpawnInput);
+    const [file, ...args] = cmd;
+    if (typeof file !== "string" || file.length === 0) {
+      throw new Error("Bun.spawn: cmd must be a non-empty array of strings");
+    }
+    const child = nodeSpawn(file, args, {
+      cwd: opts.cwd,
+      env: (opts.env ?? process.env) as NodeJS.ProcessEnv,
+      stdio: [opts.stdin ?? "ignore", opts.stdout ?? "pipe", opts.stderr ?? "inherit"],
+    });
+    const exited = new Promise<number>((resolve) => {
+      // A spawn failure (ENOENT, EACCES) emits "error" and never "close".
+      // Resolve to 127, the shell convention for "command not found", so
+      // callers that only await `exited` still see a non-zero exit.
+      child.once("error", () => resolve(127));
+      child.once("close", (code, signal) => resolve(code ?? (signal ? 128 : 1)));
+    });
+    const toWeb = (stream: Readable | null): ReadableStream<Uint8Array> =>
+      stream ? (Readable.toWeb(stream) as unknown as ReadableStream<Uint8Array>) : emptyStream();
+    return {
+      pid: child.pid,
+      stdout: toWeb(child.stdout),
+      stderr: toWeb(child.stderr),
+      stdin: {
+        write: (data: string | Uint8Array): number => {
+          child.stdin?.write(data);
+          return typeof data === "string" ? Buffer.byteLength(data) : data.byteLength;
+        },
+        end: async (): Promise<void> => {
+          child.stdin?.end();
+        },
+      },
+      exited,
+      kill: (signal?: NodeJS.Signals | number): void => {
+        child.kill(signal);
+      },
+    };
+  };
+
+  // -------------------------------------------------------------------------
   // Install the polyfill as globalThis.Bun.
   // -------------------------------------------------------------------------
   (globalThis as { Bun?: unknown }).Bun = {
@@ -292,6 +360,7 @@ if (typeof (globalThis as { Bun?: unknown }).Bun === "undefined") {
     CryptoHasher,
     Glob,
     which,
+    spawn,
   };
 }
 

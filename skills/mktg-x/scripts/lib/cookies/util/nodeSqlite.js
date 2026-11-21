@@ -55,4 +55,3 @@ export async function importNodeSqlite() {
         process.emitWarning = originalEmitWarning;
     }
 }
-//# sourceMappingURL=nodeSqlite.js.map

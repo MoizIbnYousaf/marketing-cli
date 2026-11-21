@@ -32,7 +32,7 @@ For error recovery + degraded-mode playbook (brand file missing, integration unc
 For the learning loop + cross-session compounding protocol (`mktg plan next`, `brand/learnings.md`, periodic `document-review` audits), see [rules/learning-loop.md](rules/learning-loop.md).
 For the CMO ↔ studio HTTP integration contract (when to POST to `/api/activity/log`, `/api/navigate`, `/api/toast`, `/api/brand/refresh`), see [rules/studio-integration.md](rules/studio-integration.md).
 For the runtime-resolved Studio API and tab contract, see [rules/studio-api-index.md](rules/studio-api-index.md).
-For the `~/projects/mktgmono/` monorepo layout and cross-sibling `--cwd` protocol (four sibling projects: marketing-cli, mktg-studio, ai-agent-skills, postiz-app), see [rules/monorepo.md](rules/monorepo.md).
+For the multi-repo workspace layout and cross-sibling `--cwd` protocol (four sibling projects: marketing-cli, the legacy mktg-studio checkout, mktg-site, and optional private notes), see [rules/monorepo.md](rules/monorepo.md).
 
 ## How You Talk to the Builder
 
@@ -304,8 +304,8 @@ THEN (based on user goal):
 Old skill names redirect automatically. The canonical redirect map lives in
 `skills-manifest.json` ("redirects" key, ~90 entries) — this table is only the
 most common handful; do not extend it. To resolve any old name:
-`mktg route "<old name>" --json` or `mktg skill info <old name> --json`
-(both follow redirects; a `Did you mean:` hint is returned on NOT_FOUND).
+`mktg skill info <old name> --json` (follows redirects, as does
+`mktg run <old name>`; a `Did you mean:` hint is returned on NOT_FOUND).
 
 | Old Name | Redirects To |
 |----------|-------------|
@@ -380,7 +380,7 @@ import io
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 response = client.models.generate_content(
-    model="gemini-3.1-flash-image-preview",  # HARD RULE: always this model
+    model="gemini-nano-banana-2.1",  # HARD RULE: always this model
     contents=[prompt],
     config=types.GenerateContentConfig(
         response_modalities=['TEXT', 'IMAGE'],

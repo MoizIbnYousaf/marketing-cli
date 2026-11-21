@@ -3,7 +3,7 @@
 // returns the best skill with confidence + rationale + nextCommand.
 // Works in CI and any agent runtime without a Claude Code binary.
 
-import { ok, err, type CommandHandler, type CommandSchema } from "../types";
+import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { invalidArgs, rejectControlChars, DOCS } from "../core/errors";
 import { resolveManifest } from "../core/skills";
 import { routePrompt, type RouteCandidate, type RouteConfidence } from "../core/skill-router";

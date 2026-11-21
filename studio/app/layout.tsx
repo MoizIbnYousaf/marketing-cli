@@ -68,7 +68,7 @@ export default function RootLayout({
               <AxeA11y />
               {/* SSEBridge lives at the root so its EventSource survives any
                   dashboard-layer remount (HMR, Turbopack hiccups, route
-                  transitions). See docs/BUG8-DIAGNOSIS.md. */}
+                  transitions). */}
               <SSEBridge />
               {/* WebMCP tools share the authenticated browser session and
                   persist across every Studio route. Unsupported browsers

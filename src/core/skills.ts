@@ -4,12 +4,12 @@
 import { spawnSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { mkdir, chmod, stat } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import type { SkillsManifest, SkillManifestEntry, ExternalSkillEntry } from "../types";
 import { getPackageRoot } from "./paths";
 
 // Where skills get installed for the agent
-const SKILLS_INSTALL_DIR = join(homedir(), ".claude", "skills");
+const SKILLS_INSTALL_DIR = join(userHome(), ".claude", "skills");
 
 // Load the manifest from package root
 export const loadManifest = async (): Promise<SkillsManifest> => {
@@ -40,21 +40,6 @@ export const getSkill = (
   const meta = manifest.skills[resolved];
   if (!meta) return null;
   return { name: resolved, meta };
-};
-
-// List skills grouped by category
-export const groupByCategory = (
-  manifest: SkillsManifest,
-): Record<string, Array<{ name: string; meta: SkillManifestEntry }>> => {
-  const groups: Record<string, Array<{ name: string; meta: SkillManifestEntry }>> = {};
-
-  for (const [name, meta] of Object.entries(manifest.skills)) {
-    const cat = meta.category;
-    if (!groups[cat]) groups[cat] = [];
-    groups[cat].push({ name, meta });
-  }
-
-  return groups;
 };
 
 // Check which skills are installed
@@ -360,7 +345,7 @@ export const installSkillsWithAiAgentSkills = async (
 // Search for an external skill by name across known locations.
 // Returns the directory path if found, null if not.
 export const findExternalSkill = async (nameOrPath: string): Promise<string | null> => {
-  const home = homedir();
+  const home = userHome();
 
   // If it looks like a path (contains /), try it directly
   if (nameOrPath.includes("/")) {
@@ -443,45 +428,6 @@ export const writeSkillVersions = async (cwd: string, versions: SkillVersionsFil
   const dirPath = join(cwd, MKTG_DIR);
   await mkdir(dirPath, { recursive: true });
   await Bun.write(join(dirPath, VERSIONS_FILE), JSON.stringify(versions, null, 2) + "\n");
-};
-
-// --- Sync/convenience aliases used by list, status, update commands ---
-
-// Synchronous manifest reader (reads from bundled JSON via import)
-// The other commands use this as readManifest() without await
-let _cachedManifest: SkillsManifest | null = null;
-
-export const readManifest = (): SkillsManifest => {
-  if (_cachedManifest) return _cachedManifest;
-  // Bun supports sync require for JSON
-  const manifestPath = join(getPackageRoot(), "skills-manifest.json");
-  const raw = require(manifestPath) as SkillsManifest;
-  _cachedManifest = raw;
-  return raw;
-};
-
-// Get installed skills as array with name + hash (for update diffing)
-type InstalledSkill = { name: string; hash: string | null };
-
-export const getInstalledSkills = async (): Promise<InstalledSkill[]> => {
-  const manifest = readManifest();
-  const results: InstalledSkill[] = [];
-
-  for (const name of getSkillNames(manifest)) {
-    const skillFile = join(SKILLS_INSTALL_DIR, name, "SKILL.md");
-    const file = Bun.file(skillFile);
-    const exists = await file.exists();
-
-    if (exists) {
-      const content = await file.arrayBuffer();
-      const hasher = new Bun.CryptoHasher("sha256");
-      hasher.update(content);
-      const hash = hasher.digest("hex");
-      results.push({ name, hash });
-    }
-  }
-
-  return results;
 };
 
 // --- Manifest resolution for project-level skill extensions ---

@@ -31,11 +31,11 @@ Firecrawl and WebFetch can't reach this content — Twitter serves a degraded lo
 
    | URL pattern | Shape | Script invocation |
    |---|---|---|
-   | `x.com/<user>/status/<id>` (no reply siblings) | single tweet | `bun run ./scripts/fetch-x.ts tweet "<url>"` |
+   | `x.com/<user>/status/<id>` (no reply siblings) | single tweet | `bun run ./scripts/fetch-x.ts read "<url>"` |
    | `x.com/<user>/status/<id>` (has reply chain by same author) | thread | `bun run ./scripts/fetch-x.ts thread "<url>"` |
    | `x.com/i/bookmarks` or `x.com/<user>/bookmarks` | bookmarks | `bun run ./scripts/fetch-x.ts bookmarks "<url>"` |
    | `x.com/<user>/article/<id>` (long-form article) | article | `bun run ./scripts/fetch-x.ts article "<url>"` |
-   | `x.com/<user>` (no status/bookmarks/article suffix) | timeline | `bun run ./scripts/fetch-x.ts timeline "<user>"` |
+   | `x.com/<user>` (no status/bookmarks/article suffix) | timeline | `bun run ./scripts/fetch-x.ts user "<user>"` |
 
    Also accepts `twitter.com`, `mobile.twitter.com`, and `www.x.com` — the script normalizes before routing.
 
@@ -78,7 +78,7 @@ Trigger this skill whenever ANY of the following is true:
 
 ### Single tweet
 ```bash
-bun run ./scripts/fetch-x.ts tweet "https://x.com/levelsio/status/1234567890" > .mktg-x/tweet-1234567890.json
+bun run ./scripts/fetch-x.ts read "https://x.com/levelsio/status/1234567890" > .mktg-x/tweet-1234567890.json
 jq '.tweet_text, .author' .mktg-x/tweet-1234567890.json
 ```
 
@@ -101,7 +101,7 @@ bun run ./scripts/fetch-x.ts article "https://x.com/levelsio/article/1234" > .mk
 
 ### User timeline (recent posts from one account)
 ```bash
-bun run ./scripts/fetch-x.ts timeline "levelsio" > .mktg-x/timeline-levelsio.json
+bun run ./scripts/fetch-x.ts user "levelsio" > .mktg-x/timeline-levelsio.json
 ```
 
 ## Output & Organization

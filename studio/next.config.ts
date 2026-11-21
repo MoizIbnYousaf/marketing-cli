@@ -44,8 +44,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "framer-motion",
       "lucide-react",
-      "recharts",
-      "react-markdown",
       "cmdk",
       "radix-ui",
     ],

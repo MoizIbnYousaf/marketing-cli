@@ -313,7 +313,7 @@ test.describe("demo-enabled chrome", () => {
     await page.waitForSelector("header", { state: "attached", timeout: 60_000 });
 
     const tokens = await snapshotTokens(page);
-    // Persist the resolved tokens for the REPORT.md.
+    // Persist the resolved tokens next to this spec.
     writeFileSync(
       join(__dirname, "lane3-tokens.json"),
       JSON.stringify(tokens, null, 2),
@@ -585,8 +585,7 @@ test.describe("demo-enabled chrome", () => {
         // The skeleton wrapper class is `bg-surface-1`; the inner pulse
         // bar is `bg-surface-2`. Either way must NOT contain a hex literal.
         expect(skBg).not.toMatch(/#[0-9a-fA-F]{3,6}/);
-        // Soft signal that this run took the skeleton fallback so REPORT.md
-        // can flag it for follow-up.
+        // Soft signal that this run took the skeleton fallback.
         process.env.LANE3_PROJECT_IDENTITY_SKELETON = "1";
       }
     });

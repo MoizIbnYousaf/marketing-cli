@@ -5,7 +5,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, stat, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { GlobalFlags } from "../../src/types";
 import { handler as initHandler } from "../../src/commands/init";
@@ -36,12 +36,7 @@ describe("--dry-run: init command", () => {
     expect(result.ok).toBe(true);
 
     // brand/ should NOT exist
-    try {
-      await stat(join(tempDir, "brand"));
-      expect(true).toBe(false); // should not reach here
-    } catch {
-      // Expected: directory doesn't exist
-    }
+    await expect(stat(join(tempDir, "brand"))).rejects.toThrow();
   });
 
   test("dry-run init returns what would be created", async () => {
@@ -57,12 +52,7 @@ describe("--dry-run: init command", () => {
     const result = await initHandler(["--yes"], dryFlags);
     expect(result.ok).toBe(true);
 
-    try {
-      await stat(join(tempDir, ".mktg"));
-      expect(true).toBe(false);
-    } catch {
-      // Expected: .mktg doesn't exist
-    }
+    await expect(stat(join(tempDir, ".mktg"))).rejects.toThrow();
   });
 });
 
@@ -141,12 +131,7 @@ describe("Dry-run idempotency", () => {
     await initHandler(["--yes"], dryFlags);
 
     // Verify nothing was created
-    try {
-      await stat(join(tempDir, "brand"));
-      expect(true).toBe(false);
-    } catch {
-      // Expected
-    }
+    await expect(stat(join(tempDir, "brand"))).rejects.toThrow();
 
     // Real run — should create everything
     const result = await initHandler(["--yes"], flags);

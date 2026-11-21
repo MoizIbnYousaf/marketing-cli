@@ -67,7 +67,7 @@ function seedSignal(opts: {
   feedback?: string;
   ageHours?: number;
 }): number {
-  // Schema stores severity as INTEGER (db/schema.sql:9) and the server's
+  // Schema stores severity as INTEGER (db/migrations/001_initial.sql:9) and the server's
   // normalizeSignalSeverity() maps numeric thresholds to labels:
   //   >=80 -> p0, 60-79 -> p1, 40-59 -> watch, <0 -> negative, else neutral.
   // Test callers can pass either a label or a number; we convert here.

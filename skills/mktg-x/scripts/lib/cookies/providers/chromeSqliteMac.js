@@ -57,4 +57,3 @@ function resolveChromeCookiesDb(profile) {
         args.profile = profile;
     return resolveCookiesDbFromProfileOrRoots(args);
 }
-//# sourceMappingURL=chromeSqliteMac.js.map

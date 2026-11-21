@@ -47,7 +47,7 @@ On first boot the onboarding wizard asks for optional integration keys, then Stu
 
 ## What you see
 
-One tab per concern, an Activity panel streaming every `/cmo` write on the right. Cmd+K opens the palette, `?` shows every chord, the theme toggle flips dark / light / system.
+One tab per concern, an Activity panel streaming every `/cmo` write on the right. Cmd+K opens the palette, `?` shows every chord.
 
 | Tab | What it shows |
 |-----|---------------|
@@ -58,7 +58,7 @@ One tab per concern, an Activity panel streaming every `/cmo` write on the right
 
 The Activity panel never sleeps. Every skill run, every brand write, every toast streams through `/api/events` (SSE) and lands here live.
 
-Keyboard-first: `Cmd+K` command palette, `?` help overlay, `g` + letter chords to jump surfaces (`g p` Pulse, `g s` Signals, `g t` Trend radar, `g u` Publish, `g b` Brand, `g ,` Settings).
+Keyboard-first: `Cmd+K` command palette, `?` help overlay, `g` + letter chords to jump surfaces (`g p` or `g h` Pulse, `g c` Signals, `g u` Publish, `g b` Brand, `g ,` Settings).
 
 | ![Command palette](./docs/screenshots/command-palette-open.png) | ![Keyboard help](./docs/screenshots/keyboard-help.png) |
 |---|---|

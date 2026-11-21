@@ -5,7 +5,7 @@
 //   - applyFields: dot-notation field mask with smart pivot (axis 4)
 //   - ndjsonStream: NDJSON streaming response for list endpoints (axis 4)
 //
-// Reference: ~/projects/mktgmono/marketing-cli/src/core/output.ts (filterFields + pickFromObject)
+// Reference: ../../src/core/output.ts (filterFields + pickFromObject)
 
 // ─── Error envelope ─────────────────────────────────────────────────────────
 
@@ -19,8 +19,7 @@ export type StudioErrorCode =
   | "PARSE_ERROR"        // Couldn't parse response
   | "INTERNAL"           // Unhandled server error
   | "CONFIRM_REQUIRED"   // Destructive route called without ?confirm=true
-  | "CONFLICT"           // Optimistic-lock failure (e.g. mtime mismatch)
-  | "DRY_RUN_ONLY";      // Marker -- not actually returned, used by safety rails
+  | "CONFLICT";          // Optimistic-lock failure (e.g. mtime mismatch)
 
 export interface StudioErrorEnvelope {
   readonly code: StudioErrorCode;

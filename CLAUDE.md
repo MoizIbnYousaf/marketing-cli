@@ -31,7 +31,7 @@ This is a bun-workspaces monorepo with one publishable package: `marketing-cli`.
 | Path | Component | Launched via |
 |---|---|---|
 | (root) | `marketing-cli` (CLI: skills, agents, brand memory, `/cmo`) | `mktg <command>` |
-| `studio/` | Studio dashboard (Next.js + Bun API + Drizzle) | `mktg studio` |
+| `studio/` | Studio dashboard (Next.js + Bun API + SQLite) | `mktg studio` |
 
 ## Architecture
 
@@ -54,14 +54,14 @@ src/
 │   └── transcribe.ts   # whisper.cpp + yt-dlp + ffmpeg pipeline
 skills/                  # 76 SKILL.md files installed to ~/.claude/skills/
 skills-manifest.json     # Definitive skill list with metadata
-agents/                  # 6 agent .md files installed to ~/.claude/agents/
+agents/                  # Agent .md files (research/ + review/) installed to ~/.claude/agents/
 agents-manifest.json     # Definitive agent list with metadata
 catalogs-manifest.json   # Upstream catalog registry (postiz v1, openseo; parallel to skills/agents)
 studio/                  # Studio dashboard workspace member (ships inside the tarball)
 ├── app/                 # Next.js dashboard
 ├── server.ts            # Bun API server
 ├── server/http.ts       # HTTP helpers for the API
-└── server/routes/       # activity, brand, content, publish, signals
+└── server/routes/       # activity, brand, content, plan, publish, signals
 ├── bin/mktg-studio.ts   # Local launcher (mktg studio resolves this first)
 ├── components/          # React UI
 └── package.json         # Workspace package.json: Next.js deps + build scripts (no separate publish)

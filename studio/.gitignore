@@ -49,6 +49,3 @@ test-results/
 
 # E2E perf runs — local browser profiles, not shipped
 tests/e2e/perf/runs/
-
-# Local scratch dir for audit scripts
-.scratch/

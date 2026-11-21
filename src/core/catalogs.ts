@@ -9,7 +9,6 @@ import type {
   CatalogLoadResult,
   CatalogCollision,
   CatalogLicenseDenial,
-  CatalogTransport,
 } from "../types";
 import { getPackageRoot } from "./paths";
 import { parseJsonInput } from "./errors";
@@ -46,7 +45,7 @@ export const isLinkSafeLicense = (license: string): boolean =>
 export const isCopyleftLicense = (license: string): boolean =>
   COPYLEFT_LICENSES.includes(license);
 
-// Resource-ID style (matches src/core/errors.ts:141). Lowercase alphanum + dots + hyphens.
+// Resource-ID style (matches VALID_RESOURCE_ID_RE in src/core/errors.ts). Lowercase alphanum + dots + hyphens.
 const VALID_CATALOG_NAME_RE = /^[a-z0-9][a-z0-9._-]*$/;
 
 const AUTH_STYLES = new Set(["bearer", "basic", "oauth2", "none"]);
@@ -253,10 +252,6 @@ const validateShape = (
   return { ok: true, manifest: raw as CatalogsManifest };
 };
 
-// Default built-in set — single source of truth lives in publish/builtins
-// (also re-exported via publish/registry as BUILTIN_PUBLISH_ADAPTERS).
-// Importing builtins (not registry) keeps catalogs free of adapter/postiz.
-
 /**
  * Load and fully validate catalogs-manifest.json. Returns a discriminated
  * union; never throws for expected failure modes. Every command invocation
@@ -291,10 +286,6 @@ export const loadCatalogManifest = async (
   }
   return { ok: true, manifest: shape.manifest };
 };
-
-// Get all catalog names — mirrors src/core/skills.ts:30
-export const getCatalogNames = (manifest: CatalogsManifest): string[] =>
-  Object.keys(manifest.catalogs);
 
 // Get a catalog entry by name (no redirects for catalogs — names are stable).
 export const getCatalog = (

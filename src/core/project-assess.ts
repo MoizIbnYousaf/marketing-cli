@@ -1,4 +1,4 @@
-// Shared project/brand assessment for status, plan, and doctor.
+// Shared project/brand assessment for status and plan.
 // Single source for foundation order, skill mapping, health, and template detection.
 
 import { join } from "node:path";
@@ -63,8 +63,6 @@ export type ProjectAssessment = {
   readonly brandStatuses: readonly BrandFileStatus[];
   readonly brand: Record<string, AssessedBrandEntry>;
   readonly brandSummary: BrandSummary;
-  readonly foundationGaps: readonly BrandFile[];
-  readonly templateFiles: readonly string[];
   readonly skillForFile: (file: string) => string;
 };
 
@@ -163,23 +161,12 @@ export const assessProject = async (
     stale: brandValues.filter((b) => b.freshness === "stale").length,
   };
 
-  const templateFiles = brandStatuses
-    .filter((s) => brand[s.file]?.isTemplate)
-    .map((s) => s.file);
-
-  const foundationGaps = FOUNDATION_FILES.filter((file) => {
-    const entry = brand[file];
-    return !entry?.exists || entry.isTemplate === true;
-  });
-
   return {
     projectName,
     health: assessHealth(hasBrandDir, brandSummary.populated),
     brandStatuses,
     brand,
     brandSummary,
-    foundationGaps,
-    templateFiles,
     skillForFile,
   };
 };

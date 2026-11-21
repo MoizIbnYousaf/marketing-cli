@@ -23,4 +23,3 @@ export declare function getCookies(options: GetCookiesOptions): Promise<GetCooki
  * It does not validate cookie RFC edge cases; it simply joins `name=value` pairs.
  */
 export declare function toCookieHeader(cookies: readonly Cookie[], options?: CookieHeaderOptions): string;
-//# sourceMappingURL=public.d.ts.map

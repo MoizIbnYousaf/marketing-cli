@@ -13,13 +13,13 @@ body:
     id: existing
     attributes:
       label: Existing skills checked
-      placeholder: "Which of the 50 existing skills did you check? Why don't they cover this?"
+      placeholder: "Which existing skills did you check (mktg list --json)? Why don't they cover this?"
     validations:
       required: true
   - type: dropdown
     id: layer
     attributes:
-      label: Proposed layer
+      label: Proposed category
       description: Match one of the categories already used in skills-manifest.json.
       options:
         - Foundation
@@ -31,8 +31,5 @@ body:
         - Conversion
         - Growth
         - Knowledge
-        - Review
-        - Infrastructure
-        - Orchestrator
     validations:
       required: true

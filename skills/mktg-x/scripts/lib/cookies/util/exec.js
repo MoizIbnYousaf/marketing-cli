@@ -107,4 +107,3 @@ function cmdQuote(value) {
         return value;
     return `"${value.replaceAll('"', '""')}"`;
 }
-//# sourceMappingURL=exec.js.map

@@ -1,7 +1,7 @@
 // 07-run-skill.e2e.ts -- the "Run" button on every Skill Browser surface.
 //
 // RunSkillButton (components/skills/run-skill-button.tsx) POSTs to
-// /api/skill/run with `{ name }` plus `studioAuthHeaders()`. On success
+// /api/skill/run with `{ name }`. On success
 // it surfaces a sonner toast; on failure it surfaces an error toast. Lane 1
 // gated /api/skill/run behind the Bearer middleware, but the e2e harness
 // runs with MKTG_STUDIO_AUTH=disabled. Browser auth normally uses an HttpOnly

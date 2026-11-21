@@ -148,7 +148,7 @@ Same blocks, different combinations:
 
 ```
 /instagram-carousel  = /slideshow-script → /paper-marketing (4:5 ratio, no video)
-/youtube-short       = /slideshow-script → /paper-marketing → /video-content (16:9)
+/youtube-short       = /slideshow-script → /paper-marketing → /video-content (9:16; YouTube only classifies square or vertical video as a Short)
 /reels-batch         = /slideshow-script (10 scripts) → /paper-marketing → /video-content × 10
 /ad-creative         = /slideshow-script (1 script) → /paper-marketing (1 slide) → /video-content
 ```

@@ -136,6 +136,11 @@ export function serveProjectAsset(
     "Accept-Ranges": "bytes",
     "Cache-Control": "no-store",
     "Content-Type": contentType,
+    // Project files are untrusted content served from the dashboard origin.
+    // nosniff stops type confusion; the sandbox policy stops an SVG or HTML
+    // file opened directly from running script with the session cookie.
+    "X-Content-Type-Options": "nosniff",
+    "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
     ETag: `W/"${stat.size}-${Math.trunc(stat.mtimeMs)}"`,
     "Last-Modified": stat.mtime.toUTCString(),
   };
@@ -299,11 +304,7 @@ export async function tryContentRoutes(
     return serveProjectAsset(req, fileQ, corsHeaders, cwd, h);
   }
 
-  if (
-    method === "GET" &&
-    (url.pathname === "/api/cmo/content/events" ||
-      url.pathname === "/api/cmo/content/events/stream")
-  ) {
+  if (method === "GET" && url.pathname === "/api/cmo/content/events/stream") {
     return globalEmitter.subscribe("*", corsHeaders);
   }
 

@@ -122,12 +122,14 @@ describe("mktg cmo --dry-run", () => {
 
   test("auto-prefix '/cmo ' when prompt doesn't already start with it", async () => {
     const res = await cmoHandler(["what next"], baseFlags({ dryRun: true }));
+    expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.prompt).toBe("/cmo what next");
   });
 
   test("keep existing '/cmo ' prefix intact", async () => {
     const res = await cmoHandler(["/cmo already prefixed"], baseFlags({ dryRun: true }));
+    expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.prompt).toBe("/cmo already prefixed");
   });
@@ -137,6 +139,7 @@ describe("mktg cmo --dry-run", () => {
       ["test", "--model", "sonnet"],
       baseFlags({ dryRun: true }),
     );
+    expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.metadata.model).toBe("sonnet");
     expect(res.data.preview!.cmd).toEqual(expect.arrayContaining(["--model", "sonnet"]));
@@ -148,6 +151,7 @@ describe("mktg cmo --dry-run", () => {
       ["test", "--allowed-tools", custom],
       baseFlags({ dryRun: true }),
     );
+    expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.metadata.allowedTools).toBe(custom);
     expect(res.data.preview!.cmd).toEqual(expect.arrayContaining([custom]));
@@ -158,6 +162,7 @@ describe("mktg cmo --dry-run", () => {
       ["test", "--timeout", "45"],
       baseFlags({ dryRun: true }),
     );
+    expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.data.metadata.timeoutMs).toBe(45_000);
   });

@@ -4,6 +4,9 @@
 # config (next/react/playwright). Studio's tests run via `bun run --cwd studio test`.
 [test]
 root = "./tests"
+# Point HOME at a temp directory before any test runs, so the suite cannot
+# write into the developer's real ~/.claude or ~/.mktg. See tests/preload.ts.
+preload = ["./tests/preload.ts"]
 
 # Force hoisted (npm-style flat) node_modules layout.
 #

@@ -219,42 +219,6 @@ export type GraphqlTweetResult = {
   };
 };
 
-export type TweetResult =
-  | {
-      success: true;
-      tweetId: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-export type BookmarkMutationResult =
-  | {
-      success: true;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-export type FollowMutationResult =
-  | {
-      success: true;
-      userId?: string;
-      username?: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-export interface UploadMediaResult {
-  success: boolean;
-  mediaId?: string;
-  error?: string;
-}
-
 // Parsed media item for output
 export interface TweetMedia {
   type: 'photo' | 'video' | 'animated_gif';
@@ -337,26 +301,6 @@ export interface CurrentUserResult {
   error?: string;
 }
 
-export interface TwitterUser {
-  id: string;
-  username: string;
-  name: string;
-  description?: string;
-  followersCount?: number;
-  followingCount?: number;
-  isBlueVerified?: boolean;
-  profileImageUrl?: string;
-  createdAt?: string;
-}
-
-export interface FollowingResult {
-  success: boolean;
-  users?: TwitterUser[];
-  error?: string;
-  /** Cursor for fetching the next page of results */
-  nextCursor?: string;
-}
-
 export interface AboutAccountProfile {
   accountBasedIn?: string;
   source?: string;
@@ -377,41 +321,4 @@ export interface TwitterClientOptions {
   timeoutMs?: number;
   // Max depth for quoted tweets (0 disables). Defaults to 1.
   quoteDepth?: number;
-}
-
-export interface TwitterList {
-  id: string;
-  name: string;
-  description?: string;
-  memberCount?: number;
-  subscriberCount?: number;
-  isPrivate?: boolean;
-  createdAt?: string;
-  owner?: {
-    id: string;
-    username: string;
-    name: string;
-  };
-}
-
-export interface ListsResult {
-  success: boolean;
-  lists?: TwitterList[];
-  error?: string;
-}
-
-export interface CreateTweetResponse {
-  data?: {
-    create_tweet?: {
-      tweet_results?: {
-        result?: {
-          rest_id?: string;
-          legacy?: {
-            full_text?: string;
-          };
-        };
-      };
-    };
-  };
-  errors?: Array<{ message: string; code?: number }>;
 }

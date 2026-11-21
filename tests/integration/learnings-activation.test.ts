@@ -134,18 +134,12 @@ describe("mktg run --learning", () => {
     const { stdout, exitCode } = await run([
       "run", "brand-voice", "--learning", learning, "--json", "--cwd", tmpDir,
     ]);
-    // If skill is installed, check learning was appended
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed.learningAppended).toContain("Brand voice run");
-      // Verify file
-      const content = await readFile(join(tmpDir, "brand", "learnings.md"), "utf-8");
-      expect(content).toContain("Brand voice run");
-    } else {
-      // Skill not installed — NOT_FOUND is acceptable
-      const parsed = JSON.parse(stdout);
-      expect(parsed.error.code).toBe("NOT_FOUND");
-    }
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.learningAppended).toContain("Brand voice run");
+    // Verify file
+    const content = await readFile(join(tmpDir, "brand", "learnings.md"), "utf-8");
+    expect(content).toContain("Brand voice run");
   });
 
   test("run with --learning --dry-run returns row without writing", async () => {
@@ -158,32 +152,29 @@ describe("mktg run --learning", () => {
     const { stdout, exitCode } = await run([
       "run", "brand-voice", "--learning", learning, "--json", "--cwd", tmpDir, "--dry-run",
     ]);
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed.learningAppended).toContain("Dry run test");
-      // File should NOT exist in dry-run
-      const exists = await Bun.file(join(tmpDir, "brand", "learnings.md")).exists();
-      expect(exists).toBe(false);
-    }
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.learningAppended).toContain("Dry run test");
+    // File should NOT exist in dry-run
+    const exists = await Bun.file(join(tmpDir, "brand", "learnings.md")).exists();
+    expect(exists).toBe(false);
   });
 
   test("run without --learning has null learningAppended", async () => {
     const { stdout, exitCode } = await run([
       "run", "brand-voice", "--json", "--cwd", tmpDir,
     ]);
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed.learningAppended).toBeNull();
-    }
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.learningAppended).toBeNull();
   });
 
   test("run with invalid --learning JSON returns INVALID_ARGS", async () => {
     const { stdout, exitCode } = await run([
       "run", "brand-voice", "--learning", "not-json", "--json", "--cwd", tmpDir,
     ]);
-    // Could be INVALID_ARGS (bad json) or NOT_FOUND (skill not installed)
-    // If skill resolves first, then learning parse happens
+    expect(exitCode).toBe(2);
     const parsed = JSON.parse(stdout);
-    expect(["INVALID_ARGS", "NOT_FOUND"]).toContain(parsed.error.code);
+    expect(parsed.error.code).toBe("INVALID_ARGS");
   });
 });

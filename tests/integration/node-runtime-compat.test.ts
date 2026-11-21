@@ -3,7 +3,7 @@
 // Context: `bun build src/cli.ts --outdir dist --target node` produces a
 // bundle that preserves Bun.* API calls in the output. Without a runtime
 // polyfill, running `node dist/cli.js` crashes with "Bun is not defined"
-// — which breaks the `npm install -g mktg && mktg ...` install path for
+// — which breaks the `npm install -g marketing-cli && mktg ...` install path for
 // every user who doesn't already have bun installed.
 //
 // The fix (see src/core/runtime-compat.ts) installs a node-compatible
@@ -25,7 +25,7 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { mkdtemp, rm, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { existsSync } from "node:fs";
 
@@ -281,5 +281,87 @@ describe("dist/cli.js runs cleanly under node (Bun polyfill regression)", () => 
     expect(bun.which("../etc/passwd")).toBeNull();
     expect(bun.which("/etc/passwd")).toBeNull();
     expect(bun.which("bun\x00; rm -rf /")).toBeNull();
+  });
+  // Bun.Glob.scan is called two ways in src/: scan("dir") and scan({ cwd }).
+  // The polyfill used to accept only the string form, so under node every
+  // { cwd } caller silently counted zero files.
+  test("status counts content files under node (Glob.scan({ cwd }) form)", async () => {
+    const root = await mkdtemp(join(tmpdir(), "mktg-node-glob-"));
+    const cwd = join(root, "project");
+    const home = join(root, "home");
+    await mkdir(join(cwd, "marketing", "posts"), { recursive: true });
+    await mkdir(home, { recursive: true });
+    await writeFile(join(cwd, "marketing", "one.md"), "# one\n");
+    await writeFile(join(cwd, "marketing", "posts", "two.md"), "# two\n");
+    await writeFile(join(cwd, "marketing", "ignored.png"), "not counted");
+    try {
+      const result = await runNode(["status", "--json"], cwd, home);
+      expect(result.exitCode).toBe(0);
+      const parsed = parseJson(result.stdout) as { content?: { totalFiles?: number } };
+      expect(parsed.content?.totalFiles).toBe(2);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  // Bun.spawn was missing from the polyfill, so cmo, transcribe, verify and
+  // update --upgrade had nothing to call under node. Bundle the shim on its
+  // own and drive it from a real node process.
+  test("Bun.spawn polyfill works under node (argv form, object form, stdin, failure)", async () => {
+    const root = await mkdtemp(join(tmpdir(), "mktg-node-spawn-"));
+    const shim = join(root, "shim.mjs");
+    const driver = join(root, "driver.mjs");
+    try {
+      const build = await new Promise<number>((resolve, reject) => {
+        const proc = spawn(
+          "bun",
+          ["build", "src/core/runtime-compat.ts", "--target", "node", "--outfile", shim],
+          { cwd: REPO_ROOT, stdio: "ignore" },
+        );
+        proc.on("error", reject);
+        proc.on("close", (code) => resolve(code ?? -1));
+      });
+      expect(build).toBe(0);
+
+      await writeFile(
+        driver,
+        [
+          `await import(${JSON.stringify(shim)});`,
+          `const node = process.execPath;`,
+          `const a = Bun.spawn([node, "-e", "process.stdout.write('argv-form')"], { stdout: "pipe", stderr: "pipe" });`,
+          `const aOut = await new Response(a.stdout).text();`,
+          `const aCode = await a.exited;`,
+          `const b = Bun.spawn({ cmd: [node, "-e", "process.stderr.write('to-stderr'); process.exit(3)"], stdout: "pipe", stderr: "pipe" });`,
+          `const [bErr, bCode] = await Promise.all([new Response(b.stderr).text(), b.exited]);`,
+          `const c = Bun.spawn([node, "-e", "process.stdin.pipe(process.stdout)"], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });`,
+          `c.stdin.write("piped-in");`,
+          `await c.stdin.end();`,
+          `const [cOut, cCode] = await Promise.all([new Response(c.stdout).text(), c.exited]);`,
+          `const d = Bun.spawn(["mktg-definitely-not-a-real-binary"], { stdout: "pipe", stderr: "pipe" });`,
+          `const dCode = await d.exited;`,
+          `process.stdout.write(JSON.stringify({ aOut, aCode, bErr, bCode, cOut, cCode, dCode }));`,
+        ].join("\n"),
+      );
+
+      const out = await new Promise<{ stdout: string; code: number }>((resolve, reject) => {
+        const proc = spawn("node", [driver], { stdio: ["ignore", "pipe", "inherit"] });
+        let stdout = "";
+        proc.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+        proc.on("error", reject);
+        proc.on("close", (code) => resolve({ stdout, code: code ?? -1 }));
+      });
+      expect(out.code).toBe(0);
+      expect(JSON.parse(out.stdout)).toEqual({
+        aOut: "argv-form",
+        aCode: 0,
+        bErr: "to-stderr",
+        bCode: 3,
+        cOut: "piped-in",
+        cCode: 0,
+        dCode: 127,
+      });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

@@ -1,24 +1,13 @@
 // X/Twitter GraphQL client — MIT licensed.
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 // biome-ignore lint/correctness/useImportExtensions: JSON module import doesn't use .js extension.
 import defaultOverrides from './features.json' with { type: 'json' };
 
-export type FeatureOverrides = {
-  global?: Record<string, boolean>;
-  sets?: Record<string, Record<string, boolean>>;
-};
-
 type NormalizedFeatureOverrides = {
   global: Record<string, boolean>;
   sets: Record<string, Record<string, boolean>>;
-};
-
-export type FeatureOverridesSnapshot = {
-  cachePath: string;
-  overrides: FeatureOverrides;
 };
 
 const DEFAULT_CACHE_FILENAME = 'features.json';
@@ -72,18 +61,6 @@ function mergeOverrides(
   };
 }
 
-function toFeatureOverrides(overrides: NormalizedFeatureOverrides): FeatureOverrides {
-  const result: FeatureOverrides = {};
-  if (Object.keys(overrides.global).length > 0) {
-    result.global = overrides.global;
-  }
-  const setEntries = Object.entries(overrides.sets).filter(([, value]) => Object.keys(value).length > 0);
-  if (setEntries.length > 0) {
-    result.sets = Object.fromEntries(setEntries);
-  }
-  return result;
-}
-
 function resolveFeaturesCachePath(): string {
   const override =
     process.env.MKTG_X_FEATURES_CACHE ??
@@ -126,13 +103,6 @@ function readOverridesFromEnv(): NormalizedFeatureOverrides | null {
   }
 }
 
-function writeOverridesToDisk(cachePath: string, overrides: NormalizedFeatureOverrides): Promise<void> {
-  const payload = toFeatureOverrides(overrides);
-  return mkdir(path.dirname(cachePath), { recursive: true }).then(() =>
-    writeFile(cachePath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8'),
-  );
-}
-
 export function loadFeatureOverrides(): NormalizedFeatureOverrides {
   if (cachedOverrides) {
     return cachedOverrides;
@@ -149,14 +119,6 @@ export function loadFeatureOverrides(): NormalizedFeatureOverrides {
   }
   cachedOverrides = merged;
   return merged;
-}
-
-export function getFeatureOverridesSnapshot(): FeatureOverridesSnapshot {
-  const overrides = toFeatureOverrides(loadFeatureOverrides());
-  return {
-    cachePath: resolveFeaturesCachePath(),
-    overrides,
-  };
 }
 
 export function applyFeatureOverrides(setName: string, base: Record<string, boolean>): Record<string, boolean> {
@@ -178,18 +140,4 @@ export function applyFeatureOverrides(setName: string, base: Record<string, bool
     ...base,
     ...globalOverrides,
   };
-}
-
-export async function refreshFeatureOverridesCache(): Promise<FeatureOverridesSnapshot> {
-  const cachePath = resolveFeaturesCachePath();
-  const base = normalizeOverrides(defaultOverrides);
-  const fromFile = readOverridesFromFile(cachePath);
-  const merged = mergeOverrides(base, fromFile ?? { global: {}, sets: {} });
-  await writeOverridesToDisk(cachePath, merged);
-  cachedOverrides = null;
-  return { cachePath, overrides: toFeatureOverrides(merged) };
-}
-
-export function clearFeatureOverridesCache(): void {
-  cachedOverrides = null;
 }

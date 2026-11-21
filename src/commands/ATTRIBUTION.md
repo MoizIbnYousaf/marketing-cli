@@ -6,7 +6,6 @@
 **License:** MIT (Copyright © 2026 Crafter Station)
 **Commit studied:** `836e7abf` (v0.4.0, 2026-04-06)
 **Ported by:** mktg maintainers, 2026-04-12
-**Research memo:** [`docs/research/trx-analysis.md`](../../docs/research/trx-analysis.md)
 
 ### What was ported
 

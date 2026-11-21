@@ -59,4 +59,4 @@ sources: [ahrefs, exa-serp]
 
 ## Reference implementation
 
-The same DR-cap math + confidence labels are encoded in `skills/seo-machine/references/ahrefs-recipes.md` (the cookbook seo-machine consumes during Initialize). Keep these two docs in sync — if the DR-cap thresholds change here, update the cookbook there.
+The same DR-cap math + confidence labels are encoded in `skills/seo-machine/references/exa-recipes.md` (the cookbook seo-machine consumes during Initialize). Keep these two docs in sync — if the DR-cap thresholds change here, update the cookbook there.

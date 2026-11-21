@@ -2,7 +2,7 @@
 // Reads from skills-manifest.json, groups by category, shows installed/missing.
 
 import { join } from "node:path";
-import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory, type ExternalSkillEntry, type SkillRoutingEntry } from "../types";
+import { ok, type CommandHandler, type CommandSchema, type SkillCategory, type AgentCategory, type SkillRoutingEntry } from "../types";
 import { loadManifest, getInstallStatus, readSkillVersions, readExternalSkills } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { bold, dim, green, red, yellow, isTTY, writeStdout, applyFieldsFilter } from "../core/output";

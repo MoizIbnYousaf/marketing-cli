@@ -200,15 +200,12 @@ the marketing-cli checkout
 |---|---|---|
 | `mktg status --json` | `{brand: {populated, missing, stale}, integrations: [...], skills: {installed, total}}` | Pulse tab: brand health card |
 | `mktg plan next --json` | `{task: {priority, description, skill, reason}}` | Pulse tab: "do this next" card |
-| `mktg doctor --json` | `{tools: [...], catalogs: [...], integrations: [...]}` | Health checks, missing tool alerts |
 | `mktg list --json` | `{skills: [...], agents: [...]}` with `--routing` for CMO metadata | Skill browser, routing table |
 | `mktg catalog list --json` | `{catalogs: [{name, capabilities, configured, ...}]}` | Catalog health panel |
 | `mktg catalog info postiz --json` | Full CatalogEntry + `configured: bool` + `missing_envs: [...]` | Postiz connection status |
 | `mktg publish --list-adapters --json` | `{adapters: [{name, envVar, configured}]}` | Publish tab: adapter picker |
 | `mktg publish --adapter postiz --list-integrations --json` | `{adapter: "postiz", integrations: [{id, identifier, name, ...}]}` | Publish tab: connected providers |
 | `mktg publish --adapter postiz --json < manifest.json` | `{campaign, adapters: [{adapter, items, published, failed}]}` | Publish tab: draft creation |
-| `mktg schema <cmd> --json` | `{name, description, flags, output, examples}` | Agent self-discovery |
-| `mktg brand read <file>` | Raw markdown content of the brand file | Tab rendering (audience, voice, etc.) |
 
 **Every command returns `CommandResult<T>`:**
 ```typescript
@@ -569,11 +566,9 @@ CREATE TABLE metric_baselines (
 
 ```
 server.ts  -  Bun.serve: local API server (SQLite + SSE + mktg bridge + /cmo bridge)
-db/schema.sql  -  SQLite schema (above)
 db/migrations/  -  schema migration files
 lib/mktg.ts  -  mktg CLI bridge: spawn + parse CommandResult<T> + typed wrappers
-lib/agent.ts  -  Claude Code bridge: send messages to /cmo, receive responses
-lib/sse.ts  -  SSE event emitter (server) + useSSE hook (client)
+lib/sse.ts  -  SSE event emitter (server)
 lib/sqlite.ts  -  SQLite connection + typed query helpers
 lib/watcher.ts  -  brand/ file watcher (Bun.watch) → SSE events
 lib/postiz.ts  -  thin postiz API client (mirrors mktg's postizFetch for direct queries)
@@ -589,7 +584,7 @@ components/workspace/skill-browser/  -  skill browser + execution trigger UI
 - Scaffold the Next.js dashboard inside `studio/`
 - Strip any cloud-coupled scaffolding: convex/, agent/, middleware.ts, fly.toml, railway.json, Dockerfile.agent, sign-in/, sign-up/, deck/
 - Remove package.json deps: convex, @clerk/*, @convex-dev/*
-- Add: bun:sqlite, create db/schema.sql
+- Add: bun:sqlite, create db/migrations/001_initial.sql
 - Create: server.ts skeleton (Bun.serve with /api/health endpoint)
 - Verify: `bun dev` starts Next.js on localhost:3000 (empty dashboard)
 
@@ -597,7 +592,7 @@ components/workspace/skill-browser/  -  skill browser + execution trigger UI
 - Build lib/mktg.ts  -  shells out to `mktg <cmd> --json`, parses CommandResult, typed wrappers
 - Build lib/sqlite.ts  -  connection, query helpers, migration runner
 - Build lib/watcher.ts  -  Bun.watch on brand/ → SSE events
-- Build lib/sse.ts  -  server-side EventSource emitter + client useSSE hook
+- Build lib/sse.ts  -  server-side EventSource emitter
 - Wire Pulse tab: mktg status + plan next → render cards
 - Verify: change brand/voice-profile.md → Pulse tab updates in <2s
 

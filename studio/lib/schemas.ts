@@ -38,15 +38,6 @@ export const OPPORTUNITIES_PUSH_BODY = z.object({
   prerequisites: z.record(z.string(), z.unknown()).optional(),
 });
 
-// Tab enum accepts both the canonical post-rename ids (pulse, signals) and
-// the legacy pre-rename ids (hq, content) for one release. /cmo callers may
-// still send the old strings; the consumer normalizes them. After /cmo and
-// any external integrations have rolled forward, drop hq + content here.
-export const NAVIGATE_BODY = z.object({
-  tab: z.enum(["pulse", "signals", "publish", "brand", "hq", "content"]),
-  filter: z.record(z.string(), z.unknown()).optional(),
-});
-
 export const TOAST_BODY = z.object({
   level: z.enum(["info", "success", "warn", "error"]),
   message: z.string().min(1).max(500),

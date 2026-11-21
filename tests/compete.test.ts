@@ -1,7 +1,7 @@
 // Tests for mktg compete — competitor change monitor
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, mkdir } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {

@@ -11,8 +11,8 @@ HTTP endpoints.
 |---|---|---|
 | `/cmo` | Marketing judgment, skill routing, copy decisions, recommendations | `marketing-cli/skills/cmo/` |
 | `mktg` CLI | Brand state, command schemas, publish adapters, verification, skill registry | `marketing-cli/src/` |
-| Studio API | Local HTTP contract, SQLite, SSE, brand-file reads/writes | `mktg-studio/server.ts` |
-| Studio UI | Pulse, Content, Publish, Brand, Settings, Activity panel | `mktg-studio/components/` |
+| Studio API | Local HTTP contract, SQLite, SSE, brand-file reads/writes | `studio/server.ts` |
+| Studio UI | Pulse, Signals, Publish, Brand, Settings, Activity panel | `studio/components/` |
 | Publish backends | Native local queue, Postiz drafts, Typefully drafts, Resend, file export | `mktg publish` |
 
 ## Primary Surfaces
@@ -49,7 +49,7 @@ User asks /cmo for marketing work in Claude Code
        /api/navigate
        /api/toast
   -> Bun API stores local rows and emits SSE
-  -> Next.js dashboard updates Activity, Pulse, Content, Publish, or Brand
+  -> Next.js dashboard updates Activity, Pulse, Signals, Publish, or Brand
 ```
 
 ### Native publish flow

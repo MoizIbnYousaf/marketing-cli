@@ -19,7 +19,7 @@ import { execute } from "./sqlite.ts";
 // Types
 // ---------------------------------------------------------------------------
 
-export type JobStatus = "queued" | "running" | "success" | "failed" | "cancelled";
+export type JobStatus = "queued" | "running" | "success" | "failed";
 
 export interface Job {
   id: string;
@@ -194,23 +194,6 @@ export function getJob(id: string): Job | null {
  */
 export function listJobs(): Job[] {
   return Array.from(jobs.values());
-}
-
-/**
- * Cancel a queued job (running jobs cannot be cancelled via this API).
- */
-export function cancelJob(id: string): boolean {
-  const job = jobs.get(id);
-  if (!job || job.status !== "queued") return false;
-  job.status = "cancelled";
-  job.completedAt = new Date();
-  const cancelledEvent: JobSSEEventInput = {
-    type: "job-cancelled",
-    payload: { id, kind: job.kind, status: "cancelled" },
-  };
-  publishJobEvent(getJobEmitter(id), id, cancelledEvent);
-  publishJobEvent(globalEmitter, "*", cancelledEvent);
-  return true;
 }
 
 // ---------------------------------------------------------------------------

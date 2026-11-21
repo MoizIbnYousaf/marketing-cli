@@ -3,7 +3,7 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import type { SkillsManifest, SkillManifestEntry, SkillCategory, SkillLayer } from "../src/types";
+import type { SkillsManifest, SkillCategory, SkillLayer } from "../src/types";
 import { BRAND_FILES } from "../src/types";
 
 const manifestPath = join(import.meta.dir, "..", "skills-manifest.json");

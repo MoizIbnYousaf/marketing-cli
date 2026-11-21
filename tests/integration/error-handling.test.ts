@@ -17,12 +17,11 @@ import {
   ioError,
   sandboxPath,
   parseJsonInput,
-  exitCodeLabel,
   DOCS,
 } from "../../src/core/errors";
 import { formatOutput, applyFieldsFilter } from "../../src/core/output";
 import { ok, err } from "../../src/types";
-import type { GlobalFlags, ExitCode, MktgError } from "../../src/types";
+import type { GlobalFlags, ExitCode } from "../../src/types";
 
 const CLI_PATH = join(import.meta.dir, "../../src/cli.ts");
 const jsonFlags: GlobalFlags = { json: true, dryRun: false, fields: [], cwd: "." };
@@ -235,29 +234,6 @@ describe("Actionable suggestions", () => {
     expect(parsed.error.suggestions[1]).toContain("Available:");
     expect(parsed.error.suggestions[1]).toContain("init");
     expect(parsed.error.suggestions[1]).toContain("doctor");
-  });
-});
-
-// ============================================================
-// SECTION 4: Exit Code Labels
-// exitCodeLabel maps every code to a human string
-// ============================================================
-
-describe("Exit code labels", () => {
-  test("every exit code has a non-empty label", () => {
-    const codes: ExitCode[] = [0, 1, 2, 3, 4, 5, 6];
-    for (const code of codes) {
-      const label = exitCodeLabel(code);
-      expect(typeof label).toBe("string");
-      expect(label.length).toBeGreaterThan(0);
-    }
-  });
-
-  test("labels are distinct", () => {
-    const codes: ExitCode[] = [0, 1, 2, 3, 4, 5, 6];
-    const labels = codes.map(exitCodeLabel);
-    const unique = new Set(labels);
-    expect(unique.size).toBe(codes.length);
   });
 });
 

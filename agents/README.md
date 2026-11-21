@@ -7,11 +7,18 @@ Research and review sub-agents used by `/cmo`.
 
 ## Agent set
 
+`agents-manifest.json` is the source of truth. Research agents (`research/`):
+
 - `mktg-brand-researcher`
 - `mktg-audience-researcher`
 - `mktg-competitive-scanner`
+- `mktg-backlink-prospector`
+
+Review agents (`review/`):
+
 - `mktg-content-reviewer`
 - `mktg-seo-analyst`
+- `mktg-strategy-reviewer`
 
 ## Rules
 

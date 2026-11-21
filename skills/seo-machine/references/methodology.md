@@ -21,7 +21,7 @@ The instinct is: write educational content first to build "authority," then add 
 | 2 | `/compare/[a]-vs-[b]` | High intent. User is deciding between two known tools — be the third option. |
 | 3 | `/for/[use-case]` and `/for/[audience]` | Mid intent. User has a job-to-be-done but doesn't know which tool fits. |
 | 4 | `/playbooks/[topic]` (long-form pillar) | Brand authority + AI-citation surface area. Lower direct conversion but huge inbound link draw and LLM mentions. |
-| 5 | `/blog/...` informational posts | Lowest direct conversion; useful for keyword sweep and internal linking after the conversion pages exist. (Out of scope for this skill — use `blog-article` skill.) |
+| 5 | `/blog/...` informational posts | Lowest direct conversion; useful for keyword sweep and internal linking after the conversion pages exist. (Out of scope for this skill — use `seo-content` skill.) |
 
 This sequence matches the 4 patterns this skill bundles. Phase 0 is technical foundations; everything after Phase 0 follows this order by default.
 
@@ -81,7 +81,7 @@ The tracker row update lands **in the same commit/PR as the phase work**, never 
 
 ## What this skill explicitly does NOT do
 
-- **Write blog posts.** Use the `blog-article` skill for those. This skill scaffolds the strategy (which topics, what cluster structure) but hands off the writing.
-- **Generate images / OG cards.** Use the `og-image` or `feature-image` skill. This skill specifies which pages need OG images but doesn't make them.
+- **Write blog posts.** Use the `seo-content` skill for those. This skill scaffolds the strategy (which topics, what cluster structure) but hands off the writing.
+- **Generate images / OG cards.** Use the `image-gen` skill. This skill specifies which pages need OG images but doesn't make them.
 - **Submit to GSC / IndexNow / directories.** The off-page checklist is informational. The user (or future automation) does the submitting.
 - **Target keywords where DR < KD - 10.** It will refuse to add doomed phases to the tracker. This is a feature.

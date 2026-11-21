@@ -50,4 +50,3 @@ function findUserDataDir(cookiesDbPath) {
     }
     return null;
 }
-//# sourceMappingURL=windowsPaths.js.map

@@ -47,58 +47,45 @@ describe("mktg run", () => {
 
   test("run existing skill returns content and prerequisites", async () => {
     const { stdout, exitCode } = await run(["run", "brand-voice", "--json", "--cwd", tmpDir]);
-    // Might fail with NOT_FOUND if skill not installed — that's a valid test scenario
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed.skill).toBe("brand-voice");
-      expect(parsed.content).toBeTruthy();
-      expect(parsed.prerequisites).toBeDefined();
-      expect(parsed.loggedAt).toBeTruthy();
-    } else {
-      // Skill not installed — verify it's a proper NOT_FOUND
-      const parsed = JSON.parse(stdout);
-      expect(parsed.error.code).toBe("NOT_FOUND");
-    }
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.skill).toBe("brand-voice");
+    expect(parsed.content).toBeTruthy();
+    expect(parsed.prerequisites).toBeDefined();
+    expect(parsed.loggedAt).toBeTruthy();
   });
 
   test("--dry-run does not create log entry", async () => {
-    const { exitCode } = await run(["run", "brand-voice", "--json", "--dry-run", "--cwd", tmpDir]);
+    const { stdout, exitCode } = await run(["run", "brand-voice", "--json", "--dry-run", "--cwd", tmpDir]);
     // Whether skill is installed or not, the log should not be created
     const logExists = await Bun.file(join(tmpDir, ".mktg", "runs.jsonl")).exists();
     expect(logExists).toBe(false);
 
-    if (exitCode === 0) {
-      // If the skill was found, loggedAt should be null
-    }
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(stdout).loggedAt).toBeNull();
   });
 
   test("run with redirect name resolves correctly", async () => {
     // Use a known redirect if one exists — this tests the getSkill redirect logic
     const { stdout, exitCode } = await run(["run", "copywriting", "--json", "--cwd", tmpDir]);
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      // Should resolve to the actual skill name
-      expect(parsed.skill).toBe("direct-response-copy");
-    } else if (exitCode === 1) {
-      // NOT_FOUND is also acceptable (redirect resolves but skill not installed)
-      const parsed = JSON.parse(stdout);
-      expect(parsed.error.code).toBe("NOT_FOUND");
-    }
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    // Should resolve to the actual skill name
+    expect(parsed.skill).toBe("direct-response-copy");
   });
 
   test("bare run logs event 'loaded' with NO result (a load is not a success)", async () => {
     const { exitCode } = await run(["run", "brand-voice", "--json", "--cwd", tmpDir]);
-    if (exitCode === 0) {
-      const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
-      const lines = logContent.trim().split("\n");
-      expect(lines.length).toBe(1);
-      const record = JSON.parse(lines[0]!);
-      expect(record.skill).toBe("brand-voice");
-      expect(record.event).toBe("loaded");
-      expect(record.result).toBeUndefined();
-      expect(record.writes).toBeUndefined();
-      expect(record.timestamp).toBeTruthy();
-    }
+    expect(exitCode).toBe(0);
+    const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
+    const lines = logContent.trim().split("\n");
+    expect(lines.length).toBe(1);
+    const record = JSON.parse(lines[0]!);
+    expect(record.skill).toBe("brand-voice");
+    expect(record.event).toBe("loaded");
+    expect(record.result).toBeUndefined();
+    expect(record.writes).toBeUndefined();
+    expect(record.timestamp).toBeTruthy();
   });
 
   test("--complete with valid writes logs event 'completed' with result + writes", async () => {
@@ -107,18 +94,17 @@ describe("mktg run", () => {
     const { stdout, exitCode } = await run([
       "run", "brand-voice", "--complete", "--writes", "marketing/content/x.md", "--result", "success", "--json", "--cwd", tmpDir,
     ]);
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed.event).toBe("completed");
-      expect(parsed.result).toBe("success");
-      expect(parsed.writes).toEqual(["marketing/content/x.md"]);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.event).toBe("completed");
+    expect(parsed.result).toBe("success");
+    expect(parsed.writes).toEqual(["marketing/content/x.md"]);
 
-      const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
-      const record = JSON.parse(logContent.trim().split("\n")[0]!);
-      expect(record.event).toBe("completed");
-      expect(record.result).toBe("success");
-      expect(record.writes).toEqual(["marketing/content/x.md"]);
-    }
+    const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
+    const record = JSON.parse(logContent.trim().split("\n")[0]!);
+    expect(record.event).toBe("completed");
+    expect(record.result).toBe("success");
+    expect(record.writes).toEqual(["marketing/content/x.md"]);
   });
 
   test("--complete with a missing write path exits 2 with fix guidance (no silent success)", async () => {
@@ -160,12 +146,11 @@ describe("mktg run", () => {
 
   test("--complete --result failed logs the failure honestly", async () => {
     const { exitCode } = await run(["run", "brand-voice", "--complete", "--result", "failed", "--json", "--cwd", tmpDir]);
-    if (exitCode === 0) {
-      const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
-      const record = JSON.parse(logContent.trim().split("\n")[0]!);
-      expect(record.event).toBe("completed");
-      expect(record.result).toBe("failed");
-    }
+    expect(exitCode).toBe(0);
+    const logContent = await readFile(join(tmpDir, ".mktg", "runs.jsonl"), "utf-8");
+    const record = JSON.parse(logContent.trim().split("\n")[0]!);
+    expect(record.event).toBe("completed");
+    expect(record.result).toBe("failed");
   });
 
   test("error includes docs URL", async () => {

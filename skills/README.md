@@ -20,7 +20,7 @@ For direct CLI operation, read:
 
 ## What ships
 
-- 50 marketing skills across foundation, strategy, creative, distribution,
+- The marketing skills listed in `skills-manifest.json`, across foundation, strategy, creative, distribution,
   conversion, growth, review, and infrastructure.
 - Brand-memory reads and writes through `brand/*.md`.
 - Runtime discovery through `mktg schema --json`, `mktg list --routing --json`,

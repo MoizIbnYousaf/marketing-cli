@@ -4,4 +4,3 @@ export function hostMatchesCookieDomain(host, cookieDomain) {
     const domainLower = normalizedDomain.toLowerCase();
     return normalizedHost === domainLower || normalizedHost.endsWith(`.${domainLower}`);
 }
-//# sourceMappingURL=hostMatch.js.map

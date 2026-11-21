@@ -115,9 +115,16 @@ summarize <input> --cli claude --plain --length short
 To force a specific model:
 
 ```bash
-summarize input.md --model anthropic/claude-sonnet-4-5 --plain
-summarize input.md --model openai/gpt-5-mini --plain
-summarize input.md --model google/gemini-3-flash --plain
+summarize input.md --model <provider>/<model-id> --plain
+```
+
+Use a model ID your provider currently serves. IDs retire often (for example,
+`anthropic/claude-sonnet-4-5` retires on 30 November 2026 and
+`openai/gpt-5-mini` on 11 December 2026), so check the provider's model list
+instead of copying an ID from this file:
+
+```bash
+summarize input.md --model anthropic/claude-sonnet-5-5 --plain
 ```
 
 Model IDs follow `<provider>/<model>`. Full list in upstream README. Don't hard-code a specific model in skills — let `--model auto` + `--cli claude` do the right thing.

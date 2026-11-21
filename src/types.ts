@@ -115,18 +115,6 @@ export const BRAND_FILES: readonly BrandFile[] = [
   "learnings.md",
 ] as const;
 
-// Profile files (must be non-empty after init)
-export const BRAND_PROFILE_FILES: readonly BrandFile[] = [
-  "voice-profile.md",
-  "positioning.md",
-  "audience.md",
-  "competitors.md",
-  "landscape.md",
-  "keyword-plan.md",
-  "creative-kit.md",
-  "stack.md",
-] as const;
-
 // Append-only files (can be empty)
 export const BRAND_APPEND_FILES: readonly BrandFile[] = [
   "assets.md",
@@ -142,7 +130,7 @@ export type BrandBundle = {
 };
 
 // Skill metadata types
-export type SkillSource = "v2" | "v1" | "new" | "third-party";
+export type SkillSource = "v2" | "v1" | "new" | "third-party" | "first-party";
 
 export type SkillCategory =
   | "foundation"
@@ -161,19 +149,6 @@ export type SkillLayer =
   | "execution"
   | "distribution"
   | "orchestrator";
-
-export type SkillMeta = {
-  readonly name: string;
-  readonly source: SkillSource;
-  readonly category: SkillCategory;
-  readonly layer: SkillLayer;
-  readonly reads: readonly BrandFile[];
-  readonly writes: readonly BrandFile[];
-  readonly dependsOn: readonly string[];
-  readonly triggers: readonly string[];
-  readonly tier: "must-have" | "nice-to-have";
-  readonly reviewIntervalDays: number;
-};
 
 // Routing metadata for /cmo orchestration — read from manifest, not hardcoded
 export type SkillRoutingEntry = {
@@ -320,18 +295,6 @@ export type CatalogLoadResult =
   | { readonly ok: false; readonly reason: "license-denied"; readonly denials: readonly CatalogLicenseDenial[] }
   | { readonly ok: false; readonly reason: "manifest-invalid"; readonly detail: string; readonly path: string }
   | { readonly ok: false; readonly reason: "manifest-missing"; readonly path: string };
-
-// Promoted PublishItem from publish.ts so catalog code and publish adapters
-// share one shape. Metadata value union is `string | readonly string[] | undefined`:
-// arrays support postiz's `providers: string[]`; `undefined` lets producers emit
-// conditional keys without spread gymnastics. Existing string-only adapters
-// (typefully/resend/file) still typecheck.
-export type PublishItem = {
-  readonly type: "social" | "email" | "file";
-  readonly adapter: string;
-  readonly content: string;
-  readonly metadata?: Readonly<Record<string, string | readonly string[] | undefined>>;
-};
 
 // --- Schema introspection types ---
 

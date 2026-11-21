@@ -36,7 +36,7 @@ body:
     id: version
     attributes:
       label: mktg version
-      placeholder: "0.3.2"
+      placeholder: "0.7.0"
     validations:
       required: true
   - type: input

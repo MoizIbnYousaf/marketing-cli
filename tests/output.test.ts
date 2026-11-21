@@ -4,7 +4,7 @@
 // formatOutput only formats the already-filtered CommandResult.
 
 import { describe, test, expect } from "bun:test";
-import { formatOutput, applyFieldsFilter, dim, bold, green, red, yellow, cyan } from "../src/core/output";
+import { formatOutput, applyFieldsFilter, dim, bold, green, red, yellow } from "../src/core/output";
 import { ok, err } from "../src/types";
 import type { GlobalFlags } from "../src/types";
 
@@ -176,10 +176,5 @@ describe("ANSI helpers", () => {
     expect(dim("")).toBe("");
     expect(bold("")).toBe("");
     expect(green("")).toBe("");
-  });
-
-  test("cyan wraps string", () => {
-    const result = cyan("test");
-    expect(result).toContain("test");
   });
 });

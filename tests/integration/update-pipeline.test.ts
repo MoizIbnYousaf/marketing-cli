@@ -4,8 +4,9 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, readdir, writeFile, readFile, mkdir } from "node:fs/promises";
-import { tmpdir, homedir } from "node:os";
+import { mkdtemp, rm, readdir, writeFile, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { userHome } from "../../src/core/user-home";
 import type { GlobalFlags } from "../../src/types";
 import { handler as initHandler } from "../../src/commands/init";
 import { handler as updateHandler } from "../../src/commands/update";
@@ -225,7 +226,7 @@ describe("Update includes agents", () => {
     await initHandler(["--yes"], flags);
 
     // Find an installed agent
-    const agentsDir = join(homedir(), ".claude", "agents");
+    const agentsDir = join(userHome(), ".claude", "agents");
     const agentFiles = await readdir(agentsDir);
     const mktgAgent = agentFiles.find(f => f.startsWith("mktg-") && f.endsWith(".md"));
     expect(mktgAgent).toBeDefined();

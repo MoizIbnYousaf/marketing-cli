@@ -133,14 +133,6 @@ describe("CMO can filter skills by category", () => {
     expect(creative).toContain("slideshow-script");
     expect(creative).toContain("video-content");
   });
-
-  test("every category has at least 1 skill", () => {
-    const categories = [...new Set(skills.map(s => s.category))];
-    for (const cat of categories) {
-      const count = skills.filter(s => s.category === cat).length;
-      expect(count).toBeGreaterThan(0);
-    }
-  });
 });
 
 // ─── CMO Can Route By Layer ───

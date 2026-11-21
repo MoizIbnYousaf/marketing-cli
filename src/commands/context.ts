@@ -6,6 +6,7 @@ import { mkdir } from "node:fs/promises";
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { compileBrandContext, CONTEXT_LAYERS, type ContextFileEntry } from "../core/context-compiler";
+import { getProjectName } from "../core/project-assess";
 import { writeStderr, isTTY, bold, dim, green, yellow, red } from "../core/output";
 
 // Valid layer names (keys of CONTEXT_MATRIX)
@@ -58,18 +59,6 @@ export const schema: CommandSchema = {
     { args: "mktg context --ndjson", description: "Stream each brand file as a NDJSON line to stderr" },
   ],
   vocabulary: ["context", "compile", "brand-context", "token-budget"],
-};
-
-// Get project name from package.json or dir name
-const getProjectName = async (cwd: string): Promise<string> => {
-  try {
-    const file = Bun.file(join(cwd, "package.json"));
-    if (await file.exists()) {
-      const pkg = await file.json();
-      if (pkg.name) return pkg.name as string;
-    }
-  } catch { /* fall through */ }
-  return cwd.split("/").pop() ?? "unknown";
 };
 
 // Parse flags from args

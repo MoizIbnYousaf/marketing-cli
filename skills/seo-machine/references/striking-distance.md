@@ -59,7 +59,7 @@ Skip candidates where:
 A striking-distance boost phase is **NOT writing a new page**. It's amplifying an existing one. Specifically:
 
 1. **Add 200-400 words of depth** to the section where the target keyword appears. Common amplifiers:
-   - Add an FAQ if missing (FAQPage schema is a featured-snippet magnet)
+   - Add an FAQ if missing (a direct, well-phrased answer is what wins the snippet; FAQPage markup only labels it, and Google retired FAQ rich results in May 2026)
    - Expand a thin section with a worked example
    - Add a counter-argument paragraph if the existing content is one-sided
    - Add a how-to subsection if the keyword is procedural

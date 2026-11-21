@@ -27,9 +27,6 @@ import {
   PRESENTATION_ADAPTER_ORDER,
 } from "../core/publish/registry";
 
-
-export { BUILTIN_PUBLISH_ADAPTERS } from "../core/publish/registry";
-
 export const schema: CommandSchema = {
   name: "publish",
   description: "Distribution pipeline — push content to platforms via pluggable adapters",

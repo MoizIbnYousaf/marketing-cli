@@ -55,11 +55,9 @@ Phase 5: SCHEDULE   — Route each post to postiz first, with Typefully as the X
    - `brand/voice-profile.md` (tone, vocabulary, do's/don'ts)
    - `brand/positioning.md` (angles, headlines)
 3. Read `brand/landscape.md` if it exists — check the Claims Blacklist before making ecosystem or competitive claims. If stale (>14 days) or missing, warn that market claims may be outdated.
-4. Check social distribution readiness: `mktg doctor --json --fields checks.postiz.configured,checks.typefully.configured`
+4. Check social distribution readiness: `mktg catalog info postiz --json --fields configured,missing_envs` and `mktg doctor --configure typefully --json`
 5. If Typefully is configured, load Typefully config: check default social set, list available accounts
-6. If Typefully is configured, check queue schedule:
-   - `typefully.js queue:get --start-date <today> --end-date <+N days>`
-   - `typefully.js queue:schedule:get` (what days/times are slots)
+6. If Typefully is configured, check what is already scheduled: `typefully.js drafts:list --status scheduled --sort scheduled_date`
 7. Read recent published posts:
    - Prefer Typefully history when available: `typefully.js drafts:list --status published --sort -created_at`
    - Otherwise use the project's recent post corpus or approved drafts for voice calibration
@@ -208,7 +206,8 @@ For the full decision framework (which posts get images), image types, Paper MCP
 Before scheduling anything, detect which backends are available. This check runs once per Phase 5 entry and caches for the phase:
 
 ```bash
-mktg doctor --json --fields checks.typefully.configured,checks.postiz.configured
+mktg doctor --configure typefully --json
+mktg catalog info postiz --json --fields configured,missing_envs
 ```
 
 Resolve the routing per post using the table below. `platform` is already tagged per post by Phase 2 and appears verbatim in the post file's YAML frontmatter.
@@ -221,7 +220,7 @@ Resolve the routing per post using the table below. `platform` is already tagged
 
 **Invariant:** any post with `type: thread` stays on Typefully regardless of postiz availability. Thread UX is Typefully's canonical path; do not degrade it.
 
-**Progressive enhancement:** if `checks.postiz.configured === false`, Phase 5 behaves exactly as the Typefully-only path below — zero behavior change for users without postiz. If both are missing, fall back to writing files into `marketing/campaigns/{campaign-name}/posts/` and surface a "copy these to the platform UI" summary.
+**Progressive enhancement:** if postiz reports `configured: false`, Phase 5 behaves exactly as the Typefully-only path below — zero behavior change for users without postiz. If both are missing, fall back to writing files into `marketing/campaigns/{campaign-name}/posts/` and surface a "copy these to the platform UI" summary.
 
 **Fallback behavior under failure (during the phase):**
 - Postiz unreachable / 5xx: retry once with exponential backoff (1s, 2s). On second failure for a Typefully-covered platform (linkedin/threads/bluesky/mastodon), fall back to Typefully. On second failure for a postiz-only platform (reddit/instagram/tiktok/youtube/pinterest/discord/slack), fail the post with `fix: "postiz unreachable — check mktg catalog info postiz --fields configured,resolved_base"`.

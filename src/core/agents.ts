@@ -1,14 +1,14 @@
 // mktg — Agent registry, install, and integrity verification
 // Reads agents-manifest.json, copies bundled agents to ~/.claude/agents/
 
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { mkdir } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import type { AgentsManifest } from "../types";
 import { getPackageRoot } from "./paths";
 
 // Where agents get installed — auto-discovered by Claude Code
-const AGENTS_INSTALL_DIR = join(homedir(), ".claude", "agents");
+const AGENTS_INSTALL_DIR = join(userHome(), ".claude", "agents");
 
 // Namespace prefix to avoid collisions with other agents
 const AGENT_PREFIX = "mktg-";
@@ -162,29 +162,3 @@ export const updateAgents = async (
 
 // Get the agents install directory path
 export const getAgentsInstallDir = (): string => AGENTS_INSTALL_DIR;
-
-// Remove a single installed agent by name
-export const removeAgent = async (
-  name: string,
-  dryRun: boolean = false,
-): Promise<{ removed: boolean; path: string }> => {
-  const agentFile = join(AGENTS_INSTALL_DIR, installedName(name));
-  const exists = await Bun.file(agentFile).exists();
-  if (!exists) return { removed: false, path: agentFile };
-  if (!dryRun) {
-    const { unlink } = await import("node:fs/promises");
-    await unlink(agentFile);
-  }
-  return { removed: true, path: agentFile };
-};
-
-// Synchronous manifest reader (cached)
-let _cachedAgentManifest: AgentsManifest | null = null;
-
-export const readAgentManifest = (): AgentsManifest => {
-  if (_cachedAgentManifest) return _cachedAgentManifest;
-  const manifestPath = join(getPackageRoot(), "agents-manifest.json");
-  const raw = require(manifestPath) as AgentsManifest;
-  _cachedAgentManifest = raw;
-  return raw;
-};

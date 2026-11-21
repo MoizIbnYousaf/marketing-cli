@@ -13,7 +13,7 @@ bun install
 Verify everything works:
 
 ```bash
-bun test              # 2,599 tests across 96 files, real file I/O, no mocks
+bun test              # full suite, real file I/O, no mocks
 bun x tsc --noEmit    # Zero type errors
 bun run dev -- doctor --json  # All health checks green
 ```
@@ -37,7 +37,7 @@ bun run build                       # Build to dist/
 ```
 src/cli.ts           Entry point + command router
 src/types.ts         All shared types (CommandResult, ExitCode, etc.)
-src/commands/        One file per command (20 total)
+src/commands/        One file per command
 src/core/            Shared infrastructure: output, errors, brand, skills, agents
 skills/              76 SKILL.md files following the drop-in contract
 agents/              7 agent .md files (4 research, 3 review)
@@ -105,14 +105,18 @@ The [PR checks workflow](.github/workflows/pr-checks.yml) runs on every push to 
 
 1. `bun test`: full test suite
 2. `bun x tsc --noEmit`: type check
+3. `bun run build`: CLI build
+4. `bun run --cwd studio test`: Studio test suite
+5. `bun run --cwd studio typecheck`: Studio type check
+6. Studio `bun run lint:em-dash`: em-dash lint
 
-Both must pass. There is no way to skip them.
+All must pass. There is no way to skip them.
 
 ## PR checklist
 
 Before opening a pull request, verify:
 
-- [ ] `bun test` passes locally (all 2,599+ tests)
+- [ ] `bun test` passes locally
 - [ ] `bun x tsc --noEmit` reports zero errors
 - [ ] `bun run dev -- doctor --json` shows no regressions
 - [ ] No hardcoded skill or agent counts anywhere

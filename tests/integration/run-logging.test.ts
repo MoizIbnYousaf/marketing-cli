@@ -1,5 +1,5 @@
 // Integration test: RUN + LOGGING pipeline
-// Verifies: logRun → JSONL format → getRunHistory → getRunSummary → getRunStats → priorRuns
+// Verifies: logRun → JSONL format → getRunHistory → getRunSummary → priorRuns
 // Real file I/O in isolated temp dirs. No mocks.
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
@@ -11,7 +11,6 @@ import {
   getRunHistory,
   getLastRun,
   getRunSummary,
-  getRunStats,
 } from "../../src/core/run-log";
 import type { SkillRunRecord } from "../../src/types";
 
@@ -178,42 +177,6 @@ describe("Run Logging Pipeline", () => {
     });
   });
 
-  describe("getRunStats", () => {
-    it("returns zeros when no runs", async () => {
-      const stats = await getRunStats(cwd);
-      expect(stats.totalRuns).toBe(0);
-      expect(stats.uniqueSkills).toBe(0);
-      expect(stats.successCount).toBe(0);
-      expect(stats.failedCount).toBe(0);
-      expect(stats.partialCount).toBe(0);
-      expect(stats.successRate).toBe(0);
-    });
-
-    it("counts results correctly", async () => {
-      await logRun(cwd, makeRecord("skill-a", "success"));
-      await logRun(cwd, makeRecord("skill-b", "success"));
-      await logRun(cwd, makeRecord("skill-c", "failed"));
-      await logRun(cwd, makeRecord("skill-a", "partial"));
-
-      const stats = await getRunStats(cwd);
-      expect(stats.totalRuns).toBe(4);
-      expect(stats.uniqueSkills).toBe(3);
-      expect(stats.successCount).toBe(2);
-      expect(stats.failedCount).toBe(1);
-      expect(stats.partialCount).toBe(1);
-      expect(stats.successRate).toBe(50);
-    });
-
-    it("calculates success rate as percentage", async () => {
-      await logRun(cwd, makeRecord("a", "success"));
-      await logRun(cwd, makeRecord("b", "success"));
-      await logRun(cwd, makeRecord("c", "success"));
-
-      const stats = await getRunStats(cwd);
-      expect(stats.successRate).toBe(100);
-    });
-  });
-
   describe("priorRuns context (end-to-end)", () => {
     it("shows accumulated history across multiple runs of the same skill", async () => {
       // Simulate 3 runs of the same skill
@@ -234,11 +197,6 @@ describe("Run Logging Pipeline", () => {
       const summary = await getRunSummary(cwd);
       expect(summary["brand-voice"].runCount).toBe(3);
       expect(summary["seo-content"].runCount).toBe(1);
-
-      // Stats should reflect the full picture
-      const stats = await getRunStats(cwd);
-      expect(stats.totalRuns).toBe(4);
-      expect(stats.uniqueSkills).toBe(2);
     });
   });
 });

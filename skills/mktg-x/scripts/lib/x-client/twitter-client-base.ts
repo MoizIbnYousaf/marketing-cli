@@ -6,8 +6,6 @@ import type { CurrentUserResult, TwitterClientOptions } from './twitter-client-t
 import { normalizeQuoteDepth } from './twitter-client-utils.js';
 
 // biome-ignore lint/suspicious/noExplicitAny: TS mixin base constructor requirement.
-export type Constructor<T = object> = new (...args: any[]) => T;
-// biome-ignore lint/suspicious/noExplicitAny: TS mixin base constructor requirement.
 export type AbstractConstructor<T = object> = abstract new (...args: any[]) => T;
 export type Mixin<TBase extends AbstractConstructor<TwitterClientBase>, TAdded> = abstract new (
   ...args: ConstructorParameters<TBase>
@@ -22,7 +20,6 @@ export abstract class TwitterClientBase {
   protected quoteDepth: number;
   protected clientUuid: string;
   protected clientDeviceId: string;
-  protected clientUserId?: string;
 
   constructor(options: TwitterClientOptions) {
     if (!options.cookies.authToken || !options.cookies.ct0) {
@@ -79,11 +76,6 @@ export abstract class TwitterClientBase {
     return Array.from(new Set([primary, '97JF30KziU00483E_8elBA', 'aFvUsJm2c-oDkJV75blV6g']));
   }
 
-  protected async getSearchTimelineQueryIds(): Promise<string[]> {
-    const primary = await this.getQueryId('SearchTimeline');
-    return Array.from(new Set([primary, 'M1jEez78PEfVfbQLvlWMvQ', '5h0kNbk3ii97rmfY6CdgAA', 'Tp1sewRU1AsZpBWhqCZicQ']));
-  }
-
   protected async fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
     if (!this.timeoutMs || this.timeoutMs <= 0) {
       return fetch(url, init);
@@ -125,10 +117,6 @@ export abstract class TwitterClientBase {
       referer: 'https://x.com/',
     };
 
-    if (this.clientUserId) {
-      headers['x-twitter-client-user-id'] = this.clientUserId;
-    }
-
     return headers;
   }
 
@@ -137,23 +125,5 @@ export abstract class TwitterClientBase {
       ...this.getBaseHeaders(),
       'content-type': 'application/json',
     };
-  }
-
-  protected getUploadHeaders(): Record<string, string> {
-    // Note: do not set content-type; URLSearchParams/FormData need to set it (incl boundary) themselves.
-    return this.getBaseHeaders();
-  }
-
-  protected async ensureClientUserId(): Promise<void> {
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-    if (this.clientUserId) {
-      return;
-    }
-    const result = await this.getCurrentUser();
-    if (result.success && result.user?.id) {
-      this.clientUserId = result.user.id;
-    }
   }
 }

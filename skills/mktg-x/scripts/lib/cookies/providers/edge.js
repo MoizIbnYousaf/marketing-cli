@@ -24,4 +24,3 @@ export async function getCookiesFromEdge(options, origins, allowlistNames) {
     }
     return { cookies: [], warnings };
 }
-//# sourceMappingURL=edge.js.map

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { spawn } from "bun";
-import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -54,6 +54,24 @@ describe("project-scoped mutations", () => {
     const path = join(projectRoot, ".env.local");
     expect(statSync(path).mode & 0o777).toBe(0o600);
     expect(readFileSync(path, "utf8")).toContain('POSTIZ_API_KEY="key with # and spaces"');
+  });
+
+  test("settings refuses env keys that are not integration keys", async () => {
+    for (const key of ["MKTG_STUDIO_AUTH", "NODE_OPTIONS", "PATH", "MKTG_STUDIO_BIN"]) {
+      const response = await fetch(`${BASE}/api/settings/env?confirm=true`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ [key]: "disabled" }),
+      });
+      expect(response.status).toBe(400);
+      const body = (await response.json()) as { ok: boolean; error: { message: string } };
+      expect(body.ok).toBe(false);
+      expect(body.error.message).toContain(key);
+    }
+    const path = join(projectRoot, ".env.local");
+    const written = existsSync(path) ? readFileSync(path, "utf8") : "";
+    expect(written).not.toContain("MKTG_STUDIO_AUTH");
+    expect(written).not.toContain("NODE_OPTIONS");
   });
 
   test("init job runs in the selected project root", async () => {

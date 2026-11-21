@@ -4,7 +4,7 @@
 import { existsSync } from "node:fs";
 import { unlink } from "node:fs/promises";
 import { basename, extname, join, resolve } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import { validatePublicUrl } from "./url-validation";
 import { validatePathInput } from "./errors";
 
@@ -79,7 +79,7 @@ export const detectSource = (
   return { ok: true, detection: { kind: "file", sourceType, path: pathCheck.path } };
 };
 export const getModelPath = (model: string): string =>
-  join(homedir(), ".mktg", "transcribe", "models", `ggml-${model}.bin`);
+  join(userHome(), ".mktg", "transcribe", "models", `ggml-${model}.bin`);
 
 const srtTimeToSeconds = (ts: string): number => {
   const match = ts.match(/(\d+):(\d+):(\d+)[,.](\d+)/);

@@ -1,8 +1,9 @@
 // Integration test: `mktg release`
 // NO MOCKS. Real subprocess, real git repo in a temp dir, real package.json,
 // real semver math, real CHANGELOG generation. Tests use --dry-run +
-// MKTG_RELEASE_SKIP_TESTS=1 + --skip-publish so no real npm publish or
-// `gh release create` calls happen.
+// MKTG_RELEASE_SKIP_TESTS=1 + --skip-publish so no real npm publish happens.
+// The one --confirm test runs against an npm configuration with no login and
+// a private package, and asserts the command stops before writing anything.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile, readFile, rm, stat } from "node:fs/promises";
@@ -198,8 +199,14 @@ describe("--skip-publish stops before bun publish", () => {
     expect(parsed.committed).toBe(true);
     expect(parsed.tagged).toBe(true);
     expect(parsed.npm_published).toBe(false);
-    expect(parsed.gh_release_created).toBe(false);
     expect(parsed.version_new).toBe("0.2.0");
+    // The command never pushes: it says what is left, naming the branch the
+    // repo is on and the tag whose push starts the Release workflow.
+    const branch = sh("git", ["rev-parse", "--abbrev-ref", "HEAD"], scratch).stdout.trim();
+    expect(parsed.next_steps[0]).toBe(`git push origin ${branch} --follow-tags`);
+    expect(parsed.next_steps.join(" ")).toContain("v0.2.0");
+    expect(parsed.next_steps.join(" ")).toContain("Release workflow");
+    expect("gh_release_created" in parsed).toBe(false);
 
     // Verify package.json was bumped on disk
     const pkg = JSON.parse(await readFile(join(scratch, "package.json"), "utf-8"));
@@ -261,6 +268,46 @@ describe("--confirm guard for full publish", () => {
     expect(parsed.error.code).toBe("INVALID_ARGS");
     expect(parsed.error.message).toMatch(/--confirm|--skip-publish|--dry-run/);
   });
+
+  test("--confirm without an npm login stops before anything is written", async () => {
+    // The check shells out to npm; without it the command cannot know.
+    expect(sh("npm", ["--version"], scratch).ok).toBe(true);
+
+    await initRepo(scratch, "1.4.0", ["feat: ok"]);
+    // Belt and braces: a private package cannot be published even if the
+    // login check were skipped.
+    const pkgPath = join(scratch, "package.json");
+    const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
+    await writeFile(pkgPath, JSON.stringify({ ...pkg, private: true }, null, 2) + "\n");
+    sh("git", ["commit", "-am", "chore: mark private"], scratch);
+    const headBefore = sh("git", ["rev-parse", "HEAD"], scratch).stdout.trim();
+
+    // An npm configuration with no credentials, outside the repo so the
+    // working tree stays clean.
+    const npmHome = await mkdtemp(join(tmpdir(), "mktg-release-npm-"));
+    await writeFile(join(npmHome, "user.npmrc"), "");
+    await writeFile(join(npmHome, "global.npmrc"), "");
+    try {
+      const { stdout, exitCode } = await runCli(["release", "patch", "--confirm", "--json"], scratch, {
+        NPM_CONFIG_USERCONFIG: join(npmHome, "user.npmrc"),
+        NPM_CONFIG_GLOBALCONFIG: join(npmHome, "global.npmrc"),
+        NPM_CONFIG_TOKEN: "",
+        NODE_AUTH_TOKEN: "",
+      });
+
+      expect(exitCode).toBe(3);
+      const parsed = JSON.parse(stdout);
+      expect(parsed.error.code).toBe("NPM_AUTH_MISSING");
+      expect(parsed.error.suggestions.join(" ")).toContain("--skip-publish");
+      // Nothing was bumped, committed or tagged.
+      expect(JSON.parse(await readFile(pkgPath, "utf-8")).version).toBe("1.4.0");
+      expect(sh("git", ["rev-parse", "HEAD"], scratch).stdout.trim()).toBe(headBefore);
+      expect(sh("git", ["tag", "--list"], scratch).stdout.trim()).toBe("");
+      expect(sh("git", ["status", "--porcelain"], scratch).stdout.trim()).toBe("");
+    } finally {
+      await rm(npmHome, { recursive: true, force: true });
+    }
+  }, 120_000);
 });
 
 // =========================================================================
@@ -339,5 +386,72 @@ describe("schema introspection", () => {
     expect(fields).toContain("version_old");
     expect(fields).toContain("version_new");
     expect(fields).toContain("ok");
+    expect(fields).toContain("next_steps");
+    // The command no longer creates the GitHub release; the workflow does.
+    expect(fields).not.toContain("gh_release_created");
+  });
+});
+
+// =========================================================================
+// Failed stages exit non-zero and say how to recover
+// =========================================================================
+
+describe("a failed stage is not reported as success", () => {
+  test("tag collision exits 4 with failed_stage 'tag' and recovery steps", async () => {
+    await initRepo(scratch, "3.0.0", ["feat: thing"]);
+    // Occupy the tag the release would create, so `git tag` genuinely fails.
+    expect(sh("git", ["tag", "v3.0.1"], scratch).ok).toBe(true);
+
+    const { stdout, exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+
+    expect(exitCode).toBe(4);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ok).toBe(false);
+    expect(parsed.failed_stage).toBe("tag");
+    expect(parsed.committed).toBe(true);
+    expect(parsed.tagged).toBe(false);
+    expect(parsed.npm_published).toBe(false);
+    expect(parsed.recovery.join(" ")).toContain("git reset --hard HEAD~1");
+  });
+
+  test("a successful --skip-publish run reports no failed stage", async () => {
+    await initRepo(scratch, "3.1.0", ["feat: thing"]);
+
+    const { stdout, exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.failed_stage).toBeNull();
+    expect(parsed.recovery).toEqual([]);
+  });
+
+  test("a failed stage offers recovery, not next steps", async () => {
+    await initRepo(scratch, "3.3.0", ["feat: thing"]);
+    expect(sh("git", ["tag", "v3.3.1"], scratch).ok).toBe(true);
+
+    const { stdout } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+
+    const parsed = JSON.parse(stdout);
+    expect(parsed.failed_stage).toBe("tag");
+    expect(parsed.next_steps).toEqual([]);
+  });
+
+  test("missing --confirm is rejected before the test run starts", async () => {
+    await initRepo(scratch, "3.2.0", ["feat: thing"]);
+
+    // MKTG_RELEASE_SKIP_TESTS is cleared: if the guard ran after the tests,
+    // this would launch `bun test` in the scratch repo instead of returning.
+    const started = Date.now();
+    const { stdout, exitCode } = await runCli(["release", "patch", "--json"], scratch, {
+      MKTG_RELEASE_SKIP_TESTS: "0",
+    });
+
+    expect(exitCode).toBe(2);
+    expect(JSON.parse(stdout).error.message).toContain("--confirm");
+    expect(Date.now() - started).toBeLessThan(10_000);
+    // Nothing was bumped.
+    const pkg = JSON.parse(await readFile(join(scratch, "package.json"), "utf-8"));
+    expect(pkg.version).toBe("3.2.0");
   });
 });

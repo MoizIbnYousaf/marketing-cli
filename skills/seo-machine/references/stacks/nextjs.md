@@ -98,7 +98,7 @@ Render in the page component, not the layout. One JSON-LD `<Script>` per schema 
 - [ ] Sitemap `lastModified` constant bumped
 - [ ] `next build` succeeds and includes the new route in the build manifest
 - [ ] Local SSR check: `curl -s http://localhost:3000/<url> | grep '<h1'` — H1 must be in the response
-- [ ] `docs/seo-sprint.md` tracker row updated in same commit
+- [ ] `docs/seo-machine.md` tracker row updated in same commit
 
 ## App Router gotchas
 

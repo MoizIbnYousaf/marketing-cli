@@ -1,7 +1,6 @@
 // mktg — Skill frontmatter parsing and validation
 
 import type {
-  SkillsManifest,
   SkillCategory,
   SkillLayer,
   SkillFrontmatter,
@@ -13,10 +12,6 @@ import { BRAND_FILES as BRAND_FILE_LIST } from "../types";
 const VALID_CATEGORIES: readonly SkillCategory[] = [
   "foundation", "strategy", "copy-content", "distribution",
   "creative", "conversion", "seo", "growth", "knowledge",
-];
-
-const VALID_LAYERS: readonly SkillLayer[] = [
-  "foundation", "strategy", "execution", "distribution", "orchestrator",
 ];
 
 const VALID_TIERS = ["must-have", "nice-to-have"] as const;
@@ -104,7 +99,6 @@ export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
 
 export const validateSkill = (
   content: string,
-  manifest: SkillsManifest,
 ): ValidationResult => {
   const checks: ValidationCheck[] = [];
   const errors: string[] = [];
@@ -162,7 +156,7 @@ export const validateSkill = (
   });
   if (lineCount > 500) warnings.push(`Skill file is ${lineCount} lines (recommended max: 500)`);
 
-  // mktg layer: category, tier, reads/writes, depends_on
+  // mktg layer: category, tier, reads/writes
   if (fm.category !== undefined) {
     const catValid = (VALID_CATEGORIES as readonly string[]).includes(fm.category);
     checks.push({

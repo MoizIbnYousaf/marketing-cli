@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 // Bun exposes `import.meta.dir` directly; node exposes `import.meta.url` as
 // a file:// URL that needs to be converted. Using the node form works under
 // both runtimes, which is required for dist/cli.js (bun build --target node)
-// to execute cleanly under plain node via `npm install -g mktg && mktg ...`.
+// to execute cleanly under plain node via `npm install -g marketing-cli && mktg ...`.
 const moduleDir = (): string => dirname(fileURLToPath(import.meta.url));
 
 // Resolve the package root (where manifests and bundled skills live)

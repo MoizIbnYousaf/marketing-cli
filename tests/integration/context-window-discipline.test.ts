@@ -131,14 +131,12 @@ describe("--fields on run", () => {
 
   test("filters run output to skill and priorRuns only (excludes content)", async () => {
     const { stdout, exitCode } = await run(["run", "brand-voice", "--json", "--fields", "skill,priorRuns", "--dry-run", "--cwd", tmpDir]);
-    if (exitCode === 0) {
-      const parsed = JSON.parse(stdout);
-      expect(parsed).toHaveProperty("skill");
-      expect(parsed).toHaveProperty("priorRuns");
-      // content should be filtered OUT — this is the key context window savings
-      expect(parsed.content).toBeUndefined();
-    }
-    // If skill not installed, NOT_FOUND is acceptable
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    expect(parsed).toHaveProperty("skill");
+    expect(parsed).toHaveProperty("priorRuns");
+    // content should be filtered OUT — this is the key context window savings
+    expect(parsed.content).toBeUndefined();
   });
 });
 

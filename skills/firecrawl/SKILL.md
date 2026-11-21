@@ -18,7 +18,7 @@ Run `firecrawl --help` or `firecrawl <command> --help` for full option details.
 Must be installed and authenticated. Check with `firecrawl --status`.
 
 ```
-  🔥 firecrawl cli v1.8.0
+  🔥 firecrawl cli v1.x
 
   ● Authenticated via FIRECRAWL_API_KEY
   Concurrency: 0/100 jobs (parallel scrape limit)
@@ -52,7 +52,7 @@ Follow this escalation pattern:
 | Bulk extract a site section | `crawl`    | Need many pages (e.g., all /docs/)                        |
 | AI-powered data extraction  | `agent`    | Need structured data from complex sites                   |
 | Interact with a page        | `browser`  | Content requires clicks, form fills, pagination, or login |
-| Download a site to files    | `download` | Save an entire site as local files                        |
+| Download a site to files    | `experimental download` (alias `x download`) | Save an entire site as local files. The top-level `download` command was removed |
 
 For detailed command reference, use the individual skill for each command (e.g., `firecrawl-search`, `firecrawl-browser`) or run `firecrawl <command> --help`.
 

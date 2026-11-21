@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { mkdir, appendFile } from "node:fs/promises";
 import {
   BRAND_FILES,
-  BRAND_PROFILE_FILES,
   BRAND_APPEND_FILES,
   type BrandFile,
   type BrandBundle,
@@ -488,18 +487,6 @@ export const getBrandStatus = async (
   return statuses;
 };
 
-// Check if brand/ directory exists
-export const brandExists = async (projectRoot: string): Promise<boolean> => {
-  const brandDir = join(projectRoot, "brand");
-  try {
-    const { stat } = await import("node:fs/promises");
-    const s = await stat(brandDir);
-    return s.isDirectory();
-  } catch {
-    return false;
-  }
-};
-
 // Export brand/ as a portable JSON bundle
 export const exportBrand = async (cwd: string): Promise<BrandBundle> => {
   const brandDir = join(cwd, "brand");
@@ -664,20 +651,6 @@ export type LearningEntry = {
   readonly nextStep: string;
 };
 
-const LEARNINGS_HEADER = `# Marketing Learnings
-
-<!-- Append-only. Agent records what worked and what didn't. -->
-
-<!-- AGENT INSTRUCTIONS:
-After each marketing action, log what you learned.
-Format: | date | action | result | learning | next-step |
-Be specific about metrics when available (CTR, views, signups).
--->
-
-| Date | Action | Result | Learning | Next Step |
-|------|--------|--------|----------|-----------|
-`;
-
 const validateLearningEntry = (
   entry: LearningEntry,
 ): { ok: true } | { ok: false; message: string } => {
@@ -721,7 +694,7 @@ export const appendLearning = async (
   if (await file.exists()) {
     await appendFile(filePath, row + "\n");
   } else {
-    await Bun.write(filePath, LEARNINGS_HEADER + row + "\n");
+    await Bun.write(filePath, BRAND_TEMPLATES["learnings.md"] + row + "\n");
   }
 
   return { ok: true, row };

@@ -107,8 +107,8 @@ Add an entry to `skills-manifest.json` in the project root:
 "<name>": {
   "source": "new",
   "category": "<foundation|strategy|copy-content|distribution|creative|seo|conversion|growth|knowledge>",
-  "layer": "<foundation|strategy|execution|orchestrator>",
-  "tier": "<must-have|nice-to-have|experimental>",
+  "layer": "<foundation|strategy|execution|distribution|orchestrator>",
+  "tier": "<must-have|nice-to-have>",
   "reads": ["voice-profile.md"],
   "writes": [],
   "depends_on": [],

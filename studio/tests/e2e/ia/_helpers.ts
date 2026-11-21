@@ -6,7 +6,7 @@
 // helpers wrap that contract so every IA spec hits the same surfaces with
 // no per-file boot logic.
 
-import type { Page, Request as PWRequest } from "@playwright/test"
+import type { Page } from "@playwright/test"
 
 export const STUDIO_PORT = Number(process.env.E2E_STUDIO_PORT ?? "4801")
 export const DASHBOARD_PORT = Number(process.env.E2E_DASHBOARD_PORT ?? "4800")
@@ -122,43 +122,4 @@ export function landingUrl(page: Page): URL {
   const url = new URL(page.url())
   url.searchParams.delete("_rsc")
   return url
-}
-
-/**
- * Extract the `?tab=` value from a Playwright page URL. Returns null when
- * the dashboard is showing the canonical Pulse tab (no `?tab=` set).
- */
-export function tabFromPage(page: Page): string | null {
-  return landingUrl(page).searchParams.get("tab")
-}
-
-/**
- * Capture the next request matching `urlMatch` issued from the page. Mirrors
- * `page.waitForRequest` but returns a richer record: URL, method, body, and
- * a flag for whether the Authorization header was a Bearer token.
- *
- * Used for "POST went out with the right shape" assertions without actually
- * intercepting the request (real round-trip preserved).
- */
-export async function captureRequest(
-  page: Page,
-  urlMatch: string | RegExp,
-  trigger: () => Promise<void>,
-): Promise<{
-  url: string
-  method: string
-  body: string | null
-  authBearer: boolean
-}> {
-  const reqPromise = page.waitForRequest(urlMatch, { timeout: 10_000 })
-  await trigger()
-  const req: PWRequest = await reqPromise
-  const headers = req.headers()
-  const auth = headers["authorization"] ?? headers["Authorization"] ?? ""
-  return {
-    url: req.url(),
-    method: req.method(),
-    body: req.postData(),
-    authBearer: auth.startsWith("Bearer "),
-  }
 }

@@ -4,7 +4,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 
 export interface RepositoryLayout {
   readonly ecosystemRoot: string;
@@ -63,14 +63,14 @@ export const resolveRepositoryLayout = (
         : join(ecosystemRoot, "mktg-studio"),
     };
   }
-  const ecosystemRoot = join(homedir(), "projects", "mktgmono");
+  // Last resort when the package root cannot be resolved from this file:
+  // look for the conventional sibling layout under ~/projects. Both folder
+  // spellings are in use, so prefer whichever actually exists.
+  const candidates = ["mktgmono", "mktg-mono"].map((name) => join(userHome(), "projects", name));
+  const ecosystemRoot = candidates.find((dir) => existsSync(join(dir, "marketing-cli"))) ?? candidates[0]!;
   return {
     ecosystemRoot,
     cliRoot: join(ecosystemRoot, "marketing-cli"),
     studioRoot: join(ecosystemRoot, "mktg-studio"),
   };
 };
-
-/** Compatibility accessor for reports that expose the ecosystem root. */
-export const resolveMonorepoRoot = (fromUrl: string = import.meta.url): string =>
-  resolveRepositoryLayout(fromUrl).ecosystemRoot;

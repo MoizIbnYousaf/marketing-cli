@@ -226,8 +226,7 @@ export function SSEBridge() {
           case "job-started":
           case "job-log":
           case "job-completed":
-          case "job-failed":
-          case "job-cancelled": {
+          case "job-failed": {
             h.mutate((key: unknown) => typeof key === "string" && key.startsWith("/api/jobs"))
             return
           }

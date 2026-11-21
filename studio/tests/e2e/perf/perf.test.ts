@@ -272,23 +272,9 @@ describe("Lane 7 perf — optimizePackageImports tree-shake verification", () =>
     }
   })
 
-  test("compiled chunks do not contain un-imported recharts components", () => {
-    const probe = ["BarChart", "PieChart", "RadarChart", "Treemap", "Sankey"]
-    const found: string[] = []
-    for (const sym of probe) {
-      const importRe = new RegExp(`from\\s+["']recharts["'][^]*?\\b${sym}\\b`)
-      if (importRe.test(source)) continue
-      const re = new RegExp(`function\\s+${sym}\\s*\\(|\\b${sym}\\$1\\s*=`, "")
-      if (re.test(chunks)) found.push(sym)
-    }
-    if (found.length > 0) {
-      throw new Error(`recharts tree-shake failed — un-imported components in chunks: ${found.join(", ")}`)
-    }
-  })
-
-  test("next.config.ts optimizePackageImports list contains all 6 packages from Wave A", () => {
+  test("next.config.ts optimizePackageImports list contains the packages the studio imports", () => {
     const cfg = readFileSync(join(STUDIO_ROOT, "next.config.ts"), "utf-8")
-    for (const pkg of ["framer-motion", "lucide-react", "recharts", "react-markdown", "cmdk", "radix-ui"]) {
+    for (const pkg of ["framer-motion", "lucide-react", "cmdk", "radix-ui"]) {
       expect(cfg.includes(`"${pkg}"`)).toBe(true)
     }
   })

@@ -8,7 +8,7 @@
 //
 // If this test ever fails, the server-side half of Bug #8 has regressed.
 //
-// Related: docs/BUG8-DIAGNOSIS.md, lib/sse.ts:49-60, server.ts:1101-1108.
+// Related: lib/sse.ts:49-60, server.ts:1101-1108.
 
 import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { startTestServer, type ServerHandle } from "./helpers.ts";

@@ -12,8 +12,7 @@
 //     render; the user is told to invoke /cmo for real research.
 //
 // All progress goes through the global SSE emitter as `foundation:progress`
-// and `foundation:complete` events. The dedicated /api/onboarding/stream
-// endpoint subscribes with a filter to deliver only these events.
+// and `foundation:complete` events.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -63,15 +62,6 @@ export interface FoundationCompletePayload {
   lanes: FoundationProgressPayload[];
   success: boolean;
 }
-
-interface LaneJob {
-  id: string;
-  lane: FoundationLane;
-  status: FoundationStatus;
-  startedAt: number;
-}
-
-const inflight = new Map<string, LaneJob>();
 
 function newJobId(): string {
   return `foundation_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -183,8 +173,7 @@ async function runMktgInit(
 
 /**
  * Kick off the foundation flow. Returns immediately with one jobId per lane.
- * Progress streams via SSE on the global, "onboarding", and "foundation"
- * channels.
+ * Progress streams on the global SSE stream.
  *
  * Internal contract:
  *   - All 3 jobs are marked "queued" synchronously so the SSE catches the
@@ -207,7 +196,6 @@ export function startFoundation(
   for (const lane of FOUNDATION_LANES) {
     const id = newJobId();
     jobIds[lane] = id;
-    inflight.set(id, { id, lane, status: "queued", startedAt: Date.now() });
     emitProgress({
       lane,
       status: "queued",
@@ -241,8 +229,6 @@ async function runFoundationAsync(opts: {
 
   // Mark each as running before invoking the CLI so the UI lanes animate.
   for (const lane of FOUNDATION_LANES) {
-    const job = inflight.get(opts.jobIds[lane]);
-    if (job) job.status = "running";
     emitProgress({
       lane,
       status: "running",
@@ -265,8 +251,6 @@ async function runFoundationAsync(opts: {
       results.push(payload);
       emitProgress(payload);
       logActivity(lane, "failed", init.error);
-      const job = inflight.get(opts.jobIds[lane]);
-      if (job) job.status = "failed";
     }
     emitComplete(Date.now() - start, results);
     return;
@@ -329,8 +313,6 @@ async function runFoundationAsync(opts: {
         });
       }
     }
-    const job = inflight.get(opts.jobIds[lane]);
-    if (job) job.status = payload.status;
   }
 
   emitComplete(Date.now() - start, results);

@@ -24,4 +24,3 @@ export function normalizeOrigins(url, extraOrigins) {
 function ensureTrailingSlash(origin) {
     return origin.endsWith('/') ? origin : `${origin}/`;
 }
-//# sourceMappingURL=origins.js.map

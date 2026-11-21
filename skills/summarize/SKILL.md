@@ -120,7 +120,7 @@ When a source-digestion workflow needs the summary plus metrics (input char coun
 
 ## Chain-in role in the mktg multimedia digestion system
 
-This skill is Pillar 3 of the four-pillar digestion system (see `docs/plans/2026-04-11-002-feat-mktg-multimedia-digestion-plan.md`). Its job is **text compression**, not source ingestion.
+This skill is Pillar 3 of the four-pillar digestion system. Its job is **text compression**, not source ingestion.
 
 **Who calls summarize:**
 
@@ -168,4 +168,3 @@ This skill is Pillar 3 of the four-pillar digestion system (see `docs/plans/2026
 **Relationship to mktg:** chained-in (upstream-only — mktg does not fork or vendor the code; users install `@steipete/summarize` separately and mktg orchestrates it)
 **Date wrapped:** 2026-04-11
 **Wrapped by:** mktg source-digestion workflows, Pillar 3 of the multimedia digestion plan
-**Plan reference:** `docs/plans/2026-04-11-002-feat-mktg-multimedia-digestion-plan.md`
