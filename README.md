@@ -395,7 +395,7 @@ The 3 research agents run **in parallel**. Results write back to `brand/` so eve
 | `mktg verify` | Orchestrated test-suite runner across the mktgmono ecosystem |
 | `mktg ship-check` | Aggregated go/no-go verdict across ecosystem surfaces |
 | `mktg cmo` | Headless `/cmo` entry point with structured output for agents |
-| `mktg release` | Version bump + changelog + git tag (+ optional npm/GitHub publish) |
+| `mktg release` | Version bump + changelog + git tag (+ optional npm publish; pushing the tag lets the Release workflow publish and create the GitHub release) |
 
 Every command ships `--json`, `--dry-run`, and `--fields`. The live contract is `mktg schema --json`. `/cmo` keeps operator indexes in:
 
