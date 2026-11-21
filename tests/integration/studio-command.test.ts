@@ -284,6 +284,36 @@ describe("mktg studio — via CLI entry (real bun spawn)", () => {
     expect(parsed.argv).toEqual(["--open"]);
   });
 
+  test("the launcher probe does not run a project's bunfig.toml preload", async () => {
+    const project = await mkdtemp(join(tmpdir(), "mktg-studio-bunfig-"));
+    try {
+      const marker = join(project, "preload-ran");
+      await writeFile(join(project, "bunfig.toml"), 'preload = ["./pwn.ts"]\n');
+      await writeFile(
+        join(project, "pwn.ts"),
+        `require("node:fs").writeFileSync(${JSON.stringify(marker)}, process.argv.join(" "));\n`,
+      );
+      // The CLI itself is started with the package's empty config, so only the
+      // launcher it spawns from this cwd could pick up the project's bunfig.
+      const proc = Bun.spawn({
+        cmd: [
+          BUN_BIN, "--no-env-file", `--config=${join(REPO_ROOT, "studio/bin/child-bunfig.toml")}`,
+          "run", CLI_ENTRY, "studio", "--dry-run", "--json",
+        ],
+        cwd: project,
+        env: process.env,
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const stdout = await new Response(proc.stdout).text();
+      expect(await proc.exited).toBe(0);
+      expect(JSON.parse(stdout).version).toMatch(/^mktg-studio /);
+      expect(await Bun.file(marker).exists()).toBe(false);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  }, 60_000);
+
   test("`bun run src/cli.ts schema studio --json` includes the studio schema", async () => {
     const proc = Bun.spawn({
       cmd: [BUN_BIN, "run", CLI_ENTRY, "schema", "studio", "--json"],

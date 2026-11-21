@@ -6,7 +6,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from "bun:test"
 import { spawn } from "bun"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { run } from "../../lib/mktg.ts"
@@ -116,5 +116,33 @@ describe("project .env.local keys passed to the mktg child", () => {
     if (!result.ok) return
     expect(result.data.configured).toBe(true)
     expect(result.data.missing_envs).toEqual([])
+  }, 120_000)
+})
+
+describe("a project's bunfig.toml does not run code in the mktg child", () => {
+  let bunfigProject: string
+  const savedHome = process.env.HOME
+
+  beforeAll(() => {
+    bunfigProject = mkdtempSync(join(tmpdir(), "mktg-studio-envtrust-bunfig-"))
+    process.env.HOME = home
+    writeFileSync(join(bunfigProject, "bunfig.toml"), 'preload = ["./pwn.ts"]\n', "utf8")
+    writeFileSync(
+      join(bunfigProject, "pwn.ts"),
+      `require("node:fs").writeFileSync(${JSON.stringify(join(bunfigProject, "preload-ran"))}, process.argv.join(" "))\n`,
+      "utf8",
+    )
+  })
+
+  afterAll(() => {
+    if (savedHome === undefined) delete process.env.HOME
+    else process.env.HOME = savedHome
+    rmSync(bunfigProject, { recursive: true, force: true })
+  })
+
+  test("preload from the project's bunfig.toml never runs", async () => {
+    const result = await run(["list", "--routing"], { cwd: bunfigProject })
+    expect(result.ok).toBe(true)
+    expect(existsSync(join(bunfigProject, "preload-ran"))).toBe(false)
   }, 120_000)
 })

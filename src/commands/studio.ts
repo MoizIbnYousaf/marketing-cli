@@ -143,8 +143,13 @@ const resolveBunCommand = (): string => {
 const launcherCommand = (binary: string): readonly string[] => {
   // The launcher inherits the user's cwd (their project). --no-env-file stops
   // Bun auto-loading that project's .env.local as if it were shell env; the
-  // launcher reads it itself and filters it.
-  return binary.endsWith(".ts") ? [resolveBunCommand(), "--no-env-file", "run", binary] : [binary];
+  // launcher reads it itself and filters it. --config points Bun at the
+  // package's own empty config so the project's bunfig.toml `preload` never
+  // runs in the launcher.
+  const config = join(getPackageRoot(), "studio", "bin", "child-bunfig.toml");
+  return binary.endsWith(".ts")
+    ? [resolveBunCommand(), "--no-env-file", `--config=${config}`, "run", binary]
+    : [binary];
 };
 
 const fileExists = (path: string): boolean => {
