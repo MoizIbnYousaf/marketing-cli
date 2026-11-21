@@ -1,4 +1,4 @@
-import { lstatSync, realpathSync } from "node:fs"
+import { closeSync, constants, fstatSync, lstatSync, openSync, realpathSync, statSync, type Stats } from "node:fs"
 import { dirname, join, relative, resolve, sep } from "node:path"
 
 /**
@@ -98,3 +98,38 @@ function realLocationRefusal(candidate: string, root: string): string | null {
   }
   return real === realRoot || real.startsWith(`${realRoot}${sep}`) ? null : SYMLINK_ESCAPE
 }
+
+export type OpenedProjectFile =
+  | { ok: true; fd: number; stat: Stats }
+  | { ok: false; missing: boolean; message: string }
+
+/**
+ * Open a path that resolveProjectPath accepted, then confirm the file that was
+ * opened is the one whose real location is inside the root: its path must
+ * still realpath under the real root, to the same device and inode as the
+ * open descriptor. Checking before opening alone loses a race with a process
+ * that swaps the path for a symlink in between. O_NONBLOCK keeps a FIFO from
+ * blocking the open. The caller reads through `fd` and closes it.
+ */
+export function openProjectFile(abs: string, root: string): OpenedProjectFile {
+  let fd: number
+  try {
+    fd = openSync(abs, constants.O_RDONLY | (constants.O_NONBLOCK ?? 0))
+  } catch (error) {
+    const missing = (error as NodeJS.ErrnoException).code === "ENOENT"
+    return { ok: false, missing, message: missing ? "file does not exist" : UNRESOLVABLE }
+  }
+  try {
+    const opened = fstatSync(fd)
+    const realRoot = realpathSync(root)
+    const real = realpathSync(abs)
+    const now = statSync(real)
+    const inside = real === realRoot || real.startsWith(`${realRoot}${sep}`)
+    if (inside && now.dev === opened.dev && now.ino === opened.ino) return { ok: true, fd, stat: opened }
+  } catch {
+    // fall through to the refusal
+  }
+  closeSync(fd)
+  return { ok: false, missing: false, message: SYMLINK_ESCAPE }
+}
+

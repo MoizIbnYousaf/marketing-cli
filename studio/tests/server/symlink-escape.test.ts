@@ -151,6 +151,15 @@ for (const route of ["/api/assets/file", "/api/cmo/content/media"]) {
       expect(res.status).toBe(200)
       expect(await res.text()).toBe("inside-png")
     })
+    test("serves a byte range and refuses an unsatisfiable one", async () => {
+      const url = `${BASE}${route}?path=${encodeURIComponent("marketing/images/nested/hero.png")}`
+      const partial = await fetch(url, { headers: { ...AUTH, Range: "bytes=2-5" } })
+      expect(partial.status).toBe(206)
+      expect(partial.headers.get("content-range")).toBe("bytes 2-5/10")
+      expect(await partial.text()).toBe("side")
+      const bad = await fetch(url, { headers: { ...AUTH, Range: "bytes=50-60" } })
+      expect(bad.status).toBe(416)
+    })
   })
 }
 
