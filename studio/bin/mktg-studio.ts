@@ -22,6 +22,7 @@ import { randomBytes } from "node:crypto";
 import { childProcessEnv, nextProcessEnv } from "../lib/child-env.ts";
 import { loadEnvLocal } from "../lib/mktg.ts";
 import { isEnvLocalKeyAllowed } from "../../src/core/env-local.ts";
+import { studioVersion } from "../lib/studio-version.ts";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -33,14 +34,8 @@ const REPO_ROOT = resolve(dirname(__file), "..");
 const args = process.argv.slice(2);
 
 if (args.includes("--version") || args.includes("-v")) {
-  let version = "unknown";
-  try {
-    const pkg = JSON.parse(readFileSync(resolve(REPO_ROOT, "package.json"), "utf-8")) as { version?: unknown };
-    if (typeof pkg.version === "string" && pkg.version.length > 0) version = pkg.version;
-  } catch {
-    // Keep version probing side-effect free even if package metadata is missing.
-  }
-  console.log(`mktg-studio ${version}`);
+  // Same answer as /api/health: the marketing-cli package Studio ships in.
+  console.log(`mktg-studio ${studioVersion(REPO_ROOT)}`);
   process.exit(0);
 }
 
