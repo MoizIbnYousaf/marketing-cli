@@ -981,6 +981,8 @@ const server = Bun.serve({
               route: "/api/schema?route=/api/activity — fetch one entry",
             },
             headers: {
+              "Authorization: Bearer <token>":
+                "Required on every route except /api/health, /api/schema, /api/help and /api/auth/bootstrap; otherwise 401 UNAUTHORIZED. Token at ~/.mktg/.runtime/studio-token (MKTG_STUDIO_TOKEN_PATH or MKTG_STUDIO_TOKEN_DIR move it)",
               "Accept: application/x-ndjson":
                 "On list GETs, stream rows as NDJSON instead of a JSON envelope",
               "Content-Type: application/json":

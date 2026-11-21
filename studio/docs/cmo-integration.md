@@ -21,6 +21,21 @@ If `STUDIO_BASE` is available, prefer it. Otherwise derive the API base from `ST
 
 Cache the result for the rest of the turn — don't hammer the health endpoint.
 
+### Authenticate
+
+Every route except the public ones needs the Studio bearer token; without it the
+server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
+`/api/schema`, `/api/help` and the localhost-only browser bootstrap
+`/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
+at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
+`MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
+`Authorization: Bearer <token>`. Read it once per turn:
+
+```bash
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+curl -fsS -H "$AUTH" "$STUDIO/api/activity?limit=1" > /dev/null && echo "studio_auth_ok"
+```
+
 If the user explicitly wants the visual dashboard and Studio is not
 running, /cmo should launch it through the CLI rather than relying on a hidden
 hook:
@@ -59,12 +74,12 @@ A typical turn is `log → ... → note → log → push → toast → navigate`
 
 ## 3. Re-usable bash snippets
 
-Drop these in shell helpers or curl them inline. All assume `STUDIO=${STUDIO_BASE:-http://localhost:3001}`.
+Drop these in shell helpers or curl them inline. All assume `STUDIO=${STUDIO_BASE:-http://localhost:3001}` and the `AUTH` header from section 1.
 
 ### Log a skill run
 
 ```bash
-curl -fsS -X POST $STUDIO/api/activity/log \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/activity/log \
   -H 'content-type: application/json' \
   -d '{"kind":"skill-run","skill":"landscape-scan","summary":"Refreshed landscape, 5 new claims"}'
 ```
@@ -76,7 +91,7 @@ curl -fsS -X POST $STUDIO/api/activity/log \
 # `sed 's/"/\\"/g'` is NOT enough — it leaves literal newlines in the string
 # which makes the JSON body invalid and the server returns 400.
 EXCERPT=$(head -c 800 brand/voice-profile.md | jq -Rs .)
-curl -fsS -X POST $STUDIO/api/brand/note \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/brand/note \
   -H 'content-type: application/json' \
   -d "{\"file\":\"brand/voice-profile.md\",\"excerpt\":$EXCERPT}"
 ```
@@ -84,7 +99,7 @@ curl -fsS -X POST $STUDIO/api/brand/note \
 ### Push an opportunity
 
 ```bash
-curl -fsS -X POST $STUDIO/api/opportunities/push \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/opportunities/push \
   -H 'content-type: application/json' \
   -d '{"skill":"seo-content","reason":"You have a keyword plan but no published articles","priority":80}'
 ```
@@ -92,7 +107,7 @@ curl -fsS -X POST $STUDIO/api/opportunities/push \
 ### Toast
 
 ```bash
-curl -fsS -X POST $STUDIO/api/toast \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/toast \
   -H 'content-type: application/json' \
   -d '{"level":"success","message":"New launch creative is ready in Content"}'
 ```
@@ -100,7 +115,7 @@ curl -fsS -X POST $STUDIO/api/toast \
 ### Navigate
 
 ```bash
-curl -fsS -X POST $STUDIO/api/navigate \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/navigate \
   -H 'content-type: application/json' \
   -d '{"tab":"signals"}'
 ```
@@ -126,9 +141,10 @@ User says: *Refresh the competitive landscape.*
 
 ```bash
 STUDIO=${STUDIO_BASE:-http://localhost:3001}
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
 
 # 1. Tell the dashboard you've started
-curl -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -d '{
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -d '{
   "kind": "skill-run",
   "skill": "competitive-intel",
   "summary": "Refreshing competitive landscape"
@@ -140,11 +156,11 @@ curl -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -
 
 # 3. Note the brand-file write so dependent tabs refresh
 EXCERPT=$(head -c 800 brand/competitors.md | jq -Rs .)
-curl -fsS -X POST $STUDIO/api/brand/note -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/brand/note -H 'content-type: application/json' \
   -d "{\"file\":\"brand/competitors.md\",\"excerpt\":$EXCERPT}"
 
 # 4. Mark the skill complete with details
-curl -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -d '{
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -d '{
   "kind": "skill-run",
   "skill": "competitive-intel",
   "summary": "Done — found 3 new competitors, 2 positioning gaps",
@@ -153,19 +169,19 @@ curl -fsS -X POST $STUDIO/api/activity/log -H 'content-type: application/json' -
 }'
 
 # 5. If gaps surfaced, push an opportunity
-curl -fsS -X POST $STUDIO/api/opportunities/push -H 'content-type: application/json' -d '{
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/opportunities/push -H 'content-type: application/json' -d '{
   "skill": "competitor-alternatives",
-  "reason": "2 positioning gaps — write 'X vs Y' SEO pages",
+  "reason": "2 positioning gaps — write X vs Y SEO pages",
   "priority": 75
 }'
 
 # 6. Toast + navigate so the user sees the result
-curl -fsS -X POST $STUDIO/api/toast -H 'content-type: application/json' -d '{
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/toast -H 'content-type: application/json' -d '{
   "level": "success",
   "message": "Launch creative is ready in Content"
 }'
 
-curl -fsS -X POST $STUDIO/api/navigate -H 'content-type: application/json' -d '{
+curl -H "$AUTH" -fsS -X POST $STUDIO/api/navigate -H 'content-type: application/json' -d '{
   "tab": "content"
 }'
 ```
@@ -194,7 +210,7 @@ The dashboard surfaces three lanes during onboarding (`mktg-brand-researcher`, `
 Less common but useful: /cmo can subscribe to `GET /api/events` (SSE) to know what the user is doing. For example:
 
 ```bash
-curl -fsS -N $STUDIO/api/events | while read -r line; do
+curl -H "$AUTH" -fsS -N $STUDIO/api/events | while read -r line; do
   case "$line" in
     *publish-completed*) echo "user published — maybe queue a follow-up";;
     *navigate*) echo "user changed tabs";;

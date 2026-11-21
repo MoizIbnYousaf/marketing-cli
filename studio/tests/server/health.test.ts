@@ -97,6 +97,20 @@ describe("GET /api/schema", () => {
   });
 });
 
+describe("GET /api/help", () => {
+  test("documents the bearer token header and the public routes", async () => {
+    const res = await fetch(`${BASE_URL}/api/help`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { headers: Record<string, string> } };
+    const auth = body.data.headers["Authorization: Bearer <token>"];
+    expect(typeof auth).toBe("string");
+    for (const path of ["/api/health", "/api/schema", "/api/help", "/api/auth/bootstrap"]) {
+      expect(auth).toContain(path);
+    }
+    expect(auth).toContain("~/.mktg/.runtime/studio-token");
+  });
+});
+
 describe("GET /api/events (SSE)", () => {
   test("opens a stream and delivers a connected heartbeat", async () => {
     const controller = new AbortController();

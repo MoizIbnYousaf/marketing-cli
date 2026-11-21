@@ -31,6 +31,18 @@ curl -fsS -m 2 "$STUDIO/api/health" >/dev/null 2>&1 && STUDIO_UP=1 || STUDIO_UP=
 
 Cache the result for the rest of the turn — don't hammer health.
 
+Every route except the public ones needs the Studio bearer token; without it the
+server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
+`/api/schema`, `/api/help` and the localhost-only browser bootstrap
+`/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
+at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
+`MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
+`Authorization: Bearer <token>`. Set it once per turn; every recipe below sends it:
+
+```bash
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+```
+
 If you want to confirm the wire shapes you're about to send, fetch the
 schema once per session (it's static):
 
@@ -57,28 +69,28 @@ endpoints. Skip them when they don't apply — don't be noisy.
 
 ```bash
 # Log a skill run
-curl -fsS -X POST "$STUDIO/api/activity/log" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/activity/log" \
   -H 'content-type: application/json' \
   -d '{"kind":"skill-run","skill":"landscape-scan","summary":"Refreshed landscape, 5 new claims","filesChanged":["brand/landscape.md"]}'
 
 # Note a brand-file write (excerpt is the first ~800 chars)
 EXCERPT=$(head -c 800 brand/voice-profile.md | jq -Rs .)
-curl -fsS -X POST "$STUDIO/api/brand/note" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/brand/note" \
   -H 'content-type: application/json' \
   -d "{\"file\":\"brand/voice-profile.md\",\"excerpt\":$EXCERPT}"
 
 # Push an opportunity
-curl -fsS -X POST "$STUDIO/api/opportunities/push" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/opportunities/push" \
   -H 'content-type: application/json' \
   -d '{"skill":"keyword-research","reason":"You have a landscape but no keyword-plan yet — that gates seo-content","priority":80}'
 
 # Toast
-curl -fsS -X POST "$STUDIO/api/toast" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/toast" \
   -H 'content-type: application/json' \
   -d '{"level":"success","message":"Landscape refreshed — see Trend radar"}'
 
 # Navigate
-curl -fsS -X POST "$STUDIO/api/navigate" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/navigate" \
   -H 'content-type: application/json' \
   -d '{"tab":"signals"}'
 ```
@@ -90,19 +102,19 @@ update the studio. Prefer the HTTP path:
 
 ```bash
 # 1. Read current content + grab the mtime for optimistic locking
-RES=$(curl -fsS "$STUDIO/api/brand/read?file=voice-profile.md")
+RES=$(curl -H "$AUTH" -fsS "$STUDIO/api/brand/read?file=voice-profile.md")
 MTIME=$(echo "$RES" | jq -r '.data.mtime')
 
 # 2. Build new content in-memory (your editing logic here)
 CONTENT=$(jq -Rs . < new-voice-profile.md)
 
 # 3. Atomic write — fires brand-file-changed SSE so dependent tabs refresh
-curl -fsS -X POST "$STUDIO/api/brand/write" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/brand/write" \
   -H 'content-type: application/json' \
   -d "{\"file\":\"voice-profile.md\",\"content\":$CONTENT,\"expectedMtime\":\"$MTIME\"}"
 
 # 4. Log the activity
-curl -fsS -X POST "$STUDIO/api/activity/log" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/activity/log" \
   -H 'content-type: application/json' \
   -d '{"kind":"brand-write","filesChanged":["brand/voice-profile.md"],"summary":"Made the voice more casual — 3 anchor sentences swapped"}'
 ```
@@ -114,11 +126,11 @@ hint pointing back to `/api/brand/read` to re-fetch + merge.
 If you need to re-research a brand file, queue the owning skill:
 
 ```bash
-curl -fsS -X POST "$STUDIO/api/brand/regenerate" \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/brand/regenerate" \
   -H 'content-type: application/json' \
   -d '{"file":"landscape.md"}'
 # → { ok: true, data: { jobId, skill, file } }
-# poll via curl -fsS "$STUDIO/api/jobs/<jobId>" or watch /api/events
+# poll via curl -H "$AUTH" -fsS "$STUDIO/api/jobs/<jobId>" or watch /api/events
 ```
 
 ## 4. The idiomatic turn
@@ -129,26 +141,27 @@ recommends a next action:
 ```bash
 STUDIO=${STUDIO_BASE:-http://localhost:3001}
 curl -fsS -m 2 "$STUDIO/api/health" >/dev/null || exit 0   # 1. detect
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
 
-curl -fsS -X POST "$STUDIO/api/activity/log" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/activity/log" -H 'content-type: application/json' \
   -d '{"kind":"skill-run","skill":"landscape-scan","summary":"Refreshing landscape from 18 sources"}'
 
 # 2. (do the actual work — Exa search, write brand/landscape.md)
 
 EXCERPT=$(head -c 800 brand/landscape.md | jq -Rs .)
-curl -fsS -X POST "$STUDIO/api/brand/note" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/brand/note" -H 'content-type: application/json' \
   -d "{\"file\":\"brand/landscape.md\",\"excerpt\":$EXCERPT}"
 
-curl -fsS -X POST "$STUDIO/api/activity/log" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/activity/log" -H 'content-type: application/json' \
   -d '{"kind":"skill-run","skill":"landscape-scan","summary":"Done — 5 new claims, 2 deprecated","filesChanged":["brand/landscape.md"]}'
 
-curl -fsS -X POST "$STUDIO/api/opportunities/push" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/opportunities/push" -H 'content-type: application/json' \
   -d '{"skill":"competitor-alternatives","reason":"Fresh landscape — write 3 X vs Y pages","priority":75}'
 
-curl -fsS -X POST "$STUDIO/api/navigate" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/navigate" -H 'content-type: application/json' \
   -d '{"tab":"signals"}'
 
-curl -fsS -X POST "$STUDIO/api/toast" -H 'content-type: application/json' \
+curl -H "$AUTH" -fsS -X POST "$STUDIO/api/toast" -H 'content-type: application/json' \
   -d '{"level":"success","message":"Landscape refreshed — see Trend radar"}'
 ```
 
