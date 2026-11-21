@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs"
 import path from "node:path"
 import { FileText, AlertTriangle } from "lucide-react"
+import { brandRoot } from "@/lib/brand-files"
 
 // Max time we let fs.stat block the settings render. The G1 audit saw
 // Playwright's 30s screenshot timeout fire at 1920/2560 because this
@@ -39,8 +40,10 @@ interface BrandFileStats {
   ageDays: number | null
 }
 
-async function readBrandStats(): Promise<BrandFileStats[]> {
-  const brandDir = path.join(process.cwd(), "brand")
+export async function readBrandStats(): Promise<BrandFileStats[]> {
+  // The user's project (MKTG_PROJECT_ROOT / MKTG_BRAND_DIR), the same
+  // directory /api/brand/* serves; process.cwd() is the Studio package.
+  const brandDir = brandRoot()
   return Promise.all(
     BRAND_FILES.map(async (spec): Promise<BrandFileStats> => {
       const fullPath = path.join(brandDir, spec.file)

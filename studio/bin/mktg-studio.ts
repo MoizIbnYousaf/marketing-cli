@@ -316,6 +316,10 @@ const nextEnv = nextProcessEnv(baseChildEnv, {
   DASHBOARD_PORT,
   STUDIO_API_BASE: baseChildEnv.STUDIO_API_BASE,
   NEXT_DIST_DIR: baseChildEnv.NEXT_DIST_DIR,
+  // Server components (the root redirect, Settings > Brand health) read the
+  // project's brand/ directly, so Next needs the same root as the API server.
+  MKTG_PROJECT_ROOT: projectRoot,
+  MKTG_BRAND_DIR: baseChildEnv.MKTG_BRAND_DIR,
 });
 
 console.log(`[mktg-studio] starting server (:${STUDIO_PORT}) + dashboard (:${DASHBOARD_PORT})`);
