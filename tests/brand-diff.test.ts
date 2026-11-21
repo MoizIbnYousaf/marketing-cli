@@ -1,6 +1,6 @@
 // Tests for brand diff — hash tracking and change detection
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -124,6 +124,8 @@ type DiffOut = {
   changes: { file: string; status: string }[];
   hasChanges: boolean;
   baselineSaved: boolean;
+  baselineWarning: string | null;
+  error?: { code: string; message: string };
 };
 
 const PROJECT_ROOT = import.meta.dir.replace(/\/tests$/, "");
@@ -193,6 +195,8 @@ describe("mktg brand diff (CLI) — baseline lifecycle", () => {
     expect(statusOf(next, "assets.md")).toBeUndefined();
   });
 
+  // Against b552c17 (where diff never wrote anything) the file-system half of
+  // the two --dry-run tests holds trivially; they guard the new write path.
   test("--dry-run with no baseline writes nothing", async () => {
     await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
     const { data, exitCode } = await runDiff(tempDir, ["--dry-run"]);
@@ -234,6 +238,133 @@ describe("mktg brand diff (CLI) — baseline lifecycle", () => {
     });
     const schema = JSON.parse(await new Response(proc.stdout).text()) as { description: string; output: Record<string, string> };
     expect(schema.description).toContain("new baseline");
-    expect(Object.keys(schema.output).sort()).toEqual(["baselineSaved", "baselineTimestamp", "changes", "hasChanges"]);
+    expect(Object.keys(schema.output).sort()).toEqual(["baselineSaved", "baselineTimestamp", "baselineWarning", "changes", "hasChanges"]);
+  });
+});
+
+// ─── A baseline the diff cannot trust ───
+
+describe("mktg brand diff (CLI) — invalid and unsafe baselines", () => {
+  const BAD = ["{}", "[]", '"x"', "42", "null", "", "{not json", '{"timestamp":"t"}', '{"hashes":null}',
+    '{"voice-profile.md":"abc"}', '{"version":1,"timestamp":5,"hashes":{}}', '{"version":1,"timestamp":"t","hashes":{"voice-profile.md":7}}'];
+
+  test("each malformed baseline is reported in baselineWarning and replaced, never a crash", async () => {
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+    await mkdir(join(tempDir, ".mktg"), { recursive: true });
+    for (const bad of BAD) {
+      await writeFile(baselinePath(tempDir), bad);
+      const { data, exitCode } = await runDiff(tempDir);
+      expect({ bad, exitCode }).toEqual({ bad, exitCode: 0 });
+      expect(data.baselineTimestamp).toBeNull();
+      expect(statusOf(data, "voice-profile.md")).toBe("added");
+      expect(data.baselineWarning).toContain("replaced");
+      expect(data.baselineSaved).toBe(true);
+      const saved = await loadBrandHashes(tempDir);
+      expect(saved).not.toBeNull();
+      expect(Object.keys(saved!.hashes)).toEqual(["voice-profile.md"]);
+    }
+  });
+
+  test("--dry-run with a malformed baseline warns and leaves it byte-identical", async () => {
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+    await mkdir(join(tempDir, ".mktg"), { recursive: true });
+    await writeFile(baselinePath(tempDir), "{}");
+    const { data, exitCode } = await runDiff(tempDir, ["--dry-run"]);
+    expect(exitCode).toBe(0);
+    expect(data.baselineWarning).toContain("left unchanged");
+    expect(data.baselineSaved).toBe(false);
+    expect(await Bun.file(baselinePath(tempDir)).text()).toBe("{}");
+  });
+
+  test("a valid baseline has no warning", async () => {
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+    await runDiff(tempDir);
+    const { data } = await runDiff(tempDir);
+    expect(data.baselineWarning).toBeNull();
+  });
+
+  const withOutside = async (fn: (outside: string) => Promise<void>): Promise<void> => {
+    const outside = await mkdtemp(join(tmpdir(), "mktg-diff-outside-"));
+    try { await fn(outside); } finally { await rm(outside, { recursive: true, force: true }); }
+  };
+
+  test("baseline file symlinked to an outside file: IO_ERROR exit 1, outside file untouched (also with --dry-run)", async () => {
+    await withOutside(async (outside) => {
+      await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+      await mkdir(join(tempDir, ".mktg"));
+      await writeFile(join(outside, "t.json"), "OUTSIDE");
+      await symlink(join(outside, "t.json"), baselinePath(tempDir));
+      for (const extra of [[], ["--dry-run"]]) {
+        const { data, exitCode } = await runDiff(tempDir, extra);
+        expect(exitCode).toBe(1);
+        expect(data.error!.code).toBe("IO_ERROR");
+        expect(data.error!.message).toContain("symlink");
+      }
+      expect(await Bun.file(join(outside, "t.json")).text()).toBe("OUTSIDE");
+    });
+  });
+
+  test("dangling baseline symlink: IO_ERROR, the target is never created", async () => {
+    await withOutside(async (outside) => {
+      await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+      await mkdir(join(tempDir, ".mktg"));
+      await symlink(join(outside, "new.json"), baselinePath(tempDir));
+      const { data, exitCode } = await runDiff(tempDir);
+      expect(exitCode).toBe(1);
+      expect(data.error!.code).toBe("IO_ERROR");
+      expect(existsSync(join(outside, "new.json"))).toBe(false);
+    });
+  });
+
+  test(".mktg itself a symlink to an outside dir: IO_ERROR, nothing written there", async () => {
+    await withOutside(async (outside) => {
+      await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+      await symlink(outside, join(tempDir, ".mktg"));
+      const { data, exitCode } = await runDiff(tempDir);
+      expect(exitCode).toBe(1);
+      expect(data.error!.code).toBe("IO_ERROR");
+      expect(await readdir(outside)).toEqual([]);
+    });
+  });
+
+  test("baseline path is a directory: IO_ERROR, not UNHANDLED_ERROR", async () => {
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+    await mkdir(baselinePath(tempDir), { recursive: true });
+    const { data, exitCode } = await runDiff(tempDir);
+    expect(exitCode).toBe(1);
+    expect(data.error!.code).toBe("IO_ERROR");
+  });
+
+  test("unreadable baseline: IO_ERROR, not UNHANDLED_ERROR, and not overwritten", async () => {
+    if (process.getuid?.() === 0) return; // root ignores the mode bits
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice v1");
+    await mkdir(join(tempDir, ".mktg"));
+    await writeFile(baselinePath(tempDir), "secret");
+    await chmod(baselinePath(tempDir), 0o000);
+    try {
+      const { data, exitCode } = await runDiff(tempDir);
+      expect(exitCode).toBe(1);
+      expect(data.error!.code).toBe("IO_ERROR");
+    } finally {
+      await chmod(baselinePath(tempDir), 0o600);
+    }
+    expect(await Bun.file(baselinePath(tempDir)).text()).toBe("secret");
+  });
+});
+
+// ─── The baseline is replaced atomically ───
+
+describe("saveBrandHashes — atomic replace", () => {
+  test("replaces the baseline by rename (new inode), leaving no temp files", async () => {
+    // A truncate-then-write keeps the inode, and a reader racing it can see an
+    // empty or partial file (observed under Node: concurrent diffs got a null
+    // baseline). A rename swaps in a complete file, so the inode changes.
+    await saveBrandHashes(tempDir, { "voice-profile.md": "a".repeat(64) });
+    const first = await stat(baselinePath(tempDir));
+    await saveBrandHashes(tempDir, { "voice-profile.md": "b".repeat(64) });
+    const second = await stat(baselinePath(tempDir));
+    expect(second.ino).not.toBe(first.ino);
+    expect(await readdir(join(tempDir, ".mktg"))).toEqual(["brand-hashes.json"]);
+    expect((await loadBrandHashes(tempDir))!.hashes["voice-profile.md"]).toBe("b".repeat(64));
   });
 });

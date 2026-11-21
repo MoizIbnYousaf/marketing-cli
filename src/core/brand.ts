@@ -2,7 +2,9 @@
 // Scaffolding, freshness assessment, context matrix.
 
 import { join } from "node:path";
-import { mkdir, appendFile } from "node:fs/promises";
+import { lstatSync } from "node:fs";
+import { mkdir, appendFile, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import {
   BRAND_FILES,
   BRAND_APPEND_FILES,
@@ -559,6 +561,7 @@ export const importBrand = async (
 // --- Brand diff / hash tracking ---
 
 type BrandHashesFile = {
+  readonly version: 1;
   readonly timestamp: string;
   readonly hashes: Record<string, string>;
 };
@@ -573,6 +576,63 @@ export type BrandDiffResult = {
   readonly changes: readonly BrandDiffChange[];
   readonly hasChanges: boolean;
   readonly baselineSaved: boolean;
+  readonly baselineWarning: string | null;
+};
+
+// The baseline path can never be used: a symlink (it would read or write
+// outside the project), not a regular file/directory, or unreadable.
+export type BrandDiffFailure = {
+  readonly ok: false;
+  readonly path: string;
+  readonly reason: string;
+};
+
+type BaselineRead =
+  | { readonly kind: "none" }
+  | { readonly kind: "ok"; readonly baseline: BrandHashesFile }
+  | { readonly kind: "invalid"; readonly reason: string }
+  | { readonly kind: "unsafe"; readonly path: string; readonly reason: string };
+
+const isBrandHashesFile = (v: unknown): v is BrandHashesFile => {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const m = v as Record<string, unknown>;
+  if (m.version !== 1 || typeof m.timestamp !== "string") return false;
+  if (!m.hashes || typeof m.hashes !== "object" || Array.isArray(m.hashes)) return false;
+  return Object.values(m.hashes as Record<string, unknown>).every(h => typeof h === "string");
+};
+
+const baselinePaths = (cwd: string): { readonly dir: string; readonly file: string } => {
+  const dir = join(cwd, ".mktg");
+  return { dir, file: join(dir, "brand-hashes.json") };
+};
+
+const readBrandBaseline = async (cwd: string): Promise<BaselineRead> => {
+  const { dir, file } = baselinePaths(cwd);
+  for (const [path, wantDir] of [[dir, true], [file, false]] as const) {
+    try {
+      const st = lstatSync(path);
+      if (st.isSymbolicLink()) return { kind: "unsafe", path, reason: "is a symlink; brand diff never reads or writes its baseline through a symlink. Remove it" };
+      if (wantDir ? !st.isDirectory() : !st.isFile()) return { kind: "unsafe", path, reason: `is not a regular ${wantDir ? "directory" : "file"}. Remove it` };
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code;
+      if (code === "ENOENT") return { kind: "none" };
+      return { kind: "unsafe", path, reason: `cannot be inspected (${code ?? "unknown error"})` };
+    }
+  }
+  let raw: string;
+  try {
+    raw = await readFile(file, "utf8");
+  } catch (e) {
+    return { kind: "unsafe", path: file, reason: `cannot be read (${(e as NodeJS.ErrnoException).code ?? "unknown error"})` };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { kind: "invalid", reason: "is not valid JSON" };
+  }
+  if (!isBrandHashesFile(parsed)) return { kind: "invalid", reason: "does not have the expected {version: 1, timestamp, hashes} shape" };
+  return { kind: "ok", baseline: parsed };
 };
 
 export const computeBrandHashes = async (cwd: string): Promise<Record<string, string>> => {
@@ -591,33 +651,42 @@ export const computeBrandHashes = async (cwd: string): Promise<Record<string, st
   return hashes;
 };
 
+// Atomic replace: write a fresh temp file (O_EXCL, so a planted link is never
+// followed) and rename it over the baseline, so a concurrent reader sees the
+// old or the new baseline, never a truncated one.
 export const saveBrandHashes = async (cwd: string, hashes: Record<string, string>): Promise<void> => {
-  const mktgDir = join(cwd, ".mktg");
-  await mkdir(mktgDir, { recursive: true });
-  const data: BrandHashesFile = { timestamp: new Date().toISOString(), hashes };
-  await Bun.write(join(mktgDir, "brand-hashes.json"), JSON.stringify(data, null, 2));
+  const { dir, file } = baselinePaths(cwd);
+  await mkdir(dir, { recursive: true });
+  const data: BrandHashesFile = { version: 1, timestamp: new Date().toISOString(), hashes };
+  const tmp = join(dir, `.brand-hashes.${randomUUID()}.tmp`);
+  await writeFile(tmp, JSON.stringify(data, null, 2), { flag: "wx" });
+  try {
+    await rename(tmp, file);
+  } catch (e) {
+    await unlink(tmp).catch(() => {});
+    throw e;
+  }
 };
 
 export const loadBrandHashes = async (cwd: string): Promise<BrandHashesFile | null> => {
-  const filePath = join(cwd, ".mktg", "brand-hashes.json");
-  const file = Bun.file(filePath);
-  if (!(await file.exists())) return null;
-  try {
-    return await file.json() as BrandHashesFile;
-  } catch {
-    return null;
-  }
+  const read = await readBrandBaseline(cwd);
+  return read.kind === "ok" ? read.baseline : null;
 };
 
 // Compares brand/ against the baseline in .mktg/brand-hashes.json. With
 // `save`, the hashes just compared become the new baseline, so the next diff
 // reports changes since this one. Nothing is saved when there is neither a
 // baseline nor a brand file to track (no stray .mktg/ in unrelated dirs).
-export const diffBrand = async (cwd: string, opts: { readonly save?: boolean } = {}): Promise<BrandDiffResult> => {
-  const [baseline, currentHashes] = await Promise.all([
-    loadBrandHashes(cwd),
+// An unparsable or wrong-shape baseline is ignored (every file 'added'),
+// reported in baselineWarning, and replaced when saving. A baseline path that
+// is a symlink or not a regular file is never read or written: BrandDiffFailure.
+export const diffBrand = async (cwd: string, opts: { readonly save?: boolean } = {}): Promise<BrandDiffResult | BrandDiffFailure> => {
+  const [read, currentHashes] = await Promise.all([
+    readBrandBaseline(cwd),
     computeBrandHashes(cwd),
   ]);
+  if (read.kind === "unsafe") return { ok: false, path: read.path, reason: read.reason };
+  const baseline = read.kind === "ok" ? read.baseline : null;
 
   const changes: BrandDiffChange[] = [];
 
@@ -639,7 +708,7 @@ export const diffBrand = async (cwd: string, opts: { readonly save?: boolean } =
     }
   }
 
-  const baselineSaved = opts.save === true && (baseline !== null || Object.keys(currentHashes).length > 0);
+  const baselineSaved = opts.save === true && (read.kind !== "none" || Object.keys(currentHashes).length > 0);
   if (baselineSaved) await saveBrandHashes(cwd, currentHashes);
 
   return {
@@ -647,6 +716,9 @@ export const diffBrand = async (cwd: string, opts: { readonly save?: boolean } =
     changes,
     hasChanges: changes.some(c => c.status !== "unchanged"),
     baselineSaved,
+    baselineWarning: read.kind === "invalid"
+      ? `.mktg/brand-hashes.json ${read.reason}; it was ignored (every file reported as 'added')${baselineSaved ? " and replaced with the current state" : " and left unchanged"}`
+      : null,
   };
 };
 

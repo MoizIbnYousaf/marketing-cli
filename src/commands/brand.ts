@@ -1,7 +1,7 @@
 // mktg brand — Brand memory management
 import { ok, BRAND_FILES, type CommandHandler, type CommandSchema, type BrandBundle, type GlobalFlags, type CommandResult } from "../types";
 import { isKeyOf } from "../core/routing";
-import { invalidArgs, notFound, parseJsonInput, validateResourceId } from "../core/errors";
+import { invalidArgs, ioError, notFound, parseJsonInput, validateResourceId } from "../core/errors";
 import { getBrandStatus, exportBrand, importBrand, diffBrand, appendLearning, isTemplateContent, type LearningEntry } from "../core/brand";
 import { resolveManifest } from "../core/skills";
 import { join } from "node:path";
@@ -13,7 +13,7 @@ const SUBCOMMANDS = {
   "import": "Import brand memory from a JSON bundle",
   "update": "Write brand files from raw JSON payload via --input",
   "freshness": "Check brand file freshness against skill review intervals",
-  "diff": "Show brand file changes since the last brand diff, then record the current state as the new baseline (--dry-run compares without recording)",
+  "diff": "Show brand file changes since the last brand diff, then record the current state as the new baseline (--dry-run compares without recording). The baseline is per project: any caller's diff resets it for everyone",
   "append-learning": "Append a structured learning entry to brand/learnings.md",
   "claims": "Extract Claims Blacklist from landscape.md as structured JSON",
   "kit": "Parse creative-kit.md into structured brand tokens (colors, typography, visual)",
@@ -50,6 +50,7 @@ export const schema: CommandSchema = {
           changes: "Array<{file, status}> — status: 'added' | 'modified' | 'deleted' | 'unchanged' per brand file, compared with the baseline",
           hasChanges: "boolean — true when any file is not 'unchanged'",
           baselineSaved: "boolean — true when this run wrote the current hashes to .mktg/brand-hashes.json as the next baseline; false with --dry-run, or when there is no brand file and no baseline",
+          baselineWarning: "string | null — set when .mktg/brand-hashes.json exists but is not valid JSON or not the {version: 1, timestamp, hashes} shape: it was ignored (baselineTimestamp null, every file 'added') and replaced unless --dry-run. A baseline path that is a symlink or not a regular file is never read or written: the command exits 1 with IO_ERROR",
         }
       : {},
     examples: [{ args: `mktg brand ${name} --json`, description }],
@@ -78,6 +79,7 @@ const handleExport = async (_args: readonly string[], flags: GlobalFlags): Promi
 
 const handleDiff = async (_args: readonly string[], flags: GlobalFlags): Promise<CommandResult> => {
   const result = await diffBrand(flags.cwd, { save: !flags.dryRun });
+  if ("ok" in result) return ioError(result.path, result.reason);
   return ok(result);
 };
 
