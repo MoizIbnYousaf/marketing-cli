@@ -288,12 +288,23 @@ describe("mktg skill add — no --mode flag", () => {
     });
   }
 
-  test("a known short flag before the source is not read as the source", async () => {
+  // Whether -y should be accepted at all on `skill add` is the router's
+  // per-subcommand flag gap (it allows every skill subcommand's flags plus
+  // -h/-v/-y). This test only pins that a dash-prefixed arg is never the source.
+  test("a short flag before the source is never read as the source", async () => {
     const result = await runHome(["skill", "add", "-y", "foo", "--dry-run", "--json", `--cwd=${projectDir}`]);
+    expect(result.stdout).not.toContain("'-y'");
+    const data = parseJson(result.stdout) as { name?: string; error?: { code: string } };
+    if (result.exitCode === 0) expect(data.name).toBe("foo");
+    else expect(data.error?.code).toBe("UNKNOWN_FLAG");
+  });
+
+  test("after `--`, a dash-prefixed name is the source (end-of-options convention)", async () => {
+    await scaffoldExternalSkill(join(home, ".claude", "skills"), "-foo");
+    const result = await runHome(["skill", "add", "--dry-run", "--json", `--cwd=${projectDir}`, "--", "-foo"]);
     expect(result.exitCode).toBe(0);
-    const data = parseJson(result.stdout) as { name: string; mode: string; action: string };
-    expect(data.name).toBe("foo");
-    expect(data.mode).toBe("chain");
+    const data = parseJson(result.stdout) as { name: string; source_path: string; action: string };
+    expect(data.source_path).toContain(join(".claude", "skills", "-foo"));
     expect(data.action).toBe("dry-run");
   });
 

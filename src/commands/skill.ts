@@ -402,9 +402,11 @@ const handleUnregister = async (args: readonly string[], flags: { cwd: string; d
 };
 
 const handleAdd = async (args: readonly string[], flags: { cwd: string; dryRun: boolean }): Promise<CommandResult> => {
-  // `add` takes no flags of its own, so every dash-prefixed arg is a flag
-  // (unknown ones are rejected by the CLI router), never the source.
-  const source = args.find(a => !a.startsWith("-"));
+  // `add` takes no flags of its own, so before `--` every dash-prefixed arg is
+  // a flag (unknown ones are rejected by the CLI router), never the source.
+  // After `--` (end of options) the first argument is the source verbatim.
+  const end = args.indexOf("--");
+  const source = end === -1 ? args.find(a => !a.startsWith("-")) : args.slice(0, end).find(a => !a.startsWith("-")) ?? args[end + 1];
   if (!source) return invalidArgs("Missing source — provide a skill name or path", [
     "Usage: mktg skill add <name-or-path>",
     "Example: mktg skill add last30days --json",
