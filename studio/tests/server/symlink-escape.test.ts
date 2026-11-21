@@ -111,6 +111,17 @@ describe("GET /api/cmo/content/file", () => {
   })
 })
 
+describe("refusal reasons", () => {
+  test("a path too long to resolve is refused for that reason, not as a symlink", async () => {
+    const res = await get("/api/cmo/content/file", `${"a".repeat(5000)}.md`)
+    expect(res.status).toBe(400)
+    const body = (await res.json()) as { ok: boolean; error: { code: string; message: string } }
+    expect(body.ok).toBe(false)
+    expect(body.error.message).not.toContain("symbolic link")
+    expect(body.error.message).toContain("cannot be resolved")
+  })
+})
+
 describe("PUT /api/cmo/content/file", () => {
   test("refuses a write under a symlinked parent directory", async () => {
     await expectRefused(await put("marketing/linked/new.md", "written outside"))
