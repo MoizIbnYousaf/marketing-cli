@@ -41,8 +41,8 @@ Ask these questions (one at a time, stop when clear):
 1. **Name** — What should the skill be called? (kebab-case, e.g., `webinar-funnel`)
 2. **Trigger phrases** — What would someone say to invoke this? (5-8 natural phrases)
 3. **Category** — Where does it fit? (foundation / strategy / copy-content / distribution / creative / seo / conversion / growth / knowledge)
-4. **Layer** — What layer? (foundation / strategy / execution / orchestrator)
-5. **Tier** — How essential? (must-have / nice-to-have / experimental)
+4. **Layer** — What layer? (foundation / strategy / execution / distribution / orchestrator)
+5. **Tier** — How essential? (must-have / nice-to-have)
 6. **Brand reads** — Which `brand/` files does it need? (voice-profile.md, audience.md, etc.)
 7. **Brand writes** — Which `brand/` files does it update?
 8. **Dependencies** — Which skills should run first? (e.g., `brand-voice`, `audience-research`)

@@ -130,7 +130,7 @@ export type BrandBundle = {
 };
 
 // Skill metadata types
-export type SkillSource = "v2" | "v1" | "new" | "third-party";
+export type SkillSource = "v2" | "v1" | "new" | "third-party" | "first-party";
 
 export type SkillCategory =
   | "foundation"

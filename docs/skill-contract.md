@@ -84,7 +84,7 @@ Every skill must also have an entry in `skills-manifest.json`:
 
 | Field | Values | Description |
 |-------|--------|-------------|
-| `source` | `new`, `v1`, `v2`, `third-party` | Origin — `new` for skills created from scratch |
+| `source` | `new`, `v1`, `v2`, `third-party`, `first-party` | Origin — `new` for skills created from scratch. `first-party` is used only by `mktg-x` |
 | `category` | `foundation`, `strategy`, `copy-content`, `distribution`, `creative`, `seo`, `conversion`, `growth`, `knowledge` | Functional grouping |
 | `layer` | `foundation`, `strategy`, `execution`, `distribution`, `orchestrator` | Stack position |
 | `tier` | `must-have`, `nice-to-have` | Installation priority |
