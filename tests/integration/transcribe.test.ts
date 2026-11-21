@@ -10,7 +10,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 
 type RunOut = { stdout: string; stderr: string; exitCode: number };
@@ -380,6 +380,120 @@ describe("safety rails", () => {
     ]);
     const body = parseJson(stdout) as { steps: string[] };
     expect(body.steps.some(s => s.includes("yt-dlp"))).toBe(false);
+  });
+});
+
+// ─── Overwrite guard (--confirm) ───
+// The guard runs before any dependency check, so these tests need no
+// whisper-cli / ffmpeg / yt-dlp. HOME points at the temp dir, so with --confirm
+// the run gets past the guard and stops at the (absent) whisper model: exit 3.
+
+const runWithHome = async (args: readonly string[], home: string): Promise<RunOut> => {
+  const proc = Bun.spawn(["bun", "run", "src/cli.ts", ...args], {
+    cwd: PROJECT_ROOT,
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, NO_COLOR: "1", HOME: home },
+  });
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]);
+  return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode: await proc.exited };
+};
+
+describe("overwrite guard", () => {
+  test("existing <name>.txt in --output → INVALID_ARGS exit 2, file untouched", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await mkdir(join(tempDir, "out"));
+    await writeFile(join(tempDir, "out", "talk.txt"), "keep me");
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp3", "--output", "out", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(2);
+    const body = parseJson(stdout) as { error: { code: string; message: string; suggestions: string[] } };
+    expect(body.error.code).toBe("INVALID_ARGS");
+    expect(body.error.message).toContain(join(tempDir, "out", "talk.txt"));
+    expect(body.error.suggestions.join(" ")).toContain("--confirm");
+    expect(await readFile(join(tempDir, "out", "talk.txt"), "utf8")).toBe("keep me");
+  });
+
+  test("names every existing output: .wav, .wav.srt and .txt", async () => {
+    await writeFile(join(tempDir, "talk.mp4"), "video");
+    for (const f of ["talk.wav", "talk.wav.srt", "talk.txt"]) await writeFile(join(tempDir, f), "old");
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp4", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(2);
+    const body = parseJson(stdout) as { error: { message: string } };
+    for (const f of ["talk.wav", "talk.wav.srt", "talk.txt"]) {
+      expect(body.error.message).toContain(join(tempDir, f));
+    }
+  });
+
+  test("unrelated files in --output do not trigger the guard", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "other.txt"), "x");
+    const { stdout } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp3", "--dry-run", "--json",
+    ], tempDir);
+    const body = parseJson(stdout) as { would_overwrite: string[] };
+    expect(body.would_overwrite).toEqual([]);
+  });
+
+  test("--dry-run reports would_overwrite, exits 0, writes nothing", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.wav.srt"), "old srt");
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp3", "--dry-run", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(0);
+    const body = parseJson(stdout) as { action: string; would_overwrite: string[] };
+    expect(body.action).toBe("dry-run");
+    expect(body.would_overwrite).toEqual([join(tempDir, "talk.wav.srt")]);
+    expect(await readFile(join(tempDir, "talk.wav.srt"), "utf8")).toBe("old srt");
+    expect(Array.from(new Bun.Glob("*").scanSync({ cwd: tempDir })).sort()).toEqual(["talk.mp3", "talk.wav.srt"]);
+  });
+
+  test("a .wav source inside --output uses the _clean names and is not itself reported", async () => {
+    await writeFile(join(tempDir, "rec.wav"), "audio");
+    await writeFile(join(tempDir, "rec_clean.txt"), "old");
+    const { stdout } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "rec.wav", "--dry-run", "--json",
+    ], tempDir);
+    const body = parseJson(stdout) as { would_overwrite: string[] };
+    expect(body.would_overwrite).toEqual([join(tempDir, "rec_clean.txt")]);
+  });
+
+  test("URL source: would_overwrite is empty (fresh mktg-<timestamp> name)", async () => {
+    await writeFile(join(tempDir, "watch.txt"), "x");
+    const { stdout } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "https://www.youtube.com/watch?v=abc", "--dry-run", "--json",
+    ], tempDir);
+    const body = parseJson(stdout) as { would_overwrite: string[] };
+    expect(body.would_overwrite).toEqual([]);
+  });
+
+  test("--confirm passes the guard (run stops later at the missing whisper model / tool, exit 3)", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.txt"), "keep me");
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "talk.mp3", "--confirm", "--json",
+    ], tempDir);
+    expect(exitCode).toBe(3);
+    const body = parseJson(stdout) as { error: { code: string } };
+    expect(body.error.code).toBe("MISSING_DEPENDENCY");
+    expect(await readFile(join(tempDir, "talk.txt"), "utf8")).toBe("keep me");
+  });
+
+  test("--input {confirm:true} passes the guard like --confirm", async () => {
+    await writeFile(join(tempDir, "talk.mp3"), "audio");
+    await writeFile(join(tempDir, "talk.txt"), "keep me");
+    const { stdout, exitCode } = await runWithHome([
+      "--cwd", tempDir, "transcribe", "--input", JSON.stringify({ source: "talk.mp3", confirm: true }), "--json",
+    ], tempDir);
+    expect(exitCode).toBe(3);
+    expect((parseJson(stdout) as { error: { code: string } }).error.code).toBe("MISSING_DEPENDENCY");
   });
 });
 

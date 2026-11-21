@@ -207,6 +207,20 @@ export const runWhisper = async (
   return { ok: true, srtPath, srt };
 };
 
+// The three paths a run writes for a given input file: the cleaned wav
+// (ffmpeg -y, deleted afterwards unless --keep-wav), whisper's `<wav>.srt`,
+// and the plain-text `.txt`. Single source of truth for the pipeline and the
+// command's overwrite guard.
+export const plannedOutputPaths = (
+  inputFile: string,
+  outputDir: string,
+): { readonly wav: string; readonly srt: string; readonly txt: string } => {
+  const name = basename(inputFile).replace(/\.[^.]+$/, "");
+  let wav = resolve(outputDir, `${name}.wav`);
+  if (wav === resolve(inputFile)) wav = resolve(outputDir, `${name}_clean.wav`);
+  return { wav, srt: `${wav}.srt`, txt: wav.replace(/\.wav$/, ".txt") };
+};
+
 // Pipeline orchestrator (ported from trx/core/pipeline.ts)
 export type PipelineOptions = {
   readonly detection: SourceDetection;
@@ -248,11 +262,7 @@ export const runTranscribePipeline = async (
   }
 
   // 2. Clean audio to 16kHz mono wav
-  const name = basename(inputFile).replace(/\.[^.]+$/, "");
-  let wavPath = resolve(opts.outputDir, `${name}.wav`);
-  if (wavPath === resolve(inputFile)) {
-    wavPath = resolve(opts.outputDir, `${name}_clean.wav`);
-  }
+  const { wav: wavPath, txt: txtPath } = plannedOutputPaths(inputFile, opts.outputDir);
   const clean = await cleanAudio(inputFile, wavPath);
   if (!clean.ok) return { ok: false, code: "exec", message: clean.message };
 
@@ -273,7 +283,6 @@ export const runTranscribePipeline = async (
   const duration_seconds = segments.length > 0 ? segments[segments.length - 1]!.end : 0;
 
   // 5. Write .txt (mirrors trx behavior so source-digestion flows have an on-disk reference)
-  const txtPath = wavPath.replace(/\.wav$/, ".txt");
   await Bun.write(txtPath, transcript);
 
   // 6. Delete intermediate wav unless --keep-wav
