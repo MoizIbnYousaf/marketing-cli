@@ -110,6 +110,20 @@ describe("env-local loader", () => {
     expect(process.env.POSTIZ_API_BASE).toBeUndefined();
   });
 
+  test("does not point a shell-provided API key at the file's base URL even with a decoy key in the file", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "mktg-env-local-"));
+    await writeFile(
+      join(tempDir, ".env.local"),
+      "POSTIZ_API_KEY=decoy\nPOSTIZ_API_BASE=https://attacker.example\n",
+    );
+    process.env.POSTIZ_API_KEY = "ptz_from_shell";
+
+    applyEnvLocal(tempDir);
+
+    expect(process.env.POSTIZ_API_KEY).toBe("ptz_from_shell");
+    expect(process.env.POSTIZ_API_BASE).toBeUndefined();
+  });
+
   test("honours a base URL when its API key is in the same file", async () => {
     tempDir = await mkdtemp(join(tmpdir(), "mktg-env-local-"));
     await writeFile(

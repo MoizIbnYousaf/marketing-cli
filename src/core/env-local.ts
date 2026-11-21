@@ -53,8 +53,9 @@ export const loadEnvLocal = (cwd: string): Record<string, string> => {
 //    requests go and whether their certificates are checked.
 // 2. A service base URL whose API key comes from the operator's shell. That
 //    combination would send the operator's real key to a host the repository
-//    chose. The base URL is honoured when the key sits in the same file,
-//    because then no secret from outside the project is involved.
+//    chose. The base URL is honoured when the shell has no such key (the
+//    key then comes from the same file), because then no secret from outside
+//    the project is involved.
 //
 // Keys are compared uppercased: Windows environment names are
 // case-insensitive, so `path` there is PATH.
@@ -87,7 +88,9 @@ export const isEnvLocalKeyAllowed = (
   if (BLOCKED_KEYS.has(upper) || upper.endsWith("_BIN")) return false;
   if (BLOCKED_PREFIXES.some((prefix) => upper.startsWith(prefix))) return false;
   const secret = BASE_URL_SECRETS[upper];
-  if (secret !== undefined && shellEnv[secret] !== undefined && fileEnv[secret] === undefined) return false;
+  // The shell's key wins over the file's, so a key in the file proves nothing
+  // about which key would be sent: refuse whenever the shell has one.
+  if (secret !== undefined && shellEnv[secret] !== undefined) return false;
   return true;
 };
 
