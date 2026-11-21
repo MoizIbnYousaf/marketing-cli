@@ -73,54 +73,6 @@ Pre-Wave-A baseline was `/dashboard` 524.6 kB JS + 192.6 kB CSS. Today: 404.4 kB
 
 Aggregated: `tests/e2e/perf/runs/bundle-snapshot.json`.
 
-## optimizePackageImports tree-shake verification
-
-`next.config.ts:35-44` after Lane 7 Wave A:
-
-```ts
-optimizePackageImports: [
-  "framer-motion",
-  "lucide-react",
-  "recharts",
-  "react-markdown",
-  "cmdk",
-  "radix-ui",
-],
-```
-
-Probe-set strategy: pick symbols from each barrel package that are NOT imported in `components/`, `app/`, or `lib/`. If the modular-import transform works, those symbols' compiled bytes are absent from `.next-perf/static/chunks/*.js`. If they appear, tree-shaking regressed.
-
-### lucide-react probe set (8 icons)
-
-`Anchor`, `Anvil`, `Caravan`, `Cherry`, `Donut`, `Drumstick`, `Pyramid`, `Volcano`.
-
-- All 8 verified absent from `components/`, `app/`, `lib/` source via regex `[{,\s]<name>[,\s}]`.
-- All 8 verified absent from compiled chunks via regex `displayName\s*[:=]\s*['"]<name>['"]|\b<name>\b\s*[=]\s*\(\s*\(\s*ref` (the two shapes the lucide-react compiled module emits per icon).
-- **Verdict: tree-shake working** for lucide-react. None of the 8 unused icons ship.
-
-### recharts probe set (5 components)
-
-`BarChart`, `PieChart`, `RadarChart`, `Treemap`, `Sankey`.
-
-- The studio source imports only `Area`, `AreaChart`, `ReferenceLine`, `ResponsiveContainer` from recharts (single use site at `components/workspace/signals/metric-chip.tsx:5`, which was deleted in Wave A; silverspark's Pulse rebuild re-introduced recharts via the new sparkline + funnel hero).
-- All 5 probe components verified absent from compiled chunks via regex `function\s+<name>\s*\(|\b<name>\$1\s*=`.
-- **Verdict: tree-shake working** for recharts.
-
-### Config sanity
-
-All six packages from Wave A still present in `optimizePackageImports`:
-
-```
-✓ "framer-motion"
-✓ "lucide-react"
-✓ "recharts"
-✓ "react-markdown"
-✓ "cmdk"
-✓ "radix-ui"
-```
-
-Test asserts via `readFileSync("next.config.ts")` + literal `includes("\"<pkg>\"")` for each.
-
 ## Failure modes encountered (debugging trail)
 
 Documenting the dead-ends so the next person doesn't repeat them:

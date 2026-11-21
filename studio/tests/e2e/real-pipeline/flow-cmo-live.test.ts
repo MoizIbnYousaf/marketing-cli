@@ -9,27 +9,11 @@
 // regression guard A5 already verified at 10 min; J3 is the CI-sized
 // version that runs every commit).
 //
-// Production 10-min soak is documented in docs/FLOW-CMO-LIVE.md + K4
-// pre-flight checklist. This CI test is the 90s version so it fits in
-// a reasonable test budget and catches regressions early.
-//
-// Live driving mode (skipped unless `mktg cmo` subcommand exists on the
-// installed CLI, which landed in M4 / `ade8760`) would use the CLI as
-// the driver. The default HTTP-simulation path mirrors what /cmo does
-// over the wire, which is the same risk surface the studio exposes.
+// The production soak runs 10 min. This CI test is the 90s version so it
+// fits in a reasonable test budget and catches regressions early.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { spawnSync } from "node:child_process";
 import { createHarness, type RealPipelineHarness } from "./setup";
-
-const HAS_LIVE_CMO = (() => {
-  try {
-    const r = spawnSync("mktg", ["cmo", "--help"], { encoding: "utf8" });
-    return r.status === 0;
-  } catch {
-    return false;
-  }
-})();
 
 // Session-sized knob. The K4 pre-flight runs 600s for the real go/no-go
 // soak. CI version runs shorter so it fits in test budget.
@@ -265,18 +249,5 @@ describe("J3 /cmo live-driving soak", () => {
     await Bun.sleep(500);
     const disconnected = await sampleHealth(baseUrl);
     expect(disconnected.subscribers).toBe(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Live CLI-driven soak (skipped unless `mktg cmo` is installed)
-// ---------------------------------------------------------------------------
-describe.skipIf(!HAS_LIVE_CMO)("J3 /cmo live-driving soak (CLI mode)", () => {
-  test("mktg cmo --json round-trips against the spawned studio", async () => {
-    // Skipped on machines without marketing-cli 0.2.0+ / M4 `mktg cmo`.
-    // When present, a follow-up suite would scripted-drive a full 10-min
-    // session per K4 pre-flight. Left as a scaffold here so a curious
-    // operator can `J3_SOAK_SECONDS=600 bun test ...` with live /cmo.
-    expect(HAS_LIVE_CMO).toBe(true);
   });
 });

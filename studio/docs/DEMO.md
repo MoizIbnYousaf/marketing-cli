@@ -25,7 +25,6 @@ already has `Bash`; that's the only contract.
 ```bash
 npm i -g marketing-cli           # ships the CLI + bundled Studio
 mktg init                        # seed brand/ files in your project
-cp .env.example .env.local       # fill POSTIZ_API_KEY if you have one
 ```
 
 Studio lives under `studio/` inside the published `marketing-cli` package;
@@ -70,21 +69,7 @@ bun run seed:demo
 6 publish-log rows tagged with a `demo:` sentinel so they're easy to
 clear later.
 
-## Step 4 -- Drop the companion skill into /cmo
-
-`/cmo` doesn't proactively know the studio exists. Drop in the companion
-skill that teaches it to detect the studio and narrate every action via
-`Bash` + `curl`:
-
-```bash
-mkdir -p ~/.claude/skills/cmo/rules
-cp skills/cmo-studio-integration/SKILL.md ~/.claude/skills/cmo/rules/cmo-studio-integration.md
-```
-
-`/cmo` re-reads its rules dir on every invocation, so the next prompt
-picks this up.
-
-## Step 5 -- Drive it from Claude Code
+## Step 4 -- Drive it from Claude Code
 
 Open Claude Code in a fresh terminal (any project -- doesn't have to be
 this repo). Type any of these prompts and watch the browser at
@@ -201,15 +186,12 @@ care whether the caller was an agent or a human.
 
 Headlines from the maintainer's known-gap list:
 
-- `/cmo` doesn't proactively call the studio without the companion skill
-  installed (Step 4). The skill nudges it; without it, /cmo defaults to
-  CLI-only behaviour.
 - The studio doesn't yet expose UI-only state (palette open, scroll
   position, focused element) -- `GET /api/ui/state` is not implemented,
   deferred until production users ask.
 - `mktg publish` through Studio requires `marketing-cli ≥ 0.3.0` (postiz
   adapter, stdin-JSON manifest, and the bundled Studio launcher). If your
-  global is older, `npm i -g marketing-cli@latest` before Step 5. Verify
+  global is older, `npm i -g marketing-cli@latest` before Step 4. Verify
   with `mktg --version`.
 
 ## Reset
