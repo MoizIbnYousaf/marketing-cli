@@ -45,3 +45,26 @@ describe("studio package scripts bind loopback", () => {
     }
   })
 })
+
+describe("other launch paths bind loopback", () => {
+  // Static checks again: these start Next or Studio, which is too slow here.
+  const studioDir = join(import.meta.dir, "..", "..")
+
+  test("the E2E harnesses start next dev on 127.0.0.1", () => {
+    for (const rel of ["tests/e2e/global-setup.ts", "tests/e2e/chrome/chrome.e2e.ts"]) {
+      const source = readFileSync(join(studioDir, rel), "utf-8")
+      const spawns = [...source.matchAll(/\["run", "next", "dev"[^\]]*\]/g)].map((m) => m[0])
+      expect({ rel, count: spawns.length > 0 }).toEqual({ rel, count: true })
+      for (const args of spawns) expect({ rel, args }).toEqual({ rel, args: expect.stringContaining('"-H", "127.0.0.1"') })
+    }
+  })
+
+  // MKTG_STUDIO_AUTH=disabled stays in that service on purpose: AGENTS.md
+  // documents it as the development-only escape hatch behind the already
+  // authenticated Amp portal.
+  test(".amp/services.yaml starts the launcher without Bun's env auto-load", () => {
+    const services = readFileSync(join(studioDir, "..", ".amp", "services.yaml"), "utf-8")
+    expect(services).toContain("bun --no-env-file run studio/bin/mktg-studio.ts")
+  })
+})
+
