@@ -33,7 +33,7 @@ export const schema: CommandSchema = {
   positional: { name: "path", description: "Campaign directory or publish.json path", required: false },
   flags: [
     { name: "--confirm", type: "boolean", required: false, description: "Execute publishing (without this, publish is dry-run by default)" },
-    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file)" },
+    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file). An unknown name exits 2 INVALID_ARGS before anything runs." },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream progress as NDJSON lines" },
     { name: "--list-adapters", type: "boolean", required: false, description: "List available adapters with env var requirements and configured status" },
     { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
@@ -86,6 +86,18 @@ export const handler: CommandHandler<
   const confirm = hasFlag(args, "--confirm");
   const ndjson = hasFlag(args, "--ndjson");
   const isDryRun = flags.dryRun || !confirm;
+
+  // An unknown --adapter is refused before anything else runs: otherwise every
+  // item is filtered out and the run "succeeds" with nothing done.
+  const requestedAdapter = flagValue(args, "--adapter");
+  if (requestedAdapter !== undefined && !ADAPTERS[requestedAdapter]) {
+    return err(
+      "INVALID_ARGS",
+      `Unknown adapter '${requestedAdapter}'`,
+      [`Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`, "List them: mktg publish --list-adapters --json"],
+      2,
+    );
+  }
 
   if (hasFlag(args, "--native-account")) {
     return ok(await getNativePublishAccountSummary(flags.cwd));
