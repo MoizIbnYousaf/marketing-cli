@@ -10,13 +10,12 @@ description: |
   "create an ad", "make a UGC video", "marketing video", "brand video",
   "TV spot", "import product from URL", "create avatar for ad",
   "Seedance", "Kling", "Veo", "Soul gen", "Nano Banana", "Marketing Studio".
-  Chain with higgsfield-soul-id when user wants a reusable face identity.
+  Chain with higgsfield-soul-id for a reusable face identity.
   Owns AI-generated "marketing video" / "brand video" / ad creative.
-  NOT for: training a Soul Character (use higgsfield-soul-id), product photoshoots
-  with mode-specific enhancer (use higgsfield-product-photoshoot), text/TTS,
-  screen-recorded product demos (use marketing-demo), slides-to-MP4 assembly
-  (use video-content), Remotion code (use remotion-best-practices).
-  Requires Higgsfield CLI installed and authed.
+  NOT for: Soul Character training (higgsfield-soul-id), product photoshoots
+  (higgsfield-product-photoshoot), text/TTS, screen-recorded product demos
+  (marketing-demo), slides-to-MP4 assembly (video-content), Remotion code
+  (remotion-best-practices). Requires Higgsfield CLI installed and authed.
 argument-hint: "[prompt] [--model <name>] [--image <path-or-id>]"
 allowed-tools:
   - Bash
