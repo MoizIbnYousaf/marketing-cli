@@ -9,9 +9,9 @@ mktg is often developed alongside related projects, each with its own concerns a
 ├── marketing-cli/     # the mktg CLI (TypeScript, Bun, MIT)
 │                      # skills, agents, catalogs, and /cmo source live here
 │                      # /cmo's own source is skills/cmo/
-├── mktg-studio/       # the dashboard (Next.js + Bun server)
-│                      # consumes the mktg CLI via HTTP + child_process
-│                      # owns tabs, SQLite, SSE fan-out
+├── mktg-studio/       # legacy standalone Studio checkout
+│                      # kept only as a compatibility fallback
+│                      # the current Studio app is marketing-cli/studio/
 ├── mktg-site/         # the public marketing website for the mktg ecosystem
 └── private-notes/     # optional private notes outside the public package
 ORCHESTRATOR.md        # optional maintainer-only file ownership map
@@ -43,10 +43,10 @@ Every mktg CLI invocation implicitly operates on a project's working directory �
 | /cmo's own rules (you're reading one) | `marketing-cli/skills/cmo/rules/*.md` |
 | Skills manifest | `marketing-cli/skills-manifest.json` |
 | Catalogs manifest | `marketing-cli/catalogs-manifest.json` |
-| The studio launcher binary | `mktg-studio/bin/mktg-studio.ts` |
-| The studio API server | `mktg-studio/server.ts` |
-| The studio dashboard pages | `mktg-studio/app/(dashboard)/` |
-| Studio SQLite schema | `mktg-studio/db/schema.sql` |
+| The studio launcher binary | `marketing-cli/studio/bin/mktg-studio.ts` |
+| The studio API server | `marketing-cli/studio/server.ts` |
+| The studio dashboard pages | `marketing-cli/studio/app/(dashboard)/` |
+| Studio SQLite schema | `marketing-cli/studio/db/migrations/` |
 | postiz API reference (read-only) | `marketing-cli/docs/integration/postiz-api-reference.md` |
 | A project's brand profile | `<project-root>/brand/*.md` — ten files, SCHEMA defined in `marketing-cli/brand/SCHEMA.md` |
 
@@ -58,8 +58,8 @@ Ask which one, or infer from context, but never assume. A user working on conten
 
 Some workflows touch two siblings at once:
 
-- **Launching the studio:** `mktg studio` (in marketing-cli or the user's project) spawns `mktg-studio/bin/mktg-studio.ts`. Neither repo's source is modified.
-- **Publishing the CLI:** affects marketing-cli only. mktg-studio ships separately; see `marketing-cli/docs/plans/studio-distribution.md`.
+- **Launching the studio:** `mktg studio` (in marketing-cli or the user's project) spawns the bundled `studio/bin/mktg-studio.ts`. Neither repo's source is modified.
+- **Publishing the CLI:** affects marketing-cli only; Studio ships inside the same npm package.
 - **Updating a skill:** edit `marketing-cli/skills/<name>/SKILL.md`, run `mktg update` (or `bun link` during dev), skill is then visible system-wide via `~/.claude/skills/`.
 
 ## Red flags

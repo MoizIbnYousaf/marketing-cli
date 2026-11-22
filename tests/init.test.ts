@@ -305,7 +305,7 @@ describe("Init delegates skill installation to ai-agent-skills when available", 
     const manifest = await loadManifest();
     const dir = getSkillsInstallDir();
     const allPresent = (await Promise.all(getSkillNames(manifest).map((n) => Bun.file(join(dir, n, "SKILL.md")).exists()))).every(Boolean);
-    if (!allPresent) return; // machine without a full install — nothing to assert
+    expect(allPresent).toBe(true);
     const logFile = join(tempDir, "ai-agent-skills-skip.log");
     const shimDir = await createAiAgentSkillsShim(`#!/bin/sh\nprintf '%s\\n' \"$@\" > ${logFile}\nexit 0\n`);
     try {

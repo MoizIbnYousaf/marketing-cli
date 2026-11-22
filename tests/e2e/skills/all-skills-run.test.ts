@@ -8,8 +8,8 @@
 // - SKILL.md content has the required structural elements per CLAUDE.md
 //   (frontmatter with name+description, Anti-Patterns or equivalent section)
 //
-// Tier 2 skills (image-gen, higgsfield-trio, postiz, send-email, resend-inbound, exa quintet) are
-// flagged in REPORT.md as "blocked: Tier 2 pending" for the actual execution test.
+// Tier 2 skills (image-gen, higgsfield-trio, postiz, send-email, resend-inbound, exa quintet) need
+// external APIs, so only their SKILL.md structure is validated here.
 // We still validate their SKILL.md structure here because `mktg run --dry-run` is
 // API-free (it loads + validates the markdown, doesn't invoke the LLM body).
 //
@@ -17,12 +17,12 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../../../src/core/user-home";
 import type { SkillsManifest } from "../../../src/types";
 
 const projectRoot = import.meta.dir.replace("/tests/e2e/skills", "");
 const manifestPath = join(projectRoot, "skills-manifest.json");
-const installRoot = join(homedir(), ".claude", "skills");
+const installRoot = join(userHome(), ".claude", "skills");
 
 const TIER_2_SKILLS = new Set([
   "image-gen",
@@ -137,12 +137,8 @@ for (const name of skillNames) {
       const installed = join(installRoot, name, "SKILL.md");
       const content = await Bun.file(installed).text();
       const lines = content.split("\n").length;
-      // The CLAUDE.md cap is 500. Two legacy skills tracked over the cliff:
-      //   - positioning-angles (503 lines as of audit; deepwave flagged for trim)
-      //   - landscape-scan (500 exactly; one-edit-away from violating)
-      // We use 503 here to reflect on-disk reality. When goldthread ships the
-      // frontmatter-shape lint (Lane 2 follow-up), this assertion tightens.
-      expect(lines).toBeLessThanOrEqual(503);
+      // CLAUDE.md caps SKILL.md at 500 lines. split("\n") counts one extra element for the trailing newline, so 501 here means a 500-line file (landscape-scan sits exactly at the cap).
+      expect(lines).toBeLessThanOrEqual(501);
     });
 
     test("SKILL.md ships an Anti-Patterns block (or one of the legacy equivalents pre-CI-lint)", async () => {

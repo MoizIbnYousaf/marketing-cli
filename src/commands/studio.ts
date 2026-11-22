@@ -62,7 +62,7 @@ const INSTALL_SUGGESTIONS: readonly string[] = [
 export const schema: CommandSchema = {
   name: "studio",
   description:
-    "Launch the mktg-studio dashboard (Bun API server + Next.js UI). Prefers a local sibling checkout, falls back to mktg-studio on PATH.",
+    "Launch the mktg-studio dashboard (Bun API server + Next.js UI). Prefers the bundled studio/ launcher; falls back to a sibling checkout or mktg-studio on PATH.",
   passthroughFlags: true,
   flags: [
     {
@@ -161,7 +161,6 @@ const resolveLocalLauncher = (): string | null => {
   const candidates = [
     join(packageRoot, "studio", LOCAL_STUDIO_LAUNCHER),
     join(dirname(packageRoot), "mktg-studio", LOCAL_STUDIO_LAUNCHER),
-    join(packageRoot, "..", "mktg-studio", LOCAL_STUDIO_LAUNCHER),
     join(packageRoot, "mktg-studio", LOCAL_STUDIO_LAUNCHER),
   ].map((candidate) => resolve(candidate));
 

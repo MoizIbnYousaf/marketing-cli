@@ -12,23 +12,17 @@ export type IntegrationStatus = {
 // Static metadata for named integrations that support --configure
 export type IntegrationConfig = {
   readonly envVar: string;
-  readonly testEndpoint?: string;
   readonly docsUrl: string;
-  readonly testHeaders?: (key: string) => Record<string, string>;
 };
 
 export const INTEGRATION_CONFIG: Record<string, IntegrationConfig> = {
   typefully: {
     envVar: "TYPEFULLY_API_KEY",
-    testEndpoint: "https://api.typefully.com/v1/drafts/",
     docsUrl: "https://typefully.com/settings/api",
-    testHeaders: (key) => ({ "X-API-KEY": key }),
   },
   resend: {
     envVar: "RESEND_API_KEY",
-    testEndpoint: "https://api.resend.com/api-keys",
     docsUrl: "https://resend.com/api-keys",
-    testHeaders: (key) => ({ Authorization: `Bearer ${key}` }),
   },
 };
 

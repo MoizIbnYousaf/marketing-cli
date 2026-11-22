@@ -1,16 +1,42 @@
 name: Release
 
+# Publishes the tagged version to npm and creates the GitHub release.
+#
+# No npm token is stored in this repository. The publish step uses npm trusted
+# publishing: GitHub proves to npm which repository and workflow is running,
+# and npm issues a short-lived credential for this one job.
+#
+# The version is STAGED, not published outright: it becomes installable only
+# after a maintainer approves it on npmjs.com (package page, "Staged Packages"
+# tab) or with `npm stage approve <stage-id>`. Approval requires 2FA.
+#
+# One-time setup, on npmjs.com > marketing-cli > Settings > Trusted publishing:
+#   provider: GitHub Actions     user: MoizIbnYousaf
+#   repository: marketing-cli    workflow filename: release.yml
+# A new trusted-publisher entry expires unless its first publish succeeds
+# within 2 days, so create it shortly before a release.
+#
+# The job is safe to run again for the same tag: a version already on npm
+# (for example one published from a maintainer's machine with
+# `mktg release <bump> --confirm`) is not published twice, and the GitHub
+# release step updates an existing release instead of failing.
+
 on:
   push:
     tags:
       - "v*"
 
 permissions:
-  contents: write
+  contents: write # create the GitHub release
+  id-token: write # prove this workflow's identity to npm
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
-    name: Publish to npm
+    name: Stage on npm and create the GitHub release
     runs-on: ubuntu-latest
 
     steps:
@@ -18,8 +44,22 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Tag must match package.json
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Run tests
         run: bun test
@@ -30,12 +70,27 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: Publish to npm
+      - name: Is this version already on npm?
+        id: registry
         run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          bun publish --access public
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          if [ -n "$(npm view "marketing-cli@$VERSION" version 2>/dev/null)" ]; then
+            echo "marketing-cli@$VERSION is already on npm; skipping the publish step."
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Staged trusted publishing needs npm 11.15.0 or later and Node 22.14.0
+      # or later. The npm bundled with the runner's Node may be older.
+      - name: Use an npm that supports staged trusted publishing
+        if: steps.registry.outputs.published == 'false'
+        run: |
+          npm install -g "npm@^11.15.0"
+          npm --version
+
+      - name: Stage on npm
+        if: steps.registry.outputs.published == 'false'
+        run: npm stage publish
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

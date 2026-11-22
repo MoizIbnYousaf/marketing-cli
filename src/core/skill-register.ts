@@ -2,7 +2,7 @@
 
 import { join } from "node:path";
 import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import { sandboxPath } from "./errors";
 import { getPackageRoot } from "./paths";
 import { parseFrontmatter, CATEGORY_TO_LAYER } from "./skill-frontmatter";
@@ -25,7 +25,7 @@ export const registerSkill = async (
     // Absolute path — verify it's within cwd or HOME
     const { relative, isAbsolute: isAbs } = await import("node:path");
     const relToCwd = relative(cwd, skillPath);
-    const relToHome = relative(homedir(), skillPath);
+    const relToHome = relative(userHome(), skillPath);
     if ((relToCwd.startsWith("..") || isAbs(relToCwd)) && (relToHome.startsWith("..") || isAbs(relToHome))) {
       return { error: "Path must be within project directory or home directory" };
     }

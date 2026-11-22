@@ -8,7 +8,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, isAbsolute, join } from "node:path";
 import { parseAssetsMarkdown } from "./brand-assets.ts";
 import { resolveProjectPath, resolveProjectRoot } from "./project-root.ts";
 
@@ -542,16 +542,18 @@ export function assertProjectMediaPath(path: string, rootArg?: string): { ok: tr
   const root = safeRoot(rootArg);
   const resolved = resolveInsideRoot(path, root);
   if (!resolved.ok) return resolved;
+  // "Inside the project root" is not enough for a file-serving route: the root
+  // also holds .env.local, .mktg/ (publish account keys), .git and the SQLite
+  // database. Only serve content types the library lists, and never anything
+  // under a dot-directory or a dotfile.
+  if (resolved.rel.split(/[\\/]/).some((segment) => segment.startsWith("."))) {
+    return { ok: false, message: `${resolved.rel} is not a servable content path (hidden files and directories are excluded)` };
+  }
+  if (!isManifestCandidate(resolved.rel)) {
+    return { ok: false, message: `${resolved.rel} is not a servable content type` };
+  }
   if (!existsSync(resolved.abs)) return { ok: false, message: `${resolved.rel} does not exist` };
   const stat = statSync(resolved.abs);
   if (!stat.isFile()) return { ok: false, message: `${resolved.rel} is not a file` };
   return resolved;
-}
-
-export function relativePathFromAbsolute(absPath: string, rootArg?: string): string | null {
-  const root = safeRoot(rootArg);
-  const resolvedRoot = resolve(root);
-  const resolvedAbs = resolve(absPath);
-  if (resolvedAbs !== resolvedRoot && !resolvedAbs.startsWith(`${resolvedRoot}${sep}`)) return null;
-  return normalizeRelPath(relative(resolvedRoot, resolvedAbs));
 }

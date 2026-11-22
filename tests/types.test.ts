@@ -2,8 +2,8 @@
 // No mocks. Tests the actual type system and constructors.
 
 import { describe, test, expect } from "bun:test";
-import { ok, err, BRAND_FILES, BRAND_PROFILE_FILES, BRAND_APPEND_FILES } from "../src/types";
-import type { CommandResult, ExitCode, BrandFile, SkillCategory, SkillLayer } from "../src/types";
+import { ok, err, BRAND_FILES, BRAND_APPEND_FILES } from "../src/types";
+import type { ExitCode } from "../src/types";
 
 describe("Result constructors", () => {
   test("ok() creates success result with exit code 0", () => {
@@ -79,28 +79,14 @@ describe("Brand file constants", () => {
     expect(BRAND_FILES).toHaveLength(10);
   });
 
-  test("BRAND_PROFILE_FILES has exactly 8 files", () => {
-    expect(BRAND_PROFILE_FILES).toHaveLength(8);
-  });
-
   test("BRAND_APPEND_FILES has exactly 2 files", () => {
     expect(BRAND_APPEND_FILES).toHaveLength(2);
   });
 
   test("BRAND_FILES is superset of PROFILE + APPEND", () => {
     const allFiles = new Set(BRAND_FILES);
-    for (const file of BRAND_PROFILE_FILES) {
-      expect(allFiles.has(file)).toBe(true);
-    }
     for (const file of BRAND_APPEND_FILES) {
       expect(allFiles.has(file)).toBe(true);
-    }
-  });
-
-  test("no overlap between PROFILE and APPEND files", () => {
-    const profileSet = new Set<string>(BRAND_PROFILE_FILES);
-    for (const file of BRAND_APPEND_FILES) {
-      expect(profileSet.has(file)).toBe(false);
     }
   });
 

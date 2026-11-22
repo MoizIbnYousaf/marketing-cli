@@ -46,7 +46,9 @@
     ".next-e2e-4880/types/**/*.ts",
     ".next-e2e-4880/dev/types/**/*.ts",
     ".next-e2e-4882/types/**/*.ts",
-    ".next-e2e-4882/dev/types/**/*.ts"
+    ".next-e2e-4882/dev/types/**/*.ts",
+    ".next-sweepcheck/types/**/*.ts",
+    ".next-sweepcheck/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

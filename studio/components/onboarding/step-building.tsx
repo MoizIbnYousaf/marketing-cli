@@ -11,7 +11,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { studioAuthHeaders } from "@/lib/studio-token"
 import type {
   FoundationCompletePayload,
   FoundationLane,
@@ -243,7 +242,7 @@ export function StepBuilding({ onDone, from }: Props) {
     try {
       const res = await fetch(`${STUDIO_API_BASE}/api/onboarding/foundation`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ from }),
       })
       if (!res.ok) {

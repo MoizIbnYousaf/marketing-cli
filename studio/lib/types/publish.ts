@@ -14,47 +14,6 @@ export type PublishIntegration = {
   lastChecked?: string       // ISO 8601
 }
 
-// ─── Scheduled / published post ───────────────────────────────────────────
-
-export type PostStatus = "draft" | "scheduled" | "published" | "failed"
-
-export type ScheduledPost = {
-  id: string
-  content: string            // raw text (no HTML)
-  providers: string[]        // list of providerIdentifier strings
-  scheduledAt: string        // ISO 8601
-  status: PostStatus
-  integrationIds?: string[]  // postiz integration DB IDs
-}
-
-// ─── Publish adapter (from mktg CLI) ──────────────────────────────────────
-
-export type PublishAdapter = {
-  name: string               // "postiz" | "typefully" | "resend" | "file"
-  configured: boolean
-  envVar?: string
-}
-
-// ─── Draft request (POST /api/publish) ────────────────────────────────────
-
-export type CreateDraftRequest = {
-  content: string
-  integrationIds: string[]   // postiz integration DB IDs to post to
-  scheduledAt?: string       // ISO 8601 -- if omitted, creates draft
-  dryRun?: boolean
-}
-
-export type CreateDraftResult = {
-  ok: true
-  adapter: string
-  draftsCreated: number
-  postIds: string[]
-} | {
-  ok: false
-  error: string
-  code?: "auth-missing" | "rate-limited" | "bad-request" | "server-error" | "network"
-}
-
 // ─── Publish history (SQLite publish_log) ─────────────────────────────────
 
 export type PublishHistoryRow = {
@@ -123,12 +82,4 @@ export function getProviderMeta(identifier: string): ProviderMeta {
       color: "text-muted-foreground",
     }
   )
-}
-
-// ─── Rate limit state ──────────────────────────────────────────────────────
-
-export type RateLimitState = {
-  used: number      // posts created this hour
-  limit: number     // always 30
-  resetsAt?: string // ISO 8601 -- when the window resets
 }

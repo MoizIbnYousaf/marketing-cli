@@ -21,7 +21,7 @@
 // already encoded in the script's exit code, so we trust that signal.
 //
 // This aggregator is read-only. It does not write to upstream.json or any
-// skill content; T10 (`mktg skill upgrade`) will do the actual update.
+// skill content; `mktg skill upgrade` does the actual update.
 //
 // Exit codes (this command):
 //   0 = checks ran (in-sync OR drifted — drift is a finding, not an error;

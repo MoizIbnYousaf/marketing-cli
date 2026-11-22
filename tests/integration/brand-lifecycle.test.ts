@@ -6,7 +6,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { BRAND_FILES, BRAND_PROFILE_FILES, BRAND_APPEND_FILES } from "../../src/types";
+import { BRAND_FILES, BRAND_APPEND_FILES } from "../../src/types";
 import {
   scaffoldBrand,
   getBrandStatus,

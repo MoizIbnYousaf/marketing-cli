@@ -1,4 +1,4 @@
-import type { CommandHandler, CommandSchema, GlobalFlags, CommandResult } from "../types";
+import type { CommandSchema, GlobalFlags, CommandResult } from "../types";
 
 export type CommandModule = {
   handler: (args: readonly string[], flags: GlobalFlags) => Promise<CommandResult>;
@@ -33,7 +33,6 @@ export const COMMANDS: Record<string, CommandLoader> = {
   verify: () => import("../commands/verify"),
   "ship-check": () => import("../commands/ship-check"),
   cmo: () => import("../commands/cmo"),
-  // Track E (frostbyte) — added 2026-05-04
   release: () => import("../commands/release"),
 };
 

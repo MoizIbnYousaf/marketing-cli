@@ -16,17 +16,15 @@ interface BrandEditorState {
   /** If true, an external write landed while the user was editing -- merge prompt. */
   externalChange: boolean
   openFile: (args: { name: string; content: string; mtime: string }) => void
-  closeFile: () => void
   updateContent: (content: string) => void
   setSaveStatus: (status: SaveStatus, error?: { message: string; fix?: string } | null) => void
   setMtime: (mtime: string) => void
   markExternalChange: (changed: boolean) => void
-  reset: () => void
 }
 
 const INITIAL: Omit<
   BrandEditorState,
-  "openFile" | "closeFile" | "updateContent" | "setSaveStatus" | "setMtime" | "markExternalChange" | "reset"
+  "openFile" | "updateContent" | "setSaveStatus" | "setMtime" | "markExternalChange"
 > = {
   currentFile: null,
   content: "",
@@ -47,7 +45,6 @@ export const useBrandEditorStore = create<BrandEditorState>((set, get) => ({
       saveError: null,
       externalChange: false,
     }),
-  closeFile: () => set({ ...INITIAL }),
   updateContent: (content) => {
     const prev = get().content
     if (content === prev) return
@@ -64,5 +61,4 @@ export const useBrandEditorStore = create<BrandEditorState>((set, get) => ({
     }),
   setMtime: (mtime) => set({ mtime }),
   markExternalChange: (changed) => set({ externalChange: changed }),
-  reset: () => set({ ...INITIAL }),
 }))

@@ -5,4 +5,3 @@ export declare function getWindowsChromiumMasterKey(userDataDir: string, label: 
     ok: false;
     error: string;
 }>;
-//# sourceMappingURL=windowsMasterKey.d.ts.map

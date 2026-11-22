@@ -1,5 +1,12 @@
-// mktg release — Orchestrates the full release pipeline:
-//   git clean check → bun test → semver bump → CHANGELOG → commit → tag → bun publish → gh release.
+// mktg release — Prepares a release and, optionally, publishes it from this
+// machine:
+//   git clean check → bun test → semver bump → CHANGELOG → commit → tag
+//   → (with --confirm) bun publish.
+//
+// The command never pushes and never creates the GitHub release. Pushing the
+// tag starts .github/workflows/release.yml, which publishes the version to npm
+// if it is not there yet and creates the GitHub release. `next_steps` in the
+// result says what is left for the maintainer.
 //
 // Usage:
 //   mktg release [patch|minor|major] [--dry-run] [--confirm] [--skip-publish] [--json]
@@ -39,9 +46,14 @@ export type ReleaseResult = {
   readonly committed: boolean;
   readonly tagged: boolean;
   readonly npm_published: boolean;
-  readonly gh_release_created: boolean;
   readonly dry_run: boolean;
   readonly ok: boolean;
+  /** First stage that failed after the release commit, or null. */
+  readonly failed_stage: "tag" | "npm_publish" | null;
+  /** What to do next when a stage failed. Empty on success. */
+  readonly recovery: readonly string[];
+  /** What is left for the maintainer after a successful run. Empty in dry-run. */
+  readonly next_steps: readonly string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -51,11 +63,11 @@ export type ReleaseResult = {
 export const schema: CommandSchema = {
   name: "release",
   description:
-    "Orchestrate the release pipeline — verify clean tree, run tests, bump version, generate CHANGELOG, commit, tag, optionally publish to npm + create a GitHub release",
+    "Prepare a release — verify clean tree, run tests, bump version, generate CHANGELOG, commit, tag — and optionally publish it to npm from this machine. Never pushes; pushing the tag starts the Release workflow, which publishes if needed and creates the GitHub release",
   flags: [
     { name: "--dry-run", type: "boolean", required: false, default: false, description: "Preview the pipeline without writing, committing, tagging, or publishing" },
-    { name: "--confirm", type: "boolean", required: false, default: false, description: "Required to actually publish (npm + gh release) — Agent DX safety guard" },
-    { name: "--skip-publish", type: "boolean", required: false, default: false, description: "Bump + tag locally but stop before bun publish and gh release" },
+    { name: "--confirm", type: "boolean", required: false, default: false, description: "Required to publish to npm from this machine (needs an npm login) — Agent DX safety guard" },
+    { name: "--skip-publish", type: "boolean", required: false, default: false, description: "Bump + tag locally and stop. Push the tag to let the Release workflow publish" },
   ],
   positional: { name: "bump", description: "Semver bump: 'patch' (default), 'minor', or 'major'", required: false },
   output: {
@@ -68,14 +80,16 @@ export const schema: CommandSchema = {
     committed: "boolean — version bump + CHANGELOG committed to git",
     tagged: "boolean — git tag v<version> created",
     npm_published: "boolean — `bun publish` succeeded (false in dry-run / --skip-publish)",
-    gh_release_created: "boolean — `gh release create` succeeded (false in dry-run / --skip-publish)",
     dry_run: "boolean — true when --dry-run; no side effects occurred",
-    ok: "boolean — true when the requested pipeline completed without errors",
+    ok: "boolean — true when the requested pipeline completed without errors. When false the process exits 4 and failed_stage names the stage",
+    failed_stage: "'tag' | 'npm_publish' | null — first stage that failed after the release commit was created",
+    recovery: "string[] — what to do when a stage failed (empty on success); the version bump commit is left in place",
+    next_steps: "string[] — what is left for the maintainer after a successful run: the push, and what the Release workflow does once the tag arrives (empty in dry-run and when a stage failed)",
   },
   examples: [
     { args: "mktg release patch --dry-run --json", description: "Preview a patch release plan" },
-    { args: "mktg release minor --skip-publish --json", description: "Bump + tag locally, skip npm/gh" },
-    { args: "mktg release major --confirm --json", description: "Full pipeline including npm publish + gh release" },
+    { args: "mktg release minor --skip-publish --json", description: "Bump + tag locally; push the tag to publish through the Release workflow" },
+    { args: "mktg release major --confirm --json", description: "Bump, tag and publish to npm from this machine" },
   ],
   vocabulary: ["release", "publish", "ship", "version bump", "tag", "changelog"],
 };
@@ -147,6 +161,24 @@ const groupChangelog = (entries: readonly ChangelogEntry[]): string => {
   return sections.join("\n\n");
 };
 
+// The local publish route needs npm credentials on this machine. Asking
+// before anything is written means a missing login costs a second, not a
+// release commit and a tag that then have to be undone. Only a definite "not
+// logged in" blocks: when npm is absent or the registry cannot be reached the
+// check could not run, and the publish step reports the real error.
+const npmLoginMissing = (cwd: string): boolean => {
+  if (process.env.NPM_CONFIG_TOKEN) return false;
+  const res = runCmd("npm", ["whoami"], cwd, 20_000);
+  if (res.ok) return false;
+  return /ENEEDAUTH|E401|requires you to be logged in/i.test(res.stderr);
+};
+
+const currentBranch = (cwd: string): string => {
+  const res = runCmd("git", ["rev-parse", "--abbrev-ref", "HEAD"], cwd, 10_000);
+  const name = res.ok ? res.stdout.trim() : "";
+  return name && name !== "HEAD" ? name : "main";
+};
+
 const lastReleaseTag = (cwd: string): string | null => {
   const res = runCmd("git", ["describe", "--tags", "--abbrev=0", "--match=v*"], cwd, 10_000);
   if (!res.ok) return null;
@@ -209,6 +241,34 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     }
   }
 
+  // Destructive-publish guard: actual publish requires --confirm. Checked
+  // before the test run so a missing flag fails in milliseconds, not after
+  // the full suite. Tag/commit
+  // alone don't require --confirm because they're local-only (the user can
+  // git reset). Nothing here pushes.
+  const willPublish = !isDryRun && !wantsSkipPublish;
+  if (willPublish && !wantsConfirm) {
+    return invalidArgs(
+      "release will publish to npm from this machine — pass --confirm to proceed, or --skip-publish to stop after the local tag and let the Release workflow publish",
+      [
+        `mktg release ${bump} --skip-publish --json`,
+        `mktg release ${bump} --dry-run --json`,
+        `mktg release ${bump} --confirm --json`,
+      ],
+    );
+  }
+  if (willPublish && npmLoginMissing(flags.cwd)) {
+    return err(
+      "NPM_AUTH_MISSING",
+      "This machine is not logged in to npm, so the publish step would fail after the release commit and tag were created. Nothing was changed",
+      [
+        "npm login, then re-run",
+        `mktg release ${bump} --skip-publish --json (then push the tag: the Release workflow publishes without a local login)`,
+      ],
+      3,
+    );
+  }
+
   // Run tests (skippable for tests-of-tests via env var)
   const skipTestsEnv = process.env.MKTG_RELEASE_SKIP_TESTS === "1";
   let testsPassed = true;
@@ -233,21 +293,6 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
   const grouped = groupChangelog(changelog_entries);
   const changelogBody = `## v${versionNew}\n\n${grouped || "_No notable changes._"}\n`;
 
-  // Destructive-publish guard: actual publish requires --confirm. Tag/commit
-  // alone don't require --confirm because they're local-only (the user can
-  // git reset). Pushing to remote would require it but we don't push.
-  const willPublish = !isDryRun && !wantsSkipPublish;
-  if (willPublish && !wantsConfirm) {
-    return invalidArgs(
-      "release will publish to npm and create a GitHub release — pass --confirm to proceed, or --skip-publish to stop after the local tag",
-      [
-        `mktg release ${bump} --skip-publish --json`,
-        `mktg release ${bump} --dry-run --json`,
-        `mktg release ${bump} --confirm --json`,
-      ],
-    );
-  }
-
   // Dry-run: report the plan and exit cleanly
   if (isDryRun) {
     return ok({
@@ -260,9 +305,11 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       committed: false,
       tagged: false,
       npm_published: false,
-      gh_release_created: false,
       dry_run: true,
       ok: true,
+      failed_stage: null,
+      recovery: [],
+      next_steps: [],
     });
   }
 
@@ -316,12 +363,14 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
     );
   }
 
-  const tagRes = runCmd("git", ["tag", `v${versionNew}`, "-m", `Release v${versionNew}`], flags.cwd, 10_000);
-  const tagged = tagRes.ok;
-
-  // Stop here if --skip-publish
-  if (wantsSkipPublish) {
-    return ok({
+  // A stage that fails after the release commit exists is reported as a
+  // finding with a non-zero exit (the ship-check convention): the caller gets
+  // the full state of what did and did not happen, plus how to recover, and a
+  // script that only checks the exit code still sees the failure.
+  const finish = (
+    partial: Pick<ReleaseResult, "tagged" | "npm_published" | "failed_stage" | "recovery" | "next_steps">,
+  ): CommandResult<ReleaseResult> => {
+    const data: ReleaseResult = {
       version_old: versionOld,
       version_new: versionNew,
       bump_type: bump,
@@ -329,35 +378,77 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       tests_skipped: testsSkipped,
       changelog_entries,
       committed,
-      tagged,
-      npm_published: false,
-      gh_release_created: false,
       dry_run: false,
-      ok: tagged,
+      ok: partial.failed_stage === null,
+      ...partial,
+    };
+    return data.ok
+      ? ok(data)
+      : ({ ok: true, data, exitCode: 4 } as unknown as CommandResult<ReleaseResult>);
+  };
+
+  const tag = `v${versionNew}`;
+  const tagRes = runCmd("git", ["tag", tag, "-m", `Release ${tag}`], flags.cwd, 10_000);
+  if (!tagRes.ok) {
+    return finish({
+      tagged: false,
+      npm_published: false,
+      failed_stage: "tag",
+      recovery: [
+        `git tag failed: ${tagRes.stderr.trim() || `exit ${tagRes.exitCode}`}`,
+        `If ${tag} already exists, delete it (git tag -d ${tag}) or pick another bump`,
+        `The release commit is in place. Undo it with: git reset --hard HEAD~1`,
+      ],
+      next_steps: [],
     });
   }
 
-  // Publish to npm
+  const push = `git push origin ${currentBranch(flags.cwd)} --follow-tags`;
+
+  // Stop here if --skip-publish. The tag is the trigger: once it is pushed,
+  // the Release workflow publishes this version and creates the GitHub release.
+  if (wantsSkipPublish) {
+    return finish({
+      tagged: true,
+      npm_published: false,
+      failed_stage: null,
+      recovery: [],
+      next_steps: [
+        push,
+        `Pushing ${tag} starts the Release workflow, which publishes ${versionNew} to npm and creates the GitHub release`,
+      ],
+    });
+  }
+
+  // Publish to npm from this machine.
   const publishRes = runCmd("bun", ["publish"], flags.cwd, 300_000);
-  const npm_published = publishRes.ok;
+  if (!publishRes.ok) {
+    return finish({
+      tagged: true,
+      npm_published: false,
+      failed_stage: "npm_publish",
+      recovery: [
+        `bun publish failed: ${publishRes.stderr.trim().split("\n").slice(-3).join(" | ") || `exit ${publishRes.exitCode}`}`,
+        "Check npm auth (npm whoami), then retry the publish from this commit: bun publish",
+        `Or let the Release workflow publish it: ${push}`,
+        `To abandon instead: git tag -d ${tag} && git reset --hard HEAD~1`,
+      ],
+      next_steps: [],
+    });
+  }
 
-  // Create GitHub release with CHANGELOG body. Use stdin via printf piped
-  // through a temp file would be cleaner; for now we pass --notes inline.
-  const ghRes = runCmd("gh", ["release", "create", `v${versionNew}`, "--title", `v${versionNew}`, "--notes", changelogBody], flags.cwd, 60_000);
-  const gh_release_created = ghRes.ok;
-
-  return ok({
-    version_old: versionOld,
-    version_new: versionNew,
-    bump_type: bump,
-    tests_passed: testsPassed,
-    tests_skipped: testsSkipped,
-    changelog_entries,
-    committed,
-    tagged,
-    npm_published,
-    gh_release_created,
-    dry_run: false,
-    ok: committed && tagged && npm_published && gh_release_created,
+  // The GitHub release is not created here: `gh release create` refuses a tag
+  // that exists only locally, and creating it for a tag GitHub has not seen
+  // would tag the wrong commit. The Release workflow creates it when the tag
+  // arrives, and skips its npm step because the version is already published.
+  return finish({
+    tagged: true,
+    npm_published: true,
+    failed_stage: null,
+    recovery: [],
+    next_steps: [
+      push,
+      `Pushing ${tag} starts the Release workflow, which sees ${versionNew} on npm, skips the publish and creates the GitHub release`,
+    ],
   });
 };

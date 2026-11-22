@@ -23,12 +23,11 @@
 //           contain newlines/tabs, but NOT NUL / backspace / bell)
 //   Axis 6: --dry-run is safe by construction — returns the exact argv that
 //           WOULD run without invoking claude
-//   Axis 7: schema + README entry reference this command; /cmo rules
-//           command-reference.md will gain an entry in a follow-up
+//   Axis 7: schema, README and skills/cmo/rules/command-reference.md document this command
 
 import { ok, err, type CommandHandler, type CommandSchema } from "../types";
 import { flagValue } from "../core/args";
-import { isTTY, writeStderr, bold, dim, green, yellow } from "../core/output";
+import { isTTY, writeStderr, bold, dim, green } from "../core/output";
 
 const CLAUDE_BIN = "claude";
 /** Default allowed tools — matches /cmo's SKILL.md frontmatter. */
@@ -245,8 +244,6 @@ export const handler: CommandHandler<CmoResponse> = async (args, flags) => {
   // Extract positional prompt (every arg that doesn't start with --).
   // Multiple positionals are concatenated with spaces; most callers will
   // quote multi-word prompts so positional.length === 1.
-  const positionals = args.filter((a) => !a.startsWith("--") && !isFlagValue(args, a));
-  // Above is too loose; for safety, grab raw positionals by rebuilding.
   const rawPositionals: string[] = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
@@ -462,10 +459,6 @@ export const handler: CommandHandler<CmoResponse> = async (args, flags) => {
     );
   }
 };
-
-// Unused helper kept for API parity; positionals is parsed via rawPositionals loop above.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const isFlagValue = (_args: readonly string[], _a: string): boolean => false;
 
 const printTtyPreview = (r: CmoResponse): void => {
   if (!r.preview) return;

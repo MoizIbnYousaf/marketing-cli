@@ -12,10 +12,8 @@
  * during bootstrap. See lib/studio-token.ts.
  */
 
-import { studioAuthHeaders } from "./studio-token"
-
 export const fetcher = async <T>(url: string): Promise<T> => {
-  const res = await fetch(url, { headers: { ...studioAuthHeaders() } })
+  const res = await fetch(url)
   if (!res.ok) {
     // Surface HTTP-level failures as SWR errors so consumers' `error`
     // branch fires instead of handing back a parsed-error payload that
@@ -30,7 +28,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
 }
 
 export async function dataFetcher<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: { ...studioAuthHeaders() } })
+  const res = await fetch(url)
   const json = (await res.json()) as unknown
 
   if (json && typeof json === "object" && "ok" in json) {

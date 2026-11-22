@@ -28,14 +28,13 @@
 //  - Axis 5: --skip values validated against known check names
 //  - Axis 6: --dry-run lists what would run, zero side effects
 //
-// M3 consumes M1's exported helpers (parseBunTestStats, runSuite) and
-// M1's summary file at ~/.mktg/verify/<ts>.json. This keeps M3 thin.
+// Spawns mktg verify, or reads its summary file at ~/.mktg/verify/<ts>.json.
 
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { userHome } from "../core/user-home";
 import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validateResourceId } from "../core/errors";
 import { flagValue, hasFlag } from "../core/args";
@@ -300,7 +299,7 @@ const checkMktgVerify = async (cliRoot: string, fresh: boolean, verbose: boolean
 
   // Prefer cached summary when --fresh=false.
   if (!fresh) {
-    const verifyDir = join(homedir(), ".mktg", "verify");
+    const verifyDir = join(userHome(), ".mktg", "verify");
     if (existsSync(verifyDir)) {
       try {
         const files = (await readdir(verifyDir)).filter((f) => f.endsWith(".json")).sort();
@@ -610,7 +609,7 @@ export const handler: CommandHandler<ShipCheckReport> = async (args, flags) => {
 
   const verdict = aggregateVerdict(checks);
 
-  const summaryDir = join(homedir(), ".mktg", "ship-check");
+  const summaryDir = join(userHome(), ".mktg", "ship-check");
   await mkdir(summaryDir, { recursive: true });
   const summaryPath = join(summaryDir, `${timestamp.replace(/[:.]/g, "-")}.json`);
 

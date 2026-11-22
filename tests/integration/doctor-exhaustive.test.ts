@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import type { GlobalFlags } from "../../src/types";
-import { BRAND_FILES, BRAND_PROFILE_FILES, BRAND_APPEND_FILES } from "../../src/types";
+import { BRAND_FILES, BRAND_APPEND_FILES } from "../../src/types";
 import { handler as doctorHandler } from "../../src/commands/doctor";
 import { handler as initHandler } from "../../src/commands/init";
 
@@ -144,7 +144,7 @@ describe("Doctor brand content detection", () => {
   test("brand-content passes when files have real content", async () => {
     // Create brand files with real (non-template) content
     const realContent: Record<string, string> = {};
-    for (const file of BRAND_PROFILE_FILES) {
+    for (const file of BRAND_FILES.filter((f) => !BRAND_APPEND_FILES.includes(f))) {
       realContent[file] = `# Real Content\n\nThis is actual brand content for ${file}, not a template.\nOur brand voice is warm and conversational.\n`;
     }
     for (const file of BRAND_APPEND_FILES) {

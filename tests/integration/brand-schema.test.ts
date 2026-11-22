@@ -103,6 +103,10 @@ describe("SCHEMA.md scaffolding", () => {
       ["bun", "src/cli.ts", "init", "--json", '{"business":"test","goal":"launch"}', "--cwd", tempDir],
       {
         cwd: process.cwd(),
+        // Pass the environment explicitly: a child spawned without `env`
+        // does not see the isolated HOME set by tests/preload.ts and would
+        // install skills into the real home directory.
+        env: process.env,
         stdout: "pipe",
         stderr: "pipe",
       },

@@ -7,4 +7,3 @@ export declare function getCookiesFromChromeSqliteDb(options: {
 }, origins: string[], allowlistNames: Set<string> | null, decrypt: (encryptedValue: Uint8Array, options: {
     stripHashPrefix: boolean;
 }) => string | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=shared.d.ts.map

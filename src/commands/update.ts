@@ -482,7 +482,7 @@ const runUpgrade = async (
         ? `npm install failed with EACCES — your global npm prefix is not writable.`
         : `npm install exited with code ${run.exitCode}.`,
       suggestions,
-      run.eaccess ? 1 : 1,
+      1,
     );
   }
 

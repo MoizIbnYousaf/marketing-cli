@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readdir, readFile } from "node:fs/promises";
+import { chmod, mkdir, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -95,5 +95,53 @@ describe("npm postinstall", () => {
     expect(result.status).toBe(0);
     expect(await countSkillFiles(home)).toBe(0);
     expect(await countAgentFiles(home)).toBe(0);
+  });
+  // A global install must not install another vendor's package unless asked.
+  // An executable named `npm` placed first on PATH records its arguments, so
+  // the test observes whether postinstall really invoked `npm i -g ...`
+  // without touching the real global prefix or the network.
+  const withRecordingNpm = async (): Promise<{ home: string; binDir: string; record: string }> => {
+    const home = await mkdtemp(join(tmpdir(), "mktg-postinstall-optional-"));
+    const binDir = join(home, "bin");
+    const record = join(home, "npm-calls.log");
+    await mkdir(binDir, { recursive: true });
+    const script = `#!/bin/sh\necho "$@" >> "${record}"\n`;
+    await writeFile(join(binDir, "npm"), script);
+    await chmod(join(binDir, "npm"), 0o755);
+    return { home, binDir, record };
+  };
+
+  test("global install does not install optional third-party CLIs by default", async () => {
+    const { home, binDir, record } = await withRecordingNpm();
+
+    const result = spawnSync("node", [POSTINSTALL], {
+      encoding: "utf8",
+      env: {
+        ...isolatedHomeEnv(home),
+        PATH: `${binDir}:${process.env.PATH ?? ""}`,
+        MKTG_POSTINSTALL_FORCE: "1",
+      },
+    });
+
+    expect(result.status).toBe(0);
+    expect(existsSync(record)).toBe(false);
+    expect(result.stderr).toContain("optional: `npm i -g @higgsfield/cli`");
+  });
+
+  test("MKTG_INSTALL_OPTIONAL_DEPS=1 opts in to installing optional CLIs", async () => {
+    const { home, binDir, record } = await withRecordingNpm();
+
+    const result = spawnSync("node", [POSTINSTALL], {
+      encoding: "utf8",
+      env: {
+        ...isolatedHomeEnv(home),
+        PATH: `${binDir}:${process.env.PATH ?? ""}`,
+        MKTG_POSTINSTALL_FORCE: "1",
+        MKTG_INSTALL_OPTIONAL_DEPS: "1",
+      },
+    });
+
+    expect(result.status).toBe(0);
+    expect((await readFile(record, "utf-8")).trim()).toBe("i -g @higgsfield/cli");
   });
 });

@@ -8,4 +8,3 @@ export declare function decryptChromiumAes128CbcCookieValue(encryptedValue: Uint
 export declare function decryptChromiumAes256GcmCookieValue(encryptedValue: Uint8Array, key: Buffer, options: {
     stripHashPrefix: boolean;
 }): string | null;
-//# sourceMappingURL=crypto.d.ts.map

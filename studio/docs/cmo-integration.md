@@ -51,7 +51,7 @@ Every /cmo turn that the user should see in the dashboard maps to **at most five
 | **Note** | `POST /api/brand/note` | When you've written or modified a `brand/*.md` file. Also fires `brand-file-changed` so dependent tabs refresh. |
 | **Push** | `POST /api/opportunities/push` | When analysis surfaces a recommended next action |
 | **Toast** | `POST /api/toast` | For inline confirmations the user should see immediately ("Posted 3 threads to LinkedIn") |
-| **Navigate** | `POST /api/navigate` | When the result of your work lives on a specific tab and the user should look there. Valid tabs: `pulse`, `content`, `publish`, `brand`. Use `{"tab":"content"}` for generated assets and draft campaigns. |
+| **Navigate** | `POST /api/navigate` | When the result of your work lives on a specific tab and the user should look there. Valid tabs: `pulse`, `signals`, `publish`, `brand`. Use `{"tab":"signals"}` for generated assets and draft campaigns. |
 
 A typical turn is `log → ... → note → log → push → toast → navigate`. Each call is fire-and-forget, takes <50ms, and the dashboard reacts in real time via SSE.
 
@@ -102,7 +102,7 @@ curl -fsS -X POST $STUDIO/api/toast \
 ```bash
 curl -fsS -X POST $STUDIO/api/navigate \
   -H 'content-type: application/json' \
-  -d '{"tab":"content"}'
+  -d '{"tab":"signals"}'
 ```
 
 ### Discover the API

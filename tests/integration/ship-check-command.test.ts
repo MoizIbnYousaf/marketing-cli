@@ -3,7 +3,7 @@
 import { describe, test, expect } from "bun:test";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "../../src/core/user-home";
 import { join } from "node:path";
 import {
   handler as shipCheckHandler,
@@ -123,7 +123,7 @@ describe("mktg ship-check — execute (partial: fast checks only)", () => {
     expect(res.data.verdict).toBe("pass");
     expect(res.data.icon).toBe("🟢");
     expect(res.data.mode).toBe("execute");
-    expect(res.data.summaryPath.startsWith(join(homedir(), ".mktg", "ship-check"))).toBe(true);
+    expect(res.data.summaryPath.startsWith(join(userHome(), ".mktg", "ship-check"))).toBe(true);
     expect(existsSync(res.data.summaryPath)).toBe(true);
     expect(res.data.summary.skipped).toBe(8);
     expect(res.data.summary.failed).toBe(0);

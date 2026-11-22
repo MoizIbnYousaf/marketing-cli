@@ -122,7 +122,7 @@ Project lives at `marketing/video/<slug>/project/`. Add `out/`, `node_modules/`,
 If the video is **code-driven** (CRT shader, type-only, geometric) — skip this stage. The composition needs no PNGs.
 
 Otherwise:
-- Use `/codex:image` (preferred for craft-grade prompting) or `/image-gen` (Gemini Nano Banana 2 — model `gemini-3.1-flash-image-preview`, never older).
+- Use `/codex:image` (preferred for craft-grade prompting) or `/image-gen` (Gemini Nano Banana 2.1 — model `gemini-nano-banana-2.1`, never older).
 - Cap the asset count: ≤ 12 generated images for a single-scene 8s video, ≤ 8 per scene for multi-scene work. More than that and you're bloating cost and inviting style drift.
 - Cut every transparent-background asset through `rembg`. Image models lie about transparency.
 - Drop final assets into `<project>/public/`.
@@ -173,7 +173,7 @@ After the first render, sample frames at `0%, 12.5%, 37.5%, 62.5%, 90%` of durat
 
 You must load these *before* you scaffold a Remotion project — they catch the framework-fighting mistakes early:
 
-1. `/Users/moizibnyousaf/projects/mktgmono/marketing-cli/skills/remotion-best-practices/SKILL.md` — top-level entry.
+1. `remotion-best-practices/SKILL.md` in the installed skills directory (`~/.claude/skills/remotion-best-practices/SKILL.md`) — top-level entry.
 2. The specific `rules/<topic>.md` file(s) matching your intent (the table in Stage 5 lists them).
 
 If you skip this and "just start coding," you will end up writing CSS keyframes, you will hit "WebGL not enabled in render," and you will need to redo it. Loading the rules first costs ~30 seconds. Skipping costs ~30 minutes.

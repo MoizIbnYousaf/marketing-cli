@@ -19,12 +19,7 @@ export function removeLegacyBrowserCredentials(): void {
   }
 }
 
-/** Browser fetch sends the same-origin session cookie automatically. */
-export function studioAuthHeaders(): Record<string, string> {
-  return {};
-}
-
-/** JSON POST with bearer auth: canonical helper for dashboard mutations. */
+/** JSON POST: canonical helper for dashboard mutations. Auth is the same-origin session cookie. */
 export async function studioJsonPost(
   url: string,
   body?: unknown,
@@ -33,7 +28,6 @@ export async function studioJsonPost(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...studioAuthHeaders(),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });

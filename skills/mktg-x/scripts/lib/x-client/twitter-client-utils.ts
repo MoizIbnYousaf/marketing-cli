@@ -1,5 +1,5 @@
 // X/Twitter GraphQL client — MIT licensed.
-import type { GraphqlTweetResult, TweetData, TweetMedia, TwitterUser } from './twitter-client-types.js';
+import type { GraphqlTweetResult, TweetData, TweetMedia } from './twitter-client-types.js';
 
 export function normalizeQuoteDepth(value?: number): number {
   if (value === undefined || value === null) {
@@ -766,79 +766,4 @@ export function extractCursorFromInstructions(
     }
   }
   return undefined;
-}
-
-export function parseUsersFromInstructions(
-  instructions: Array<{ type?: string; entries?: Array<unknown> }> | undefined,
-): TwitterUser[] {
-  if (!instructions) {
-    return [];
-  }
-
-  const users: TwitterUser[] = [];
-
-  for (const instruction of instructions) {
-    if (!instruction.entries) {
-      continue;
-    }
-
-    for (const entry of instruction.entries) {
-      const content = (entry as { content?: { itemContent?: { user_results?: { result?: unknown } } } })?.content;
-      const rawUserResult = content?.itemContent?.user_results?.result as
-        | {
-            __typename?: string;
-            rest_id?: string;
-            is_blue_verified?: boolean;
-            user?: unknown;
-            legacy?: {
-              screen_name?: string;
-              name?: string;
-              description?: string;
-              followers_count?: number;
-              friends_count?: number;
-              profile_image_url_https?: string;
-              created_at?: string;
-            };
-            core?: {
-              screen_name?: string;
-              name?: string;
-              created_at?: string;
-            };
-            avatar?: {
-              image_url?: string;
-            };
-          }
-        | undefined;
-
-      const userResult =
-        rawUserResult?.__typename === 'UserWithVisibilityResults' && rawUserResult.user
-          ? (rawUserResult.user as typeof rawUserResult)
-          : rawUserResult;
-
-      if (!userResult || userResult.__typename !== 'User') {
-        continue;
-      }
-
-      const legacy = userResult.legacy;
-      const core = userResult.core;
-      const username = legacy?.screen_name ?? core?.screen_name;
-      if (!userResult.rest_id || !username) {
-        continue;
-      }
-
-      users.push({
-        id: userResult.rest_id,
-        username,
-        name: legacy?.name ?? core?.name ?? username,
-        description: legacy?.description,
-        followersCount: legacy?.followers_count,
-        followingCount: legacy?.friends_count,
-        isBlueVerified: userResult.is_blue_verified,
-        profileImageUrl: legacy?.profile_image_url_https ?? userResult.avatar?.image_url,
-        createdAt: legacy?.created_at ?? core?.created_at,
-      });
-    }
-  }
-
-  return users;
 }

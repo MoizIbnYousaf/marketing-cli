@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { useHydrated } from "@/lib/hooks/use-hydrated"
-import { studioAuthHeaders } from "@/lib/studio-token"
 
 import { StepProject } from "./step-project"
 import { StepPostiz } from "./step-postiz"
@@ -163,7 +162,7 @@ function HydratedWizard() {
       // initialization so onboarding never runs `mktg init` twice.
       const res = await fetch("/api/init?dryRun=true", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ from: state.url || undefined }),
       })
       // Attempt to parse the envelope even on non-2xx: the studio's
@@ -226,7 +225,7 @@ function HydratedWizard() {
       // added at /api/settings/env. Audit log captures key names only.
       const res = await fetch("/api/settings/env?confirm=true", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...studioAuthHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
       const body = (await res.json().catch(() => null)) as

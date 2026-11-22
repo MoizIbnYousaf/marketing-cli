@@ -15,16 +15,10 @@ credentials.json
 .DS_Store
 brand-playground.html
 .claude/
-demo.webm
-demo-setup.sh
-/tmp/mktg-demo-path
 __pycache__/
 *.pyc
 .venv/
 media/
-explainer/out/
-explainer/node_modules/
-explainer/bun.lock
 website/.next/
 website/out/
 website/node_modules/
@@ -54,7 +48,7 @@ _drafts/
 # Launch video drafts (large, distributed via tweets/site, not the repo)
 brand/assets/launch-video-v2*.mp4
 
-# studio (folded in from mktg-studio; published as a separate npm package)
+# studio (workspace member, bundled in the marketing-cli tarball)
 studio/node_modules/
 studio/.next/
 studio/dist/
@@ -70,3 +64,6 @@ studio/next-env.d.ts
 
 # Amp orb portal metadata
 .amp/portals/*
+
+# Per-install metadata written when a skill is installed; never part of the source
+.skill-meta.json

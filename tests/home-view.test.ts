@@ -3,7 +3,8 @@
 
 import { describe, test, expect } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir, homedir } from "node:os";
+import { tmpdir } from "node:os";
+import { userHome } from "../src/core/user-home";
 import { join } from "node:path";
 import { formatOutput, applyFieldsFilter, withHelp } from "../src/core/output";
 import { collapseHome, formatHomeView, type HomeView } from "../src/core/home-view";
@@ -103,7 +104,7 @@ describe("bare `mktg` home view", () => {
     expect(parsed.description).toBe("Agent-native marketing playbook CLI");
     expect(parsed.version).toMatch(/^\d+\.\d+\.\d+/);
     expect(parsed.bin.startsWith("~/") || parsed.bin.startsWith("/")).toBe(true);
-    expect(parsed.bin.includes(homedir())).toBe(false);
+    expect(parsed.bin.includes(userHome())).toBe(false);
     expect(parsed.cwd).toBe(collapseHome(ROOT));
     expect(["ready", "incomplete", "needs-setup", "unknown"]).toContain(parsed.health);
     expect(typeof parsed.brand.populated).toBe("number");

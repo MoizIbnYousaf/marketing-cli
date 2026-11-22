@@ -68,4 +68,3 @@ function safeHostnameFromUrl(url) {
         return undefined;
     }
 }
-//# sourceMappingURL=inline.js.map

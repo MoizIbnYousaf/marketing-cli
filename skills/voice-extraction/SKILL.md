@@ -176,6 +176,4 @@ After the voice file is written:
 ## Related Skills
 
 - **/brand-voice** — builds voice from interview or website scrape (lighter weight, less precise)
-- **/writing-assistant** — uses the voice file to write in the extracted personal voice
 - **/cmo** — orchestrates marketing content using the voice file
-- **/compound-writing** — evolves the voice over time through learnings

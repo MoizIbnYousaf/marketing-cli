@@ -2,10 +2,8 @@
 // All checks run in parallel. --fix auto-remediates mechanical failures.
 
 import { join } from "node:path";
-// Track E (frostbyte) — added 2026-05-04 — used by checkUpstreamSkills
 import { readdir, readFile, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-// end Track E imports
 import { ok, type CommandHandler, type CommandSchema } from "../types";
 import { invalidArgs } from "../core/errors";
 import { getBrandStatus } from "../core/brand";
@@ -23,7 +21,6 @@ export const schema: CommandSchema = {
   flags: [
     { name: "--fix", type: "boolean", required: false, default: false, description: "Auto-remediate failed checks (respects --dry-run)" },
     { name: "--configure", type: "string", required: false, description: "Configure a specific integration (e.g., typefully, resend)" },
-    // Track E (frostbyte) — added 2026-05-04
     { name: "--check-upstream", type: "boolean", required: false, default: false, description: "Live drift check for upstream-mirrored skills (slower; runs each skill's scripts/check-upstream.sh)" },
   ],
   output: {
@@ -75,10 +72,6 @@ type ConfigureResult = {
   readonly exportCommand: string;
 };
 
-type ListIntegrationsResult = {
-  readonly integrations: readonly ConfigureResult[];
-};
-
 const indicator = (s: CheckStatus): string =>
   s === "pass" ? green("●") : s === "fail" ? red("●") : yellow("●");
 
@@ -100,7 +93,7 @@ const checkBrand = async (cwd: string): Promise<Check[]> => {
   } else if (missingProfile.length > 0) {
     checks.push({ name: "brand-profiles", status: "fail", detail: `Missing: ${missingProfile.map(s => s.file).join(", ")}`, fix: "mktg init" });
   } else {
-    checks.push({ name: "brand-profiles", status: "warn", detail: `${staleProfile.length} stale: ${staleProfile.map(s => s.file).join(", ")}`, fix: "mktg brand refresh" });
+    checks.push({ name: "brand-profiles", status: "warn", detail: `${staleProfile.length} stale: ${staleProfile.map(s => s.file).join(", ")}`, fix: "mktg brand freshness --json" });
   }
 
   const existingProfiles = profileFiles.filter(s => s.exists);
@@ -298,8 +291,6 @@ const checkCatalogs = async (): Promise<Check[]> => {
   }
 };
 
-// Run all checks in parallel
-// --- Track E (frostbyte) — added 2026-05-04 ---
 // Upstream-mirrored skills health check. Default is staleness-only based on
 // `fetched_at`; --check-upstream flag invokes each skill's drift script for a
 // live verdict (slower, network-bound).
@@ -344,7 +335,6 @@ const checkUpstreamSkills = async (cwd: string, liveCheck: boolean): Promise<Che
   }
   return checks;
 };
-// --- end Track E checkUpstreamSkills ---
 
 // Verify the Studio launcher resolves (P8). Studio ships inside the
 // marketing-cli tarball, so any healthy install resolves the packaged path;
@@ -363,10 +353,10 @@ const checkStudioLauncher = async (): Promise<Check[]> => {
   }];
 };
 
+// Run all checks in parallel
 const runAllChecks = async (cwd: string, liveUpstream = false) => {
   const [brand, skills, agents, graph, clis, integrations, externalSkills, catalogs, upstream, studio] = await Promise.all([
     checkBrand(cwd), checkSkills(), checkAgents(), checkGraph(), checkCLIs(), checkIntegrations(), checkExternalSkills(cwd), checkCatalogs(),
-    // Track E — added 2026-05-04
     checkUpstreamSkills(cwd, liveUpstream),
     checkStudioLauncher(),
   ]);
@@ -405,7 +395,6 @@ const printChecks = (sections: ReturnType<typeof runAllChecks> extends Promise<i
   if (sections.integrations.length > 0) printSection("Integrations", sections.integrations);
   if (sections.catalogs.length > 0) printSection("Catalogs", sections.catalogs);
   printSection("Studio", sections.studio);
-  // Track E (frostbyte) — added 2026-05-04
   if (sections.upstream.length > 0) printSection("Upstream-Mirrored Skills", sections.upstream);
 
   if (fixes && fixes.length > 0) {
@@ -461,7 +450,7 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
   if (configureTarget !== undefined) {
     // --configure flag is present — early-return with configure/list result.
     // Cast via unknown: --configure returns a different shape than DoctorResult,
-    // but callers that pass --configure know they get ConfigureResult | ListIntegrationsResult.
+    // but callers that pass --configure know they get ConfigureResult or { integrations: ConfigureResult[] }.
     if (configureTarget === null) {
       const integrations = Object.keys(INTEGRATION_CONFIG).map(buildConfigureResult);
       return ok({ integrations }) as unknown as ReturnType<CommandHandler<DoctorResult>>;
@@ -480,7 +469,6 @@ export const handler: CommandHandler<DoctorResult> = async (args, flags) => {
   }
 
   const wantsFix = args.includes("--fix");
-  // Track E (frostbyte) — added 2026-05-04
   const wantsCheckUpstream = args.includes("--check-upstream");
 
   // Initial checks

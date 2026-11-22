@@ -241,11 +241,10 @@ Wait for all 3, then chain:
 
 ## Iteration / Re-Running
 
-The user can change their preferences three ways:
+The user can change their preferences two ways:
 
 1. **Edit `brand/cmo-preferences.md` directly** — it's just markdown.
 2. **Ask Claude**: "I want to change my marketing posture" — `/cmo` will re-route here, overwriting the file.
-3. **Future**: `mktg setup --force` (CLI flag, not yet implemented at v0.5.0; tracked for a future release).
 
 ---
 

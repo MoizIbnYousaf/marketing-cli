@@ -3,14 +3,13 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, writeFile, utimes } from "node:fs/promises";
+import { mkdtemp, rm, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { BRAND_FILES } from "../src/types";
 import {
   scaffoldBrand,
   assessFreshness,
   getBrandStatus,
-  brandExists,
   CONTEXT_MATRIX,
 } from "../src/core/brand";
 
@@ -218,21 +217,6 @@ describe("getBrandStatus", () => {
     const statuses = await getBrandStatus(tempDir);
     const fileNames = statuses.map((s) => s.file);
     expect(fileNames).toEqual([...BRAND_FILES]);
-  });
-});
-
-describe("brandExists", () => {
-  test("returns false when brand/ does not exist", async () => {
-    const exists = await brandExists(tempDir);
-    expect(exists).toBe(false);
-  });
-
-  test("returns true after scaffolding", async () => {
-    await scaffoldBrand(tempDir);
-    const exists = await brandExists(tempDir);
-    // Note: brandExists uses Bun.file which may not detect directories
-    // This tests the actual behavior
-    expect(typeof exists).toBe("boolean");
   });
 });
 

@@ -80,7 +80,7 @@ export const readManifestVersions = async (
 /**
  * Write `version` into every registered plugin manifest, preserving the
  * surrounding JSON shape and the project's `JSON.stringify(_, null, 2) + "\n"`
- * convention. Mirrors release.ts:269-270 for the package.json bump.
+ * convention. Mirrors the package.json bump in release.ts.
  */
 export const applyManifestVersion = async (cwd: string, version: string): Promise<void> => {
   for (const spec of MANIFEST_SPECS) {

@@ -195,7 +195,7 @@ schema: ItemList
 
 Add JSON-LD schema to each page:
 
-- **VS pages** — Use `FAQPage` schema with common comparison questions
+- **VS pages** — Use `FAQPage` schema on the visible comparison FAQ (Google retired FAQ rich results in May 2026; the markup labels the content, it does not earn a SERP feature)
 - **Alternatives pages** — Use `ItemList` schema for the roundup
 - Both — Include `Article` schema with author, date, modified date
 

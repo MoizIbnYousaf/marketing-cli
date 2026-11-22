@@ -60,7 +60,7 @@ For company/brand homepage or about page.
 
 ## WebSite (with SearchAction)
 
-For homepage. Enables sitelinks search box.
+For homepage. Google retired the sitelinks search box in November 2024, so `SearchAction` no longer produces a search feature. `WebSite` itself is still worth keeping for the site name; treat `potentialAction` as optional.
 
 ```json
 {
@@ -178,7 +178,7 @@ For SaaS product pages and app landing pages.
 
 ## FAQPage
 
-For pages with frequently asked questions.
+For pages with frequently asked questions. Google stopped showing FAQ rich results on 7 May 2026 and removed the feature's documentation in June 2026. The markup is still valid schema.org and still describes visible Q&A to other consumers of structured data, so keep it where the page has a real FAQ, but do not promise an expandable result in Google or count it as a ranking lever.
 
 ```json
 {

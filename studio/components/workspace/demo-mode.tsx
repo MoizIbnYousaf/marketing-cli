@@ -19,10 +19,7 @@ import { useHydrated } from "@/lib/hooks/use-hydrated"
 import { cn } from "@/lib/utils"
 import {
   useWorkspaceStore,
-  type WorkspacePlatformFilter,
-  type WorkspaceStreamFilter,
   type WorkspaceTab,
-  type WorkspaceTimeWindow,
 } from "@/lib/stores/workspace"
 
 type DemoStep = {
@@ -33,13 +30,7 @@ type DemoStep = {
   guide: string
   outcome: string
   targetId?: string
-  actionLabel?: string
   tab?: WorkspaceTab
-  filters?: {
-    platform?: WorkspacePlatformFilter
-    stream?: WorkspaceStreamFilter
-    timeWindow?: WorkspaceTimeWindow
-  }
 }
 
 type DemoRect = {
@@ -126,7 +117,6 @@ const measureDemoRect = (targetId: string | undefined): DemoRect | null => {
 
 export function DemoMode() {
   const setWorkspaceTab = useWorkspaceStore((state) => state.setWorkspaceTab)
-  const setSignalFilters = useWorkspaceStore((state) => state.setSignalFilters)
   const [isOpen, setIsOpen] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DemoRect | null>(null)
@@ -139,10 +129,7 @@ export function DemoMode() {
     if (currentStep.tab) {
       setWorkspaceTab(currentStep.tab)
     }
-    if (currentStep.filters) {
-      setSignalFilters(currentStep.filters)
-    }
-  }, [currentStep, isOpen, setSignalFilters, setWorkspaceTab])
+  }, [currentStep, isOpen, setWorkspaceTab])
 
   useEffect(() => {
     if (!isOpen) return
@@ -199,12 +186,6 @@ export function DemoMode() {
 
   const goBack = () => {
     setStepIndex((index) => Math.max(index - 1, 0))
-  }
-
-  const runStepAction = () => {
-    if (!currentStep.targetId) return
-    const element = document.querySelector<HTMLElement>(`[data-demo-id="${currentStep.targetId}"]`)
-    element?.click()
   }
 
   return (
@@ -337,16 +318,6 @@ export function DemoMode() {
                     </Button>
 
                     <div className="flex items-center gap-2">
-                      {currentStep.actionLabel && (
-                        <Button
-                          variant="outline"
-                          onClick={runStepAction}
-                          className="gap-2 rounded-full border-white/18 bg-white/[0.04] text-white hover:bg-white/[0.08]"
-                        >
-                          <Flame className="size-4" />
-                          {currentStep.actionLabel}
-                        </Button>
-                      )}
                       <Button
                         variant="ghost"
                         onClick={closeDemo}

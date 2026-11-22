@@ -5,4 +5,3 @@ export declare function getCookiesFromChrome(options: {
     includeExpired?: boolean;
     debug?: boolean;
 }, origins: string[], allowlistNames: Set<string> | null): Promise<GetCookiesResult>;
-//# sourceMappingURL=chrome.d.ts.map

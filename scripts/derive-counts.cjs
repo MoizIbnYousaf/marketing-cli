@@ -3,7 +3,7 @@
 // Single-source the skill count across every public surface.
 //
 // Source of truth: `skills-manifest.json`. The maintainer's mental model is
-// "55 marketing skills + 1 orchestrator (cmo)" so we expose two numbers:
+// "N marketing skills + 1 orchestrator (cmo)" so we expose two numbers:
 //
 //   - marketingSkillCount = manifest.skills.length - 1 (excludes cmo)
 //   - totalSkillCount     = manifest.skills.length
@@ -118,8 +118,7 @@ for (const { file, patches } of JSON_PATCHES) {
 // Pattern: any "(\d+)\s+(marketing\s+)?skills" inside a known surface gets
 // rewritten to the canonical count. We do NOT do a global rewrite — a sweep
 // would touch CHANGELOG.md (frozen historical claims) and skills/cmo/SKILL.md
-// (anti-pattern callouts that already moved to 56 in commit 6af8ace). The
-// surface list is explicit and small.
+// (anti-pattern callouts). The surface list is explicit and small.
 // ---------------------------------------------------------------------------
 
 /** @type {Array<{file: string, replacements: Array<{pattern: RegExp, replacement: string}>}>} */
@@ -134,9 +133,9 @@ const TEXT_PATCHES = [
   {
     file: "studio/CLAUDE.md",
     replacements: [
-      // "<n> marketing skills" → 55 marketing skills
+      // "<n> marketing skills" → canonical marketing-skill count
       { pattern: /(\d+)\s+marketing\s+skills/g, replacement: `${marketingSkillCount} marketing skills` },
-      // "<n> skills" (top-level total claim) → 56 skills.
+      // "<n> skills" (top-level total claim) → canonical total.
       // Negative lookahead `(?![-\w)])` excludes:
       //   - "skills-manifest" (hyphenated identifiers)
       //   - "skills.json" (extensions/sentence-internal)

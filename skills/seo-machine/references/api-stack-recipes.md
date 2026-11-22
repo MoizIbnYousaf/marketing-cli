@@ -1,6 +1,6 @@
 # Cross-API Compound Recipes
 
-Single APIs answer single questions. Compound recipes — chaining two or three APIs in one move — answer the questions Ahrefs alone can't. The four recipes here are mktg-native and depend only on tools already in our stack: **Exa MCP**, **last30days** skill, **firecrawl**, **gh CLI**, **mktg-x**, **DeepWiki**, **company-research** skill, **people-research** skill, **Exa Websets MCP**.
+Single APIs answer single questions. Compound recipes — chaining two or three APIs in one move — answer the questions Ahrefs alone can't. The four recipes here are mktg-native and depend only on tools already in our stack: **Exa MCP**, **last30days** skill, **firecrawl**, **gh CLI**, **mktg-x**, **DeepWiki**, **company-research** skill, **exa-search** (people category), **Exa Websets MCP**.
 
 Each recipe in this file is a sequence — run the steps in order, accumulate outputs, hand the consolidated result to the parent skill.
 
@@ -123,9 +123,9 @@ Step 2 — Find the byline author per target
     )
   → Extract: { name, role, twitter/X handle, email pattern if visible }
 
-Step 3 — Enrich with people-research
+Step 3 — Enrich with an exa-search people query
   For each name surfaced:
-    Invoke: /people-research "<name> + <company>"
+    Invoke: /exa-search "<name> + <company>" (category: people)
     → LinkedIn role, recent talks, social handles, areas of focus
 
 Step 4 — Pre-pitch context (optional X dive)

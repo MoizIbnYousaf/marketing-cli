@@ -2,7 +2,7 @@
 
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { userHome } from "./user-home";
 import { isTemplateContent } from "./brand";
 import { getPackageRoot } from "./paths";
 import { loadCatalogManifest, computeConfiguredStatus } from "./catalogs";
@@ -39,7 +39,7 @@ export const checkPrerequisites = async (
   const remediation: string[] = [];
 
   // Check depends_on skills are installed
-  const skillsDir = join(homedir(), ".claude", "skills");
+  const skillsDir = join(userHome(), ".claude", "skills");
   for (const dep of entry.depends_on) {
     const depPath = join(skillsDir, dep, "SKILL.md");
     const exists = await Bun.file(depPath).exists();
@@ -154,7 +154,7 @@ export const getSkillInfo = async (
 
   // Read description from installed SKILL.md frontmatter
   let description = "";
-  const skillPath = join(homedir(), ".claude", "skills", resolved, "SKILL.md");
+  const skillPath = join(userHome(), ".claude", "skills", resolved, "SKILL.md");
   try {
     const content = await readFile(skillPath, "utf-8");
     const fm = parseFrontmatter(content);

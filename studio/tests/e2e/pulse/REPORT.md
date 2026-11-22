@@ -2,7 +2,7 @@
 
 End-to-end coverage for `GET /api/pulse/snapshot` + the rebuilt Pulse surface. Every test boots a real Bun `server.ts` with the auth perimeter ENABLED (no `MKTG_STUDIO_AUTH=disabled` escape hatch), runs against a per-suite SQLite + per-suite seeded `brand/`, and drives the canonical seeder script to populate funnel data. No mocks, no shimmed validators, no fake API responses.
 
-## Suite layout (per TEST-PLAN.md Lane 5)
+## Suite layout
 
 ```
 studio/tests/e2e/pulse/
@@ -10,7 +10,7 @@ studio/tests/e2e/pulse/
 ├── snapshot.test.ts      -- 11 tests: full PulseSnapshot shape × 5 seed states + auth + ?fields=
 ├── staleSections.test.ts -- 5 tests: per-section fallback when DB tables drop
 ├── playwright.e2e.ts     -- 6 Playwright tests: page render + chart paint + SSE-without-reload
-├── fixtures/             -- 7 raw snapshot JSON dumps from each state
+├── fixtures/             -- 6 raw snapshot JSON dumps from each state
 └── REPORT.md             -- this file
 ```
 
@@ -110,7 +110,6 @@ Real responses from the running Bun server. Hand-edited zero. Each one is the sn
 | `state-4-heavy-current.json` | 1/day prior + 3/day current (signals only) | `[21, 0, 0, 0]` | `deltaPct: +200%` for signals |
 | `state-5-real-seeder.json` | `bun run scripts/seed-pulse-series.ts --reset` | `[78, 20, 36, 18]` | `deltaPct`: +86 / +100 / +125 / +200 |
 | `state-6-after-activity.json` | empty + POST /api/activity/log | unchanged funnel | `activity[].summary` includes the snap-e2e marker |
-| `state-7-publish-table-dropped.json` | 2 signals + DROP publish_log | `[2, 0, 0, 0]` | `staleSections: ["publish", "funnel"]`, signals node survives |
 
 State 5 (real seeder) condensed:
 
@@ -162,4 +161,4 @@ bun test tests/unit tests/integration
 
 - **`brandHealth.readyCount` is lower-bound only.** The harness seeds minimal markdown; freshness-window heuristics in `lib/brand-files.ts` do not score every minimal file as "fresh". Asserted as `[0, totalSlots]` rather than an exact count -- the bug-class would be a stale freshness function, not a snapshot regression.
 - **`recentMedia` is `[]` in current builds.** The content-manifest scanner is server-side and not yet wired into the snapshot aggregator. The Playwright `Recent media` panel renders the EmptyState. Wiring is a Wave C polish; not a Lane 5 blocker.
-- **Test-suite SSE assertion via Playwright** is the deterministic part of the SSE invalidation contract. The full activity-live `EventSource` -> SWR `mutate` -> SWR refetch chain is exercised in the rebuilt `pulse-page.tsx:144-156` and inside the activity-live store; a long-form chaos test is parked for Wave C alongside the rest of `e2e-chaos.test.ts`.
+- **Test-suite SSE assertion via Playwright** is the deterministic part of the SSE invalidation contract. The full activity-live `EventSource` -> SWR `mutate` -> SWR refetch chain is exercised in the rebuilt `pulse-page.tsx:144-156` and inside the activity-live store; a long-form chaos test is not written.

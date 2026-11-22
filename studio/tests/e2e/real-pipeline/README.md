@@ -6,7 +6,7 @@ This harness is the **proof-of-correctness layer** for the mktg-studio launch. T
 
 ## Why it lives at `tests/e2e/real-pipeline/`
 
-- `tests/e2e/` already exists for Playwright browser journeys (`user-journey.spec.ts`). This harness is distinct — it exercises the backend pipeline without a browser, so the pattern is "e2e of the pipeline", not "e2e of the UI".
+- `tests/e2e/` already exists for Playwright browser journeys (`user-journey.e2e.ts`). This harness is distinct — it exercises the backend pipeline without a browser, so the pattern is "e2e of the pipeline", not "e2e of the UI".
 - Keeping it isolated from `tests/integration/` lets `bun test` skip it by default — these tests need real API keys and take real time, so they don't run in the tight feedback loop.
 
 ## Directory layout
@@ -24,16 +24,10 @@ tests/e2e/real-pipeline/
 │ └── replay.ts replayOrCapture — 3-mode (live/capture/replay) fixture wrapper
 ├── fixtures/
 │ └── captured/ timestamped API response captures (gitkeep'd; content ignored)
-├── e2e-postiz.test.ts I1 — full postiz API coverage
-├── e2e-resend.test.ts I2 — real Resend sends + inbounds + bounces
-├── e2e-exa-firecrawl.test.ts I3 — Exa + Firecrawl + Typefully coverage
-├── e2e-sqlite-watcher.test.ts I4 — SQLite integrity + watcher reliability
-├── e2e-chaos.test.ts H3 — kill server mid-flow, flaky network
-├── e2e-pipeline.test.ts E2 — marketing-cli → studio → /cmo → postiz
-├── e2e-brand-refresh.test.ts J1 — brand refresh loop
-├── e2e-publish.test.ts J2 — publish loop postiz draft→scheduled→published
-├── e2e-cmo-live.test.ts J3 — /cmo conversation drives studio live 10+ min
-└── e2e-signals.test.ts J4 — signal collection + severity + bulk
+├── flow-brand-refresh.test.ts J1 — brand refresh loop
+├── flow-publish.test.ts J2 — publish loop draft→scheduled→published
+├── flow-cmo-live.test.ts J3 — /cmo live-driving soak (scaled smoke)
+└── flow-signals.test.ts J4 — signal collection + actions
 ```
 
 **Task → file map** is the contract: each suite file targets one named task. When a suite lands, its owning task can be marked complete and the matching downstream task (if any) unblocks.
@@ -41,21 +35,13 @@ tests/e2e/real-pipeline/
 ## Running the harness
 
 ```bash
-cd ~/projects/mktgmono/mktg-studio
+cd studio # from the marketing-cli repo root
 
-# 1. Copy the env template and fill in real test-account keys
-cp .env.test.example .env.test
-$EDITOR .env.test # fill in your real test-account values
-
-# 2. Validate the harness itself is healthy
+# 1. Validate the harness itself is healthy
 bun test tests/e2e/real-pipeline/setup.test.ts
 
-# 3. Run an individual real-pipeline suite
-export $(cat .env.test | xargs) # or `bun --env-file=.env.test ...`
-bun test tests/e2e/real-pipeline/e2e-postiz.test.ts
-
-# 4. Run everything (slow; hits real APIs)
-bun --env-file=.env.test test tests/e2e/real-pipeline/
+# 2. Run everything
+bun test tests/e2e/real-pipeline/
 ```
 
 ## Required environment variables
@@ -76,8 +62,6 @@ Only the keys for the APIs a given suite exercises are required. Suites that nee
 | `CAPTURE_FIXTURES` | optional | `"true"` to write every API response to `fixtures/captured/`; `"false"` to skip. Default: `"true"`. |
 | `HARNESS_LIVE` | optional | `"1"` forces every `replayOrCapture()` call to hit the live API without consulting goldens. Use for "is the real service still alive?" checks. |
 | `HARNESS_CAPTURE` | optional | `"1"` hits the live API AND writes/refreshes the golden fixture. Use when intentionally refreshing committed goldens. |
-
-A copy-ready template lives at `.env.test.example` at the repo root.
 
 ### The three harness modes (default vs live vs capture)
 
@@ -168,5 +152,5 @@ This harness is itself held to the 21/21 contract: helper utilities return struc
 
 ## Status
 
-- **2026-04-21** — the maintainer's scaffolded the harness (setup.ts, probe, capture, schema, README, .env.test.example) per E1 (#16).
-- Downstream suites (E2, I1, I2, I3, I4, H3, J1, J2, J3, J4) land on top of this scaffold per their respective tasks.
+- **2026-04-21** — the maintainer's scaffolded the harness (setup.ts, probe, capture, schema, README) per E1 (#16).
+- Downstream suites (J1, J2, J3, J4) land on top of this scaffold per their respective tasks.

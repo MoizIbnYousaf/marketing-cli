@@ -406,7 +406,7 @@ type PublishItemMetadataForPostiz = {
   // v2: schedule?: "now" | ISO8601; perProviderSettings?: Record<string,unknown>;
 };
 
-// The PublishItem shape lives in src/types.ts and is already defined.
+// The PublishItem shape lives in src/core/publish/types.ts and is already defined.
 // Relevant fields for postiz:
 //   item.content: string        (the copy to publish)
 //   item.metadata: { providers: [...], ... }

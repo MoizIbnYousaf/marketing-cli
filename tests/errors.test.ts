@@ -3,7 +3,7 @@
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
-import { mkdtemp, rm, writeFile, symlink, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import {
   notFound,
@@ -17,9 +17,7 @@ import {
   ioError,
   sandboxPath,
   parseJsonInput,
-  exitCodeLabel,
 } from "../src/core/errors";
-import type { ExitCode } from "../src/types";
 
 describe("Named error constructors", () => {
   test("notFound returns exit code 1", () => {
@@ -261,23 +259,5 @@ describe("parseJsonInput", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data).toEqual(["a", "b", "c"]);
-  });
-});
-
-describe("exitCodeLabel", () => {
-  test("maps all exit codes to labels", () => {
-    const expected: Record<ExitCode, string> = {
-      0: "success",
-      1: "not found",
-      2: "invalid args",
-      3: "dependency missing",
-      4: "skill failed",
-      5: "network error",
-      6: "not implemented",
-    };
-
-    for (const [code, label] of Object.entries(expected)) {
-      expect(exitCodeLabel(Number(code) as ExitCode)).toBe(label);
-    }
   });
 });

@@ -2,7 +2,7 @@
 //
 // One envelope, one round-trip. Coalesces 7 SWR calls into a single read with
 // per-section error capture so Pulse never goes blank when a single upstream
-// fails. The aggregator is in studio/server.ts (route slot owned by ironmint);
+// fails. The aggregator is lib/pulse-snapshot.ts;
 // the seeder is studio/scripts/seed-pulse-series.ts.
 //
 // Cap discipline: this contract is the funnel ribbon + brand-health composite

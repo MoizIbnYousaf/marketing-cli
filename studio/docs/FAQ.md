@@ -49,7 +49,7 @@ No. `.env.local` is plaintext. Anyone with access to the project directory can r
 The studio itself does not. `/cmo` and skills you invoke do, to the APIs you configured. There is no telemetry from the studio server.
 
 ### Can I run it on a shared machine?
-You can, but the data directory will be visible to anyone who reaches your project dir. There is no auth on `:3000` or `:3001`. Do not run the studio on a shared or publicly-reachable machine without a firewall + reverse proxy + auth.
+You can, but the data directory will be visible to anyone who reaches your project dir. Both ports bind to loopback, and every API route except `/api/health`, `/api/schema`, `/api/help`, and `/api/auth/bootstrap` needs the bearer token stored at `~/.mktg/.runtime/studio-token` (the dashboard uses an HttpOnly session cookie). Do not run the studio on a shared or publicly-reachable machine without a firewall + reverse proxy + auth.
 
 ### Can I sync `brand/` across machines?
 Yes -- `brand/` is plain markdown in your project. Commit to git + push, or Dropbox/iCloud the folder. The SQLite DB (`marketing.db`) is not portable across machines cleanly; consider each machine its own.
@@ -59,7 +59,7 @@ Yes -- `brand/` is plain markdown in your project. Commit to git + push, or Drop
 ## Skills & agents
 
 ### What's a skill?
-A structured Markdown file under `skills/<name>/SKILL.md` that tells `/cmo` how to do one thing. 50 ship out of the box -- brand voice extraction, keyword research, content atomizer, Postiz publishing, native publishing, etc. `mktg list --json` shows them all.
+A structured Markdown file under `skills/<name>/SKILL.md` that tells `/cmo` how to do one thing. 76 ship out of the box -- brand voice extraction, keyword research, content atomizer, Postiz publishing, native publishing, etc. `mktg list --json` shows them all.
 
 ### What's an agent?
 A sub-agent `/cmo` spawns for bounded research or independent review. 7 ship: 4 researchers (brand, audience, competitors, backlinks) and 3 reviewers (content, SEO, strategy). Foundation researchers write to specific brand files; reviewers never write.
@@ -94,7 +94,7 @@ No -- all optional. Each key unlocks a subset of skills:
 - Firecrawl → scraping-heavy skills (landscape-scan, mktg init --from <url>)
 - Typefully → `typefully` skill (X / LinkedIn threads)
 - Resend → `email-sequences`, `send-email`, `resend-inbound`, `newsletter`
-- Gemini → `image-gen`, `creative` image modes (uses `gemini-3.1-flash-image-preview` per project rule)
+- Gemini → `image-gen`, `creative` image modes (uses `gemini-nano-banana-2.1` per project rule)
 
 ### Why no Twitter / X API support?
 The `mktg-x` skill reads via authenticated scraping, not the X API (`xterminal` under the hood). Faster + no paid tier. Publishing to X starts in the native local queue/history, then uses Typefully, Postiz, or browser automation for real external posting depending on the configured credentials and workflow.
@@ -114,7 +114,7 @@ The `mktg-x` skill reads via authenticated scraping, not the X API (`xterminal` 
 
 ### How do I run the tests?
 ```sh
-bun run test          # unit + server + integration (171 tests last audit)
+bun run test          # unit + server + integration
 bun run test:e2e      # Playwright against a live server
 bun run typecheck     # tsc --noEmit
 ```
@@ -130,7 +130,7 @@ For `@theme` custom-properties. The studio colors live in CSS variables, not Tai
 ## Customization
 
 ### Can I change the colors?
-Edit `app/globals.css` -- the `@theme` block + `.dark` override hold the palette. Gold (`#a0733c`) is the accent; change it in both places. Note: `--color-primary` and `--color-secondary` are not currently defined (G1 F01 / issue #52); use `--color-accent` for brand hue.
+Edit `app/globals.css` -- the palette is the `:root` block, mapped to Tailwind utilities by the `@theme inline` block. There is no dark theme.
 
 ### Can I hide tabs I don't use?
 Edit the shared workspace navigation contract first, then keep the sidebar, workspace tabs, mobile dock, command palette, shortcuts, and `/api/navigate` remaps in lockstep. The current primary surfaces are `pulse`, `signals`, `publish`, `brand`, and `settings`; legacy `trends`, `audience`, and `opportunities` must keep remapping to their new homes instead of hard-breaking.
@@ -143,7 +143,7 @@ Yes. Implement an adapter in `marketing-cli/src/commands/publish.ts` (the CLI-si
 ## Misc
 
 ### What's Bug #8?
-A historical SSE subscription drop in the dashboard, fixed at `4957afd`. The Activity panel would silently stop receiving events a few seconds after mount. Resolution: hoisted `<SSEBridge />` to the root layout and hardened `EventSource.onerror` to recover from stuck CONNECTING states.
+A historical SSE subscription drop in the dashboard. The Activity panel would silently stop receiving events a few seconds after mount. Resolution: hoisted `<SSEBridge />` to the root layout and hardened `EventSource.onerror` to recover from stuck CONNECTING states.
 
 ### Why no em-dashes in docs?
 A 2026-04-13 style audit pulled 51 of them from public docs. Em-dash is a writing-assistant tell. See the broader style guide in `CLAUDE.md`. If you add one in an audit doc it will be caught on next review.

@@ -5,4 +5,3 @@ export declare function execCapture(file: string, args: string[], options?: {
     stdout: string;
     stderr: string;
 }>;
-//# sourceMappingURL=exec.d.ts.map

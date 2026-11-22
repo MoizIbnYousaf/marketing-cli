@@ -1,16 +1,9 @@
 // mktg — Publish adapter registry (built-ins + env var metadata)
 
 import { type AdapterResult, type PublishItem } from "./types";
-import { publishFile, publishNative, publishResend, publishTypefully } from "./adapters";
+import { publishFile, publishNative, publishResend } from "./adapters";
+import { publishTypefully } from "./typefully";
 import { publishPostiz } from "./postiz";
-
-// Built-in publish adapters — catalog-independent. Catalogs cannot
-// claim these names in capabilities.publish_adapters without a load-time
-// collision error from core/catalogs.ts (see plan v2 §Layer 1).
-// Postiz is excluded — it is registered via the postiz catalog entry.
-// Name list lives in builtins.ts so catalogs can import it without
-// pulling adapters/postiz into the catalogs module graph.
-export { BUILTIN_PUBLISH_ADAPTERS } from "./builtins";
 
 export const PRESENTATION_ADAPTER_ORDER = ["mktg-native", "postiz", "typefully", "resend", "file"] as const;
 

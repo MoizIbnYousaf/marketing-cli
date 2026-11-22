@@ -5,4 +5,3 @@ export declare function resolveChromiumPathsWindows(options: {
     dbPath: string | null;
     userDataDir: string | null;
 };
-//# sourceMappingURL=windowsPaths.d.ts.map

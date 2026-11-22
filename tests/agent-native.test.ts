@@ -6,9 +6,8 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import type { GlobalFlags, ExitCode } from "../src/types";
+import type { GlobalFlags } from "../src/types";
 import { applyFieldsFilter, formatOutput } from "../src/core/output";
-import { exitCodeLabel } from "../src/core/errors";
 import { handler as statusHandler } from "../src/commands/status";
 import { handler as initHandler } from "../src/commands/init";
 
@@ -412,23 +411,6 @@ describe("idempotency", () => {
 // ---------- Error recoverability ----------
 
 describe("error recoverability", () => {
-  test("all exit codes (0-6) map to labels", () => {
-    const codes: ExitCode[] = [0, 1, 2, 3, 4, 5, 6];
-
-    for (const code of codes) {
-      const label = exitCodeLabel(code);
-      expect(typeof label).toBe("string");
-      expect(label.length).toBeGreaterThan(0);
-    }
-  });
-
-  test("exit code labels are distinct", () => {
-    const codes: ExitCode[] = [0, 1, 2, 3, 4, 5, 6];
-    const labels = codes.map((c) => exitCodeLabel(c));
-    const unique = new Set(labels);
-    expect(unique.size).toBe(7);
-  });
-
   test("every error result has suggestions array", async () => {
     // Unknown command error
     const { stdout } = await run(["nonexistent"]);

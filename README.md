@@ -151,6 +151,20 @@ The npm package ships the same knowledge across multiple agent runtimes:
 | Gemini CLI | Extension metadata in `gemini-extension.json` |
 | OpenCode / shell agents | Run `mktg schema --json`, `mktg list --routing --json`, and read `skills/cmo/rules/*.md` |
 
+### Skills only, without the npm package
+
+If you want the skills and not the CLI or Studio, two installers read this repo directly and run no install script:
+
+```bash
+npx skills add MoizIbnYousaf/marketing-cli
+```
+
+```
+/plugin install marketing-cli --marketplace MoizIbnYousaf/marketing-cli
+```
+
+The first uses the cross-agent [`skills`](https://skills.sh/MoizIbnYousaf/marketing-cli) installer; the second is Claude Code's plugin command. Skills that call `mktg` (brand memory, publishing, `mktg status`) still need the npm install above; the playbook skills work on their own.
+
 Agent contract:
 
 - Use `mktg schema --json` to discover commands. Don't hardcode.
@@ -381,7 +395,7 @@ The 3 research agents run **in parallel**. Results write back to `brand/` so eve
 | `mktg verify` | Orchestrated test-suite runner across the mktgmono ecosystem |
 | `mktg ship-check` | Aggregated go/no-go verdict across ecosystem surfaces |
 | `mktg cmo` | Headless `/cmo` entry point with structured output for agents |
-| `mktg release` | Version bump + changelog + git tag (+ optional npm/GitHub publish) |
+| `mktg release` | Version bump + changelog + git tag (+ optional npm publish; pushing the tag lets the Release workflow publish and create the GitHub release) |
 
 Every command ships `--json`, `--dry-run`, and `--fields`. The live contract is `mktg schema --json`. `/cmo` keeps operator indexes in:
 
@@ -454,17 +468,17 @@ cd marketing-cli
 
 bun install
 bun run dev doctor    # Run locally
-bun test              # 2,599 tests, real file I/O, no mocks
+bun test              # real file I/O, no mocks
 bun x tsc --noEmit    # Type check
 bun run build         # Build
 ```
 
 ### Project Structure
 
-- `src/`: CLI source (TypeScript, ~15,500 lines)
+- `src/`: CLI source (TypeScript)
 - `skills/`: 76 SKILL.md files (manifest-backed)
 - `agents/`: 7 agent definitions
-- `tests/`: 2,599 tests across 96 files (real file I/O, no mocks)
+- `tests/`: unit, integration and e2e suites (real file I/O, no mocks)
 - `docs/`: Reference docs (`EXIT_CODES.md`, `skill-contract.md`)
 
 ---
@@ -482,13 +496,13 @@ Contributions welcome. The fastest ways to help:
 
 ## License
 
-[MIT](LICENSE). Use freely. Build on it.
+[MIT](LICENSE). Use freely. Build on it. Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ---
 
 ## Acknowledgments
 
-- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills): the breadth skill collection that inspired many of mktg's 76 skills
+- [Corey Haines' Marketing Skills](https://github.com/coreyhaines31/marketingskills) (MIT): the breadth skill collection several of mktg's skills were adapted from. The skills involved and the license notice are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 - [Postiz](https://github.com/gitroomhq/postiz-app) by [@gitroomhq](https://github.com/gitroomhq): the upstream catalog for 30+ social provider integrations (LinkedIn, Reddit, Bluesky, Mastodon, Threads, Instagram, TikTok, YouTube, Pinterest, Discord, Slack, etc.). mktg connects via REST API; license stays firewalled.
 - [last30days-skill](https://github.com/mvanhorn/last30days-skill) by [@mvanhorn](https://github.com/mvanhorn): live research across Reddit, X, YouTube, Hacker News, GitHub, and the web. `/cmo` chains it before any market claim, so the playbook stays grounded in what's actually happening this month, not training-data folklore.
 - [`@steipete/summarize`](https://github.com/steipete/summarize) by [@steipete](https://github.com/steipete): the text-compression CLI that mktg's `summarize` skill wraps with rules and budgets.

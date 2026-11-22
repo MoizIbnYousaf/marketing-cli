@@ -3,8 +3,7 @@
 // No mocks. No fakes. Each test sets up a real on-disk repo with the same 5
 // files release.ts cares about (package.json + 4 plugin manifests), invokes
 // the real CLI via `bun run src/cli.ts release ...`, and asserts the
-// resulting filesystem + git state. Multiple cases per scenario per the
-// TEST-PLAN.md hard rules.
+// resulting filesystem + git state. Multiple cases per scenario.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
