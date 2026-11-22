@@ -278,9 +278,12 @@ const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterResult> =>
   let published = 0;
   let failed = 0;
 
-  // ── Step 0: load the sent-marker state (§5) ──
+  // ── Step 0: lock (confirmed runs only) and read the sent-marker (§5) ──
   const markerPath = join(inp.cwd, ".mktg", "publish", `${inp.campaign}-postiz.json`);
-  const marker = await loadSentMarker(markerPath);  // see §5
+  // A confirmed run holds `<marker>.lock` (O_EXCL) for its whole length (§5.5).
+  const read = await readSentMarker(markerPath, inp.campaign);  // see §5; never repairs
+  if (read.state === "corrupt") return buildFailAll(inp, results, /* refuse: §5.4 */);
+  let marker = read.marker;
 
   // ── Step 1: resolve integrations ──
   const listRes = await postizFetch<ListIntegrationsResponse>("/public/v1/integrations", { method: "GET" });
@@ -345,12 +348,22 @@ const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterResult> =>
       continue;
     }
 
+    // A pending entry: an earlier run sent it and never recorded the answer.
+    if (marker.sent[key]?.state === "pending") { /* failed: "Unconfirmed … check Postiz" */ continue; }
+
     // Build the payload (§4).
     const body = buildCreatePostDraft(item.content, resolved);
+
+    // Record it as pending BEFORE the request (§5.3). If that write fails,
+    // nothing is sent: fail the item and hard-stop.
+    marker = { ...marker, sent: { ...marker.sent, [key]: { postedAt: new Date().toISOString(), providers: providers.slice(), state: "pending" } } };
+    await persistSentMarker(markerPath, marker);
 
     // Publish.
     const postRes = await postizFetch<unknown>("/public/v1/posts", { method: "POST", body });
     if (!postRes.ok) {
+      // A 2xx with an unparseable body keeps its pending entry (unconfirmed);
+      // a rejection drops it again (§5.3).
       results.push({ item: i, status: "failed", detail: mapPostizError(postRes.error) });  // §6
       failed++;
 
@@ -366,7 +379,7 @@ const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterResult> =>
 
     // Success — record in the sent-marker on disk now (atomic), then emit ndjson.
     marker = { ...marker, sent: { ...marker.sent, [key]: { postedAt: new Date().toISOString(), providers: providers.slice() } } };
-    await persistSentMarker(markerPath, marker).catch(() => { /* see §5.4 */ });
+    await persistSentMarker(markerPath, marker);  // a failure is noted in the item's detail; the pending entry stays
     if (inp.ndjson) writeStderr(JSON.stringify({ type: "postiz-published", data: { item: i, providers } }));
     results.push({ item: i, status: "published", detail: `draft → ${providers.join(", ")}` });
     published++;
@@ -501,6 +514,7 @@ type PostizSentMarker = {
 type PostizSentEntry = {
   postedAt: string;                         // ISO 8601
   providers: readonly string[];             // the mktg-side identifiers used (redundant, helps humans audit the file)
+  state?: "pending";                        // written before the create; removed when Postiz accepts it
 };
 ```
 
@@ -549,57 +563,57 @@ if the user disconnects LinkedIn and reconnects it, the id changes and
 the dedupe no longer hits. That's the correct behavior: it's a genuinely
 new channel.
 
-### 5.3 Write-after-success semantics
+### 5.3 Write-before-send semantics
 
-- The marker is loaded once at the start of `publishPostiz` (before the
-  `/integrations` call).
-- After each successful `POST /posts`, before the next item's request,
-  `persistSentMarker` writes the whole file atomically (write-to-temp +
-  `rename`). A run killed mid-way therefore leaves every accepted item
-  recorded, and the resumed run skips them. (A crash between Postiz accepting
-  a request and this write can still re-create that one item.)
-- A run in which no item was accepted writes no marker.
-- A failed write is logged and **does not** fail the adapter; the user's
-  posts already landed in postiz.
-- Dry-run (`confirm === false`) never mutates, rewrites or archives the
-  marker; a corrupt marker is only reported.
+- A dry run (`confirm === false`) takes no lock and never writes, rewrites
+  or archives the marker. It reads it, so an already-sent item previews as a
+  skip and a pending or corrupt marker fails the item as it would on
+  `--confirm`.
+- A confirmed run takes the campaign lock (§5.5), then reads the marker once,
+  before the `/integrations` call.
+- Before each `POST /posts`, the item is written to the marker as
+  `state: "pending"`, atomically (a temp file unique to the process, then
+  `rename`). If that write fails, the request is not sent: the item fails and
+  the rest of the run hard-stops, because an unrecorded create could not be
+  skipped on the next run.
+- When Postiz accepts the item, the entry is rewritten without `state`
+  (accepted and recorded) before the next request. If that write fails, the
+  item is still `draft-external` and its detail says so; the pending entry
+  stays, so a re-run reports it unconfirmed rather than sending it again.
+- When Postiz rejects the item (4xx/5xx), the pending entry is removed again.
+  A marker this run created that would be left empty is deleted, so a run in
+  which no item was accepted leaves no marker.
+- When Postiz answers 2xx with a body that is not JSON, the post was most
+  likely created: the item fails with "not confirmed — check Postiz before
+  re-sending" and its entry stays pending.
+- A resumed run skips accepted entries and reports a pending entry as a
+  failed item, "Unconfirmed: … check Postiz before re-sending", with the
+  marker path and the entry key to delete to send it again. A run killed
+  while a request is in flight therefore never creates that item twice; the
+  cost is one item the user has to check by hand.
+- Network errors are treated as a rejection (the pending entry is removed),
+  as before. A timeout after the request reached Postiz can still duplicate
+  that one item on a re-run.
 
 ### 5.4 Corruption handling
 
-If `loadSentMarker` fails to parse the file (malformed JSON, wrong shape,
-truncated file), it MUST:
+If the marker file cannot be read or parsed, or has the wrong shape,
+`readSentMarker` reports `state: "corrupt"` and changes nothing. The adapter
+then fails every item, in a dry run and a confirmed run, with a detail that
+names the file: a corrupt marker may record posts Postiz already created, and
+starting from an empty marker would create them all again. The file is left
+in place for the user to inspect and move aside (which then re-sends every
+item). Earlier versions archived it to `*.corrupt.<ISO>.json` and re-sent
+everything; that is no longer the case.
 
-1. Log a warning via `writeStderr(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail }))`.
-2. Rename the bad file to `<campaign>-postiz.corrupt.<ISO>.json` (debug
-   evidence — do not delete).
-3. Return a fresh empty marker: `{ version: 1, campaign, catalog: "postiz", sent: {} }`.
-4. **Never crash the adapter.** The cost of a re-send is usually benign
-   (postiz drafts are a human-in-the-loop surface); crashing the
-   publisher is worse.
+### 5.5 One run per campaign
 
-Reference implementation:
-
-```ts
-const loadSentMarker = async (path: string): Promise<PostizSentMarker> => {
-  const empty = (): PostizSentMarker => ({ version: 1, campaign: extractCampaignFromPath(path), catalog: "postiz", sent: {} });
-  try {
-    const file = Bun.file(path);
-    if (!(await file.exists())) return empty();
-    const raw = await file.text();
-    const parsed = JSON.parse(raw) as unknown;
-    if (!isPostizSentMarker(parsed)) {
-      await archiveCorrupt(path);
-      writeStderr(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: "shape mismatch" }));
-      return empty();
-    }
-    return parsed;
-  } catch (e) {
-    await archiveCorrupt(path).catch(() => {});
-    writeStderr(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: e instanceof Error ? e.message : String(e) }));
-    return empty();
-  }
-};
-```
+A confirmed run holds `<marker>.lock`, created with `O_EXCL` and holding the
+process id, for its whole length. A second confirmed run on the same
+campaign fails every item ("Another mktg publish run … is sending this
+campaign") and sends nothing. A lock whose process no longer exists (a run
+that was killed) is taken over. Directories created only for the lock are
+removed again when the run sends nothing.
 
 The shape guard `isPostizSentMarker` is a straightforward `typeof`
 chain — spec'd in `tests/integration/postiz-idempotency.test.ts`

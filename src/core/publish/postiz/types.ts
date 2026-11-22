@@ -69,7 +69,13 @@ export type CreatePostDto = {
   }[];
 };
 
-type PostizSentEntry = { readonly postedAt: string; readonly providers: readonly string[] };
+/**
+ * One item Postiz was asked to create. `state: "pending"` is written before
+ * the create request is sent and removed once Postiz accepts it, so an entry
+ * still pending after a crash means "sent, answer not recorded": a resumed
+ * run reports it unconfirmed instead of creating it again.
+ */
+type PostizSentEntry = { readonly postedAt: string; readonly providers: readonly string[]; readonly state?: "pending" };
 
 export type PostizSentMarker = {
   readonly version: 1;

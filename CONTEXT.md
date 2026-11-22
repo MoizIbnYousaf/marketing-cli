@@ -232,6 +232,12 @@ mktg publish --native-list-posts --json
 # A publish without --confirm (or with --dry-run) writes nothing anywhere:
 # no native account, no providers.json, no Postiz sent-marker. A corrupt
 # sent-marker or unreadable account.json is reported, not repaired.
+# Postiz exactly-once: each item is recorded "pending" in the sent-marker
+# before its create is sent; a confirmed run holds <marker>.lock. A resumed
+# run skips accepted items and fails a pending one as "Unconfirmed … check
+# Postiz" instead of re-sending it. A corrupt marker, an unwritable marker
+# folder or a second run on the same campaign fails the items (exit 4) and
+# sends nothing.
 # --native-account --dry-run / --native-upsert-provider --dry-run report what
 # they would create (wouldCreate[] / wouldWrite[]) and write nothing.
 

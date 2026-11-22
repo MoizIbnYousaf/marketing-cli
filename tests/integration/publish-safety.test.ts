@@ -161,7 +161,9 @@ describe("a dry run writes nothing", () => {
       await expectNoChange(["--adapter", "postiz", "--dry-run", "--json"], p.env);
       await writeFile(marker, "{not json");
       const r = await expectNoChange(["--adapter", "postiz", "--dry-run", "--json"], p.env);
-      expect(r.stdout).toContain("postiz-sent-marker-corrupt");
+      // Reported in the result as data (exit 4: a confirmed run would refuse), not repaired.
+      expect(r.exitCode).toBe(4);
+      expect((r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results[0]!.detail).toContain("is unreadable");
       await expectNoChange(["--adapter", "postiz", "--dry-run", "--json"]); // no key either
       expect(p.seen.filter((s) => s.startsWith("POST"))).toEqual([]);
     } finally {
@@ -280,7 +282,7 @@ describe("postiz: one create per item", () => {
       expect(s.seen.filter((x) => x.startsWith("POST"))).toEqual(["POST /public/v1/posts"]);
       const res = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results[0]!;
       expect(res.status).toBe("failed");
-      expect(res.detail).toContain("Invalid JSON response");
+      expect(res.detail).toContain("not JSON, so the draft is not confirmed");
     } finally {
       s.server.stop(true);
     }
