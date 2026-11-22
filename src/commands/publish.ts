@@ -47,7 +47,7 @@ export const schema: CommandSchema = {
   output: {
     campaign: "string — campaign name from manifest",
     adapters: "AdapterResult[] — per-adapter publish results",
-    "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (typefully without publish_at, postiz) | sent (resend; typefully with metadata.publish_at: published or scheduled) | written-file (file) | failed | skipped. Definitions: skills/cmo/rules/publish-index.md",
+    "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (postiz; typefully when Typefully answers status draft) | sent (resend; typefully when Typefully answers scheduled, publishing or published) | written-file (file) | failed | skipped. Definitions: skills/cmo/rules/publish-index.md",
     totalItems: "number — total content items processed",
     published: "number — items actually sent or scheduled (status sent). Never counts drafts, local queue entries or written files. Same field per adapter in adapters[]",
     drafts: "number — items staged as an external draft (status draft-external); also per adapter",

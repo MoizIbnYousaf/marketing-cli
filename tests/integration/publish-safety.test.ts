@@ -235,16 +235,18 @@ describe("a failed confirmed run leaves nothing new behind", () => {
 
 // ---------------------------------------------------------------- provider answers
 
-/** A local Typefully v2 stand-in that answers every draft POST with `postBody` (raw text). */
-const startTypefully = (postBody: string, postStatus = 200) => {
+/** A local Typefully v2 stand-in that answers every draft POST with `postBody` (raw text, or built from the request). */
+const startTypefully = (postBody: string | ((request: Record<string, unknown>) => string), postStatus = 200) => {
   const posts: unknown[] = [];
   const server = Bun.serve({
     port: 0,
     fetch: async (req) => {
       const path = new URL(req.url).pathname;
       if (req.method === "POST" && path === "/v2/social-sets/4242/drafts") {
-        posts.push(JSON.parse(await req.text()));
-        return new Response(postBody, { status: postStatus, headers: { "Content-Type": "application/json" } });
+        const request = JSON.parse(await req.text()) as Record<string, unknown>;
+        posts.push(request);
+        const text = typeof postBody === "string" ? postBody : postBody(request);
+        return new Response(text, { status: postStatus, headers: { "Content-Type": "application/json" } });
       }
       return new Response("not found", { status: 404 });
     },
@@ -260,6 +262,23 @@ const typefullyItem = (metadata: Record<string, unknown> = {}) =>
   ({ type: "social", adapter: "typefully", content: "tf x", metadata: { platforms: ["x"], ...metadata } });
 
 describe("a malformed provider answer is a failure", () => {
+  test("typefully: a 2xx JSON answer without a draft id (null, {}, a number) is not a draft", async () => {
+    for (const body of ["null", "{}", "42", "[]"]) {
+      const t = startTypefully(body, 200);
+      try {
+        await writeFile(join(sb.project, "publish.json"), manifest([typefullyItem()]));
+        const r = await runPublish(sb, ["--adapter", "typefully", "--confirm", "--json"], t.env);
+        expect(r.exitCode).toBe(4);
+        const data = r.json as { drafts: number; adapters: { results: { status: string; detail: string }[] }[] };
+        expect(data.adapters[0]!.results[0]!.status).toBe("failed");
+        expect(data.adapters[0]!.results[0]!.detail).toContain("without a draft id");
+        expect(data.drafts).toBe(0);
+      } finally {
+        t.server.stop(true);
+      }
+    }
+  }, T);
+
   test("typefully: 2xx with a body that is not JSON marks the item failed and counts nothing", async () => {
     const t = startTypefully('{"truncated": [');
     try {
@@ -321,8 +340,16 @@ describe("postiz: one create per item", () => {
 });
 
 describe("typefully: a send is reported as a send", () => {
-  test("publish_at now / next-free-slot / a time is sent; no publish_at is a draft", async () => {
-    const t = startTypefully('{"id": 1}', 201);
+  /** Answers the way Typefully v2 does: the draft's own status, from what was asked. */
+  const honest = (request: Record<string, unknown>): string => {
+    const at = request.publish_at;
+    if (at === undefined) return JSON.stringify({ id: 1, status: "draft", scheduled_date: null });
+    if (at === "now") return JSON.stringify({ id: 2, status: "publishing", scheduled_date: null });
+    return JSON.stringify({ id: 3, status: "scheduled", scheduled_date: at === "next-free-slot" ? "2026-12-02T09:00:00Z" : at });
+  };
+
+  test("publish_at now / next-free-slot / a time is sent when Typefully says so; no publish_at is a draft", async () => {
+    const t = startTypefully(honest, 201);
     try {
       await writeFile(join(sb.project, "publish.json"), manifest([
         typefullyItem({ publish_at: "now" }),
@@ -334,9 +361,58 @@ describe("typefully: a send is reported as a send", () => {
       const results = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results;
       expect((t.posts as { publish_at?: string }[]).map((p) => p.publish_at)).toEqual(["now", "next-free-slot", "2026-12-01T10:00:00Z", undefined]);
       expect(results.map((x) => x.status)).toEqual(["sent", "sent", "sent", "draft-external"]);
-      expect(results[0]!.detail).toContain("publish now");
-      expect(results[1]!.detail).toContain("next free slot");
+      expect(results[0]!.detail).toContain("publishing it now");
+      expect(results[1]!.detail).toContain("Scheduled on Typefully for 2026-12-02T09:00:00Z");
       expect(results[2]!.detail).toContain("Scheduled on Typefully for 2026-12-01T10:00:00Z");
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+
+  test("an answer that kept the post as a draft is reported as a draft, not as sent", async () => {
+    const t = startTypefully('{"id": 7, "status": "draft", "scheduled_date": null}', 201);
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([
+        typefullyItem({ publish_at: "now" }), typefullyItem({ publish_at: "next-free-slot" }), typefullyItem({ publish_at: "2027-01-01T10:00:00Z" }),
+      ]));
+      const r = await runPublish(sb, ["--adapter", "typefully", "--confirm", "--json"], t.env);
+      const data = r.json as { published: number; drafts: number; adapters: { results: { status: string; detail: string }[] }[] };
+      expect(data.adapters[0]!.results.map((x) => x.status)).toEqual(["draft-external", "draft-external", "draft-external"]);
+      expect(data.adapters[0]!.results[0]!.detail).toContain("NOT scheduled");
+      expect({ published: data.published, drafts: data.drafts }).toEqual({ published: 0, drafts: 3 });
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+
+  test("an answer with no recognised status does not confirm a publish_at", async () => {
+    const t = startTypefully('{"id": 8}', 201);
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([typefullyItem({ publish_at: "now" }), typefullyItem()]));
+      const r = await runPublish(sb, ["--adapter", "typefully", "--confirm", "--json"], t.env);
+      const results = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results;
+      expect(results.map((x) => x.status)).toEqual(["failed", "draft-external"]);
+      expect(results[0]!.detail).toContain("not confirmed");
+      expect(r.exitCode).toBe(4);
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+
+  test("a publish_at Typefully cannot read fails the item in the dry run and the confirmed run, before any request", async () => {
+    const t = startTypefully(honest, 201);
+    try {
+      for (const at of ["garbage-time", "NOW", 1767225600, ["now"]]) {
+        await writeFile(join(sb.project, "publish.json"), manifest([typefullyItem({ publish_at: at })]));
+        for (const extra of [[], ["--confirm"]]) {
+          const r = await runPublish(sb, ["--adapter", "typefully", ...extra, "--json"], t.env);
+          expect(r.exitCode).toBe(4);
+          const res = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results[0]!;
+          expect(res.status).toBe("failed");
+          expect(res.detail).toContain("metadata.publish_at must be");
+        }
+      }
+      expect(t.posts).toEqual([]);
     } finally {
       t.server.stop(true);
     }
@@ -345,7 +421,8 @@ describe("typefully: a send is reported as a send", () => {
 
 describe("published counts sends only", () => {
   test("drafts, local queue entries and written files are counted apart, top-level and per adapter", async () => {
-    const t = startTypefully('{"id": 1}', 201);
+    const t = startTypefully((request) =>
+      JSON.stringify(request.publish_at === undefined ? { id: 1, status: "draft" } : { id: 2, status: "scheduled", scheduled_date: "2026-12-02T09:00:00Z" }), 201);
     try {
       const up = await runPublish(sb, ["--native-upsert-provider", "--input", JSON.stringify({ identifier: "linkedin", name: "LI", profile: "li" }), "--json"]);
       expect(up.exitCode).toBe(0);
@@ -377,6 +454,40 @@ describe("failure is visible in the exit code", () => {
     await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
     expect((await runPublish(sb, ["--confirm", "--json"])).exitCode).toBe(0);
     expect((await runPublish(sb, ["--json"])).exitCode).toBe(0);
+  }, T);
+
+  test("a dry run fails a Typefully item the confirmed run would refuse: an unsupported platform, a bad social_set_id", async () => {
+    const keys = { TYPEFULLY_API_KEY: "dummy-not-real", TYPEFULLY_API_BASE: "http://127.0.0.1:9/v2" };
+    for (const metadata of [{ platforms: ["myspace"] }, { social_set_id: "1/../me" }]) {
+      await writeFile(join(sb.project, "publish.json"), manifest([{ type: "social", adapter: "typefully", content: "tf", metadata }]));
+      const r = await expectNoChange(["--adapter", "typefully", "--json"], keys);
+      expect(r.exitCode).toBe(4);
+      expect((r.json as { adapters: { results: { status: string }[] }[] }).adapters[0]!.results[0]!.status).toBe("failed");
+    }
+  }, T);
+
+  test("--ndjson prints a failed line for every failed item, on every failure path", async () => {
+    const p = startPostiz();
+    try {
+      const cases: [Record<string, unknown>[], Record<string, string>][] = [
+        [[typefullyItem()], {}], // no key
+        [[{ type: "email", adapter: "resend", content: "e" }], {}], // no key
+        [[postizItem], {}], // no key: every item fails before any request
+        [[{ ...postizItem, metadata: { providers: ["myspace"] } }, { ...postizItem, metadata: {} }], p.env], // unconnected, missing providers
+      ];
+      for (const [items, env] of cases) {
+        await writeFile(join(sb.project, "publish.json"), manifest(items));
+        for (const extra of [[], ["--confirm"]]) {
+          const r = await runPublish(sb, ["--ndjson", ...extra, "--json"], env);
+          expect(r.exitCode).toBe(4);
+          const lines = r.stdout.trim().split("\n").slice(0, -1).map((l) => JSON.parse(l) as { item: number; status: string; detail?: string });
+          expect(lines.map((l) => [l.item, l.status])).toEqual(items.map((_, i) => [i, "failed"]));
+          expect(lines.every((l) => typeof l.detail === "string" && l.detail.length > 0)).toBe(true);
+        }
+      }
+    } finally {
+      p.server.stop(true);
+    }
   }, T);
 
   test("a dry run with an item that cannot be planned exits 4 too", async () => {

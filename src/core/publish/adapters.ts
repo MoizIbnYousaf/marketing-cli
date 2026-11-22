@@ -70,6 +70,7 @@ export const publishResend = async (
   const results: AdapterResultItem[] = [];
 
   if (!apiKey) {
+    if (ndjson) for (let i = 0; i < items.length; i++) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: "failed", detail: "API key missing" }));
     return {
       adapter: "resend", items: items.length, ...allFailedCounts(items.length),
       errors: ["RESEND_API_KEY not set"],

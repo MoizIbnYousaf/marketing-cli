@@ -126,7 +126,7 @@ describe("publishTypefully (v2)", () => {
 
   test("item metadata overrides the environment social set", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/999/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/999/drafts", { status: 201, body: { id: "d9", status: "draft" } });
 
     const result = await publishTypefully([social("override", { social_set_id: "999" })], true, false);
 
@@ -161,7 +161,7 @@ describe("publishTypefully (v2)", () => {
   });
   test("a scheduled post is reported as sent, not as a draft", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201, body: { id: "d3", status: "scheduled", scheduled_date: null } });
 
     const result = await publishTypefully([social("later", { publish_at: "next-free-slot" })], true, false);
 
@@ -173,7 +173,7 @@ describe("publishTypefully (v2)", () => {
 
   test("share is sent as a boolean whether the manifest used a boolean or a string", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201, body: { id: "d4", status: "draft" } });
     const asBoolean = { share: true } as unknown as PublishItem["metadata"];
 
     await publishTypefully([social("a", asBoolean), social("b", { share: "true" })], true, false);
