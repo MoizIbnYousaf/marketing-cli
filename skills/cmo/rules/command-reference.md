@@ -68,10 +68,10 @@ routing, see `rules/publish-index.md`.
 | Command | CMO uses this when… |
 |---|---|
 | `mktg publish --list-adapters --json` | Show available adapters (`mktg-native`, `postiz`, `typefully`, `resend`, `file`) + configured status. |
-| `mktg publish --native-account --json` | Show or auto-provision the local mktg-native workspace account. |
+| `mktg publish --native-account --json` | Show or auto-provision the local mktg-native workspace account. `--dry-run` writes nothing and reports `wouldCreate[]`. |
 | `mktg publish --native-upsert-provider --input '{...}' --json` | Create/update an X, TikTok, Instagram, Reddit, or LinkedIn native provider. |
-| `mktg publish --adapter mktg-native --list-integrations --json` | List local native providers before targeting them in a manifest. |
-| `mktg publish --native-list-posts --json` | Read local native queue/history state. |
+| `mktg publish --adapter mktg-native --list-integrations --json` | List local native providers before targeting them in a manifest. Read-only; `accountState` says whether an account exists. |
+| `mktg publish --native-list-posts --json` | Read local native queue/history state. Read-only; never creates the account. |
 | `mktg publish --adapter postiz --list-integrations --json` | List connected Postiz providers before creating external drafts. |
 | `mktg publish --adapter postiz --diagnose --json` | Verify hosted or self-hosted Postiz auth, `/api` routing, and active provider state. |
 | `mktg publish --adapter <name> --dry-run --input '<json>' --json` | Preview before any real send. Always dry-run first. |

@@ -221,6 +221,13 @@ mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' -
 # postiz) | sent (resend) | written-file (file) | failed | skipped.
 # A local queue write is never "sent"; an external draft is never "published".
 mktg publish --native-list-posts --json
+# Read-only: --native-list-posts and --list-integrations never write; with no
+# account yet they return an empty list and accountState:"missing".
+# A publish without --confirm (or with --dry-run) writes nothing anywhere:
+# no native account, no providers.json, no Postiz sent-marker. A corrupt
+# sent-marker or unreadable account.json is reported, not repaired.
+# --native-account --dry-run / --native-upsert-provider --dry-run report what
+# they would create (wouldCreate[] / wouldWrite[]) and write nothing.
 
 # Adapter-scoped flags: --list-integrations (mktg-native, postiz) and
 # --diagnose (postiz). Any other --adapter returns UNSUPPORTED_FLAG, exit 2,

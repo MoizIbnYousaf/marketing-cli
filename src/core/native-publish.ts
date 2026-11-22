@@ -219,6 +219,60 @@ export const ensureNativePublishAccount = async (cwd: string): Promise<NativePub
   return account;
 };
 
+/** Whether account.json exists and parses, read without writing anything. */
+export type NativeAccountState = "present" | "missing" | "unreadable";
+
+export const readNativePublishAccount = async (
+  cwd: string,
+): Promise<{ readonly state: NativeAccountState; readonly account: NativePublishAccount | null }> => {
+  if (!(await Bun.file(accountPath(cwd)).exists())) return { state: "missing", account: null };
+  const account = await readJson(accountPath(cwd), isNativeAccount, null);
+  return account ? { state: "present", account } : { state: "unreadable", account: null };
+};
+
+/** `--native-account --dry-run`: what exists, and what a real run would create. Writes nothing. */
+export type NativePublishAccountPreview = {
+  readonly adapter: "mktg-native";
+  readonly dryRun: true;
+  readonly accountState: NativeAccountState;
+  readonly account: NativePublishAccountSummary["account"] | null;
+  readonly wouldCreate: readonly string[];
+  readonly detail: string;
+  readonly providerCount: number;
+  readonly postCount: number;
+};
+
+export const previewNativePublishAccount = async (cwd: string): Promise<NativePublishAccountPreview> => {
+  const { state, account } = await readNativePublishAccount(cwd);
+  const [providersFile, postsFile] = await Promise.all([
+    readJson(providersPath(cwd), isNativeProvidersFile, emptyProviders()),
+    readJson(postsPath(cwd), isNativePostsFile, emptyPosts()),
+  ]);
+  const file = `${NATIVE_DIR}/${ACCOUNT_FILE}`;
+  return {
+    adapter: "mktg-native",
+    dryRun: true,
+    accountState: state,
+    account: account ? summarizeAccount(account) : null,
+    wouldCreate: state === "present" ? [] : [file],
+    detail:
+      state === "present" ? "Account exists; nothing would change."
+        : state === "missing" ? `No account yet; a run without --dry-run would create ${file} with a new API key.`
+          : `${file} is unreadable; a run without --dry-run would replace it with a new account and API key. Nothing was changed.`,
+    providerCount: providersFile.providers.length,
+    postCount: postsFile.posts.length,
+  };
+};
+
+const summarizeAccount = (account: NativePublishAccount): NativePublishAccountSummary["account"] => ({
+  id: account.id,
+  apiKey: account.apiKey,
+  apiKeyPreview: accountPreview(account.apiKey),
+  mode: account.mode,
+  createdAt: account.createdAt,
+  updatedAt: account.updatedAt,
+});
+
 export const getNativePublishAccountSummary = async (
   cwd: string,
 ): Promise<NativePublishAccountSummary> => {
@@ -230,14 +284,7 @@ export const getNativePublishAccountSummary = async (
 
   return {
     adapter: "mktg-native",
-    account: {
-      id: account.id,
-      apiKey: account.apiKey,
-      apiKeyPreview: accountPreview(account.apiKey),
-      mode: account.mode,
-      createdAt: account.createdAt,
-      updatedAt: account.updatedAt,
-    },
+    account: summarizeAccount(account),
     providerCount: providersFile.providers.length,
     postCount: postsFile.posts.length,
   };
@@ -246,7 +293,8 @@ export const getNativePublishAccountSummary = async (
 export const listNativePublishProviders = async (
   cwd: string,
 ): Promise<readonly NativePublishProvider[]> => {
-  await ensureNativePublishAccount(cwd);
+  // Read-only: listing providers (and resolving publish targets, which also
+  // runs in a dry run) must never create the account.
   const file = await readJson(providersPath(cwd), isNativeProvidersFile, emptyProviders());
   return [...file.providers].sort((a, b) =>
     a.identifier === b.identifier
@@ -258,8 +306,10 @@ export const listNativePublishProviders = async (
 export const upsertNativePublishProvider = async (
   cwd: string,
   input: NativePublishProviderInput,
+  opts: { readonly dryRun?: boolean } = {},
 ): Promise<NativePublishProvider> => {
-  await ensureNativePublishAccount(cwd);
+  // A dry run validates and returns the provider it would write, and writes nothing.
+  if (!opts.dryRun) await ensureNativePublishAccount(cwd);
 
   const identifierCheck = validateResourceId(input.identifier, "provider");
   if (!identifierCheck.ok) throw new Error(identifierCheck.message);
@@ -300,14 +350,14 @@ export const upsertNativePublishProvider = async (
   if (index >= 0) providers[index] = next;
   else providers.push(next);
 
-  await writeJsonAtomic(providersPath(cwd), { version: 1, providers });
+  if (!opts.dryRun) await writeJsonAtomic(providersPath(cwd), { version: 1, providers });
   return next;
 };
 
 export const listNativePublishPosts = async (
   cwd: string,
 ): Promise<readonly NativePublishPost[]> => {
-  await ensureNativePublishAccount(cwd);
+  // Read-only listing: never creates the account.
   const file = await readJson(postsPath(cwd), isNativePostsFile, emptyPosts());
   return [...file.posts].sort((a, b) => b.date.localeCompare(a.date));
 };

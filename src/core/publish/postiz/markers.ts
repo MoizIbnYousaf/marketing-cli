@@ -43,23 +43,32 @@ const archiveCorrupt = async (path: string): Promise<void> => {
   try { await rename(path, corruptPath); } catch { /* best-effort */ }
 };
 
-export const loadSentMarker = async (path: string, campaign: string): Promise<PostizSentMarker> => {
+/**
+ * Read the sent-marker. A corrupt file is archived (renamed aside) only when
+ * `repair` is true; a dry run passes false, so it reports and changes nothing.
+ */
+export const loadSentMarker = async (
+  path: string,
+  campaign: string,
+  opts: { readonly repair?: boolean } = {},
+): Promise<PostizSentMarker> => {
+  const repair = opts.repair ?? true;
   try {
     const file = Bun.file(path);
     if (!(await file.exists())) return emptySentMarker(campaign);
     const raw = await file.text();
     const parsed = JSON.parse(raw) as unknown;
     if (!isPostizSentMarker(parsed)) {
-      await archiveCorrupt(path);
-      writeStdout(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: "shape mismatch" }));
+      if (repair) await archiveCorrupt(path);
+      writeStdout(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: "shape mismatch", archived: repair }));
       return emptySentMarker(campaign);
     }
     // If campaign doesn't match the on-disk file, start fresh (prevents cross-campaign replay).
     if (parsed.campaign !== campaign) return emptySentMarker(campaign);
     return parsed;
   } catch (e) {
-    await archiveCorrupt(path);
-    writeStdout(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: e instanceof Error ? e.message : String(e) }));
+    if (repair) await archiveCorrupt(path);
+    writeStdout(JSON.stringify({ type: "postiz-sent-marker-corrupt", path, detail: e instanceof Error ? e.message : String(e), archived: repair }));
     return emptySentMarker(campaign);
   }
 };

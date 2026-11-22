@@ -254,6 +254,8 @@ export type PublishAdapter = {
 
 export type IntegrationsData = {
   readonly adapter: string;
+  /** mktg-native only: whether .mktg/native-publish/account.json exists. Listing never creates it. */
+  readonly accountState?: "present" | "missing" | "unreadable";
   readonly integrations: readonly {
     readonly id: string;
     readonly identifier: string;
@@ -296,6 +298,8 @@ export type NativeProviderData = {
 
 export type NativePostsData = {
   readonly adapter: "mktg-native";
+  /** Whether .mktg/native-publish/account.json exists. Listing never creates it. */
+  readonly accountState?: "present" | "missing" | "unreadable";
   readonly posts: readonly {
     readonly id: string;
     readonly campaign: string;

@@ -59,6 +59,12 @@ mktg publish --adapter mktg-native --list-integrations --json
 mktg publish --native-list-posts --json
 ```
 
+Listings (`--native-list-posts`, `--list-integrations`) never write. With no
+account yet they return an empty list and `accountState: "missing"`. A dry run
+(no `--confirm`, or `--dry-run`) writes nothing anywhere; `--native-account
+--dry-run` and `--native-upsert-provider --dry-run` report what they would
+create instead.
+
 Native publish manifest shape:
 
 ```json

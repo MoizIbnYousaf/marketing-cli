@@ -10,6 +10,8 @@ import { hasFlag, flagValue } from "../core/args";
 import {
   getNativePublishAccountSummary,
   listNativePublishPosts,
+  previewNativePublishAccount,
+  readNativePublishAccount,
   upsertNativePublishProvider,
   type NativePublishProviderInput,
 } from "../core/native-publish";
@@ -36,11 +38,11 @@ export const schema: CommandSchema = {
     { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file). An unknown name exits 2 INVALID_ARGS before anything runs." },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream progress as NDJSON lines" },
     { name: "--list-adapters", type: "boolean", required: false, description: "List available adapters with env var requirements and configured status" },
-    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
+    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Read-only: never writes a file. mktg-native adds accountState (present | missing | unreadable). Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
     { name: "--diagnose", type: "boolean", required: false, description: "Run adapter connection diagnostics. Supported adapters: postiz. Others return UNSUPPORTED_FLAG (exit 2)." },
-    { name: "--native-account", type: "boolean", required: false, description: "Show or auto-provision the local mktg-native workspace account and API key" },
-    { name: "--native-upsert-provider", type: "boolean", required: false, description: "Create or update a local mktg-native provider using --input JSON" },
-    { name: "--native-list-posts", type: "boolean", required: false, description: "List locally stored mktg-native posts in queue/history order" },
+    { name: "--native-account", type: "boolean", required: false, description: "Show or auto-provision the local mktg-native workspace account and API key. With --dry-run it writes nothing and returns {dryRun, accountState, account|null, wouldCreate[], detail}" },
+    { name: "--native-upsert-provider", type: "boolean", required: false, description: "Create or update a local mktg-native provider using --input JSON. With --dry-run it validates, writes nothing, and returns {provider, dryRun, wouldWrite[]}" },
+    { name: "--native-list-posts", type: "boolean", required: false, description: "List locally stored mktg-native posts in queue/history order. Read-only: never creates the account; returns {adapter, accountState, posts}" },
   ],
   output: {
     campaign: "string — campaign name from manifest",
@@ -65,9 +67,10 @@ export const schema: CommandSchema = {
   vocabulary: ["publish", "distribute", "push", "ship", "deploy content"],
 };
 
-type NativeAccountResult = Awaited<ReturnType<typeof getNativePublishAccountSummary>>;
-type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
-type NativeUpsertProviderResult = { readonly adapter: "mktg-native"; readonly provider: Awaited<ReturnType<typeof upsertNativePublishProvider>> };
+type NativeAccountResult = Awaited<ReturnType<typeof getNativePublishAccountSummary>> | Awaited<ReturnType<typeof previewNativePublishAccount>>;
+type NativeAccountState = Awaited<ReturnType<typeof readNativePublishAccount>>["state"];
+type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly accountState: NativeAccountState; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
+type NativeUpsertProviderResult = { readonly adapter: "mktg-native"; readonly provider: Awaited<ReturnType<typeof upsertNativePublishProvider>>; readonly dryRun?: true; readonly wouldWrite?: readonly string[] };
 
 type PublishResult = {
   readonly campaign: string;
@@ -99,12 +102,14 @@ export const handler: CommandHandler<
     );
   }
 
+  // Maintenance flags: --dry-run writes nothing; listings never write.
   if (hasFlag(args, "--native-account")) {
-    return ok(await getNativePublishAccountSummary(flags.cwd));
+    return ok(flags.dryRun ? await previewNativePublishAccount(flags.cwd) : await getNativePublishAccountSummary(flags.cwd));
   }
 
   if (hasFlag(args, "--native-list-posts")) {
-    return ok({ adapter: "mktg-native", posts: await listNativePublishPosts(flags.cwd) });
+    const { state } = await readNativePublishAccount(flags.cwd);
+    return ok({ adapter: "mktg-native", accountState: state, posts: await listNativePublishPosts(flags.cwd) });
   }
 
   if (hasFlag(args, "--native-upsert-provider")) {
@@ -123,7 +128,15 @@ export const handler: CommandHandler<
       return err("INVALID_ARGS", parsed.message, ["Pass a valid JSON object for the native provider input"], 2);
     }
     try {
-      const provider = await upsertNativePublishProvider(flags.cwd, parsed.data);
+      const provider = await upsertNativePublishProvider(flags.cwd, parsed.data, { dryRun: flags.dryRun });
+      if (flags.dryRun) {
+        const { state } = await readNativePublishAccount(flags.cwd);
+        const wouldWrite = [
+          ...(state === "present" ? [] : [".mktg/native-publish/account.json"]),
+          ".mktg/native-publish/providers.json",
+        ];
+        return ok({ adapter: "mktg-native", provider, dryRun: true, wouldWrite });
+      }
       return ok({ adapter: "mktg-native", provider });
     } catch (error) {
       return err(

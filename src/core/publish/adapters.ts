@@ -6,7 +6,9 @@ import { writeStdout } from "../output";
 import {
   appendNativePublishPost,
   listNativePublishProviders,
+  readNativePublishAccount,
   resolveNativePublishTargets,
+  type NativeAccountState,
 } from "../native-publish";
 import { type AdapterResult, type AdapterResultItem, type PublishItem, countTerminal } from "./types";
 import { type ListIntegrationsResult } from "./postiz/types";
@@ -40,12 +42,14 @@ export const pushDryRunSkip = (
 
 export const listNativeIntegrations = async (
   cwd: string,
-): Promise<{ ok: true; data: ListIntegrationsResult }> => {
+): Promise<{ ok: true; data: ListIntegrationsResult & { readonly accountState: NativeAccountState } }> => {
   const integrations = await listNativePublishProviders(cwd);
+  const { state } = await readNativePublishAccount(cwd);
   return {
     ok: true,
     data: {
       adapter: "mktg-native",
+      accountState: state,
       integrations: integrations.map((integration) => ({
         id: integration.id,
         identifier: integration.identifier,

@@ -67,7 +67,8 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     ? inp.campaign
     : `campaign-${createHash("sha256").update(inp.campaign).digest("hex").slice(0, 16)}`;
   const markerPath = join(inp.cwd, ".mktg", "publish", `${campaignFilePart}-postiz.json`);
-  const marker = await loadSentMarker(markerPath, inp.campaign);
+  // A dry run reads the marker but never repairs or rewrites it.
+  const marker = await loadSentMarker(markerPath, inp.campaign, { repair: inp.confirm });
 
   const listRes = await postizFetch<readonly PostizIntegration[]>("/public/v1/integrations", { method: "GET" });
   if (!listRes.ok) {
@@ -165,9 +166,11 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
   }
 
   // Best-effort persist — never crash if disk write fails.
-  await persistSentMarker(markerPath, marker).catch((e) => {
-    writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
-  });
+  if (inp.confirm) {
+    await persistSentMarker(markerPath, marker).catch((e) => {
+      writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
+    });
+  }
 
   return {
     adapter: "postiz",
