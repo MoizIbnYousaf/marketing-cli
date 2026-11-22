@@ -186,6 +186,48 @@ describe("CHANGELOG generation", () => {
 // --skip-publish + --confirm
 // =========================================================================
 
+describe("a hand-written Unreleased section becomes the release notes", () => {
+  test("the heading takes the version, the notes stay, no commit list is added beside them", async () => {
+    await initRepo(scratch, "0.4.0", ["feat: thing"]);
+    const notes = "### Fixed\n\n- **A curated note.** Written by a person, not derived from a commit subject.\n";
+    await writeFile(
+      join(scratch, "CHANGELOG.md"),
+      `# Changelog\n\n## Unreleased\n\n${notes}\n## v0.4.0\n\n### feat\n\n- earlier\n`,
+    );
+    sh("git", ["add", "CHANGELOG.md"], scratch);
+    sh("git", ["commit", "-m", "docs: unreleased notes"], scratch);
+
+    const { exitCode } = await runCli(["release", "minor", "--skip-publish", "--json"], scratch);
+    expect(exitCode).toBe(0);
+
+    const changelog = await readFile(join(scratch, "CHANGELOG.md"), "utf-8");
+    expect(changelog.startsWith(`# Changelog\n\n## v0.5.0\n\n${notes}`)).toBe(true);
+    expect(changelog).not.toContain("## Unreleased");
+    // The commit subjects are in git and in the GitHub release notes; they are
+    // not repeated next to curated notes.
+    expect(changelog).not.toContain("docs: unreleased notes");
+    expect(changelog.match(/^## v0\.5\.0$/gm)?.length).toBe(1);
+    // The older section is untouched.
+    expect(changelog).toContain("## v0.4.0\n\n### feat\n\n- earlier\n");
+  });
+
+  test("an empty Unreleased section is replaced by the generated commit list", async () => {
+    await initRepo(scratch, "0.6.0", ["feat: thing"]);
+    await writeFile(join(scratch, "CHANGELOG.md"), "# Changelog\n\n## Unreleased\n\n## v0.6.0\n\n- earlier\n");
+    sh("git", ["add", "CHANGELOG.md"], scratch);
+    sh("git", ["commit", "-m", "feat: new capability"], scratch);
+
+    const { exitCode } = await runCli(["release", "patch", "--skip-publish", "--json"], scratch);
+    expect(exitCode).toBe(0);
+
+    const changelog = await readFile(join(scratch, "CHANGELOG.md"), "utf-8");
+    expect(changelog).not.toContain("## Unreleased");
+    expect(changelog.startsWith("# Changelog\n\n## v0.6.1\n")).toBe(true);
+    expect(changelog).toContain("- new capability");
+    expect(changelog).toContain("## v0.6.0\n\n- earlier\n");
+  });
+});
+
 describe("--skip-publish stops before bun publish", () => {
   test("commits + tags but does not publish", async () => {
     await initRepo(scratch, "0.1.0", ["feat: thing"]);
@@ -206,6 +248,9 @@ describe("--skip-publish stops before bun publish", () => {
     expect(parsed.next_steps[0]).toBe(`git push origin ${branch} --follow-tags`);
     expect(parsed.next_steps.join(" ")).toContain("v0.2.0");
     expect(parsed.next_steps.join(" ")).toContain("Release workflow");
+    // The workflow stages the version; it is not installable until approved.
+    expect(parsed.next_steps.join(" ")).toContain("stages 0.2.0 on npm");
+    expect(parsed.next_steps.join(" ")).toContain("approves");
     expect("gh_release_created" in parsed).toBe(false);
 
     // Verify package.json was bumped on disk
@@ -268,6 +313,41 @@ describe("--confirm guard for full publish", () => {
     expect(parsed.error.code).toBe("INVALID_ARGS");
     expect(parsed.error.message).toMatch(/--confirm|--skip-publish|--dry-run/);
   });
+
+  test("--confirm with npm lifecycle scripts disabled stops before anything is written", async () => {
+    expect(sh("npm", ["--version"], scratch).ok).toBe(true);
+
+    await initRepo(scratch, "1.5.0", ["feat: ok"]);
+    const pkgPath = join(scratch, "package.json");
+    const pkg = JSON.parse(await readFile(pkgPath, "utf-8"));
+    await writeFile(pkgPath, JSON.stringify({ ...pkg, private: true }, null, 2) + "\n");
+    sh("git", ["commit", "-am", "chore: mark private"], scratch);
+    const headBefore = sh("git", ["rev-parse", "HEAD"], scratch).stdout.trim();
+
+    // With ignore-scripts=true a publish skips prepublishOnly and prepack:
+    // no fresh build, and the workspaces field ships. 0.7.0 went out that way.
+    const npmHome = await mkdtemp(join(tmpdir(), "mktg-release-npm-"));
+    await writeFile(join(npmHome, "user.npmrc"), "ignore-scripts=true\n");
+    await writeFile(join(npmHome, "global.npmrc"), "");
+    try {
+      const { stdout, exitCode } = await runCli(["release", "patch", "--confirm", "--json"], scratch, {
+        NPM_CONFIG_USERCONFIG: join(npmHome, "user.npmrc"),
+        NPM_CONFIG_GLOBALCONFIG: join(npmHome, "global.npmrc"),
+        NPM_CONFIG_TOKEN: "",
+        NODE_AUTH_TOKEN: "",
+      });
+
+      expect(exitCode).toBe(3);
+      const parsed = JSON.parse(stdout);
+      expect(parsed.error.code).toBe("NPM_SCRIPTS_DISABLED");
+      expect(parsed.error.suggestions.join(" ")).toContain("--skip-publish");
+      expect(JSON.parse(await readFile(pkgPath, "utf-8")).version).toBe("1.5.0");
+      expect(sh("git", ["rev-parse", "HEAD"], scratch).stdout.trim()).toBe(headBefore);
+      expect(sh("git", ["tag", "--list"], scratch).stdout.trim()).toBe("");
+    } finally {
+      await rm(npmHome, { recursive: true, force: true });
+    }
+  }, 120_000);
 
   test("--confirm without an npm login stops before anything is written", async () => {
     // The check shells out to npm; without it the command cannot know.
