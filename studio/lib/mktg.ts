@@ -146,9 +146,10 @@ export async function run<T>(
     // Exit 4 with a data payload (no `error` key) is the CLI's "full result as
     // data" convention (docs/EXIT_CODES.md): e.g. `mktg publish` with a failed
     // item. The data carries the failure (`failed`, per-item status), so hand
-    // it to the caller instead of collapsing it into a CLI_ERROR.
+    // it to the caller instead of collapsing it into a CLI_ERROR, and keep
+    // the exit code so the caller can still tell it apart from a clean run.
     if (exitCode === 4 && typeof parsed === "object" && parsed !== null && !("error" in parsed)) {
-      return { ok: true, data: parsed as T, exitCode: 0 };
+      return { ok: true, data: parsed as T, exitCode: 4 };
     }
   } catch {
     // stdout is not JSON

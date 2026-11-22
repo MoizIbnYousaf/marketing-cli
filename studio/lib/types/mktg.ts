@@ -21,7 +21,10 @@ export type MktgError = {
 };
 
 export type CommandResult<T = unknown> =
-  | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string }
+  // exitCode 4 with data: the CLI's "full result as data" convention
+  // (docs/EXIT_CODES.md, Findings vs failures), e.g. `mktg publish` with a
+  // failed item. The data says what failed; the exit code is kept.
+  | { readonly ok: true; readonly data: T; readonly exitCode: 0 | 4; readonly display?: string }
   | { readonly ok: false; readonly error: MktgError; readonly exitCode: ExitCode };
 
 // ─── mktg status ───

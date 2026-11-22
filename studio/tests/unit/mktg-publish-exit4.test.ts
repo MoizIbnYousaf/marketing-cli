@@ -40,7 +40,17 @@ test("a publish with one failed item returns its data, with the failure in it", 
   );
   expect(result.ok).toBe(true);
   if (!result.ok) return;
+  expect(result.exitCode).toBe(4);
   expect(result.data.failed).toBe(1);
   expect(result.data.writtenFiles).toBe(1);
   expect(result.data.published).toBe(0);
+}, 120_000);
+
+test("a clean publish keeps exit code 0", async () => {
+  const result = await mktgPublish(
+    { name: "studio-exit0", items: [{ type: "file", adapter: "file", content: "ok", metadata: { filename: "ok.md" } }] },
+    { confirm: true, cwd: project },
+  );
+  expect(result.ok).toBe(true);
+  expect(result.exitCode).toBe(0);
 }, 120_000);
