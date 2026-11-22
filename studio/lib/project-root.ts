@@ -1,4 +1,4 @@
-import { closeSync, constants, fstatSync, lstatSync, openSync, realpathSync, statSync, type Stats } from "node:fs"
+import { closeSync, constants, fstatSync, lstatSync, openSync, readlinkSync, realpathSync, type Stats } from "node:fs"
 import { dirname, join, relative, resolve, sep } from "node:path"
 
 /**
@@ -105,11 +105,22 @@ export type OpenedProjectFile =
 
 /**
  * Open a path that resolveProjectPath accepted, then confirm the file that was
- * opened is the one whose real location is inside the root: its path must
- * still realpath under the real root, to the same device and inode as the
- * open descriptor. Checking before opening alone loses a race with a process
- * that swaps the path for a symlink in between. O_NONBLOCK keeps a FIFO from
- * blocking the open. The caller reads through `fd` and closes it.
+ * opened is the one whose real location is inside the root. Checking before
+ * opening alone loses a race with a process that swaps the path for a symlink
+ * in between.
+ *
+ * Two checks, both after the open:
+ *   - On Linux the kernel names the file a descriptor points at
+ *     (/proc/self/fd/N), so that name must be under the real root. No later
+ *     swap of the path can change it.
+ *   - Everywhere, the path must realpath under the real root and that real
+ *     path, examined WITHOUT following a final symlink (lstat), must be the
+ *     same device and inode as the descriptor. Following the link here (stat)
+ *     would let a path that was swapped back to the outside symlink match
+ *     again.
+ *
+ * O_NONBLOCK keeps a FIFO from blocking the open. The caller reads through
+ * `fd` and closes it.
  */
 export function openProjectFile(abs: string, root: string): OpenedProjectFile {
   let fd: number
@@ -122,10 +133,13 @@ export function openProjectFile(abs: string, root: string): OpenedProjectFile {
   try {
     const opened = fstatSync(fd)
     const realRoot = realpathSync(root)
+    const under = (path: string): boolean => path === realRoot || path.startsWith(`${realRoot}${sep}`)
+    const named = process.platform === "linux" ? readlinkSync(`/proc/self/fd/${fd}`) : null
     const real = realpathSync(abs)
-    const now = statSync(real)
-    const inside = real === realRoot || real.startsWith(`${realRoot}${sep}`)
-    if (inside && now.dev === opened.dev && now.ino === opened.ino) return { ok: true, fd, stat: opened }
+    const now = lstatSync(real)
+    if ((named === null || under(named)) && under(real) && now.dev === opened.dev && now.ino === opened.ino) {
+      return { ok: true, fd, stat: opened }
+    }
   } catch {
     // fall through to the refusal
   }
