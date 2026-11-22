@@ -112,6 +112,17 @@ const successDetail = (item: PublishItem): string => {
   return `Draft created on Typefully; scheduled for ${publishAt}`;
 };
 
+/** A 2xx whose body is not JSON did not confirm a draft: the reason, or null when the body parses. */
+const malformedAnswer = async (resp: Response): Promise<string | null> => {
+  const text = await resp.text().catch(() => "");
+  try {
+    JSON.parse(text);
+    return null;
+  } catch {
+    return `Invalid JSON response from Typefully (HTTP ${resp.status}); the draft is not confirmed — check Typefully before re-sending`;
+  }
+};
+
 const failureDetail = async (resp: Response): Promise<string> => {
   const text = (await resp.text().catch(() => "")).trim().slice(0, 200);
   return text.length > 0 ? `HTTP ${resp.status}: ${text}` : `HTTP ${resp.status}`;
@@ -153,10 +164,11 @@ export const publishTypefully = async (
           body: JSON.stringify(buildTypefullyDraft(item)),
           signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
+        const malformed = resp.ok ? await malformedAnswer(resp) : null;
         results.push(
-          resp.ok
+          resp.ok && malformed === null
             ? { item: i, status: "draft-external", detail: successDetail(item) }
-            : { item: i, status: "failed", detail: await failureDetail(resp) },
+            : { item: i, status: "failed", detail: malformed ?? await failureDetail(resp) },
         );
       }
     } catch (e) {

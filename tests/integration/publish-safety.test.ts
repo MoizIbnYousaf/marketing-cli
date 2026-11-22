@@ -184,3 +184,48 @@ describe("a failed confirmed run leaves nothing new behind", () => {
     }
   }, T);
 });
+
+// ---------------------------------------------------------------- provider answers
+
+/** A local Typefully v2 stand-in that answers every draft POST with `postBody` (raw text). */
+const startTypefully = (postBody: string, postStatus = 200) => {
+  const posts: unknown[] = [];
+  const server = Bun.serve({
+    port: 0,
+    fetch: async (req) => {
+      const path = new URL(req.url).pathname;
+      if (req.method === "POST" && path === "/v2/social-sets/4242/drafts") {
+        posts.push(JSON.parse(await req.text()));
+        return new Response(postBody, { status: postStatus, headers: { "Content-Type": "application/json" } });
+      }
+      return new Response("not found", { status: 404 });
+    },
+  });
+  return {
+    server,
+    posts,
+    env: { TYPEFULLY_API_KEY: "dummy-not-real", TYPEFULLY_API_BASE: `http://127.0.0.1:${server.port}/v2`, TYPEFULLY_SOCIAL_SET_ID: "4242" },
+  };
+};
+
+const typefullyItem = (metadata: Record<string, unknown> = {}) =>
+  ({ type: "social", adapter: "typefully", content: "tf x", metadata: { platforms: ["x"], ...metadata } });
+
+describe("a malformed provider answer is a failure", () => {
+  test("typefully: 2xx with a body that is not JSON marks the item failed and counts nothing", async () => {
+    const t = startTypefully('{"truncated": [');
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([typefullyItem()]));
+      const r = await runPublish(sb, ["--adapter", "typefully", "--confirm", "--json"], t.env);
+      const data = r.json as { published: number; failed: number; adapters: { published: number; results: { status: string; detail: string }[] }[] };
+      expect(t.posts.length).toBe(1);
+      expect(data.adapters[0]!.results[0]!.status).toBe("failed");
+      expect(data.adapters[0]!.results[0]!.detail).toContain("Invalid JSON response from Typefully");
+      expect(data.adapters[0]!.published).toBe(0);
+      expect(data.published).toBe(0);
+      expect(data.failed).toBe(1);
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+});
