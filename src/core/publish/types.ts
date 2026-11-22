@@ -1,6 +1,6 @@
 // mktg — Shared publish adapter types + terminal-status counting
 
-import { type PublishPostType, type PublishItemStatus, TERMINAL_PUBLISH_STATUSES } from "../../types";
+import { type PublishPostType, type PublishItemStatus } from "../../types";
 
 /** Local metadata-wide publish item (manifest + adapter input). */
 export type PublishItem = {
@@ -23,14 +23,35 @@ export type AdapterResultItem = {
   readonly postType?: PublishPostType;
 };
 
-export type AdapterResult = {
+/**
+ * Counts by outcome. `published` is only what was actually sent or scheduled
+ * (status "sent"); staged work is counted apart and never as published.
+ */
+export type PublishCounts = {
+  readonly published: number;
+  readonly drafts: number;
+  readonly queuedLocal: number;
+  readonly writtenFiles: number;
+  readonly failed: number;
+};
+
+export type AdapterResult = PublishCounts & {
   readonly adapter: string;
   readonly items: number;
-  readonly published: number;
-  readonly failed: number;
   readonly errors: readonly string[];
   readonly results: readonly AdapterResultItem[];
 };
 
-export const countTerminal = (results: readonly { readonly status: PublishItemStatus }[]): number =>
-  results.filter(r => (TERMINAL_PUBLISH_STATUSES as readonly PublishItemStatus[]).includes(r.status)).length;
+const countStatus = (results: readonly { readonly status: PublishItemStatus }[], status: PublishItemStatus): number =>
+  results.filter((r) => r.status === status).length;
+
+export const tallyResults = (results: readonly { readonly status: PublishItemStatus }[]): PublishCounts => ({
+  published: countStatus(results, "sent"),
+  drafts: countStatus(results, "draft-external"),
+  queuedLocal: countStatus(results, "queued-local"),
+  writtenFiles: countStatus(results, "written-file"),
+  failed: countStatus(results, "failed"),
+});
+
+/** Counts for an adapter that failed every item before trying any. */
+export const allFailedCounts = (n: number): PublishCounts => ({ published: 0, drafts: 0, queuedLocal: 0, writtenFiles: 0, failed: n });

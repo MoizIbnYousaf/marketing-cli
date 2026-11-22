@@ -434,10 +434,12 @@ describe("publish --adapter postiz two-step flow", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const data = result.data as { adapters: Array<{ adapter: string; published: number; failed: number }> };
+    const data = result.data as { adapters: Array<{ adapter: string; published: number; drafts: number; failed: number }> };
     const postizResult = data.adapters.find((a) => a.adapter === "postiz");
     expect(postizResult).toBeDefined();
-    expect(postizResult!.published).toBe(1);
+    // A Postiz draft is staged, never counted as published.
+    expect(postizResult!.published).toBe(0);
+    expect(postizResult!.drafts).toBe(1);
     expect(postizResult!.failed).toBe(0);
 
     // Verify both API calls landed.
@@ -481,8 +483,9 @@ describe("publish --adapter postiz two-step flow", () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const data = result.data as { adapters: Array<{ adapter: string; published: number; failed: number }> };
-    expect(data.adapters[0]?.published).toBe(1);
+    const data = result.data as { adapters: Array<{ adapter: string; published: number; drafts: number; failed: number }> };
+    expect(data.adapters[0]?.published).toBe(0);
+    expect(data.adapters[0]?.drafts).toBe(1);
     expect(data.adapters[0]?.failed).toBe(0);
 
     const uploadCalls = captured.filter((c) => c.path === "/public/v1/upload");

@@ -297,7 +297,9 @@ export async function tryPublishRoutes(
         providers.length ? JSON.stringify(providers) : null,
         contentPreview,
         JSON.stringify(data),
-        data.published ?? 0,
+        // items_published = items the adapter accepted (sent + staged), as
+        // before: `published` itself now counts sends only.
+        (data.published ?? 0) + (data.drafts ?? 0) + (data.queuedLocal ?? 0) + (data.writtenFiles ?? 0),
         data.failed ?? 0,
       ],
     );
@@ -307,6 +309,9 @@ export async function tryPublishRoutes(
       payload: {
         adapter: body.data.adapter,
         published: data.published ?? 0,
+        drafts: data.drafts ?? 0,
+        queuedLocal: data.queuedLocal ?? 0,
+        writtenFiles: data.writtenFiles ?? 0,
         failed: data.failed ?? 0,
       },
     });

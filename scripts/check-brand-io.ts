@@ -65,8 +65,8 @@ export const checkBrandIo = async (root: string): Promise<BrandIoReport> => {
     if (!existsSync(skillPath)) continue;
     const text = await Bun.file(skillPath).text();
     const fm = parseFrontmatter(text);
-    // `reads: []` parses as a string, not an array — detect the key by hand so
-    // an explicit empty list still counts as declared.
+    // Detect the key by hand so an explicit empty list (`reads: []`) counts as
+    // declared whatever the parser returns for it.
     const block = text.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
     const declared = /^(reads|writes)\s*:/m.test(block);
     if (!fm || !declared) {

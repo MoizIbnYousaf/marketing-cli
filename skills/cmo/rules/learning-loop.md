@@ -42,7 +42,7 @@ The last 10 learnings inform what NOT to try again.
 
 ## After any meaningful action
 
-First, close the run: `mktg run <skill> --complete --writes <paths> --result success --json`. Only `completed` events count in `mktg plan` / `mktg status`; a bare `mktg run <skill>` is just `loaded`.
+First, close the run: `mktg run <skill> --complete --writes <paths> --result success --json`. Only `completed` events count in `mktg plan` / `mktg status`; a bare `mktg run <skill>` is just `loaded`. A `--result partial` or `--result failed` completion is recorded with its result, but `mktg plan` keeps the task: only `success` advances.
 
 Every successful campaign, every failed experiment, every strategic decision worth remembering writes to `brand/learnings.md`:
 

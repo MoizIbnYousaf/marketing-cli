@@ -6,9 +6,12 @@ import { writeStdout } from "../output";
 import {
   appendNativePublishPost,
   listNativePublishProviders,
+  readNativeProvidersState,
+  readNativePublishAccount,
   resolveNativePublishTargets,
+  type NativeAccountState,
 } from "../native-publish";
-import { type AdapterResult, type AdapterResultItem, type PublishItem, countTerminal } from "./types";
+import { type AdapterResult, type AdapterResultItem, type PublishItem, allFailedCounts, tallyResults } from "./types";
 import { type ListIntegrationsResult } from "./postiz/types";
 
 /** Shared AdapterResult envelope used by typefully / resend / file / mktg-native. */
@@ -19,8 +22,7 @@ export const finalizeAdapterResult = (
 ): AdapterResult => ({
   adapter,
   items: items.length,
-  published: countTerminal(results),
-  failed: results.filter((r) => r.status === "failed").length,
+  ...tallyResults(results),
   errors: results.filter((r) => r.status === "failed").map((r) => r.detail),
   results,
 });
@@ -40,12 +42,16 @@ export const pushDryRunSkip = (
 
 export const listNativeIntegrations = async (
   cwd: string,
-): Promise<{ ok: true; data: ListIntegrationsResult }> => {
+): Promise<{ ok: true; data: ListIntegrationsResult & { readonly accountState: NativeAccountState; readonly providersState: NativeAccountState } }> => {
   const integrations = await listNativePublishProviders(cwd);
+  const { state } = await readNativePublishAccount(cwd);
   return {
     ok: true,
     data: {
       adapter: "mktg-native",
+      accountState: state,
+      // "unreadable": providers.json exists but does not parse, so it lists as empty.
+      providersState: await readNativeProvidersState(cwd),
       integrations: integrations.map((integration) => ({
         id: integration.id,
         identifier: integration.identifier,
@@ -67,8 +73,9 @@ export const publishResend = async (
   const results: AdapterResultItem[] = [];
 
   if (!apiKey) {
+    if (ndjson) for (let i = 0; i < items.length; i++) writeStdout(JSON.stringify({ adapter: "resend", item: i, status: "failed", detail: "API key missing" }));
     return {
-      adapter: "resend", items: items.length, published: 0, failed: items.length,
+      adapter: "resend", items: items.length, ...allFailedCounts(items.length),
       errors: ["RESEND_API_KEY not set"],
       results: items.map((_, i) => ({ item: i, status: "failed" as const, detail: "API key missing" })),
     };
@@ -148,6 +155,17 @@ export const publishNative = async (
   campaign: string,
 ): Promise<AdapterResult> => {
   const results: AdapterResultItem[] = [];
+
+  // An unreadable account.json holds the workspace API key: a confirmed run
+  // must not silently replace it with a new one, and the dry run says so.
+  if ((await readNativePublishAccount(cwd)).state === "unreadable") {
+    const detail = ".mktg/native-publish/account.json is unreadable; refusing to replace it (it holds the workspace account and API key). Fix it or move it aside, then re-run.";
+    for (let i = 0; i < items.length; i++) {
+      results.push({ item: i, status: "failed", detail });
+      if (ndjson) writeStdout(JSON.stringify({ adapter: "mktg-native", item: i, status: "failed", detail }));
+    }
+    return finalizeAdapterResult("mktg-native", items, results);
+  }
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;

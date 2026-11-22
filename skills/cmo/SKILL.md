@@ -302,7 +302,7 @@ THEN (based on user goal):
 ## Skill Redirects
 
 Old skill names redirect automatically. The canonical redirect map lives in
-`skills-manifest.json` ("redirects" key, ~90 entries) — this table is only the
+`skills-manifest.json` ("redirects" key, ~110 entries) — this table is only the
 most common handful; do not extend it. To resolve any old name:
 `mktg skill info <old name> --json` (follows redirects, as does
 `mktg run <old name>`; a `Did you mean:` hint is returned on NOT_FOUND).
@@ -347,7 +347,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete list --json` | Show all tracked competitors with last scan info |
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
-| `mktg run <skill> --complete --writes <paths> --result success\|failure --json` | **Close the loop.** Log a `completed` event with the files written  -  the only event plan/status/dashboard count as real work |
+| `mktg run <skill> --complete --writes <paths> --result success\|partial\|failed --json` | **Close the loop.** Log a `completed` event with the files written  -  the only event plan/status/dashboard count as real work; `mktg plan` and dashboard publish readiness advance only on `--result success` |
 | `mktg route "<request>" --json` | Manifest-trigger routing without Claude (fallback / determinism check) |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
 | `mktg list --json` | Show all 76 skills with metadata |
@@ -409,7 +409,7 @@ for part in response.parts:
 - Every skill output gets YAML front-matter for structured handoffs between skills.
 - Before routing to a distribution skill, check `integrations` in status output. If the needed integration isn't configured, guide setup first  -  don't let the skill fail mid-execution.
 - **Read brand tokens structurally.** When any skill needs brand colors, fonts, or visual style, call `mktg brand kit --json` or `mktg brand kit get colors --json` instead of re-parsing `creative-kit.md`. This gives typed, addressable access and completeness scoring  -  never parse markdown yourself when the CLI exposes the data.
-- **Close the loop.** After a skill produces files, run `mktg run <skill> --complete --writes <paths> --result success --json`. Bare `mktg run <skill>` only logs `loaded`; only `completed` events count in `mktg plan` / `mktg status`.
+- **Close the loop.** After a skill produces files, run `mktg run <skill> --complete --writes <paths> --result success --json`. Bare `mktg run <skill>` only logs `loaded`; only `completed` events count in `mktg plan` / `mktg status`. A `--result partial` or `--result failed` completion is recorded, but `mktg plan` keeps the task until a `--result success` run.
 - **Record learnings.** After any skill produces a meaningful insight, append it with `--learning`. The 10th run of a skill should be dramatically better than the 1st because `brand/learnings.md` compounds.
 - **Use the execution loop.** On returning sessions, run `mktg plan next --json` before asking the builder what to do. Lead with: "Based on where we left off, I'd suggest [task] next."
 - **Monitor competitors.** If `brand/competitors.md` exists, periodically run `mktg compete scan --json` to detect changes. Route detected changes to the relevant skill (pricing change → `pricing-strategy`, new content → `seo-content`, etc.).

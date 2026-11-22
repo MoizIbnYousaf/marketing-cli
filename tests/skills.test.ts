@@ -3,6 +3,8 @@
 
 import { describe, test, expect } from "bun:test";
 import { join } from "node:path";
+import { readdirSync, existsSync, readFileSync } from "node:fs";
+import { validateSkill } from "../src/core/skill-frontmatter";
 import { userHome } from "../src/core/user-home";
 import {
   loadManifest,
@@ -292,4 +294,25 @@ describe("Category completeness", () => {
     expect(foundationNames).toContain("document-review");
     expect(foundationNames).toContain("voice-extraction");
   });
+});
+
+// Every shipped SKILL.md must pass validateSkill with no errors: name format,
+// description present and within the 1024-character Agent Skills limit,
+// valid category/tier and known brand files. The list is read from skills/.
+describe("every shipped SKILL.md passes validateSkill", () => {
+  const skillsDir = join(import.meta.dir, "..", "skills");
+  const files = readdirSync(skillsDir)
+    .map((d) => join(skillsDir, d, "SKILL.md"))
+    .filter((p) => existsSync(p))
+    .sort();
+
+  test("there are skill files to validate", () => {
+    expect(files.length).toBeGreaterThan(0);
+  });
+
+  for (const file of files) {
+    test(file.split("/").at(-2)!, () => {
+      expect(validateSkill(readFileSync(file, "utf8")).errors).toEqual([]);
+    });
+  }
 });

@@ -82,7 +82,7 @@ export function XFormatBoard({
         confirm: true,
       })
       const json = (await res.json()) as
-        | { ok: true; data: { published?: number; failed?: number } }
+        | { ok: true; data: { published?: number; drafts?: number; queuedLocal?: number; writtenFiles?: number; failed?: number } }
         | { ok: false; error: { message: string; fix?: string } }
 
       if (!json.ok) {
@@ -90,7 +90,10 @@ export function XFormatBoard({
         return
       }
 
-      const count = json.data.published ?? selectedXAccounts.length
+      // `published` counts sends only; drafts and local queue writes are counted apart.
+      const count = json.data.published === undefined
+        ? selectedXAccounts.length
+        : json.data.published + (json.data.drafts ?? 0) + (json.data.queuedLocal ?? 0) + (json.data.writtenFiles ?? 0)
       const label = nextMode === "now" ? "sent" : nextMode === "schedule" ? "scheduled" : "saved as draft"
       toast.success(`X post ${label}`, {
         description: `${tweets.length} tweet${tweets.length === 1 ? "" : "s"} prepared for ${count} account${count === 1 ? "" : "s"}.`,

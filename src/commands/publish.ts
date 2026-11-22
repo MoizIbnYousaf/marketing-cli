@@ -3,17 +3,21 @@
 // --dry-run validates, --confirm executes. NDJSON streaming for progress.
 
 import { join } from "node:path";
-import { ok, err, type CommandHandler, type CommandSchema } from "../types";
+import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validatePathInput, parseJsonInput, unsupportedFlag } from "../core/errors";
 import { isTTY, writeStdout, bold, dim, green, yellow, red } from "../core/output";
 import { hasFlag, flagValue } from "../core/args";
 import {
   getNativePublishAccountSummary,
   listNativePublishPosts,
+  listNativePublishProviders,
+  previewNativePublishAccount,
+  readNativeProvidersState,
+  readNativePublishAccount,
   upsertNativePublishProvider,
   type NativePublishProviderInput,
 } from "../core/native-publish";
-import { type AdapterResult, type PublishItem, type PublishManifest } from "../core/publish/types";
+import { type AdapterResult, type PublishCounts, type PublishItem, type PublishManifest } from "../core/publish/types";
 import { listNativeIntegrations } from "../core/publish/adapters";
 import {
   diagnosePostiz,
@@ -33,22 +37,25 @@ export const schema: CommandSchema = {
   positional: { name: "path", description: "Campaign directory or publish.json path", required: false },
   flags: [
     { name: "--confirm", type: "boolean", required: false, description: "Execute publishing (without this, publish is dry-run by default)" },
-    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file)" },
+    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file). An unknown name, or a repeated --adapter, exits 2 INVALID_ARGS before anything runs." },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream progress as NDJSON lines" },
     { name: "--list-adapters", type: "boolean", required: false, description: "List available adapters with env var requirements and configured status" },
-    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
+    { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Read-only: never writes a file. mktg-native adds accountState and providersState (present | missing | unreadable; an unreadable providers.json lists as empty). Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
     { name: "--diagnose", type: "boolean", required: false, description: "Run adapter connection diagnostics. Supported adapters: postiz. Others return UNSUPPORTED_FLAG (exit 2)." },
-    { name: "--native-account", type: "boolean", required: false, description: "Show or auto-provision the local mktg-native workspace account and API key" },
-    { name: "--native-upsert-provider", type: "boolean", required: false, description: "Create or update a local mktg-native provider using --input JSON" },
-    { name: "--native-list-posts", type: "boolean", required: false, description: "List locally stored mktg-native posts in queue/history order" },
+    { name: "--native-account", type: "boolean", required: false, description: "Show or auto-provision the local mktg-native workspace account and API key. With --dry-run it writes nothing and returns {dryRun, accountState, providersState, account|null, wouldCreate[], detail}" },
+    { name: "--native-upsert-provider", type: "boolean", required: false, description: "Create or update a local mktg-native provider using --input JSON. With --dry-run it validates, writes nothing, and returns {provider, dryRun, wouldWrite[], idProvisional, providersState}; idProvisional:true means provider.id is a placeholder a real run replaces" },
+    { name: "--native-list-posts", type: "boolean", required: false, description: "List locally stored mktg-native posts in queue/history order. Read-only: never creates the account; returns {adapter, accountState, posts}" },
   ],
   output: {
     campaign: "string — campaign name from manifest",
     adapters: "AdapterResult[] — per-adapter publish results",
-    "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (typefully, postiz) | sent (resend) | written-file (file) | failed | skipped",
+    "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (postiz; typefully when Typefully answers status draft) | sent (resend; typefully when Typefully answers scheduled, publishing or published) | written-file (file) | failed | skipped. Definitions: skills/cmo/rules/publish-index.md",
     totalItems: "number — total content items processed",
-    published: "number — items reaching a terminal adapter status (queued-local/draft-external/sent/written-file)",
-    failed: "number — items that failed",
+    published: "number — items actually sent or scheduled (status sent). Never counts drafts, local queue entries or written files. Same field per adapter in adapters[]",
+    drafts: "number — items staged as an external draft (status draft-external); also per adapter",
+    queuedLocal: "number — items written to the local mktg-native queue (status queued-local); also per adapter",
+    writtenFiles: "number — items written by the file adapter (status written-file); also per adapter",
+    failed: "number — items that failed. Any failed item, in a dry run (an item that could not be planned, e.g. a missing key) or a confirmed run, exits 4 with this full result as data",
     dryRun: "boolean — true if this was a validation-only run",
   },
   examples: [
@@ -65,16 +72,23 @@ export const schema: CommandSchema = {
   vocabulary: ["publish", "distribute", "push", "ship", "deploy content"],
 };
 
-type NativeAccountResult = Awaited<ReturnType<typeof getNativePublishAccountSummary>>;
-type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
-type NativeUpsertProviderResult = { readonly adapter: "mktg-native"; readonly provider: Awaited<ReturnType<typeof upsertNativePublishProvider>> };
+type NativeAccountResult = Awaited<ReturnType<typeof getNativePublishAccountSummary>> | Awaited<ReturnType<typeof previewNativePublishAccount>>;
+type NativeAccountState = Awaited<ReturnType<typeof readNativePublishAccount>>["state"];
+type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly accountState: NativeAccountState; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
+type NativeUpsertProviderResult = {
+  readonly adapter: "mktg-native";
+  readonly provider: Awaited<ReturnType<typeof upsertNativePublishProvider>>;
+  readonly dryRun?: true;
+  readonly wouldWrite?: readonly string[];
+  /** Dry run: true when the provider is new, so provider.id is a placeholder and a real run assigns another. */
+  readonly idProvisional?: boolean;
+  readonly providersState?: NativeAccountState;
+};
 
-type PublishResult = {
+type PublishResult = PublishCounts & {
   readonly campaign: string;
   readonly adapters: readonly AdapterResult[];
   readonly totalItems: number;
-  readonly published: number;
-  readonly failed: number;
   readonly dryRun: boolean;
 };
 
@@ -87,12 +101,46 @@ export const handler: CommandHandler<
   const ndjson = hasFlag(args, "--ndjson");
   const isDryRun = flags.dryRun || !confirm;
 
+  // An unknown --adapter is refused before anything else runs: otherwise every
+  // item is filtered out and the run "succeeds" with nothing done.
+  // Own keys only: "constructor" or "__proto__" must not pass as an adapter.
+  const requestedAdapter = flagValue(args, "--adapter");
+  const adapterFlagCount = args.filter((a) => a === "--adapter" || a.startsWith("--adapter=")).length;
+  if (adapterFlagCount > 1) {
+    return err(
+      "INVALID_ARGS",
+      "--adapter was given more than once",
+      ["Pass one --adapter per run, or omit it to run every adapter in the manifest", `Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`],
+      2,
+    );
+  }
+  // `--adapter` as the last argument, or followed by another flag, has no
+  // value. Dropping it would run EVERY adapter, with --confirm for real.
+  if (adapterFlagCount === 1 && (requestedAdapter === undefined || requestedAdapter === "" || requestedAdapter.startsWith("--"))) {
+    return err(
+      "INVALID_ARGS",
+      "--adapter needs a value",
+      [`Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`, "Omit --adapter to run every adapter in the manifest"],
+      2,
+    );
+  }
+  if (requestedAdapter !== undefined && !Object.hasOwn(ADAPTERS, requestedAdapter)) {
+    return err(
+      "INVALID_ARGS",
+      `Unknown adapter '${requestedAdapter}'`,
+      [`Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`, "List them: mktg publish --list-adapters --json"],
+      2,
+    );
+  }
+
+  // Maintenance flags: --dry-run writes nothing; listings never write.
   if (hasFlag(args, "--native-account")) {
-    return ok(await getNativePublishAccountSummary(flags.cwd));
+    return ok(flags.dryRun ? await previewNativePublishAccount(flags.cwd) : await getNativePublishAccountSummary(flags.cwd));
   }
 
   if (hasFlag(args, "--native-list-posts")) {
-    return ok({ adapter: "mktg-native", posts: await listNativePublishPosts(flags.cwd) });
+    const { state } = await readNativePublishAccount(flags.cwd);
+    return ok({ adapter: "mktg-native", accountState: state, posts: await listNativePublishPosts(flags.cwd) });
   }
 
   if (hasFlag(args, "--native-upsert-provider")) {
@@ -111,7 +159,19 @@ export const handler: CommandHandler<
       return err("INVALID_ARGS", parsed.message, ["Pass a valid JSON object for the native provider input"], 2);
     }
     try {
-      const provider = await upsertNativePublishProvider(flags.cwd, parsed.data);
+      const existingIds = flags.dryRun ? new Set((await listNativePublishProviders(flags.cwd)).map((p) => p.id)) : null;
+      const provider = await upsertNativePublishProvider(flags.cwd, parsed.data, { dryRun: flags.dryRun });
+      if (existingIds) {
+        const { state } = await readNativePublishAccount(flags.cwd);
+        const providersState = await readNativeProvidersState(flags.cwd);
+        const wouldWrite = [
+          ...(state === "present" ? [] : [".mktg/native-publish/account.json"]),
+          providersState === "unreadable"
+            ? ".mktg/native-publish/providers.json (replacing the unreadable file)"
+            : ".mktg/native-publish/providers.json",
+        ];
+        return ok({ adapter: "mktg-native", provider, dryRun: true, wouldWrite, idProvisional: !existingIds.has(provider.id), providersState });
+      }
       return ok({ adapter: "mktg-native", provider });
     } catch (error) {
       return err(
@@ -223,7 +283,7 @@ export const handler: CommandHandler<
     if (adapterFilter && item.adapter !== adapterFilter) continue;
     const cc = rejectControlChars(item.content, "item content");
     if (!cc.ok) return err("INVALID_ARGS", cc.message, [], 2);
-    if (!ADAPTERS[item.adapter]) {
+    if (typeof item.adapter !== "string" || !Object.hasOwn(ADAPTERS, item.adapter)) {
       return err("INVALID_ARGS", `Unknown adapter '${item.adapter}'`, [`Available: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`], 2);
     }
   }
@@ -249,15 +309,17 @@ export const handler: CommandHandler<
   }
 
   const totalItems = adapterResults.reduce((sum, r) => sum + r.items, 0);
-  const published = adapterResults.reduce((sum, r) => sum + r.published, 0);
-  const failed = adapterResults.reduce((sum, r) => sum + r.failed, 0);
+  const sum = (key: keyof PublishCounts): number => adapterResults.reduce((n, r) => n + r[key], 0);
 
   const result: PublishResult = {
     campaign: manifest.name ?? "unnamed",
     adapters: adapterResults,
     totalItems,
-    published,
-    failed,
+    published: sum("published"),
+    drafts: sum("drafts"),
+    queuedLocal: sum("queuedLocal"),
+    writtenFiles: sum("writtenFiles"),
+    failed: sum("failed"),
     dryRun: isDryRun,
   };
 
@@ -268,8 +330,9 @@ export const handler: CommandHandler<
     writeStdout(`  ${isDryRun ? yellow("DRY RUN") : green("LIVE")} ${dim(`(${totalItems} items)`)}`);
     writeStdout("");
     for (const ar of adapterResults) {
-      const icon = ar.failed > 0 ? red("x") : ar.published > 0 ? green("✓") : yellow("~");
-      writeStdout(`  ${icon} ${bold(ar.adapter)} — ${ar.published} published, ${ar.failed} failed, ${ar.items - ar.published - ar.failed} skipped`);
+      const done = ar.published + ar.drafts + ar.queuedLocal + ar.writtenFiles;
+      const icon = ar.failed > 0 ? red("x") : done > 0 ? green("✓") : yellow("~");
+      writeStdout(`  ${icon} ${bold(ar.adapter)} — ${ar.published} sent, ${ar.drafts} drafts, ${ar.queuedLocal} queued locally, ${ar.writtenFiles} files, ${ar.failed} failed, ${ar.items - done - ar.failed} skipped`);
       for (const e of ar.errors.slice(0, 3)) {
         writeStdout(`    ${red("!")} ${e}`);
       }
@@ -281,5 +344,13 @@ export const handler: CommandHandler<
     writeStdout("");
   }
 
+  // Findings vs failures (docs/EXIT_CODES.md): the full result is data either
+  // way, and any failed item exits 4 — in a dry run too, where a failed item
+  // is one that could not be planned and would fail the same way on --confirm.
+  // The CommandResult union pins ok:true to exitCode:0, so cast through, as
+  // ship-check and release do; cli.ts only inspects ok/data/exitCode.
+  if (result.failed > 0) {
+    return { ok: true, data: result, exitCode: 4 } as unknown as CommandResult<PublishResult>;
+  }
   return ok(result);
 };

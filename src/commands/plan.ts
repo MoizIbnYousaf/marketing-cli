@@ -34,7 +34,7 @@ const hasMarketingArtifacts = async (cwd: string): Promise<boolean> => {
 
 export const schema: CommandSchema = {
   name: "plan",
-  description: "Execution loop — reads project state (completed runs only, never load events) and outputs a prioritized, actionable task queue",
+  description: "Execution loop — reads project state (successful completed runs only: never load events, and a --result partial|failed completion keeps its task) and outputs a prioritized, actionable task queue",
   flags: [
     { name: "--save", type: "boolean", required: false, description: "Persist plan to .mktg/plan.json" },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream each task as a NDJSON line to stderr as it is computed" },
@@ -178,8 +178,8 @@ const buildTasks = async (
   }
 
   // Execution skills not yet completed (suggest based on dependency graph).
-  // runSummary is completed-only (load events filtered upstream) — a skill
-  // that was merely loaded still counts as never-done.
+  // runSummary is successful-completions-only (loads and partial/failed
+  // completions filtered upstream) — such a skill still counts as never-done.
   try {
     const manifest = await loadManifest();
     const mustHaveSkills = Object.entries(manifest.skills)
@@ -279,9 +279,10 @@ export const handler: CommandHandler<PlanResult | { completed: string } | { task
     return ok({ completed: taskId });
   }
 
-  // Build plan — completed runs only. A bare `mktg run` logs event:"loaded"
-  // and must not count as executed work anywhere in this queue.
-  const runSummary = await getRunSummary(cwd, { completedOnly: true });
+  // Build plan — successful completed runs only. A bare `mktg run` logs
+  // event:"loaded", and a `--result partial|failed` completion is recorded
+  // but unfinished: neither counts as executed work anywhere in this queue.
+  const runSummary = await getRunSummary(cwd, { successfulOnly: true });
   const { tasks, health } = await buildTasks(cwd, runSummary, completed, ndjson);
   if (ndjson) writeStdout(JSON.stringify({ type: "summary", data: { health, count: tasks.length } }));
   const summary = buildSummary(tasks, health);

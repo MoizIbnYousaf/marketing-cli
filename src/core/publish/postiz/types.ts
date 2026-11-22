@@ -22,12 +22,14 @@ export type PostizError =
   | { readonly kind: "network"; readonly detail: string };
 
 export type PostizResult<T> =
-  | { readonly ok: true; readonly data: T; readonly status: number }
+  | { readonly ok: true; readonly data: T; readonly status: number; readonly base?: string }
   | { readonly ok: false; readonly error: PostizError; readonly status: number | null };
 
 export type PostizFetchInit = {
   readonly method: "GET" | "POST" | "DELETE" | "PUT";
   readonly headers?: Record<string, string>;
+  /** Send to exactly this base (one a GET already proved), with no self-host fallback. */
+  readonly base?: string;
   readonly body?: Record<string, unknown> | FormData;
 };
 
@@ -67,7 +69,13 @@ export type CreatePostDto = {
   }[];
 };
 
-type PostizSentEntry = { readonly postedAt: string; readonly providers: readonly string[] };
+/**
+ * One item Postiz was asked to create. `state: "pending"` is written before
+ * the create request is sent and removed once Postiz accepts it, so an entry
+ * still pending after a crash means "sent, answer not recorded": a resumed
+ * run reports it unconfirmed instead of creating it again.
+ */
+type PostizSentEntry = { readonly postedAt: string; readonly providers: readonly string[]; readonly state?: "pending" };
 
 export type PostizSentMarker = {
   readonly version: 1;

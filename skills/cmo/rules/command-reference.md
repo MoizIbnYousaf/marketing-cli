@@ -56,7 +56,7 @@ routing, see `rules/publish-index.md`.
 | `mktg run <skill> --json` | Direct skill invocation (bypasses the usual Claude Code slash-command flow). Use when the orchestration layer needs programmatic control. Logs `event:"loaded"` — a load is NOT work; `mktg plan` ignores loads for execute/distribute gates. |
 | `mktg run <skill> --with-context --budget 4000 --json` | One-shot activation: skill body + non-template brand context (declared reads win, layer matrix fallback) in a single call. Prefer this over separate `run` + `context` calls. |
 | `mktg run <skill> --strict --json` | Fail fast (exit 3 MISSING_DEPENDENCY) when skills/brand/envs/tools/catalogs are unsatisfied. Default is warn-only. |
-| `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work. |
+| `mktg run <skill> --complete --writes <paths> --result success --json` | Record a completed run after the agent actually produced files. Writes are validated to exist (exit 2 otherwise). Only `completed` events count as work, and in `mktg plan` only `--result success` advances; `partial` / `failed` are recorded but the task stays. |
 | `mktg run <skill> --learning '{...}'` | Run a skill + record the learning atomically. |
 | `mktg skill history <skill> --json` | Load vs completion history for a skill. |
 | `mktg route "<prompt>" --json` | Deterministic skill routing without an LLM — returns `{skill, playbook, confidence, rationale, nextCommand}`. Use for CI/Cursor/Codex or when the `claude` binary is missing; /cmo remains the richer LLM router. |
@@ -68,14 +68,14 @@ routing, see `rules/publish-index.md`.
 | Command | CMO uses this when… |
 |---|---|
 | `mktg publish --list-adapters --json` | Show available adapters (`mktg-native`, `postiz`, `typefully`, `resend`, `file`) + configured status. |
-| `mktg publish --native-account --json` | Show or auto-provision the local mktg-native workspace account. |
+| `mktg publish --native-account --json` | Show or auto-provision the local mktg-native workspace account. `--dry-run` writes nothing and reports `wouldCreate[]`. |
 | `mktg publish --native-upsert-provider --input '{...}' --json` | Create/update an X, TikTok, Instagram, Reddit, or LinkedIn native provider. |
-| `mktg publish --adapter mktg-native --list-integrations --json` | List local native providers before targeting them in a manifest. |
-| `mktg publish --native-list-posts --json` | Read local native queue/history state. |
+| `mktg publish --adapter mktg-native --list-integrations --json` | List local native providers before targeting them in a manifest. Read-only; `accountState` says whether an account exists. |
+| `mktg publish --native-list-posts --json` | Read local native queue/history state. Read-only; never creates the account. |
 | `mktg publish --adapter postiz --list-integrations --json` | List connected Postiz providers before creating external drafts. |
 | `mktg publish --adapter postiz --diagnose --json` | Verify hosted or self-hosted Postiz auth, `/api` routing, and active provider state. |
 | `mktg publish --adapter <name> --dry-run --input '<json>' --json` | Preview before any real send. Always dry-run first. |
-| `mktg publish --adapter <name> --confirm --input '<json>' --json` | Execute publishing. Only with user approval. |
+| `mktg publish --adapter <name> --confirm --input '<json>' --json` | Execute publishing. Only with user approval. Exit 4 means at least one item failed; the full result is still on stdout. |
 | `mktg publish --ndjson` | Streaming progress for multi-item campaigns. |
 
 ---
