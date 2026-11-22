@@ -364,15 +364,13 @@ const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterResult> =>
       continue;
     }
 
-    // Success — record in sent-marker and emit ndjson if requested.
-    marker.sent[key] = { postedAt: new Date().toISOString(), providers: providers.slice() };
+    // Success — record in the sent-marker on disk now (atomic), then emit ndjson.
+    marker = { ...marker, sent: { ...marker.sent, [key]: { postedAt: new Date().toISOString(), providers: providers.slice() } } };
+    await persistSentMarker(markerPath, marker).catch(() => { /* see §5.4 */ });
     if (inp.ndjson) writeStderr(JSON.stringify({ type: "postiz-published", data: { item: i, providers } }));
     results.push({ item: i, status: "published", detail: `draft → ${providers.join(", ")}` });
     published++;
   }
-
-  // Write sent-marker back (best-effort — never crash the adapter).
-  await persistSentMarker(markerPath, marker).catch(() => { /* see §5.4 */ });
 
   return {
     adapter: "postiz",
@@ -555,12 +553,16 @@ new channel.
 
 - The marker is loaded once at the start of `publishPostiz` (before the
   `/integrations` call).
-- Each successful `POST /posts` mutates the in-memory `marker.sent` map.
-- At end of run, `persistSentMarker` writes the whole file atomically
-  (write-to-temp + `rename`) — standard Node practice, no extra deps.
-- A failed write is logged via `writeStderr` and **does not** fail the
-  adapter; the user's posts already landed in postiz.
-- Dry-run (`confirm === false`) never mutates the marker.
+- After each successful `POST /posts`, before the next item's request,
+  `persistSentMarker` writes the whole file atomically (write-to-temp +
+  `rename`). A run killed mid-way therefore leaves every accepted item
+  recorded, and the resumed run skips them. (A crash between Postiz accepting
+  a request and this write can still re-create that one item.)
+- A run in which no item was accepted writes no marker.
+- A failed write is logged and **does not** fail the adapter; the user's
+  posts already landed in postiz.
+- Dry-run (`confirm === false`) never mutates, rewrites or archives the
+  marker; a corrupt marker is only reported.
 
 ### 5.4 Corruption handling
 

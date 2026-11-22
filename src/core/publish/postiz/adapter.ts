@@ -67,7 +67,7 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     : `campaign-${createHash("sha256").update(inp.campaign).digest("hex").slice(0, 16)}`;
   const markerPath = join(inp.cwd, ".mktg", "publish", `${campaignFilePart}-postiz.json`);
   // A dry run reads the marker but never repairs or rewrites it.
-  const marker = await loadSentMarker(markerPath, inp.campaign, { repair: inp.confirm });
+  let marker = await loadSentMarker(markerPath, inp.campaign, { repair: inp.confirm });
 
   const listRes = await postizFetch<readonly PostizIntegration[]>("/public/v1/integrations", { method: "GET" });
   if (!listRes.ok) {
@@ -81,8 +81,6 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     if (!int.disabled) identifierToId.set(int.identifier, int.id);
   }
 
-  // Items Postiz accepted in this run (drafts; counts come from tallyResults).
-  let accepted = 0;
   let hardStop = false;
 
   for (let i = 0; i < inp.items.length; i++) {
@@ -154,21 +152,18 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
       continue;
     }
 
-    marker.sent[key] = { postedAt: new Date().toISOString(), providers: [...providers] };
+    // Record the accepted item now, before the next request: a run killed
+    // after this point skips it on resume instead of creating it again.
+    // persistSentMarker writes a temp file and renames it into place.
+    marker = { ...marker, sent: { ...marker.sent, [key]: { postedAt: new Date().toISOString(), providers: [...providers] } } };
+    // Best-effort persist — never crash if disk write fails.
+    await persistSentMarker(markerPath, marker).catch((e) => {
+      writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
+    });
     if (inp.ndjson) writeStdout(JSON.stringify({ adapter: "postiz", item: i, status: "draft-external", providers }));
     // The v1 postiz adapter only creates drafts (buildCreatePostDraft) —
     // postiz itself owns any later scheduling/sending.
     results.push({ item: i, status: "draft-external", detail: `draft on postiz → ${providers.join(", ")}` });
-    accepted++;
-  }
-
-  // Best-effort persist — never crash if disk write fails.
-  // Only when this run added an entry: a run in which every item failed
-  // leaves no marker behind.
-  if (inp.confirm && accepted > 0) {
-    await persistSentMarker(markerPath, marker).catch((e) => {
-      writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
-    });
   }
 
   return {
