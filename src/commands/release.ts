@@ -4,9 +4,10 @@
 //   → (with --confirm) bun publish.
 //
 // The command never pushes and never creates the GitHub release. Pushing the
-// tag starts .github/workflows/release.yml, which publishes the version to npm
-// if it is not there yet and creates the GitHub release. `next_steps` in the
-// result says what is left for the maintainer.
+// tag starts .github/workflows/release.yml, which stages the version on npm
+// (it goes live after a maintainer approves it) if it is not there yet, and
+// creates the GitHub release. `next_steps` in the result says what is left
+// for the maintainer.
 //
 // Usage:
 //   mktg release [patch|minor|major] [--dry-run] [--confirm] [--skip-publish] [--json]
@@ -67,7 +68,7 @@ export const schema: CommandSchema = {
   flags: [
     { name: "--dry-run", type: "boolean", required: false, default: false, description: "Preview the pipeline without writing, committing, tagging, or publishing" },
     { name: "--confirm", type: "boolean", required: false, default: false, description: "Required to publish to npm from this machine (needs an npm login) — Agent DX safety guard" },
-    { name: "--skip-publish", type: "boolean", required: false, default: false, description: "Bump + tag locally and stop. Push the tag to let the Release workflow publish" },
+    { name: "--skip-publish", type: "boolean", required: false, default: false, description: "Bump + tag locally and stop. Push the tag to let the Release workflow stage the version on npm" },
   ],
   positional: { name: "bump", description: "Semver bump: 'patch' (default), 'minor', or 'major'", required: false },
   output: {
@@ -88,7 +89,7 @@ export const schema: CommandSchema = {
   },
   examples: [
     { args: "mktg release patch --dry-run --json", description: "Preview a patch release plan" },
-    { args: "mktg release minor --skip-publish --json", description: "Bump + tag locally; push the tag to publish through the Release workflow" },
+    { args: "mktg release minor --skip-publish --json", description: "Bump + tag locally; push the tag and the Release workflow stages the version for approval" },
     { args: "mktg release major --confirm --json", description: "Bump, tag and publish to npm from this machine" },
   ],
   vocabulary: ["release", "publish", "ship", "version bump", "tag", "changelog"],
@@ -171,6 +172,15 @@ const npmLoginMissing = (cwd: string): boolean => {
   const res = runCmd("npm", ["whoami"], cwd, 20_000);
   if (res.ok) return false;
   return /ENEEDAUTH|E401|requires you to be logged in/i.test(res.stderr);
+};
+
+// `bun publish` and `npm publish` rebuild the bundle (prepublishOnly) and
+// strip the workspaces field (prepack) through lifecycle scripts. With
+// `ignore-scripts=true` in the npm config both are skipped without a word:
+// 0.7.0 went out that way, with a workspaces field and no fresh build.
+const npmScriptsDisabled = (cwd: string): boolean => {
+  const res = runCmd("npm", ["config", "get", "ignore-scripts"], cwd, 20_000);
+  return res.ok && res.stdout.trim() === "true";
 };
 
 const currentBranch = (cwd: string): string => {
@@ -257,6 +267,17 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       ],
     );
   }
+  if (willPublish && npmScriptsDisabled(flags.cwd)) {
+    return err(
+      "NPM_SCRIPTS_DISABLED",
+      "npm is configured with ignore-scripts=true, so publishing from this machine would skip the build and the package clean-up steps. Nothing was changed",
+      [
+        "npm config get ignore-scripts (find where it is set: npm config list -l | grep ignore-scripts)",
+        `mktg release ${bump} --skip-publish --json (then push the tag: the Release workflow builds and stages the version itself)`,
+      ],
+      3,
+    );
+  }
   if (willPublish && npmLoginMissing(flags.cwd)) {
     return err(
       "NPM_AUTH_MISSING",
@@ -341,9 +362,17 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
   const changelogPath = join(flags.cwd, "CHANGELOG.md");
   let existingChangelog = "";
   if (await fileExists(changelogPath)) existingChangelog = await readFile(changelogPath, "utf-8");
-  const fullChangelog = existingChangelog.startsWith("# Changelog")
-    ? existingChangelog.replace(/^# Changelog\n+/, `# Changelog\n\n${changelogBody}\n`)
-    : `# Changelog\n\n${changelogBody}\n${existingChangelog}`;
+  // A hand-written "## Unreleased" section at the top IS the release notes:
+  // it takes the version as its heading and the generated commit list is not
+  // added beside it. Without one, the generated list becomes the section.
+  const unreleased = existingChangelog.match(/^# Changelog\n+## Unreleased\n([\s\S]*?)(?=\n## |$)/);
+  const fullChangelog = unreleased
+    ? unreleased[1]!.trim().length > 0
+      ? existingChangelog.replace(/^(# Changelog\n+)## Unreleased\n/, `$1## v${versionNew}\n`)
+      : existingChangelog.replace(/^# Changelog\n+## Unreleased\n\n*/, `# Changelog\n\n${changelogBody}\n`)
+    : existingChangelog.startsWith("# Changelog")
+      ? existingChangelog.replace(/^# Changelog\n+/, `# Changelog\n\n${changelogBody}\n`)
+      : `# Changelog\n\n${changelogBody}\n${existingChangelog}`;
   await writeFile(changelogPath, fullChangelog);
 
   // `git commit -am` only stages MODIFIED tracked files. The first release
@@ -396,7 +425,7 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       failed_stage: "tag",
       recovery: [
         `git tag failed: ${tagRes.stderr.trim() || `exit ${tagRes.exitCode}`}`,
-        `If ${tag} already exists, delete it (git tag -d ${tag}) or pick another bump`,
+        `If ${tag} exists only on this machine, delete it (git tag -d ${tag}); if it was ever pushed or published, pick another bump instead`,
         `The release commit is in place. Undo it with: git reset --hard HEAD~1`,
       ],
       next_steps: [],
@@ -415,7 +444,8 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       recovery: [],
       next_steps: [
         push,
-        `Pushing ${tag} starts the Release workflow, which publishes ${versionNew} to npm and creates the GitHub release`,
+        `Pushing ${tag} starts the Release workflow, which stages ${versionNew} on npm and creates the GitHub release`,
+        `${versionNew} becomes installable once a maintainer approves the staged version on npmjs.com (2FA)`,
       ],
     });
   }
@@ -430,7 +460,7 @@ export const handler: CommandHandler<ReleaseResult> = async (args, flags) => {
       recovery: [
         `bun publish failed: ${publishRes.stderr.trim().split("\n").slice(-3).join(" | ") || `exit ${publishRes.exitCode}`}`,
         "Check npm auth (npm whoami), then retry the publish from this commit: bun publish",
-        `Or let the Release workflow publish it: ${push}`,
+        `Or let the Release workflow stage it for approval: ${push}`,
         `To abandon instead: git tag -d ${tag} && git reset --hard HEAD~1`,
       ],
       next_steps: [],

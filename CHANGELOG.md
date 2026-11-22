@@ -30,20 +30,22 @@
 ### Changed
 
 - **Releases publish through npm trusted publishing, staged for approval.** `.github/workflows/release.yml` runs when a `v*` tag is pushed, proves its identity to npm with OIDC (no stored token), and stages the version with `npm stage publish`; it becomes installable after a maintainer approves it on npmjs.com with 2FA. The workflow skips the publish when the version is already on npm, checks that the tag matches `package.json`, and creates the GitHub release. One-time setup: add a trusted publisher for `release.yml` in the package's npm settings.
+- **`mktg release` uses a hand-written `## Unreleased` section as the release notes.** The section takes the version as its heading; the generated commit list is added only when there is no such section or it is empty. Before, the generated list was inserted above `## Unreleased`, which left the curated notes stranded under the wrong heading.
+- **`mktg release --confirm` refuses to publish when npm has `ignore-scripts=true`** (`NPM_SCRIPTS_DISABLED`, exit 3). With scripts disabled a publish skips the build and the package clean-up; 0.7.0 was published that way and shipped a `workspaces` field.
 - **`mktg release` output changed.** `gh_release_created` and the `gh_release` value of `failed_stage` are gone. A new `next_steps` array says what is left after a successful run: the `git push` command, and what the Release workflow does when the tag arrives. The command still never pushes.
 - **Optional third-party CLIs are no longer installed automatically.** A global install used to run `npm i -g @higgsfield/cli` silently. It now prints the install hint; set `MKTG_INSTALL_OPTIONAL_DEPS=1` to opt in. `mktg doctor` still reports what is missing.
 - `CONTEXT.md`, `AGENTS.md` and a new `THIRD_PARTY_NOTICES.md` ship in the npm package. The notices file carries the MIT notice for the skills adapted from Corey Haines' Marketing Skills.
 
 
-### feat
+### Added
 
-- opt-in TOON output via global `--format <json|toon>` (AXI principle 1) — JSON stays the default contract, errors always stay JSON
 - Studio command center, secure WebMCP tool surface, OpenSEO 0.1.6, and evidence-led strategy review shipped on `main` after `v0.7.0` and are not yet on npm
 
 ## v0.7.0
 
 ### feat
 
+- opt-in TOON output via global `--format <json|toon>` (AXI principle 1) — JSON stays the default contract, errors always stay JSON (npm 0.7.0 was published from a commit after the `v0.7.0` tag, and that commit includes this)
 - agent-contract hardening + AXI alignment + repo-wide drift cleanup
 - OpenSEO backend-awareness + onboarding handoff (OpenSEO S5 — native feel)
 - Pulse SEO readiness card + /api/seo/status bridge + self-host docs (OpenSEO S4)
@@ -157,14 +159,14 @@
 - Merge pull request #38 from MoizIbnYousaf/cursor/add-axi-router-skill-6c0e
 - Merge pull request #37 from MoizIbnYousaf/cursor/add-exa-agent-skills-6c0e
 
-## Unreleased
+### Notes written before the 0.7.0 release
 
-### fix
+#### fix
 
 - **`mktg init` cold-start: bundled install is now the default** (was: delegate to `ai-agent-skills` whenever it was on PATH). The delegation sparse-cloned the public registry from GitHub (80s+ cold start) and could install a stale skill set when the registry lagged this package. Bundled direct install is sub-second and always version-correct. Set `MKTG_USE_AI_AGENT_SKILLS=1` to opt back into registry delegation.
 
 
-### feat
+#### feat
 
 - add `/axi` skill — main AXI ([axi.md](https://axi.md)) catalog router (same role as `/cmo` for marketing). Routes GitHub → `gh-axi`, browser → `chrome-devtools-axi`, plus community AXIs; ships the 10 principles, prefer-AXI vs MCP decision tree, build/review checklist, and benchmark snapshot. Upstream provenance from `kunchenguid/axi`.
 - `mktg doctor` optional CLI checks for `gh-axi` and `chrome-devtools-axi`.
@@ -204,19 +206,19 @@
 - `/cmo` skill routing table gains rows and disambiguation entries for the new commands and namespaces.
 - Studio API: `GET /api/plan`, `GET /api/plan/next`, `GET /api/compete` (watchlist), plus the Content tab war-room view.
 
-### refactor
+#### refactor
 
 - Split `src/commands/publish.ts` into `src/core/publish/postiz/{client,markers,media,adapter,admin}` (barrel `src/core/publish/postiz/index.ts`); the command file no longer re-exports Postiz internals. Studio `lib/postiz.ts` imports the same client — one Postiz client, no drift.
 - Split skill lifecycle into `src/core/skill-*.ts`; canonical `flagValue`/`flagValues` in `src/core/args.ts`.
 - `wrapRoute` rate limiting is perimeter-only (no double-counting on nested routes).
 
-### fix
+#### fix
 
 - SSRF: `fetchWithSizeCap` follows at most one redirect hop and re-validates the target host (private/loopback targets and second hops are rejected). Covered by `tests/url-validation-redirect.test.ts`.
 - `mktg skill graph` no longer crashes on skills outside the five layers (new skills mapped to `execution`/`creative`).
 - Studio post-composer buckets `postType` on the CLI vocabulary (`schedule`, `update`), so scheduled publishes are no longer reported as drafts.
 
-### counts
+#### counts
 
 - 58 → 76 skills (2 orchestrators `/cmo` + `/axi`, Exa quintet, 8 OpenSEO skills, text-to-speech + 3 manim skills); 1 → 2 catalogs (postiz, openseo); 21 → 24 commands (`route`, `seo`, `release`, `ship-check`, `setup`).
 

@@ -16,10 +16,13 @@ name: Release
 # A new trusted-publisher entry expires unless its first publish succeeds
 # within 2 days, so create it shortly before a release.
 #
-# The job is safe to run again for the same tag: a version already on npm
+# The job is safe to run again for a tag whose version is already LIVE on npm
 # (for example one published from a maintainer's machine with
-# `mktg release <bump> --confirm`) is not published twice, and the GitHub
-# release step updates an existing release instead of failing.
+# `mktg release <bump> --confirm`): the publish is skipped and the GitHub
+# release step updates the existing release. A version that is staged but not
+# yet approved is not visible to that check, so re-running the job before
+# approval tries to stage it a second time; whether npm accepts that has not
+# been tried. Approve or reject the staged version first.
 
 on:
   push:
