@@ -234,6 +234,9 @@ mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' -
 mktg publish --native-list-posts --json
 # Read-only: --native-list-posts and --list-integrations never write; with no
 # account yet they return an empty list and accountState:"missing".
+# --list-integrations and --native-account --dry-run add providersState
+# (present | missing | unreadable); --native-upsert-provider --dry-run adds
+# idProvisional (true: provider.id is a placeholder) and providersState.
 # A publish without --confirm (or with --dry-run) writes nothing anywhere:
 # no native account, no providers.json, no Postiz sent-marker. A corrupt
 # sent-marker or unreadable account.json is reported, not repaired: while

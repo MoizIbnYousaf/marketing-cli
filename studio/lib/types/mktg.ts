@@ -264,6 +264,8 @@ export type IntegrationsData = {
   readonly adapter: string;
   /** mktg-native only: whether .mktg/native-publish/account.json exists. Listing never creates it. */
   readonly accountState?: "present" | "missing" | "unreadable";
+  /** mktg-native only: whether providers.json exists and parses; "unreadable" lists as no integrations. */
+  readonly providersState?: "present" | "missing" | "unreadable";
   readonly integrations: readonly {
     readonly id: string;
     readonly identifier: string;

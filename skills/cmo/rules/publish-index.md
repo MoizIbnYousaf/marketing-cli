@@ -73,7 +73,12 @@ mktg publish --native-list-posts --json
 ```
 
 Listings (`--native-list-posts`, `--list-integrations`) never write. With no
-account yet they return an empty list and `accountState: "missing"`. A dry run
+account yet they return an empty list and `accountState: "missing"`.
+`--list-integrations` (and `--native-account --dry-run`) also report
+`providersState`; `"unreadable"` means providers.json exists but does not
+parse, so the empty list is not "no providers". In a
+`--native-upsert-provider --dry-run` answer, `idProvisional: true` means the
+provider is new and `provider.id` is a placeholder: a real run assigns another. A dry run
 (no `--confirm`, or `--dry-run`) writes nothing anywhere; `--native-account
 --dry-run` and `--native-upsert-provider --dry-run` report what they would
 create instead.

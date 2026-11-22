@@ -184,7 +184,29 @@ describe("read-only listings write nothing", () => {
   test("--adapter mktg-native --list-integrations with no account says so", async () => {
     const r = await expectNoChange(["--adapter", "mktg-native", "--list-integrations", "--json"]);
     expect(r.exitCode).toBe(0);
-    expect(r.json).toEqual({ adapter: "mktg-native", accountState: "missing", integrations: [] });
+    expect(r.json).toEqual({ adapter: "mktg-native", accountState: "missing", providersState: "missing", integrations: [] });
+  }, T);
+
+  test("an unreadable providers.json is reported, and a dry-run upsert marks a new provider's id as provisional", async () => {
+    await mkdir(join(sb.project, ".mktg", "native-publish"), { recursive: true });
+    await writeFile(join(sb.project, ".mktg", "native-publish", "providers.json"), "garbage");
+    const list = await expectNoChange(["--adapter", "mktg-native", "--list-integrations", "--json"]);
+    expect(list.json).toMatchObject({ providersState: "unreadable", integrations: [] });
+    const account = await expectNoChange(["--native-account", "--dry-run", "--json"]);
+    expect(account.json).toMatchObject({ providersState: "unreadable", providerCount: 0 });
+    const input = JSON.stringify({ identifier: "linkedin", name: "LI", profile: "li" });
+    const up = await expectNoChange(["--native-upsert-provider", "--dry-run", "--input", input, "--json"]);
+    const data = up.json as { idProvisional: boolean; providersState: string; wouldWrite: string[] };
+    expect(data.idProvisional).toBe(true);
+    expect(data.providersState).toBe("unreadable");
+    expect(data.wouldWrite.join(" ")).toContain("replacing the unreadable file");
+
+    // An existing provider keeps its id: not provisional.
+    await writeFile(join(sb.project, ".mktg", "native-publish", "providers.json"), "{}");
+    await runPublish(sb, ["--native-upsert-provider", "--input", input, "--json"]);
+    const again = await expectNoChange(["--native-upsert-provider", "--dry-run", "--input", input, "--json"]);
+    expect((again.json as { idProvisional: boolean; providersState: string }).idProvisional).toBe(false);
+    expect((again.json as { providersState: string }).providersState).toBe("present");
   }, T);
 });
 

@@ -230,11 +230,19 @@ export const readNativePublishAccount = async (
   return account ? { state: "present", account } : { state: "unreadable", account: null };
 };
 
+/** Whether providers.json exists and parses, read without writing anything. An unreadable file lists as no providers. */
+export const readNativeProvidersState = async (cwd: string): Promise<NativeAccountState> => {
+  if (!(await Bun.file(providersPath(cwd)).exists())) return "missing";
+  const parsed = await readJson(providersPath(cwd), isNativeProvidersFile, null);
+  return parsed ? "present" : "unreadable";
+};
+
 /** `--native-account --dry-run`: what exists, and what a real run would create. Writes nothing. */
 export type NativePublishAccountPreview = {
   readonly adapter: "mktg-native";
   readonly dryRun: true;
   readonly accountState: NativeAccountState;
+  readonly providersState: NativeAccountState;
   readonly account: NativePublishAccountSummary["account"] | null;
   readonly wouldCreate: readonly string[];
   readonly detail: string;
@@ -253,6 +261,7 @@ export const previewNativePublishAccount = async (cwd: string): Promise<NativePu
     adapter: "mktg-native",
     dryRun: true,
     accountState: state,
+    providersState: await readNativeProvidersState(cwd),
     account: account ? summarizeAccount(account) : null,
     wouldCreate: state === "present" ? [] : [file],
     detail:

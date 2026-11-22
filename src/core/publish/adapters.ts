@@ -6,6 +6,7 @@ import { writeStdout } from "../output";
 import {
   appendNativePublishPost,
   listNativePublishProviders,
+  readNativeProvidersState,
   readNativePublishAccount,
   resolveNativePublishTargets,
   type NativeAccountState,
@@ -41,7 +42,7 @@ export const pushDryRunSkip = (
 
 export const listNativeIntegrations = async (
   cwd: string,
-): Promise<{ ok: true; data: ListIntegrationsResult & { readonly accountState: NativeAccountState } }> => {
+): Promise<{ ok: true; data: ListIntegrationsResult & { readonly accountState: NativeAccountState; readonly providersState: NativeAccountState } }> => {
   const integrations = await listNativePublishProviders(cwd);
   const { state } = await readNativePublishAccount(cwd);
   return {
@@ -49,6 +50,8 @@ export const listNativeIntegrations = async (
     data: {
       adapter: "mktg-native",
       accountState: state,
+      // "unreadable": providers.json exists but does not parse, so it lists as empty.
+      providersState: await readNativeProvidersState(cwd),
       integrations: integrations.map((integration) => ({
         id: integration.id,
         identifier: integration.identifier,
