@@ -44,7 +44,7 @@ const nativeItem = { type: "social", adapter: "mktg-native", content: "native x"
 const postizItem = { type: "social", adapter: "postiz", content: "postiz x", metadata: { providers: ["linkedin"] } };
 
 /** A local Postiz stand-in: one connected linkedin integration, drafts accepted. */
-const startPostiz = () => {
+const startPostiz = (postStatus = 200) => {
   const seen: string[] = [];
   const server = Bun.serve({
     port: 0,
@@ -54,7 +54,11 @@ const startPostiz = () => {
       if (req.method === "GET" && path === "/public/v1/integrations") {
         return Response.json([{ id: "int-li", identifier: "linkedin", name: "LI", picture: "", disabled: false, profile: "li" }]);
       }
-      if (req.method === "POST" && path === "/public/v1/posts") return Response.json([{ postId: "p1", integration: "int-li" }]);
+      if (req.method === "POST" && path === "/public/v1/posts") {
+        return postStatus < 300
+          ? Response.json([{ postId: "p1", integration: "int-li" }])
+          : Response.json({ msg: "boom" }, { status: postStatus });
+      }
       return new Response("not found", { status: 404 });
     },
   });
@@ -148,5 +152,35 @@ describe("read-only listings write nothing", () => {
     const r = await expectNoChange(["--adapter", "mktg-native", "--list-integrations", "--json"]);
     expect(r.exitCode).toBe(0);
     expect(r.json).toEqual({ adapter: "mktg-native", accountState: "missing", integrations: [] });
+  }, T);
+});
+
+describe("a failed confirmed run leaves nothing new behind", () => {
+  test("native: no connected provider creates no account", async () => {
+    await writeFile(join(sb.project, "publish.json"), manifest([nativeItem]));
+    const r = await expectNoChange(["--adapter", "mktg-native", "--confirm", "--json"]);
+    expect((r.json as { failed: number }).failed).toBe(1);
+  }, T);
+
+  test("native: an unreadable account.json is not overwritten by a failing run", async () => {
+    await mkdir(join(sb.project, ".mktg", "native-publish"), { recursive: true });
+    await writeFile(join(sb.project, ".mktg", "native-publish", "account.json"), "{not json");
+    await writeFile(join(sb.project, "publish.json"), manifest([nativeItem]));
+    await expectNoChange(["--adapter", "mktg-native", "--confirm", "--json"]);
+  }, T);
+
+  test("postiz: every item failing writes no sent-marker", async () => {
+    for (const status of [500, 404, 429]) {
+      const p = startPostiz(status);
+      try {
+        await writeFile(join(sb.project, "publish.json"), manifest([postizItem], "fv-campaign"));
+        const before = await snapshot(sb);
+        const r = await runPublish(sb, ["--adapter", "postiz", "--confirm", "--json"], p.env);
+        expect((r.json as { failed: number }).failed).toBe(1);
+        expect(changedPaths(before, await snapshot(sb))).toEqual([]);
+      } finally {
+        p.server.stop(true);
+      }
+    }
   }, T);
 });

@@ -166,7 +166,9 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
   }
 
   // Best-effort persist — never crash if disk write fails.
-  if (inp.confirm) {
+  // Only when this run added an entry: a run in which every item failed
+  // leaves no marker behind.
+  if (inp.confirm && published > 0) {
     await persistSentMarker(markerPath, marker).catch((e) => {
       writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
     });
