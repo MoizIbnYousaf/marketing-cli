@@ -80,6 +80,9 @@ export function PostComposer({
  ok: true
  data: {
  published?: number
+ drafts?: number
+ queuedLocal?: number
+ writtenFiles?: number
  failed?: number
  adapters?: Array<{
  adapter: string
@@ -117,7 +120,12 @@ export function PostComposer({
  // about publishing from the Postiz UI.
  // 3. For other adapters, trust the requested mode (they do what
  // you asked; this branch is postiz-specific).
- const successCount = json.data?.published ?? selected.length
+ // `published` counts sends only; a draft or a local queue write is
+ // staged and counted apart. The toast counts everything accepted.
+ const accepted = json.data
+ ? (json.data.published ?? 0) + (json.data.drafts ?? 0) + (json.data.queuedLocal ?? 0) + (json.data.writtenFiles ?? 0)
+ : undefined
+ const successCount = accepted ?? selected.length
  const failedCount = json.data?.failed ?? 0
  const adapterResult = json.data?.adapters?.[0]
  const postTypeCounts = (adapterResult?.results ?? []).reduce<

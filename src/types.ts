@@ -60,7 +60,7 @@ export type PublishPostType = "draft" | "schedule" | "now" | "update";
  */
 export type PublishItemStatus = "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped";
 
-/** Statuses that count as terminal adapter success (drives `published` counts). */
+/** Statuses that count as terminal adapter success. NOT the `published` count, which is "sent" only (src/core/publish/types.ts tallyResults). */
 export const TERMINAL_PUBLISH_STATUSES: readonly PublishItemStatus[] = ["queued-local", "draft-external", "sent", "written-file"];
 
 // Result constructors

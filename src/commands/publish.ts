@@ -15,7 +15,7 @@ import {
   upsertNativePublishProvider,
   type NativePublishProviderInput,
 } from "../core/native-publish";
-import { type AdapterResult, type PublishItem, type PublishManifest } from "../core/publish/types";
+import { type AdapterResult, type PublishCounts, type PublishItem, type PublishManifest } from "../core/publish/types";
 import { listNativeIntegrations } from "../core/publish/adapters";
 import {
   diagnosePostiz,
@@ -49,7 +49,10 @@ export const schema: CommandSchema = {
     adapters: "AdapterResult[] — per-adapter publish results",
     "adapters[].results[].status": "PublishItemStatus — per-item truth: queued-local (mktg-native) | draft-external (typefully without publish_at, postiz) | sent (resend; typefully with metadata.publish_at: published or scheduled) | written-file (file) | failed | skipped. Definitions: skills/cmo/rules/publish-index.md",
     totalItems: "number — total content items processed",
-    published: "number — items reaching a terminal adapter status (queued-local/draft-external/sent/written-file)",
+    published: "number — items actually sent or scheduled (status sent). Never counts drafts, local queue entries or written files. Same field per adapter in adapters[]",
+    drafts: "number — items staged as an external draft (status draft-external); also per adapter",
+    queuedLocal: "number — items written to the local mktg-native queue (status queued-local); also per adapter",
+    writtenFiles: "number — items written by the file adapter (status written-file); also per adapter",
     failed: "number — items that failed",
     dryRun: "boolean — true if this was a validation-only run",
   },
@@ -72,12 +75,10 @@ type NativeAccountState = Awaited<ReturnType<typeof readNativePublishAccount>>["
 type NativeListPostsResult = { readonly adapter: "mktg-native"; readonly accountState: NativeAccountState; readonly posts: Awaited<ReturnType<typeof listNativePublishPosts>> };
 type NativeUpsertProviderResult = { readonly adapter: "mktg-native"; readonly provider: Awaited<ReturnType<typeof upsertNativePublishProvider>>; readonly dryRun?: true; readonly wouldWrite?: readonly string[] };
 
-type PublishResult = {
+type PublishResult = PublishCounts & {
   readonly campaign: string;
   readonly adapters: readonly AdapterResult[];
   readonly totalItems: number;
-  readonly published: number;
-  readonly failed: number;
   readonly dryRun: boolean;
 };
 
@@ -274,15 +275,17 @@ export const handler: CommandHandler<
   }
 
   const totalItems = adapterResults.reduce((sum, r) => sum + r.items, 0);
-  const published = adapterResults.reduce((sum, r) => sum + r.published, 0);
-  const failed = adapterResults.reduce((sum, r) => sum + r.failed, 0);
+  const sum = (key: keyof PublishCounts): number => adapterResults.reduce((n, r) => n + r[key], 0);
 
   const result: PublishResult = {
     campaign: manifest.name ?? "unnamed",
     adapters: adapterResults,
     totalItems,
-    published,
-    failed,
+    published: sum("published"),
+    drafts: sum("drafts"),
+    queuedLocal: sum("queuedLocal"),
+    writtenFiles: sum("writtenFiles"),
+    failed: sum("failed"),
     dryRun: isDryRun,
   };
 
@@ -293,8 +296,9 @@ export const handler: CommandHandler<
     writeStdout(`  ${isDryRun ? yellow("DRY RUN") : green("LIVE")} ${dim(`(${totalItems} items)`)}`);
     writeStdout("");
     for (const ar of adapterResults) {
-      const icon = ar.failed > 0 ? red("x") : ar.published > 0 ? green("✓") : yellow("~");
-      writeStdout(`  ${icon} ${bold(ar.adapter)} — ${ar.published} published, ${ar.failed} failed, ${ar.items - ar.published - ar.failed} skipped`);
+      const done = ar.published + ar.drafts + ar.queuedLocal + ar.writtenFiles;
+      const icon = ar.failed > 0 ? red("x") : done > 0 ? green("✓") : yellow("~");
+      writeStdout(`  ${icon} ${bold(ar.adapter)} — ${ar.published} sent, ${ar.drafts} drafts, ${ar.queuedLocal} queued locally, ${ar.writtenFiles} files, ${ar.failed} failed, ${ar.items - done - ar.failed} skipped`);
       for (const e of ar.errors.slice(0, 3)) {
         writeStdout(`    ${red("!")} ${e}`);
       }

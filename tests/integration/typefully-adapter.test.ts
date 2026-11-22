@@ -89,7 +89,8 @@ describe("publishTypefully (v2)", () => {
 
     const result = await publishTypefully([social("ship it")], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(result.failed).toBe(0);
     expect(result.results[0]?.status).toBe("draft-external");
     expect(captured).toHaveLength(1);
@@ -104,7 +105,8 @@ describe("publishTypefully (v2)", () => {
 
     const result = await publishTypefully([social("auto")], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(captured.map((c) => `${c.method} ${c.path}`)).toEqual([
       "GET /v2/social-sets",
       "POST /v2/social-sets/777/drafts",
@@ -128,7 +130,8 @@ describe("publishTypefully (v2)", () => {
 
     const result = await publishTypefully([social("override", { social_set_id: "999" })], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(captured[0]?.path).toBe("/v2/social-sets/999/drafts");
   });
 

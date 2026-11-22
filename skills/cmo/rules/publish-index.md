@@ -41,6 +41,11 @@ Every item in `adapters[].results[]` carries a `status` from this enum —
 This table is the one definition of the status values; `src/types.ts`,
 `CONTEXT.md` and `mktg schema publish` point here.
 
+Counts, top-level and per adapter in `adapters[]`: `published` is the number
+of `sent` items only (actually sent or scheduled). Staged work is counted
+apart and is never "published": `drafts` (`draft-external`), `queuedLocal`
+(`queued-local`), `writtenFiles` (`written-file`). Plus `failed`.
+
 Anti-pattern: telling the user a post "went out" when the status is
 `queued-local` or `draft-external`. Say "queued locally" or "draft created"
 instead — promotion to a live network is a separate step.

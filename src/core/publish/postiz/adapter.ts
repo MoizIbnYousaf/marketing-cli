@@ -4,7 +4,7 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { writeStdout } from "../../output";
-import { type AdapterResult, type PublishItem } from "../types";
+import { type AdapterResult, type PublishItem, allFailedCounts, tallyResults } from "../types";
 import { mapPostizError, postizFetch } from "./client";
 import { loadSentMarker, persistSentMarker, sentMarkerKey } from "./markers";
 import { extractMediaInputs, uploadPostizMedia } from "./media";
@@ -57,8 +57,7 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
   const buildFailAll = (detail: string): AdapterResult => ({
     adapter: "postiz",
     items: inp.items.length,
-    published: 0,
-    failed: inp.items.length,
+    ...allFailedCounts(inp.items.length),
     errors: Array(inp.items.length).fill(detail),
     results: inp.items.map((_, i) => ({ item: i, status: "failed" as const, detail })),
   });
@@ -82,8 +81,8 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     if (!int.disabled) identifierToId.set(int.identifier, int.id);
   }
 
-  let published = 0;
-  let failed = 0;
+  // Items Postiz accepted in this run (drafts; counts come from tallyResults).
+  let accepted = 0;
   let hardStop = false;
 
   for (let i = 0; i < inp.items.length; i++) {
@@ -96,7 +95,6 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     const extracted = extractProviders(item);
     if (!extracted.ok) {
       results.push({ item: i, status: "failed", detail: extracted.detail });
-      failed++;
       continue;
     }
     const providers = extracted.providers;
@@ -116,7 +114,6 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
         status: "failed",
         detail: `Unconnected provider(s): ${unconnected.join(", ")}. Connected: ${connected.join(", ") || "(none)"}. Connect in the postiz UI first.`,
       });
-      failed++;
       continue;
     }
 
@@ -140,7 +137,6 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     const uploaded = await uploadPostizMedia(item, inp.cwd, provenBase);
     if (!uploaded.ok) {
       results.push({ item: i, status: "failed", detail: uploaded.detail });
-      failed++;
       if (inp.ndjson) writeStdout(JSON.stringify({ adapter: "postiz", item: i, status: "failed", detail: uploaded.detail }));
       if (uploaded.hardStop) hardStop = true;
       continue;
@@ -151,7 +147,6 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     if (!postRes.ok) {
       const detail = mapPostizError(postRes.error);
       results.push({ item: i, status: "failed", detail });
-      failed++;
       if (inp.ndjson) writeStdout(JSON.stringify({ adapter: "postiz", item: i, status: "failed", detail }));
       if (postRes.error.kind === "rate-limited" || postRes.error.kind === "subscription-required" || postRes.error.kind === "auth-missing" || postRes.error.kind === "auth-invalid") {
         hardStop = true;
@@ -164,13 +159,13 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     // The v1 postiz adapter only creates drafts (buildCreatePostDraft) —
     // postiz itself owns any later scheduling/sending.
     results.push({ item: i, status: "draft-external", detail: `draft on postiz → ${providers.join(", ")}` });
-    published++;
+    accepted++;
   }
 
   // Best-effort persist — never crash if disk write fails.
   // Only when this run added an entry: a run in which every item failed
   // leaves no marker behind.
-  if (inp.confirm && published > 0) {
+  if (inp.confirm && accepted > 0) {
     await persistSentMarker(markerPath, marker).catch((e) => {
       writeStdout(JSON.stringify({ type: "postiz-sent-marker-write-failed", path: markerPath, detail: e instanceof Error ? e.message : String(e) }));
     });
@@ -179,8 +174,7 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
   return {
     adapter: "postiz",
     items: inp.items.length,
-    published,
-    failed,
+    ...tallyResults(results),
     errors: results.filter((r) => r.status === "failed").map((r) => r.detail),
     results,
   };

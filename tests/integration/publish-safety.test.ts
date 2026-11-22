@@ -294,3 +294,24 @@ describe("typefully: a send is reported as a send", () => {
     }
   }, T);
 });
+
+describe("published counts sends only", () => {
+  test("drafts, local queue entries and written files are counted apart, top-level and per adapter", async () => {
+    const t = startTypefully('{"id": 1}', 201);
+    try {
+      const up = await runPublish(sb, ["--native-upsert-provider", "--input", JSON.stringify({ identifier: "linkedin", name: "LI", profile: "li" }), "--json"]);
+      expect(up.exitCode).toBe(0);
+      await writeFile(join(sb.project, "publish.json"), manifest([
+        nativeItem, fileItem, typefullyItem(), typefullyItem({ publish_at: "next-free-slot" }),
+      ]));
+      const r = await runPublish(sb, ["--confirm", "--json"], t.env);
+      const data = r.json as Record<string, number> & { adapters: (Record<string, number> & { adapter: string })[] };
+      expect({ published: data.published, drafts: data.drafts, queuedLocal: data.queuedLocal, writtenFiles: data.writtenFiles, failed: data.failed })
+        .toEqual({ published: 1, drafts: 1, queuedLocal: 1, writtenFiles: 1, failed: 0 });
+      const by = Object.fromEntries(data.adapters.map((a) => [a.adapter, [a.published, a.drafts, a.queuedLocal, a.writtenFiles, a.failed]]));
+      expect(by).toEqual({ "mktg-native": [0, 0, 1, 0, 0], file: [0, 0, 0, 1, 0], typefully: [1, 1, 0, 0, 0] });
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+});

@@ -10,7 +10,7 @@ import {
   resolveNativePublishTargets,
   type NativeAccountState,
 } from "../native-publish";
-import { type AdapterResult, type AdapterResultItem, type PublishItem, countTerminal } from "./types";
+import { type AdapterResult, type AdapterResultItem, type PublishItem, allFailedCounts, tallyResults } from "./types";
 import { type ListIntegrationsResult } from "./postiz/types";
 
 /** Shared AdapterResult envelope used by typefully / resend / file / mktg-native. */
@@ -21,8 +21,7 @@ export const finalizeAdapterResult = (
 ): AdapterResult => ({
   adapter,
   items: items.length,
-  published: countTerminal(results),
-  failed: results.filter((r) => r.status === "failed").length,
+  ...tallyResults(results),
   errors: results.filter((r) => r.status === "failed").map((r) => r.detail),
   results,
 });
@@ -72,7 +71,7 @@ export const publishResend = async (
 
   if (!apiKey) {
     return {
-      adapter: "resend", items: items.length, published: 0, failed: items.length,
+      adapter: "resend", items: items.length, ...allFailedCounts(items.length),
       errors: ["RESEND_API_KEY not set"],
       results: items.map((_, i) => ({ item: i, status: "failed" as const, detail: "API key missing" })),
     };

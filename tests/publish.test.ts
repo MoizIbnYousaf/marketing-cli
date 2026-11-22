@@ -66,7 +66,9 @@ describe("mktg publish", () => {
     const { stdout, exitCode } = await run(["publish", "--confirm", "--json", "--cwd", tmp]);
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
-    expect(parsed.published).toBe(1);
+    // A written file is staged, not published (published counts sends only).
+    expect(parsed.published).toBe(0);
+    expect(parsed.writtenFiles).toBe(1);
     expect(parsed.dryRun).toBe(false);
     // Verify file was written
     const outFile = Bun.file(join(tmp, ".mktg", "published", "out.txt"));

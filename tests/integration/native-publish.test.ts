@@ -100,10 +100,12 @@ describe("mktg-native publish backend", () => {
     if (!publish.ok) return;
 
     const published = publish.data as {
-      adapters: Array<{ adapter: string; published: number; failed: number }>;
+      adapters: Array<{ adapter: string; published: number; queuedLocal: number; failed: number }>;
     };
     expect(published.adapters[0]?.adapter).toBe("mktg-native");
-    expect(published.adapters[0]?.published).toBe(1);
+    // A local queue write is staged, never counted as published.
+    expect(published.adapters[0]?.published).toBe(0);
+    expect(published.adapters[0]?.queuedLocal).toBe(1);
     expect(published.adapters[0]?.failed).toBe(0);
 
     const posts = await handler(["--native-list-posts"], flags);

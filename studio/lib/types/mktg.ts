@@ -228,21 +228,26 @@ export type AdapterItemResult = {
   readonly postType?: "draft" | "schedule" | "now" | "update";
 };
 
-export type AdapterResult = {
+/** Mirrors src/core/publish/types.ts PublishCounts: `published` is sends only. */
+export type PublishCounts = {
+  readonly published: number;
+  readonly drafts: number;
+  readonly queuedLocal: number;
+  readonly writtenFiles: number;
+  readonly failed: number;
+};
+
+export type AdapterResult = PublishCounts & {
   readonly adapter: string;
   readonly items: number;
-  readonly published: number;
-  readonly failed: number;
   readonly errors: readonly string[];
   readonly results: readonly AdapterItemResult[];
 };
 
-export type PublishResult = {
+export type PublishResult = PublishCounts & {
   readonly campaign: string;
   readonly adapters: readonly AdapterResult[];
   readonly totalItems: number;
-  readonly published: number;
-  readonly failed: number;
   readonly dryRun: boolean;
 };
 

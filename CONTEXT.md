@@ -222,6 +222,8 @@ mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' -
 # which publishes or schedules) | written-file (file) | failed | skipped.
 # Definitions: skills/cmo/rules/publish-index.md "Per-Item Status Truth".
 # A local queue write is never "sent"; an external draft is never "published".
+# Counts (top-level and per adapter): published = sent items only;
+# drafts / queuedLocal / writtenFiles count staged work; failed.
 mktg publish --native-list-posts --json
 # Read-only: --native-list-posts and --list-integrations never write; with no
 # account yet they return an empty list and accountState:"missing".

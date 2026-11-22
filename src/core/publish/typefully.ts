@@ -12,7 +12,7 @@
 // it is reported as "sent", and the detail says which.
 
 import { writeStdout } from "../output";
-import { type AdapterResult, type AdapterResultItem, type PublishItem } from "./types";
+import { type AdapterResult, type AdapterResultItem, type PublishItem, allFailedCounts } from "./types";
 import { finalizeAdapterResult, pushDryRunSkip } from "./adapters";
 
 const DEFAULT_API_BASE = "https://api.typefully.com/v2";
@@ -144,7 +144,7 @@ export const publishTypefully = async (
 
   if (!apiKey) {
     return {
-      adapter: "typefully", items: items.length, published: 0, failed: items.length,
+      adapter: "typefully", items: items.length, ...allFailedCounts(items.length),
       errors: ["TYPEFULLY_API_KEY not set"],
       results: items.map((_, i) => ({ item: i, status: "failed" as const, detail: "API key missing" })),
     };
