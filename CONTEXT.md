@@ -231,7 +231,9 @@ mktg publish --native-list-posts --json
 # account yet they return an empty list and accountState:"missing".
 # A publish without --confirm (or with --dry-run) writes nothing anywhere:
 # no native account, no providers.json, no Postiz sent-marker. A corrupt
-# sent-marker or unreadable account.json is reported, not repaired.
+# sent-marker or unreadable account.json is reported, not repaired: while
+# account.json is unreadable, every mktg-native item fails (exit 4), in a dry
+# run and a confirmed run, instead of the key being replaced.
 # Postiz exactly-once: each item is recorded "pending" in the sent-marker
 # before its create is sent; a confirmed run holds <marker>.lock. A resumed
 # run skips accepted items and fails a pending one as "Unconfirmed … check

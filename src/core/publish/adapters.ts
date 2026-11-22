@@ -152,6 +152,17 @@ export const publishNative = async (
 ): Promise<AdapterResult> => {
   const results: AdapterResultItem[] = [];
 
+  // An unreadable account.json holds the workspace API key: a confirmed run
+  // must not silently replace it with a new one, and the dry run says so.
+  if ((await readNativePublishAccount(cwd)).state === "unreadable") {
+    const detail = ".mktg/native-publish/account.json is unreadable; refusing to replace it (it holds the workspace account and API key). Fix it or move it aside, then re-run.";
+    for (let i = 0; i < items.length; i++) {
+      results.push({ item: i, status: "failed", detail });
+      if (ndjson) writeStdout(JSON.stringify({ adapter: "mktg-native", item: i, status: "failed", detail }));
+    }
+    return finalizeAdapterResult("mktg-native", items, results);
+  }
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i]!;
     const targetResolution = await resolveNativePublishTargets(

@@ -202,6 +202,21 @@ describe("a failed confirmed run leaves nothing new behind", () => {
     await expectNoChange(["--adapter", "mktg-native", "--confirm", "--json"]);
   }, T);
 
+  test("native: an unreadable account.json fails the item in the dry run and the confirmed run, even with a provider", async () => {
+    const seed = await runPublish(sb, ["--native-upsert-provider", "--input", JSON.stringify({ identifier: "linkedin", name: "LI", profile: "li" }), "--json"]);
+    expect(seed.exitCode).toBe(0);
+    await writeFile(join(sb.project, ".mktg", "native-publish", "account.json"), "garbage");
+    await writeFile(join(sb.project, "publish.json"), manifest([nativeItem]));
+    for (const extra of [[], ["--confirm"]]) {
+      const r = await expectNoChange(["--adapter", "mktg-native", ...extra, "--json"]);
+      expect(r.exitCode).toBe(4);
+      const res = (r.json as { queuedLocal: number; adapters: { results: { status: string; detail: string }[] }[] });
+      expect(res.queuedLocal).toBe(0);
+      expect(res.adapters[0]!.results[0]!.status).toBe("failed");
+      expect(res.adapters[0]!.results[0]!.detail).toContain("account.json is unreadable");
+    }
+  }, T);
+
   test("postiz: every item failing writes no sent-marker", async () => {
     for (const status of [500, 404, 429]) {
       const p = startPostiz(status);
