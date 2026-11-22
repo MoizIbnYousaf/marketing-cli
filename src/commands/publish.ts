@@ -35,7 +35,7 @@ export const schema: CommandSchema = {
   positional: { name: "path", description: "Campaign directory or publish.json path", required: false },
   flags: [
     { name: "--confirm", type: "boolean", required: false, description: "Execute publishing (without this, publish is dry-run by default)" },
-    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file). An unknown name exits 2 INVALID_ARGS before anything runs." },
+    { name: "--adapter", type: "string", required: false, description: "Run only a specific adapter (mktg-native, postiz, typefully, resend, file). An unknown name, or a repeated --adapter, exits 2 INVALID_ARGS before anything runs." },
     { name: "--ndjson", type: "boolean", required: false, description: "Stream progress as NDJSON lines" },
     { name: "--list-adapters", type: "boolean", required: false, description: "List available adapters with env var requirements and configured status" },
     { name: "--list-integrations", type: "boolean", required: false, description: "For adapters backed by a provider registry (mktg-native, postiz), list connected providers. Read-only: never writes a file. mktg-native adds accountState (present | missing | unreadable). Other adapters return UNSUPPORTED_FLAG (exit 2) with the supported list." },
@@ -93,8 +93,18 @@ export const handler: CommandHandler<
 
   // An unknown --adapter is refused before anything else runs: otherwise every
   // item is filtered out and the run "succeeds" with nothing done.
+  // Own keys only: "constructor" or "__proto__" must not pass as an adapter.
   const requestedAdapter = flagValue(args, "--adapter");
-  if (requestedAdapter !== undefined && !ADAPTERS[requestedAdapter]) {
+  const adapterFlagCount = args.filter((a) => a === "--adapter" || a.startsWith("--adapter=")).length;
+  if (adapterFlagCount > 1) {
+    return err(
+      "INVALID_ARGS",
+      "--adapter was given more than once",
+      ["Pass one --adapter per run, or omit it to run every adapter in the manifest", `Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`],
+      2,
+    );
+  }
+  if (requestedAdapter !== undefined && !Object.hasOwn(ADAPTERS, requestedAdapter)) {
     return err(
       "INVALID_ARGS",
       `Unknown adapter '${requestedAdapter}'`,
@@ -249,7 +259,7 @@ export const handler: CommandHandler<
     if (adapterFilter && item.adapter !== adapterFilter) continue;
     const cc = rejectControlChars(item.content, "item content");
     if (!cc.ok) return err("INVALID_ARGS", cc.message, [], 2);
-    if (!ADAPTERS[item.adapter]) {
+    if (typeof item.adapter !== "string" || !Object.hasOwn(ADAPTERS, item.adapter)) {
       return err("INVALID_ARGS", `Unknown adapter '${item.adapter}'`, [`Available: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`], 2);
     }
   }

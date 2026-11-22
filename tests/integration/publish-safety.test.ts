@@ -30,6 +30,37 @@ describe("unknown --adapter", () => {
     expect(changedPaths(before, await snapshot(sb))).toEqual([]);
   }, T);
 
+  test("a name that is an Object.prototype key is refused, as --adapter and as a manifest item's adapter", async () => {
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
+    const before = await snapshot(sb);
+    for (const name of ["constructor", "__proto__", "toString", "hasOwnProperty"]) {
+      const r = await runPublish(sb, ["--adapter", name, "--confirm", "--json"]);
+      expect(r.exitCode).toBe(2);
+      expect((r.json as { error?: { code: string } }).error?.code).toBe("INVALID_ARGS");
+    }
+    for (const name of ["constructor", "hasOwnProperty"]) {
+      await writeFile(join(sb.project, "publish.json"), manifest([fileItem, { type: "file", adapter: name, content: "x" }]));
+      const r = await runPublish(sb, ["--confirm", "--json"]);
+      expect(r.exitCode).toBe(2);
+      expect((r.json as { error?: { code: string; message: string } }).error?.message).toContain(`Unknown adapter '${name}'`);
+    }
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
+    expect(changedPaths(before, await snapshot(sb))).toEqual([]);
+  }, T);
+
+  test("a repeated --adapter is refused instead of being read as the campaign path", async () => {
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
+    const before = await snapshot(sb);
+    for (const args of [["--adapter", "file", "--adapter", "postiz"], ["--adapter=file", "--adapter", "file"]]) {
+      const r = await runPublish(sb, [...args, "--confirm", "--json"]);
+      expect(r.exitCode).toBe(2);
+      const error = (r.json as { error?: { code: string; message: string } }).error!;
+      expect(error.code).toBe("INVALID_ARGS");
+      expect(error.message).toContain("more than once");
+    }
+    expect(changedPaths(before, await snapshot(sb))).toEqual([]);
+  }, T);
+
   test("is refused before a maintenance flag runs", async () => {
     await mkdir(join(sb.project, ".mktg"), { recursive: true });
     const r = await runPublish(sb, ["--adapter", "nope", "--list-integrations", "--json"]);
