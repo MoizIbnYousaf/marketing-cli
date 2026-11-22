@@ -315,3 +315,29 @@ describe("published counts sends only", () => {
     }
   }, T);
 });
+
+describe("failure is visible in the exit code", () => {
+  test("any failed item exits 4 with the full result as data; none exits 0", async () => {
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem, nativeItem]));
+    const partial = await runPublish(sb, ["--confirm", "--json"]);
+    expect(partial.exitCode).toBe(4);
+    const data = partial.json as { failed: number; writtenFiles: number; adapters: { adapter: string; results: { status: string; detail: string }[] }[] };
+    expect(data.failed).toBe(1);
+    expect(data.writtenFiles).toBe(1);
+    expect(data.adapters.find((a) => a.adapter === "mktg-native")!.results[0]!.detail).toContain("No connected native providers");
+
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
+    expect((await runPublish(sb, ["--confirm", "--json"])).exitCode).toBe(0);
+    expect((await runPublish(sb, ["--json"])).exitCode).toBe(0);
+  }, T);
+
+  test("a dry run with an item that cannot be planned exits 4 too", async () => {
+    for (const item of [typefullyItem(), { type: "email", adapter: "resend", content: "e", metadata: { to: "a@example.invalid" } }, nativeItem]) {
+      await writeFile(join(sb.project, "publish.json"), manifest([item]));
+      const r = await runPublish(sb, ["--dry-run", "--json"]);
+      expect(r.exitCode).toBe(4);
+      expect((r.json as { dryRun: boolean; failed: number }).dryRun).toBe(true);
+      expect((r.json as { failed: number }).failed).toBe(1);
+    }
+  }, T);
+});

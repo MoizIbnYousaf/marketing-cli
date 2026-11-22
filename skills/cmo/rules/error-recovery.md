@@ -37,6 +37,8 @@
 
 **Never ship partial state without telling the user.** If a campaign of 20 posts had 12 succeed and 8 fail, say so. Don't claim success.
 
+`mktg publish` makes this visible: any failed item exits 4, with the full result as data, so read `adapters[].results[]` for what did go through. A dry run exits 4 too when an item cannot be planned (a missing key, an unconnected provider).
+
 **Never route around a failure without acknowledging it.** If `postiz` is down and you fall back to Typefully, tell the user: *"Postiz unreachable — routing to Typefully for the platforms it covers. Reddit/IG/TikTok are file-only until postiz is back."*
 
 **Never auto-populate a brand file.** If `voice-profile.md` is missing, `/cmo` offers to run `/brand-voice` — it doesn't run unasked. The user controls what lands in `brand/`.

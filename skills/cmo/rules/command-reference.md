@@ -75,7 +75,7 @@ routing, see `rules/publish-index.md`.
 | `mktg publish --adapter postiz --list-integrations --json` | List connected Postiz providers before creating external drafts. |
 | `mktg publish --adapter postiz --diagnose --json` | Verify hosted or self-hosted Postiz auth, `/api` routing, and active provider state. |
 | `mktg publish --adapter <name> --dry-run --input '<json>' --json` | Preview before any real send. Always dry-run first. |
-| `mktg publish --adapter <name> --confirm --input '<json>' --json` | Execute publishing. Only with user approval. |
+| `mktg publish --adapter <name> --confirm --input '<json>' --json` | Execute publishing. Only with user approval. Exit 4 means at least one item failed; the full result is still on stdout. |
 | `mktg publish --ndjson` | Streaming progress for multi-item campaigns. |
 
 ---

@@ -46,6 +46,11 @@ of `sent` items only (actually sent or scheduled). Staged work is counted
 apart and is never "published": `drafts` (`draft-external`), `queuedLocal`
 (`queued-local`), `writtenFiles` (`written-file`). Plus `failed`.
 
+Exit code: any item with status `failed` makes `mktg publish` exit 4, with the
+full result still on stdout as data, in a dry run as well as a confirmed run
+(a dry-run failure is an item that could not be planned, such as a missing
+key). Read `adapters[].results[]` for what did succeed before reporting.
+
 Anti-pattern: telling the user a post "went out" when the status is
 `queued-local` or `draft-external`. Say "queued locally" or "draft created"
 instead — promotion to a live network is a separate step.

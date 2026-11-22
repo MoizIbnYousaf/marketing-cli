@@ -3,7 +3,7 @@
 // --dry-run validates, --confirm executes. NDJSON streaming for progress.
 
 import { join } from "node:path";
-import { ok, err, type CommandHandler, type CommandSchema } from "../types";
+import { ok, err, type CommandHandler, type CommandResult, type CommandSchema } from "../types";
 import { rejectControlChars, validatePathInput, parseJsonInput, unsupportedFlag } from "../core/errors";
 import { isTTY, writeStdout, bold, dim, green, yellow, red } from "../core/output";
 import { hasFlag, flagValue } from "../core/args";
@@ -53,7 +53,7 @@ export const schema: CommandSchema = {
     drafts: "number — items staged as an external draft (status draft-external); also per adapter",
     queuedLocal: "number — items written to the local mktg-native queue (status queued-local); also per adapter",
     writtenFiles: "number — items written by the file adapter (status written-file); also per adapter",
-    failed: "number — items that failed",
+    failed: "number — items that failed. Any failed item, in a dry run (an item that could not be planned, e.g. a missing key) or a confirmed run, exits 4 with this full result as data",
     dryRun: "boolean — true if this was a validation-only run",
   },
   examples: [
@@ -310,5 +310,13 @@ export const handler: CommandHandler<
     writeStdout("");
   }
 
+  // Findings vs failures (docs/EXIT_CODES.md): the full result is data either
+  // way, and any failed item exits 4 — in a dry run too, where a failed item
+  // is one that could not be planned and would fail the same way on --confirm.
+  // The CommandResult union pins ok:true to exitCode:0, so cast through, as
+  // ship-check and release do; cli.ts only inspects ok/data/exitCode.
+  if (result.failed > 0) {
+    return { ok: true, data: result, exitCode: 4 } as unknown as CommandResult<PublishResult>;
+  }
   return ok(result);
 };

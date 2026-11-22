@@ -205,8 +205,10 @@ describe("publish truth enum", () => {
     };
     await Bun.write(join(tmp, "publish.json"), JSON.stringify(manifest));
     const { stdout, exitCode } = await run(["publish", "--json", "--cwd", tmp]);
-    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
+    // An item that cannot be planned (typefully without a key) is failed, and
+    // any failed item exits 4 with the full result as data, dry run or not.
+    expect(exitCode).toBe(parsed.failed > 0 ? 4 : 0);
     for (const adapter of parsed.adapters) {
       for (const item of adapter.results) {
         expect(["skipped", "failed"]).toContain(item.status);
