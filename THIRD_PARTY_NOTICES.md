@@ -169,6 +169,20 @@ file (CC BY-NC-SA 4.0); see `skills/manimgl-best-practices/LICENSE.txt`.
 |---|---|
 | `remotion-best-practices` | `.claude/` (mirrored under `references/upstream-internal/`) |
 
+## Remotion skills (no license declared)
+
+- Source: https://github.com/remotion-dev/skills (`skills/remotion/`, the
+  primary source in `skills/remotion-best-practices/upstream.json`)
+- License: none declared. The repository has no license file and no license
+  field; GitHub reports no license. Its `package.json` names
+  `remotion-dev/remotion` (`packages/skills`) as its repository, which is under
+  the Remotion License above, but no license grant for this mirror was found.
+  Redistribution permission has not been established.
+
+| marketing-cli skill | Upstream files it draws on |
+|---|---|
+| `remotion-best-practices` | `skills/remotion/SKILL.md` (adapted), `skills/remotion/rules/` (mirrored verbatim under `rules/`) |
+
 ## Mirrored skills
 
 Skills mirrored from other repositories record their source in an

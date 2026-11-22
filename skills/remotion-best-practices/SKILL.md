@@ -312,4 +312,4 @@ Mirrored from:
 
 Snapshot SHAs and pinned tags live in `upstream.json`. Curated and adapted via `/mktg-steal` on 2026-05-04.
 
-Credit to **@JonnyBurger** and the Remotion contributors. Upstream is MIT-licensed; see each upstream repo for the canonical license text. The mktg adaptation only changes the entry-point SKILL.md (this file) and adds provenance scaffolding — the rule corpus is mirrored verbatim.
+Credit to **@JonnyBurger** and the Remotion contributors. Upstream is not MIT-licensed: remotion-dev/remotion is under the source-available Remotion License, and remotion-dev/skills declares no license (see THIRD_PARTY_NOTICES.md). The mktg adaptation only changes the entry-point SKILL.md (this file) and adds provenance scaffolding — the rule corpus is mirrored verbatim.
