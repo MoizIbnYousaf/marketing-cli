@@ -3,7 +3,7 @@ services:
     command: >-
       DASHBOARD_PORT="$PORT" STUDIO_PORT=3001 MKTG_PROJECT_ROOT="$PWD"
       MKTG_STUDIO_OPEN=false MKTG_STUDIO_AUTH=disabled
-      bun run studio/bin/mktg-studio.ts --no-open
+      bun --no-env-file run studio/bin/mktg-studio.ts --no-open
     port: 3000
     health: /
     portal:

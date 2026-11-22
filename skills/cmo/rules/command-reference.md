@@ -39,7 +39,7 @@ routing, see `rules/publish-index.md`.
 | `mktg brand claims --json` | Extract Claims Blacklist from `landscape.md`. **Read this before every piece of content.** |
 | `mktg brand append-learning --input '{...}'` | Log what worked/didn't after a session — compounds future routing. |
 | `mktg brand export --json` | Snapshot brand state for backup or hand-off. |
-| `mktg brand diff --json` | Show brand changes since last baseline. |
+| `mktg brand diff --json` | Show brand changes since the last `brand diff`, then record the current state as the next baseline in `.mktg/brand-hashes.json`. First run: `baselineTimestamp: null`, every existing file `added`; the same happens, with `baselineWarning` set, when the baseline file is corrupt. `--dry-run` compares without recording. The baseline is per project, so any agent's `brand diff` resets it for everyone. |
 | `mktg brand delete <file> --confirm` | Destructive — only when user explicitly asks. |
 | `mktg brand reset --confirm` | Nuclear — wipes `.mktg/` execution state. User must explicitly request. |
 

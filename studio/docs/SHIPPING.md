@@ -28,12 +28,19 @@ bun --cwd studio run start:studio:open     # same, plus open the dashboard
    equivalent.
 2. **Loads `.env.local`.** Plain `KEY=VALUE` (single- and double-quoted values
    supported, `#` comments skipped). Shell env always wins — the file only
-   fills in what the shell didn't set.
+   fills in what the shell didn't set. The project's file goes through the
+   CLI's key rule (`src/core/env-local.ts`): process-control keys and Studio's
+   own control keys (`MKTG_STUDIO_AUTH`, `MKTG_STUDIO_TOKEN*`,
+   `MKTG_PROJECT_ROOT`, `MKTG_BRAND_DIR`, `MKTG_STUDIO_DB`, `DASHBOARD_HOST`,
+   `STUDIO_API_BASE`) are taken from the shell only.
 3. **Resolves ports.** `STUDIO_PORT` (API, default 3001) and `DASHBOARD_PORT`
    (Next.js, default 3000).
 4. **Probes each port.** If either is taken, exits with a non-zero code and a
    `fix` line telling you exactly how to free it (`lsof -ti:PORT | xargs kill -9`).
-5. **Spawns both children.** `bun run server.ts` and `bun run next dev -p $DASHBOARD_PORT`.
+5. **Spawns both children.** `bun run server.ts` and `bun run next dev -H $DASHBOARD_HOST -p $DASHBOARD_PORT`.
+   `DASHBOARD_HOST` (shell only) defaults to `127.0.0.1`. The `dev`, `dev:all`
+   and `start` package scripts always pass `-H 127.0.0.1`; `DASHBOARD_HOST`
+   applies to the launcher only.
 6. **Tags their output.** Prefixes every line with `[server]` or `[next]`.
 7. **Waits for readiness.** Polls `GET /api/health` and `GET /` with a 30 s
    timeout; if either side misses the window, both are killed.

@@ -6,6 +6,7 @@
 
 import { describe, expect, test, beforeAll, afterAll } from "bun:test";
 import { spawn } from "bun";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const TEST_PORT = 3999;
@@ -63,6 +64,16 @@ describe("GET /api/health", () => {
     expect(typeof body.version).toBe("string");
     expect(Number.isNaN(Date.parse(body.ts))).toBe(false);
   });
+
+  test("reports the marketing-cli package version Studio ships in", async () => {
+    const rootPkg = JSON.parse(
+      readFileSync(join(PROJECT_ROOT, "..", "package.json"), "utf-8"),
+    ) as { name: string; version: string };
+    expect(rootPkg.name).toBe("marketing-cli");
+    const res = await fetch(`${BASE_URL}/api/health`);
+    const body = (await res.json()) as { version: string };
+    expect(body.version).toBe(rootPkg.version);
+  });
 });
 
 describe("GET /api/schema", () => {
@@ -83,6 +94,20 @@ describe("GET /api/schema", () => {
     expect(paths).toContain("/api/health");
     expect(paths).toContain("/api/schema");
     expect(paths).toContain("/api/activity");
+  });
+});
+
+describe("GET /api/help", () => {
+  test("documents the bearer token header and the public routes", async () => {
+    const res = await fetch(`${BASE_URL}/api/help`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { data: { headers: Record<string, string> } };
+    const auth = body.data.headers["Authorization: Bearer <token>"];
+    expect(typeof auth).toBe("string");
+    for (const path of ["/api/health", "/api/schema", "/api/help", "/api/auth/bootstrap"]) {
+      expect(auth).toContain(path);
+    }
+    expect(auth).toContain("~/.mktg/.runtime/studio-token");
   });
 });
 

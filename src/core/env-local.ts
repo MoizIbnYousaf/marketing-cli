@@ -47,15 +47,30 @@ export const loadEnvLocal = (cwd: string): Record<string, string> => {
 // 1. Variables that change how processes run or which binary gets executed.
 //    A hostile repository could otherwise run its own code through
 //    NODE_OPTIONS, PATH, or a *_BIN override the moment any mktg command runs.
+//    Studio's own control keys belong here too: where Studio binds, which
+//    token it accepts, which directories it serves, where its /api proxy
+//    points. So do proxy and TLS settings, which decide where authenticated
+//    requests go and whether their certificates are checked.
 // 2. A service base URL whose API key comes from the operator's shell. That
 //    combination would send the operator's real key to a host the repository
-//    chose. The base URL is honoured when the key sits in the same file,
-//    because then no secret from outside the project is involved.
+//    chose. The base URL is honoured when the shell has no such key (the
+//    key then comes from the same file), because then no secret from outside
+//    the project is involved.
+//
+// Keys are compared uppercased: Windows environment names are
+// case-insensitive, so `path` there is PATH.
 const BLOCKED_KEYS: ReadonlySet<string> = new Set([
   "PATH", "HOME", "SHELL", "NODE_OPTIONS", "NODE_PATH", "BUN_INSTALL", "BUN_OPTIONS",
+  "BASH_ENV", "ENV", "ZDOTDIR",
   "MKTG_STUDIO_BIN", "MKTG_STUDIO_AUTH", "MKTG_POSTINSTALL_FORCE",
+  "MKTG_STUDIO_TOKEN", "MKTG_STUDIO_TOKEN_PATH", "MKTG_STUDIO_TOKEN_DIR",
+  "MKTG_PROJECT_ROOT", "MKTG_BRAND_DIR", "MKTG_STUDIO_DB",
+  "STUDIO_API_BASE", "NEXT_PUBLIC_STUDIO_API_BASE", "DASHBOARD_HOST",
+  "MKTG_STUDIO_BROWSER", "BROWSER", "MKTG_STUDIO_DEBUG",
+  "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+  "NODE_TLS_REJECT_UNAUTHORIZED", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "SSL_CERT_DIR",
 ]);
-const BLOCKED_PREFIXES: readonly string[] = ["LD_", "DYLD_", "npm_config_", "NPM_CONFIG_", "GIT_"];
+const BLOCKED_PREFIXES: readonly string[] = ["LD_", "DYLD_", "NPM_CONFIG_", "GIT_", "BUN_CONFIG_"];
 
 /** Base URL variable -> the secret that would be sent to it. */
 const BASE_URL_SECRETS: Readonly<Record<string, string>> = {
@@ -69,10 +84,13 @@ export const isEnvLocalKeyAllowed = (
   fileEnv: Readonly<Record<string, string>>,
   shellEnv: Readonly<Record<string, string | undefined>> = process.env,
 ): boolean => {
-  if (BLOCKED_KEYS.has(key) || key.endsWith("_BIN")) return false;
-  if (BLOCKED_PREFIXES.some((prefix) => key.startsWith(prefix))) return false;
-  const secret = BASE_URL_SECRETS[key];
-  if (secret !== undefined && shellEnv[secret] !== undefined && fileEnv[secret] === undefined) return false;
+  const upper = key.toUpperCase();
+  if (BLOCKED_KEYS.has(upper) || upper.endsWith("_BIN")) return false;
+  if (BLOCKED_PREFIXES.some((prefix) => upper.startsWith(prefix))) return false;
+  const secret = BASE_URL_SECRETS[upper];
+  // The shell's key wins over the file's, so a key in the file proves nothing
+  // about which key would be sent: refuse whenever the shell has one.
+  if (secret !== undefined && shellEnv[secret] !== undefined) return false;
   return true;
 };
 

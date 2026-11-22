@@ -2,7 +2,7 @@
 // Extracted from server.ts; binary media / SSE / conflict shapes stay outside wrapRoute.
 
 import { join } from "node:path";
-import { statSync } from "node:fs";
+import { closeSync, readSync } from "node:fs";
 import { execute } from "../../lib/sqlite.ts";
 import { globalEmitter } from "../../lib/sse.ts";
 import { rejectControlChars } from "../../lib/validators.ts";
@@ -23,6 +23,7 @@ import {
   type ContentAssetMeta,
   type ContentGroupMeta,
 } from "../../lib/content-manifest.ts";
+import { openProjectFile, resolveProjectRoot } from "../../lib/project-root.ts";
 import type { RouteHttpHelpers } from "../http.ts";
 
 export {
@@ -107,6 +108,39 @@ function sanitizeContentGroupPatch(
 }
 
 /** Serve a project-local media file with HTTP Range support (also used by /api/assets/file). */
+/** Stream bytes start..end (inclusive) of an open file, closing it at the end. */
+function fdStream(fd: number, start: number, end: number): ReadableStream<Uint8Array> {
+  let position = start;
+  let closed = false;
+  const close = (): void => {
+    if (closed) return;
+    closed = true;
+    closeSync(fd);
+  };
+  return new ReadableStream<Uint8Array>({
+    pull(controller) {
+      try {
+        const length = Math.min(64 * 1024, end + 1 - position);
+        const chunk = new Uint8Array(Math.max(length, 0));
+        const read = length > 0 ? readSync(fd, chunk, 0, length, position) : 0;
+        if (read === 0) {
+          close();
+          controller.close();
+          return;
+        }
+        position += read;
+        controller.enqueue(read === length ? chunk : chunk.subarray(0, read));
+      } catch (error) {
+        close();
+        controller.error(error);
+      }
+    },
+    cancel() {
+      close();
+    },
+  });
+}
+
 export function serveProjectAsset(
   req: Request,
   relativePath: string,
@@ -129,7 +163,21 @@ export function serveProjectAsset(
     );
   }
 
-  const stat = statSync(resolved.abs);
+  // Serve from the descriptor that was verified to be inside the project, so
+  // swapping the path for a symlink after the check changes nothing.
+  const opened = openProjectFile(resolved.abs, resolveProjectRoot(cwd));
+  if (!opened.ok || !opened.stat.isFile()) {
+    if (opened.ok) closeSync(opened.fd);
+    const missing = !opened.ok && opened.missing;
+    return h.errResponse(
+      missing ? "NOT_FOUND" : "PATH_TRAVERSAL",
+      opened.ok ? `${resolved.rel} is not a file` : missing ? `${resolved.rel} does not exist` : opened.message,
+      missing ? 404 : 400,
+      undefined,
+      corsHeaders,
+    );
+  }
+  const stat = opened.stat;
   const contentType = contentMimeType(resolved.abs);
   const baseHeaders = {
     ...corsHeaders,
@@ -147,7 +195,7 @@ export function serveProjectAsset(
   const range = parseByteRange(req.headers.get("range"), stat.size);
   if (range.ok) {
     const chunkSize = range.end - range.start + 1;
-    return new Response(Bun.file(resolved.abs).slice(range.start, range.end + 1), {
+    return new Response(fdStream(opened.fd, range.start, range.end), {
       status: 206,
       headers: {
         ...baseHeaders,
@@ -158,6 +206,7 @@ export function serveProjectAsset(
   }
 
   if (req.headers.has("range")) {
+    closeSync(opened.fd);
     return new Response(null, {
       status: 416,
       headers: {
@@ -167,7 +216,7 @@ export function serveProjectAsset(
     });
   }
 
-  return new Response(Bun.file(resolved.abs), {
+  return new Response(fdStream(opened.fd, 0, stat.size - 1), {
     status: 200,
     headers: {
       ...baseHeaders,

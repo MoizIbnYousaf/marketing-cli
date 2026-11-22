@@ -56,7 +56,7 @@ Sanity check from a second terminal:
 
 ```bash
 curl -fsS http://localhost:3001/api/health | jq
-# → { ok: true, version: "0.1.0", subscribers: 0, ts: "..." }
+# → { ok: true, version: "<marketing-cli version>", ts: "...", subscribers: 0 }
 ```
 
 ## Step 3 -- Seed demo data (optional, makes the dashboard non-empty)
@@ -75,6 +75,14 @@ Open Claude Code in a fresh terminal (any project -- doesn't have to be
 this repo). Type any of these prompts and watch the browser at
 `localhost:3000`:
 
+Every route except `/api/health`, `/api/schema`, `/api/help` and
+`/api/auth/bootstrap` needs the Studio bearer token, or it answers
+`401 UNAUTHORIZED`. The examples below send it as `$AUTH`:
+
+```bash
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+```
+
 ### "What endpoints does the studio expose?"
 
 `/cmo` runs `curl -fsS http://localhost:3001/api/schema | jq` →
@@ -88,7 +96,7 @@ returns the full route registry. Try it with the route filter:
 
 ```bash
 curl -fsS -X POST http://localhost:3001/api/activity/log \
-  -H 'content-type: application/json' \
+  -H "$AUTH" -H 'content-type: application/json' \
   -d '{"kind":"skill-run","skill":"landscape-scan","summary":"45s, 5 new claims","filesChanged":["brand/landscape.md"]}'
 ```
 
@@ -101,7 +109,7 @@ curl -fsS -X POST http://localhost:3001/api/activity/log \
 
 ```bash
 curl -fsS -X POST http://localhost:3001/api/navigate \
-  -H 'content-type: application/json' \
+  -H "$AUTH" -H 'content-type: application/json' \
   -d '{"tab":"pulse"}'
 ```
 
@@ -111,7 +119,7 @@ curl -fsS -X POST http://localhost:3001/api/navigate \
 
 ```bash
 curl -fsS -X POST http://localhost:3001/api/opportunities/push \
-  -H 'content-type: application/json' \
+  -H "$AUTH" -H 'content-type: application/json' \
   -d '{"skill":"keyword-research","reason":"You have a landscape but no keyword-plan yet -- that gates seo-content","priority":80}'
 ```
 
@@ -124,12 +132,12 @@ with `g p` or the command palette.
 writes:
 
 ```bash
-RES=$(curl -fsS http://localhost:3001/api/brand/read?file=voice-profile.md)
+RES=$(curl -fsS -H "$AUTH" http://localhost:3001/api/brand/read?file=voice-profile.md)
 MTIME=$(echo "$RES" | jq -r .data.mtime)
 CONTENT=$(jq -Rs . < new-voice.md)
 
 curl -fsS -X POST http://localhost:3001/api/brand/write \
-  -H 'content-type: application/json' \
+  -H "$AUTH" -H 'content-type: application/json' \
   -d "{\"file\":\"voice-profile.md\",\"content\":$CONTENT,\"expectedMtime\":\"$MTIME\"}"
 ```
 
@@ -166,16 +174,17 @@ The whole loop is curl. You can drive it from any terminal:
 ```bash
 # the full loop, one curl per step
 STUDIO=http://localhost:3001
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
 curl -fsS   $STUDIO/api/health | jq
 curl -fsS   "$STUDIO/api/schema?route=/api/activity/log" | jq
 curl -fsS -X POST $STUDIO/api/activity/log \
-       -H 'content-type: application/json' \
+       -H "$AUTH" -H 'content-type: application/json' \
        -d '{"kind":"skill-run","skill":"landscape-scan","summary":"hi"}' | jq
 curl -fsS -X POST $STUDIO/api/navigate \
-       -H 'content-type: application/json' \
+       -H "$AUTH" -H 'content-type: application/json' \
        -d '{"tab":"pulse"}' | jq
 curl -fsS -X POST $STUDIO/api/opportunities/push \
-       -H 'content-type: application/json' \
+       -H "$AUTH" -H 'content-type: application/json' \
        -d '{"skill":"keyword-research","reason":"no plan yet","priority":80}' | jq
 ```
 

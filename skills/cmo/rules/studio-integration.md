@@ -16,6 +16,22 @@ If 200, /cmo is in **studio-attached mode** and MUST mirror key side effects to 
 
 There is no retry loop. Studio absence is not an error; it's a state.
 
+**Auth.** Every route except the public ones needs the Studio bearer token; without it the
+server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
+`/api/schema`, `/api/help` and the localhost-only browser bootstrap
+`/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
+at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
+`MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
+`Authorization: Bearer <token>`. If Studio was started with a
+`MKTG_STUDIO_TOKEN` of 32+ characters in its env, that value is the token and
+the file is not read. Send it on every studio-attached call:
+
+```bash
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+curl -s -o /dev/null -w "%{http_code}" -H "$AUTH" "$STUDIO/api/activity?limit=1"
+# 200 → authenticated. 401 → wrong or missing token.
+```
+
 ## When the user wants Studio open
 
 Launch Studio explicitly through `mktg`; do not rely on hidden hooks or

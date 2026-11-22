@@ -49,7 +49,7 @@ mktg transcribe <source> [flags]
 | `--keep-wav` | boolean | false | Keep intermediate cleaned .wav (default: delete after transcription) |
 | `--words` | boolean | false | Word-level timestamps in SRT (increases output size) |
 | `--threads` | string | `4` | Thread count for whisper-cli |
-| `--confirm` | boolean | false | Confirm overwriting existing output files |
+| `--confirm` | boolean | false | Allow overwriting output files that already exist (see [Overwrite guard](#overwrite-guard)) |
 
 Global flags `--json`, `--dry-run`, `--fields`, `--cwd`, `--input` all work as documented in `mktg --help`.
 
@@ -88,6 +88,7 @@ Global flags `--json`, `--dry-run`, `--fields`, `--cwd`, `--input` all work as d
   "model": "small",
   "estimated_size": "unknown",
   "output_dir": "/path/to/project",
+  "would_overwrite": [],
   "steps": [
     "download via yt-dlp",
     "clean audio via ffmpeg (silenceremove + dynaudnorm + afftdn, 16kHz mono pcm_s16le)",
@@ -97,6 +98,24 @@ Global flags `--json`, `--dry-run`, `--fields`, `--cwd`, `--input` all work as d
   ]
 }
 ```
+
+`would_overwrite` lists the existing files a real run would replace. A real run refuses them unless `--confirm` is passed (see [Overwrite guard](#overwrite-guard)).
+
+## Overwrite guard
+
+For a local file `<name>.<ext>`, a run writes three paths inside `--output`:
+
+- `<name>.wav`: the cleaned audio (ffmpeg overwrites it, then it is deleted unless `--keep-wav`). If that path is the source file itself, this becomes `<name>_clean.wav`. Identity is compared, not spelling, so `Tone.WAV` on a case-insensitive filesystem (the macOS default) also gets `Tone_clean.wav`.
+- `<name>.wav.srt` (or `<name>_clean.wav.srt`): whisper-cli's SRT.
+- `<name>.txt` (or `<name>_clean.txt`): the plain-text transcript.
+
+If any of these already exists as a file and `--confirm` is not passed, the command exits 2 (`INVALID_ARGS`), names the files, and writes nothing. Pass `--confirm` (or `"confirm": true` in `--input`) to overwrite them, or choose another `--output`. `--dry-run` does not refuse these; it reports them in `would_overwrite`. `--confirm` takes no value: `--confirm=true` is rejected with exit 2.
+
+If any of these paths is a symlink (dangling or not), the source file itself, or cannot be inspected, the command exits 2 in every mode, `--confirm` and `--dry-run` included, because writing there would land outside `--output` or destroy the input. Remove or rename the path, or choose another `--output`.
+
+Both checks run before any dependency check, so they apply whether or not whisper-cli, ffmpeg or yt-dlp are installed.
+
+URL sources are downloaded to a fresh `mktg-<timestamp>.<ext>` name, so their outputs never collide with existing files and `would_overwrite` is always empty for them. The downloaded media file is left in `--output` after the run.
 
 ## Dependencies
 
@@ -137,7 +156,7 @@ The intermediate `.wav` is deleted by default (pass `--keep-wav` to retain).
 | Code | Meaning | When |
 |---|---|---|
 | 0 | Success | Transcript produced |
-| 2 | Invalid args | Bad source, unsupported extension, invalid model/language, SSRF-blocked URL |
+| 2 | Invalid args | Bad source, unsupported extension, invalid model/language, SSRF-blocked URL, output files already exist without `--confirm`, an output path is a symlink or the source itself, a boolean flag given a value (`--confirm=true`) |
 | 3 | Missing dependency | whisper-cli, ffmpeg, or yt-dlp not on PATH; model file not downloaded |
 | 5 | Network error | yt-dlp download failed |
 

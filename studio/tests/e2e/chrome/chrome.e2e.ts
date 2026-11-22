@@ -140,7 +140,7 @@ async function bootStack(opts: {
 
   const next = spawn(
     "bun",
-    ["run", "next", "dev", "-p", String(opts.dashPort)],
+    ["run", "next", "dev", "-H", "127.0.0.1", "-p", String(opts.dashPort)],
     { cwd: REPO_ROOT, env, stdio: ["ignore", "pipe", "pipe"] },
   );
   next.stdout?.on("data", (c) =>

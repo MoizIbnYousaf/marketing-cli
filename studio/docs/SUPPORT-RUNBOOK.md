@@ -133,7 +133,7 @@ tail -n 40 /tmp/studio.log
 
 ### 2.3 Activity panel stays blank
 **Symptom:** dashboard loads, every tab loads, but the right-side Activity panel says "No activity yet" indefinitely -- even after running a skill in `/cmo`.
-**Cause:** /cmo isn't posting to the studio's `/api/activity` endpoint. Happens when `STUDIO_API_BASE` in /cmo's env doesn't match the studio's port, or when the studio's SSE bridge dropped (Bug #8 -- fixed at `4957afd`, verify you're on main).
+**Cause:** /cmo isn't posting to the studio's `/api/activity/log` endpoint. Happens when `STUDIO_API_BASE` in /cmo's env doesn't match the studio's port, or when the studio's SSE bridge dropped (Bug #8 -- fixed at `4957afd`, verify you're on main).
 **Fix:**
 ```sh
 # confirm the studio is on 3001 and subscribers > 0
@@ -164,8 +164,10 @@ bun run start:studio
 ```sh
 # verify the server is up
 curl -s http://localhost:3001/api/health
-# manually POST the foundation trigger to see the response
-curl -s -X POST http://localhost:3001/api/onboarding/foundation
+# manually POST the foundation trigger to see the response (every route but
+# /api/health, /api/schema, /api/help and /api/auth/bootstrap needs the token)
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+curl -s -X POST -H "$AUTH" http://localhost:3001/api/onboarding/foundation
 # if 404, you are on a pre-onboarding build; skip onboarding and go straight to /dashboard
 # if 5xx, check server logs (the bun process tag in the launcher output)
 ```
@@ -204,9 +206,10 @@ ls ~/.claude/skills/cmo/              # should list SKILL.md + rules/
 ps aux | grep -E "claude|exa|firecrawl" | grep -v grep
 # if you see a stuck process, kill it
 # then mark the abandoned Activity row via the API:
-curl -s -X POST http://localhost:3001/api/activity \
-  -H "Content-Type: application/json" \
-  -d '{"kind":"notice","summary":"abandoned run","meta":{"reason":"user-cancelled"}}'
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+curl -s -X POST http://localhost:3001/api/activity/log \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"kind":"note","summary":"abandoned run","meta":{"reason":"user-cancelled"}}'
 ```
 The studio's server-side cleanup for zombie `running` rows is on the roadmap. For now, manually dismiss.
 
@@ -357,7 +360,8 @@ sqlite3 marketing.db "VACUUM;"
 # check server health
 curl -s http://localhost:3001/api/health
 # probe the specific endpoint; replace signals with the failing tab's source
-curl -s http://localhost:3001/api/signals | head
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+curl -s -H "$AUTH" http://localhost:3001/api/signals | head
 # if a 5xx, check server logs
 tail -n 100 /tmp/studio.log
 ```

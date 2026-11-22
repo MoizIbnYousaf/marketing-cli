@@ -5,7 +5,7 @@
 // @attribution: Handler shape ported from crafter-station/trx (MIT, © 2026 Crafter Station).
 // Core logic in src/core/transcribe.ts. See src/commands/ATTRIBUTION.md.
 
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { ok, type CommandHandler, type CommandSchema } from "../types";
 import {
@@ -24,8 +24,9 @@ import {
   WHISPER_MODELS,
   DEFAULT_MODEL,
   type SourceType,
+  isSameFile,
+  plannedOutputPaths,
   type TranscribeSegment,
-  type WhisperModel,
 } from "../core/transcribe";
 
 type TranscribeResult = {
@@ -49,6 +50,7 @@ type DryRunResult = {
   readonly model: string;
   readonly estimated_size: string;
   readonly output_dir: string;
+  readonly would_overwrite: readonly string[];
   readonly steps: readonly string[];
 };
 
@@ -64,7 +66,7 @@ export const schema: CommandSchema = {
     { name: "--keep-wav", type: "boolean", required: false, default: false, description: "Keep the intermediate cleaned .wav file (default: delete after transcription)" },
     { name: "--words", type: "boolean", required: false, default: false, description: "Word-level timestamps in SRT (significantly larger output)" },
     { name: "--threads", type: "string", required: false, default: "4", description: "Number of threads for whisper-cli" },
-    { name: "--confirm", type: "boolean", required: false, default: false, description: "Confirm overwriting existing files in the output directory" },
+    { name: "--confirm", type: "boolean", required: false, default: false, description: "Allow overwriting files this run writes that already exist in --output (<name>.wav, <name>.wav.srt, <name>.txt for a local file). Without it the run refuses with exit 2; --dry-run lists them in would_overwrite. Takes no value. Never allows writing through a symlink or over the source (always exit 2)" },
   ],
   output: {
     "transcript": "string — full transcript as plain text",
@@ -123,6 +125,10 @@ const parseFlags = (
     if (a === "--keep-wav") { keepWav = true; continue; }
     if (a === "--words") { words = true; continue; }
     if (a === "--confirm") { confirm = true; continue; }
+    if (/^--(summarize|keep-wav|words|confirm)=/.test(a)) {
+      const flag = a.slice(0, a.indexOf("="));
+      return { ok: false, error: { message: `${flag} takes no value (got '${a}')`, suggestions: [`Pass ${flag} on its own, or set it in --input`] } };
+    }
     if (a.startsWith("-")) continue;
     positional.push(a);
   }
@@ -144,6 +150,7 @@ const parseFlags = (
     if (typeof p.keepWav === "boolean") keepWav = p.keepWav;
     if (typeof p.words === "boolean") words = p.words;
     if (typeof p.threads === "number") threads = p.threads;
+    if (typeof p.confirm === "boolean") confirm = p.confirm;
   }
 
   if (!source) {
@@ -205,6 +212,43 @@ export const handler: CommandHandler<TranscribeResult | DryRunResult> = async (a
   if (!outDirCheck.ok) return invalidArgs(`Invalid --output directory: ${outDirCheck.message}`, ["Use a relative path inside the project"]);
   const outputDir = outDirCheck.path;
 
+  // Overwrite guard. A local file's output names are known up front; a URL
+  // download gets a fresh mktg-<timestamp> name, so it cannot collide.
+  // lstat, not existsSync: a dangling symlink "does not exist" to existsSync,
+  // yet ffmpeg and Bun.write follow it and create the target outside --output.
+  // A symlink, or a path that is the source itself, is never written, even
+  // with --confirm.
+  const wouldOverwrite: string[] = [];
+  const neverWrite: string[] = [];
+  if (det.kind === "file") {
+    const planned = plannedOutputPaths(det.path, outputDir);
+    for (const path of [planned.wav, planned.srt, planned.txt]) {
+      let isLink: boolean;
+      try {
+        isLink = lstatSync(path).isSymbolicLink();
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code === "ENOENT") continue;
+        neverWrite.push(path);
+        continue;
+      }
+      if (isLink || isSameFile(path, det.path)) neverWrite.push(path);
+      else wouldOverwrite.push(path);
+    }
+  }
+  if (neverWrite.length > 0) {
+    return invalidArgs(`Refusing to write output through a symlink, over the source, or to an unreadable path: ${neverWrite.join(", ")}`, [
+      "Remove or rename these paths, then re-run (--confirm does not allow this)",
+      "Or pass --output <dir> to write somewhere else",
+    ]);
+  }
+  if (wouldOverwrite.length > 0 && !p.confirm && !flags.dryRun) {
+    return invalidArgs(`Refusing to overwrite existing file${wouldOverwrite.length > 1 ? "s" : ""}: ${wouldOverwrite.join(", ")}`, [
+      "Re-run with --confirm to overwrite them",
+      "Or pass --output <dir> to write somewhere else",
+      "Preview with --dry-run --json (see would_overwrite)",
+    ]);
+  }
+
   if (flags.dryRun) {
     const steps: string[] = [];
     if (det.kind === "url") steps.push("download via yt-dlp");
@@ -224,6 +268,7 @@ export const handler: CommandHandler<TranscribeResult | DryRunResult> = async (a
       model: p.model,
       estimated_size,
       output_dir: outputDir,
+      would_overwrite: wouldOverwrite,
       steps,
     });
   }
