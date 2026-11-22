@@ -347,7 +347,7 @@ subcommands, and refresh commands, see `rules/cli-runtime-index.md`.
 | `mktg compete list --json` | Show all tracked competitors with last scan info |
 | `mktg compete diff <url>` | Show detailed changes for a specific competitor |
 | `mktg run <skill> --learning '{...}'` | Run a skill and record what you learned to `brand/learnings.md` |
-| `mktg run <skill> --complete --writes <paths> --result success\|failure --json` | **Close the loop.** Log a `completed` event with the files written  -  the only event plan/status/dashboard count as real work |
+| `mktg run <skill> --complete --writes <paths> --result success\|partial\|failed --json` | **Close the loop.** Log a `completed` event with the files written  -  the only event plan/status/dashboard count as real work; `mktg plan` advances only on `--result success` |
 | `mktg route "<request>" --json` | Manifest-trigger routing without Claude (fallback / determinism check) |
 | `mktg brand append-learning --input '{...}'` | Record a learning outside of a skill run |
 | `mktg list --json` | Show all 76 skills with metadata |
