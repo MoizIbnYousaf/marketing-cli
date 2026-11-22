@@ -184,6 +184,28 @@ describe("Redirect validation", () => {
     expect(manifest.redirects["social-content"]).toBe("content-atomizer");
     expect(manifest.redirects["marketing-ideas"]).toBe("brainstorm");
   });
+
+  // marketingskills v2.0 renamed its skills (README "Full rename map"). Each
+  // new name lands where the old name already did, or where
+  // THIRD_PARTY_NOTICES.md says the skill derives from.
+  test("marketingskills v2 names land on the same skill as the old names", () => {
+    const renamed: Record<string, string> = {
+      analytics: "analytics-tracking", emails: "email-sequence", onboarding: "onboarding-cro",
+      paywalls: "paywall-upgrade-cro", popups: "popup-cro", schema: "schema-markup",
+      signup: "signup-flow-cro", social: "social-content",
+    };
+    for (const [now, before] of Object.entries(renamed)) {
+      expect(manifest.redirects[now]).toBe(manifest.redirects[before]!);
+    }
+    const derived: Record<string, string> = {
+      competitors: "competitor-alternatives", cro: "page-cro", "free-tools": "free-tool-strategy",
+      launch: "launch-strategy", pricing: "pricing-strategy", referrals: "referral-program",
+    };
+    for (const [now, skill] of Object.entries(derived)) {
+      expect(manifest.redirects[now]).toBe(skill);
+      expect(manifest.skills[skill]).toBeDefined();
+    }
+  });
 });
 
 describe("Skill coverage", () => {

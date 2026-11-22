@@ -2580,6 +2580,23 @@
     "gh-axi": "axi",
     "toon cli": "axi",
     "axi catalog": "axi",
-    "prefer mcp": "axi"
+    "prefer mcp": "axi",
+    "analytics": "cmo",
+    "competitors": "competitor-alternatives",
+    "cro": "page-cro",
+    "emails": "email-sequences",
+    "free-tools": "free-tool-strategy",
+    "launch": "launch-strategy",
+    "onboarding": "conversion-flow-cro",
+    "paywalls": "conversion-flow-cro",
+    "popups": "page-cro",
+    "pricing": "pricing-strategy",
+    "referrals": "referral-program",
+    "schema": "seo-audit",
+    "signup": "conversion-flow-cro",
+    "social": "content-atomizer",
+    "ad-creative": "creative",
+    "lead-magnets": "lead-magnet",
+    "link-building": "off-page-seo"
   }
 }

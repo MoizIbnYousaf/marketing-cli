@@ -302,7 +302,7 @@ THEN (based on user goal):
 ## Skill Redirects
 
 Old skill names redirect automatically. The canonical redirect map lives in
-`skills-manifest.json` ("redirects" key, ~90 entries) — this table is only the
+`skills-manifest.json` ("redirects" key, ~110 entries) — this table is only the
 most common handful; do not extend it. To resolve any old name:
 `mktg skill info <old name> --json` (follows redirects, as does
 `mktg run <old name>`; a `Did you mean:` hint is returned on NOT_FOUND).
