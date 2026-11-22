@@ -106,6 +106,7 @@ mktg run brand-voice --complete --writes brand/voice-profile.md --result success
 # --writes paths must exist inside the project (validated, exit 2 otherwise).
 # Only event:"completed" records with result "success" count as executed work in `mktg plan`.
 # A --result partial|failed completion is recorded with its result, but the plan keeps the task.
+# `mktg dashboard snapshot|outputs` publishReadiness counts the same successful completions only.
 # History: mktg skill history <skill> --json (shows loaded vs completed events).
 ```
 
