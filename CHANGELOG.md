@@ -17,6 +17,19 @@
 - **Studio reported the wrong version and the wrong brand folder.** `/api/health`, `mktg-studio --version` and `mktg studio --dry-run` report the installed marketing-cli version instead of `0.1.0`. Settings > Brand health and the `/` redirect read the project's `brand/`, not the copy shipped inside Studio.
 - **The agent-facing Studio API docs did not mention the bearer token**, so an agent following them got 401. The docs, the `/cmo` Studio rules and `GET /api/help` now give the public routes, the token location and the header.
 - Stopping the Studio launcher during startup no longer leaves the API server running.
+- **`mktg publish` was not safe to dry-run, and did not say what happened.** Found by running it over 817 flag combinations against a local recorder:
+  - A dry run and the read-only listings (`--native-list-posts`, `--list-integrations`) wrote files: a native account with a generated key, `providers.json`, a Postiz sent-marker. They now write nothing; a corrupt marker or unreadable account is reported, never renamed or replaced.
+  - A run in which items failed exited 0. It now exits 4 with the full result as data, in dry runs too.
+  - `published` counted drafts and local queue entries. It now counts only items actually sent or scheduled; `drafts`, `queuedLocal` and `writtenFiles` report staged work.
+  - A Typefully item with `publish_at` was sent or scheduled but reported as `draft-external`. The status now comes from Typefully's answer; an answer that does not confirm the request is `failed`.
+  - A Postiz run killed part-way re-created accepted items when resumed, and a 2xx answer that could not be parsed was re-sent to `<base>/api`. Each item is now recorded as pending before its request and as sent when accepted; a resumed run skips sent items and reports a pending one as unconfirmed instead of sending it again. A run holds a lock, so two runs on one campaign cannot both send.
+  - An unknown `--adapter` exited 0 with an empty result. It is now refused (exit 2).
+  - A confirmed run that failed left a native account or an empty marker behind. It now leaves nothing.
+- **Failed work counted as done.** `mktg run <skill> --complete --result failed` (or `partial`) was treated as completed, so `mktg plan` dropped the skill's task. Only `--result success` advances the plan now; the failed run stays recorded.
+- **The CLI misread 37 of its own skill descriptions.** The frontmatter parser did not understand YAML block text (`description: |`), so descriptions came back starting with `| `. It now reads block scalars, quoted and multi-line values, flow sequences, CRLF and a byte-order mark, and a test compares it with a YAML parser on every shipped skill.
+- **`/cmo`'s first two review gates named skills the package does not ship.** Gates 1 and 2 now run from the shipped rule file; `editorial-first-pass` and `ai-check` are an optional extra. Gate 3 passes on the content reviewer's `VERDICT: SHIP`, gate 4 on an SEO analyst score of 8/10 or more.
+- `/cmo` documented `--result success|failure`; the CLI accepts `success | partial | failed`.
+- `higgsfield-generate`'s description exceeded the 1,024-character limit.
 
 ### Security
 
@@ -29,6 +42,9 @@
 
 ### Changed
 
+- **`mktg publish` contract.** Exit 4 when any item failed. `published` means sent or scheduled; new counts `drafts`, `queuedLocal`, `writtenFiles`. Typefully items can now be `sent`. Listings and `--native-account --dry-run` return `accountState` (`present | missing | unreadable`). Postiz marker entries may carry `state: "pending"`. A corrupt Postiz marker now stops the run instead of being archived and everything re-sent. Studio treats an exit-4 result as data.
+- **marketingskills' current skill names resolve.** `pricing`, `referrals`, `launch`, `free-tools`, `cro`, `schema`, `popups`, `signup`, `onboarding`, `paywalls`, `emails`, `social`, `analytics`, `ad-creative`, `lead-magnets` and `link-building` redirect to their marketing-cli counterparts.
+- **`THIRD_PARTY_NOTICES.md` credits every origin the skills record** (AXI, Exa, Higgsfield, OpenSEO, Typefully, ElevenLabs, Manim, Remotion, and the `/cmo` references taken from Marketing Skills). It records that `remotion-dev/skills` declares no licence.
 - **Releases publish through npm trusted publishing, staged for approval.** `.github/workflows/release.yml` runs when a `v*` tag is pushed, proves its identity to npm with OIDC (no stored token), and stages the version with `npm stage publish`; it becomes installable after a maintainer approves it on npmjs.com with 2FA. The workflow skips the publish when the version is already on npm, checks that the tag matches `package.json`, and creates the GitHub release. One-time setup: add a trusted publisher for `release.yml` in the package's npm settings.
 - **`mktg release` uses a hand-written `## Unreleased` section as the release notes.** The section takes the version as its heading; the generated commit list is added only when there is no such section or it is empty. Before, the generated list was inserted above `## Unreleased`, which left the curated notes stranded under the wrong heading.
 - **`mktg release --confirm` refuses to publish when npm has `ignore-scripts=true`** (`NPM_SCRIPTS_DISABLED`, exit 3). With scripts disabled a publish skips the build and the package clean-up; 0.7.0 was published that way and shipped a `workspaces` field.
