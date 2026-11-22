@@ -144,6 +144,77 @@ const readQuoted = (lines: readonly string[], start: number, first: string): Sca
   return { value: unescapeDouble(out), next: i };
 };
 
+/** Plain `null`, `Null`, `NULL` and `~` are YAML null; read them as an empty value. */
+const isPlainNull = (text: string): boolean => /^(null|Null|NULL|~)$/.test(text);
+
+/** One sequence item on one line: quoted (comment after it ignored) or plain (` #` comment stripped). */
+export const readSequenceItem = (text: string): string => {
+  const head = text.trim();
+  if (head.startsWith('"') || head.startsWith("'")) {
+    const quoted = readQuoted([], 0, head);
+    if (quoted) return quoted.value;
+  }
+  const plain = stripComment(head).trim();
+  return isPlainNull(plain) ? "" : plain;
+};
+
+/** Split flow-sequence text on commas that sit outside quotes. */
+const splitFlowItems = (body: string): string[] => {
+  const items: string[] = [];
+  let current = "";
+  for (let k = 0; k < body.length; k++) {
+    const c = body[k]!;
+    if (c === '"' || c === "'") {
+      const end = closingQuote(body, c, k + 1);
+      const stop = end < 0 ? body.length - 1 : end;
+      current += body.slice(k, stop + 1);
+      k = stop;
+      continue;
+    }
+    if (c === ",") { items.push(current); current = ""; continue; }
+    current += c;
+  }
+  items.push(current);
+  return items;
+};
+
+export type SequenceRead = {
+  readonly items: string[];
+  readonly next: number;
+};
+
+/**
+ * Read a flow sequence (`[a, "b"]`, `[]`, or one spread over several lines)
+ * of scalar items. `inline` starts with `[`. Returns null when the sequence
+ * is never closed or nests another collection.
+ */
+export const readFlowSequence = (lines: readonly string[], start: number, inline: string): SequenceRead | null => {
+  const parts: string[] = [];
+  let rest = inline.trim().slice(1);
+  let i = start;
+  for (;;) {
+    let close = -1;
+    for (let k = 0; k < rest.length; k++) {
+      const c = rest[k]!;
+      if (c === '"' || c === "'") { const end = closingQuote(rest, c, k + 1); if (end < 0) break; k = end; continue; }
+      if (c === "#" && (k === 0 || /\s/.test(rest[k - 1]!))) break;
+      if (c === "[" || c === "{") return null;
+      if (c === "]") { close = k; break; }
+    }
+    if (close >= 0) { parts.push(rest.slice(0, close)); break; }
+    parts.push(stripComment(rest));
+    if (i >= lines.length) return null;
+    rest = lines[i]!;
+    i += 1;
+  }
+  const body = parts.join(" ");
+  if (body.trim() === "") return { items: [], next: i };
+  const raw = splitFlowItems(body).map((item) => item.trim());
+  // A trailing comma (`[a, b,]`) leaves one empty entry; YAML ignores it.
+  if (raw.length > 1 && raw[raw.length - 1] === "") raw.pop();
+  return { items: raw.map(readSequenceItem), next: i };
+};
+
 /**
  * Read the scalar value of a top-level key. `inline` is the text after
  * `key:` on the key's own line; `start` is the index of the next line.
@@ -163,5 +234,6 @@ export const readTopLevelScalar = (lines: readonly string[], start: number, inli
     if (/^\s*#/.test(line)) continue;
     collected.push(stripComment(line).trim());
   }
-  return { value: foldFlowLines(collected), next: i };
+  const value = foldFlowLines(collected);
+  return { value: isPlainNull(value) ? "" : value, next: i };
 };

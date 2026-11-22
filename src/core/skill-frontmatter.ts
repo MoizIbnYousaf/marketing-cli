@@ -8,7 +8,7 @@ import type {
   ValidationResult,
 } from "../types";
 import { BRAND_FILES as BRAND_FILE_LIST } from "../types";
-import { readTopLevelScalar } from "./frontmatter-scalars";
+import { readFlowSequence, readSequenceItem, readTopLevelScalar } from "./frontmatter-scalars";
 
 const VALID_CATEGORIES: readonly SkillCategory[] = [
   "foundation", "strategy", "copy-content", "distribution",
@@ -38,8 +38,6 @@ export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
   const lines = match[1].split("\n");
 
   const result: Record<string, string | string[]> = {};
-  const unquote = (v: string): string =>
-    (v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")) ? v.slice(1, -1) : v;
 
   let i = 0;
   while (i < lines.length) {
@@ -58,9 +56,17 @@ export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
         if (line.trim() === "") continue;
         const item = line.match(/^\s*-\s+(.*)$/);
         if (!item) break;
-        items.push(unquote(item[1]!.trim()));
+        items.push(readSequenceItem(item[1]!));
       }
       result[key] = items;
+      continue;
+    }
+    // Flow sequence: "key: [a, b]", "key: []", or spread over several lines
+    if (inline.trim().startsWith("[")) {
+      const flow = readFlowSequence(lines, i, inline);
+      if (!flow) return null;
+      result[key] = flow.items;
+      i = flow.next;
       continue;
     }
     const scalar = readTopLevelScalar(lines, i, inline);

@@ -34,6 +34,10 @@ describe("parseFrontmatter matches Bun.YAML.parse on every skills/*/SKILL.md", (
       expect(fm).not.toBeNull();
       expect(fm!.name).toBe(String(yaml.name));
       expect(fm!.description).toBe(String(yaml.description));
+      // Sequences read the same as YAML where the file declares them.
+      for (const key of ["reads", "writes", "triggers"] as const) {
+        if (Array.isArray(yaml[key])) expect(fm![key]).toEqual((yaml[key] as unknown[]).map(String));
+      }
     });
   }
 });
@@ -102,5 +106,54 @@ describe("parseFrontmatter block scalars", () => {
     const fm = parseFrontmatter("---\nname: a\ndescription: |\n  x\nreads:\n  - voice-profile.md\n  - 'audience.md'\n---\n");
     expect(fm?.description).toBe("x\n");
     expect(fm?.reads).toEqual(["voice-profile.md", "audience.md"]);
+  });
+});
+
+// Sequences and nulls, each compared with Bun.YAML.parse on the same block.
+describe("parseFrontmatter sequences and nulls match YAML", () => {
+  const block = (body: string): string => `name: a\ndescription: d\n${body}`;
+  const both = (body: string) => ({
+    fm: parseFrontmatter(`---\n${block(body)}\n---\n`),
+    yaml: Bun.YAML.parse(block(body)) as Record<string, unknown>,
+  });
+
+  test("a block sequence item drops its trailing comment", () => {
+    const { fm, yaml } = both("reads:\n  - voice-profile.md # main\n  - 'audience.md' # quoted");
+    expect(yaml.reads).toEqual(["voice-profile.md", "audience.md"]);
+    expect(fm?.reads).toEqual(yaml.reads as string[]);
+  });
+
+  test("a one-line flow sequence is an array", () => {
+    const { fm, yaml } = both('reads: [voice-profile.md, "audience.md", \'positioning.md\']');
+    expect(fm?.reads).toEqual(yaml.reads as string[]);
+  });
+
+  test("an empty flow sequence is an empty array", () => {
+    const { fm, yaml } = both("reads: []\nwrites: [ ]");
+    expect(yaml.reads).toEqual([]);
+    expect(fm?.reads).toEqual([]);
+    expect(fm?.writes).toEqual([]);
+  });
+
+  test("a flow sequence over several lines, with a trailing comma", () => {
+    const { fm, yaml } = both("writes: [\n  voice-profile.md,\n  audience.md,\n  ]\ntier: must-have");
+    expect(fm?.writes).toEqual(yaml.writes as string[]);
+    expect(fm?.tier).toBe(String(yaml.tier));
+  });
+
+  test("a quoted item keeps a comma inside the quotes", () => {
+    const { fm, yaml } = both('triggers: ["a, b", c]');
+    expect(fm?.triggers).toEqual(yaml.triggers as string[]);
+  });
+
+  for (const value of ["null", "~", "Null", "NULL"]) {
+    test(`description: ${value} is null, so there is no valid frontmatter`, () => {
+      expect((Bun.YAML.parse(`name: a\ndescription: ${value}`) as Record<string, unknown>).description).toBeNull();
+      expect(parseFrontmatter(`---\nname: a\ndescription: ${value}\n---\n`)).toBeNull();
+    });
+  }
+
+  test("a quoted 'null' stays the string null", () => {
+    expect(parseFrontmatter(`---\nname: a\ndescription: "null"\n---\n`)?.description).toBe("null");
   });
 });
