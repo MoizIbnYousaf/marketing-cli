@@ -295,11 +295,22 @@ export function listBrandFiles(projectRoot: string = process.cwd()): BrandFileLi
   return result;
 }
 
+const isSymlink = (path: string): boolean => {
+  try {
+    return lstatSync(path).isSymbolicLink();
+  } catch {
+    return false;
+  }
+};
+
 function buildListing(name: string, projectRoot: string): BrandFileListing {
-  const abs = join(brandRoot(projectRoot), name);
+  const root = brandRoot(projectRoot);
+  const abs = join(root, name);
   const spec = getSpec(name);
 
-  if (!existsSync(abs)) {
+  // resolveBrandPath refuses symlinks for read and write, so the listing
+  // treats them as missing instead of stat-ing and reading their target.
+  if (isSymlink(root) || isSymlink(abs) || !existsSync(abs)) {
     return {
       name,
       path: `brand/${name}`,

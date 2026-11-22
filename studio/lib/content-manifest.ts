@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+  closeSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -10,7 +11,7 @@ import {
 } from "node:fs";
 import { basename, dirname, extname, isAbsolute, join } from "node:path";
 import { parseAssetsMarkdown } from "./brand-assets.ts";
-import { resolveProjectPath, resolveProjectRoot } from "./project-root.ts";
+import { openProjectFile, resolveProjectPath, resolveProjectRoot } from "./project-root.ts";
 
 export type ContentAssetKind = "image" | "video" | "markdown" | "file";
 export type ContentAssetStatus = "draft" | "approved" | "published" | "archived";
@@ -492,16 +493,22 @@ export function readContentFile(path: string, rootArg?: string): ContentFileRead
   const resolved = resolveInsideRoot(path, root);
   if (!resolved.ok) throw new Error(resolved.message);
   if (!isTextContentPath(resolved.rel)) throw new Error("Only markdown and text-like project files can be read");
-  if (!existsSync(resolved.abs)) throw new Error(`${resolved.rel} does not exist`);
-  const stat = statSync(resolved.abs);
-  if (!stat.isFile()) throw new Error(`${resolved.rel} is not a file`);
-  if (stat.size > MAX_TEXT_BYTES) throw new Error(`${resolved.rel} is too large to edit in Studio`);
-  return {
-    path: resolved.rel,
-    content: readFileSync(resolved.abs, "utf-8"),
-    mtime: fileVersionToken(stat),
-    bytes: stat.size,
-  };
+  // Read through the descriptor that was verified, not the path again.
+  const opened = openProjectFile(resolved.abs, root);
+  if (!opened.ok) throw new Error(opened.missing ? `${resolved.rel} does not exist` : opened.message);
+  try {
+    const stat = opened.stat;
+    if (!stat.isFile()) throw new Error(`${resolved.rel} is not a file`);
+    if (stat.size > MAX_TEXT_BYTES) throw new Error(`${resolved.rel} is too large to edit in Studio`);
+    return {
+      path: resolved.rel,
+      content: readFileSync(opened.fd, "utf-8"),
+      mtime: fileVersionToken(stat),
+      bytes: stat.size,
+    };
+  } finally {
+    closeSync(opened.fd);
+  }
 }
 
 export function writeContentFile(
@@ -516,11 +523,22 @@ export function writeContentFile(
   if (!isTextContentPath(resolved.rel)) throw new Error("Only markdown and text-like project files can be written");
   if (content.length > MAX_TEXT_BYTES) throw new Error(`${resolved.rel} exceeds the Studio edit limit`);
 
-  const previous = existsSync(resolved.abs) ? readFileSync(resolved.abs, "utf-8") : "";
-  if (expectedMtime && existsSync(resolved.abs)) {
-    const serverMtime = fileVersionToken(statSync(resolved.abs));
-    if (serverMtime !== expectedMtime) {
-      return { ok: false, code: "CONFLICT", serverMtime, clientMtime: expectedMtime };
+  // The previous content (its length is returned as deltaChars) is read
+  // through a verified descriptor too.
+  let previous = "";
+  const prior = openProjectFile(resolved.abs, root);
+  if (!prior.ok && !prior.missing) throw new Error(prior.message);
+  if (prior.ok) {
+    try {
+      previous = readFileSync(prior.fd, "utf-8");
+      if (expectedMtime) {
+        const serverMtime = fileVersionToken(prior.stat);
+        if (serverMtime !== expectedMtime) {
+          return { ok: false, code: "CONFLICT", serverMtime, clientMtime: expectedMtime };
+        }
+      }
+    } finally {
+      closeSync(prior.fd);
     }
   }
 

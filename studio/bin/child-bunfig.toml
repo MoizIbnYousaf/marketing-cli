@@ -1,0 +1,3 @@
+# Intentionally empty. Studio and `mktg studio` pass this file as --config
+# when they start Bun in a user's project directory, so Bun does not read that
+# project's bunfig.toml (whose `preload` would run the repository's code).

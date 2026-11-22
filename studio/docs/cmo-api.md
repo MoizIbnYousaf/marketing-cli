@@ -11,6 +11,7 @@ This file is the contract. Every endpoint is JSON-in / JSON-out. Every mutating 
 ## Conventions
 
 - **Base URL:** `http://localhost:3001`
+- **Auth:** `Authorization: Bearer <token>` on every route except `/api/health`, `/api/schema`, `/api/help` and `/api/auth/bootstrap` (see [Authentication](#authentication))
 - **Content-Type:** `application/json`
 - **Response envelope (success):** `{"ok": true, "data": <T>, "meta?": {...}}`
 - **Response envelope (error):** `{"ok": false, "error": {"code": "<CODE>", "message": "<msg>", "fix": "<hint>"}}`
@@ -22,6 +23,31 @@ This file is the contract. Every endpoint is JSON-in / JSON-out. Every mutating 
 - **SSE channel:** `GET /api/events` — emits `{type, payload, ts}` events
 - **CORS:** `localhost:3000` and `127.0.0.1:3000` (Next.js dev server)
 
+### Authentication
+
+Every route except the public ones needs the Studio bearer token; without it the
+server answers `401 UNAUTHORIZED`. The public routes are `/api/health`,
+`/api/schema`, `/api/help` and the localhost-only browser bootstrap
+`/api/auth/bootstrap` (`PUBLIC_PATHS` in `studio/lib/auth.ts`). The token lives
+at `~/.mktg/.runtime/studio-token` (mode 0600; `MKTG_STUDIO_TOKEN_PATH` or
+`MKTG_STUDIO_TOKEN_DIR` move it) and goes in the header
+`Authorization: Bearer <token>`. If Studio was started with a
+`MKTG_STUDIO_TOKEN` of 32+ characters in its env, that value is the token and
+the file is not read.
+`/api/auth/bootstrap` hands a session cookie holding this token to any caller
+on this machine, so the token keeps out other machines and cross-site browser
+pages, not other local processes.
+
+```bash
+curl -H "Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)" http://127.0.0.1:3001/api/skills
+```
+
+The examples below assume the header is in a shell variable:
+
+```bash
+AUTH="Authorization: Bearer $(cat ~/.mktg/.runtime/studio-token)"
+```
+
 ### Error codes
 
 `error.code` is one of:
@@ -30,7 +56,7 @@ This file is the contract. Every endpoint is JSON-in / JSON-out. Every mutating 
 |---|---|---|
 | `BAD_INPUT` | 400 | Schema or validator rejection. `fix` names the field |
 | `NOT_FOUND` | 404 | Resource missing |
-| `UNAUTHORIZED` | 401 | Missing/invalid credentials (e.g. `POSTIZ_API_KEY`) |
+| `UNAUTHORIZED` | 401 | Missing/invalid Studio bearer token (see [Authentication](#authentication)), or a missing/invalid upstream credential (e.g. `POSTIZ_API_KEY`) |
 | `CONFLICT` | 409 | Optimistic-lock failure (e.g. `POST /api/brand/write` with stale `expectedMtime`). `fix` names the reload-and-merge path |
 | `CONFIRM_REQUIRED` | 400 | Destructive route called without `?confirm=true` |
 | `RATE_LIMITED` | 429 | Local studio limit (60 mutating req/min/IP). Response includes `Retry-After` header |
@@ -43,7 +69,7 @@ This file is the contract. Every endpoint is JSON-in / JSON-out. Every mutating 
 The studio applies a sliding-window rate limit to every mutating route (POST/PUT/PATCH/DELETE). GETs are unthrottled — they're idempotent. The 61st mutating request inside the window returns:
 
 ```bash
-curl -s -i -X POST http://localhost:3001/api/toast \
+curl -H "$AUTH" -s -i -X POST http://localhost:3001/api/toast \
   -H 'content-type: application/json' \
   -d '{"level":"info","message":"x"}'
 ```
@@ -121,7 +147,7 @@ Append an entry to the activity feed. Fires `activity-new` SSE event.
 **Example**
 
 ```bash
-$ curl -s -X POST http://localhost:3001/api/activity/log \
+$ curl -H "$AUTH" -s -X POST http://localhost:3001/api/activity/log \
     -H 'content-type: application/json' \
     -d '{
       "kind": "skill-run",
@@ -142,13 +168,13 @@ Supports `?fields=` projection and NDJSON streaming.
 
 ```bash
 # default
-curl 'http://localhost:3001/api/activity?kind=skill-run&limit=10'
+curl -H "$AUTH" 'http://localhost:3001/api/activity?kind=skill-run&limit=10'
 
 # project just two columns
-curl 'http://localhost:3001/api/activity?limit=10&fields=kind,summary'
+curl -H "$AUTH" 'http://localhost:3001/api/activity?limit=10&fields=kind,summary'
 
 # stream as NDJSON, one row per line
-curl -H 'Accept: application/x-ndjson' \
+curl -H "$AUTH" -H 'Accept: application/x-ndjson' \
   'http://localhost:3001/api/activity?limit=100'
 ```
 
@@ -168,7 +194,7 @@ drop the row in real time.
 
 ```bash
 # 1. Without confirm → CONFIRM_REQUIRED
-$ curl -s -X DELETE http://localhost:3001/api/activity/423 | jq
+$ curl -H "$AUTH" -s -X DELETE http://localhost:3001/api/activity/423 | jq
 {
   "ok": false,
   "error": {
@@ -179,15 +205,15 @@ $ curl -s -X DELETE http://localhost:3001/api/activity/423 | jq
 }
 
 # 2. With dryRun → no side effect, row preserved
-$ curl -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true&dryRun=true" | jq
+$ curl -H "$AUTH" -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true&dryRun=true" | jq
 { "ok": true, "dryRun": true }
 
 # 3. For real → row deleted, activity-deleted SSE fired
-$ curl -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true" | jq
+$ curl -H "$AUTH" -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true" | jq
 { "ok": true, "data": { "id": 423, "deleted": true } }
 
 # 4. Already-gone id → NOT_FOUND with fix hint
-$ curl -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true" | jq
+$ curl -H "$AUTH" -s -X DELETE "http://localhost:3001/api/activity/423?confirm=true" | jq
 {
   "ok": false,
   "error": {
@@ -218,7 +244,7 @@ Pulse lists ranked actions /cmo wants the user to take. Push to it any time you 
 **Example**
 
 ```bash
-curl -X POST http://localhost:3001/api/opportunities/push \
+curl -H "$AUTH" -X POST http://localhost:3001/api/opportunities/push \
   -H 'content-type: application/json' \
   -d '{
     "skill": "seo-content",
@@ -237,7 +263,7 @@ Returns pending opportunities ordered by priority.
 > **Bare-shape exception (T29).** This endpoint, `GET /api/audience/profiles`, and `GET /api/briefs` skip the `{ok, data, meta}` wrapRoute envelope and return a structured object the matching dashboard tab consumes directly. Don't normalize their responses with `applyFields` or expect `body.data` here.
 
 ```bash
-$ curl -s http://localhost:3001/api/opportunities | jq 'keys'
+$ curl -H "$AUTH" -s http://localhost:3001/api/opportunities | jq 'keys'
 [
   "actions",
   "fetchedAt",
@@ -274,7 +300,7 @@ Legacy callers that send `hq`, `content`, `trends`, `audience`, or `opportunitie
 **Example**
 
 ```bash
-curl -X POST http://localhost:3001/api/navigate \
+curl -H "$AUTH" -X POST http://localhost:3001/api/navigate \
   -H 'content-type: application/json' \
   -d '{"tab": "publish"}'
 ```
@@ -296,7 +322,7 @@ Show a transient toast.
 **Example**
 
 ```bash
-curl -X POST http://localhost:3001/api/toast \
+curl -H "$AUTH" -X POST http://localhost:3001/api/toast \
   -H 'content-type: application/json' \
   -d '{"level": "success", "message": "Wrote brand/voice-profile.md (118 lines)"}'
 ```
@@ -318,7 +344,7 @@ Pulse a tab or element to draw attention. The dashboard chooses how to render th
 **Example**
 
 ```bash
-curl -X POST http://localhost:3001/api/highlight \
+curl -H "$AUTH" -X POST http://localhost:3001/api/highlight \
   -H 'content-type: application/json' \
   -d '{"tab": "publish", "reason": "First post is queued — review and approve"}'
 ```
@@ -343,7 +369,7 @@ When /cmo writes a brand file (via direct write or `mktg brand write`), tell the
 **Example**
 
 ```bash
-curl -X POST http://localhost:3001/api/brand/note \
+curl -H "$AUTH" -X POST http://localhost:3001/api/brand/note \
   -H 'content-type: application/json' \
   -d '{
     "file": "brand/voice-profile.md",
@@ -445,7 +471,7 @@ Four endpoints power the in-studio brand-files editor (a markdown editor surface
 List every `brand/*.md` with freshness chips.
 
 ```bash
-curl -s http://localhost:3001/api/brand/files | jq '.data[0]'
+curl -H "$AUTH" -s http://localhost:3001/api/brand/files | jq '.data[0]'
 ```
 
 ```json
@@ -470,7 +496,7 @@ Supports `?fields=` projection and `Accept: application/x-ndjson`.
 ### `GET /api/brand/read?file=voice-profile.md`
 
 ```bash
-curl -s 'http://localhost:3001/api/brand/read?file=voice-profile.md' | jq '.data | {bytes, mtime, freshness}'
+curl -H "$AUTH" -s 'http://localhost:3001/api/brand/read?file=voice-profile.md' | jq '.data | {bytes, mtime, freshness}'
 ```
 
 Returns `{file, content, mtime, bytes, freshness, ageDays}` with `meta.fetchedAt`. Path traversal returns 400 with `code: PATH_TRAVERSAL`. Non-existent files return 404 with `code: NOT_FOUND`.
@@ -480,7 +506,7 @@ Returns `{file, content, mtime, bytes, freshness, ageDays}` with `meta.fetchedAt
 Atomic write (stage-and-rename) with optional optimistic-lock via `expectedMtime`. Fires `brand-file-changed` and `activity-new` SSE events on success.
 
 ```bash
-curl -s -X POST http://localhost:3001/api/brand/write \
+curl -H "$AUTH" -s -X POST http://localhost:3001/api/brand/write \
   -H 'content-type: application/json' \
   -d '{"file":"voice-profile.md","content":"…markdown…","expectedMtime":"2026-04-17T00:26:02.118Z"}'
 ```
@@ -509,7 +535,7 @@ Activity feed gets a `brand-write` entry: `Wrote brand/voice-profile.md (+N char
 Queue the owning skill (per `brand/SCHEMA.md`) to re-research a single file. Returns immediately with a `jobId`; /cmo (running in the user's Claude Code session) executes the actual research.
 
 ```bash
-curl -s -X POST http://localhost:3001/api/brand/regenerate \
+curl -H "$AUTH" -s -X POST http://localhost:3001/api/brand/regenerate \
   -H 'content-type: application/json' \
   -d '{"file":"voice-profile.md"}'
 ```

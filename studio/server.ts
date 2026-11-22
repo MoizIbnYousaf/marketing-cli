@@ -26,6 +26,8 @@ import { startZombieSweeper } from "./lib/sweep.ts";
 import { backupBrandDir, resetBrandDir } from "./lib/brand-backup.ts";
 import { childProcessEnv } from "./lib/child-env.ts";
 import { resolveMktgCommand } from "./lib/mktg-command.ts";
+import { studioVersion } from "./lib/studio-version.ts";
+import { isEnvLocalKeyAllowed } from "../src/core/env-local.ts";
 import { createJob, runJob, getJob, listJobs } from "./lib/jobs.ts";
 import {
   rejectControlChars,
@@ -128,27 +130,38 @@ import { createPlanCompeteRoutes } from "./server/routes/plan.ts";
 // ---------------------------------------------------------------------------
 
 const PORT = parseInt(process.env.STUDIO_PORT ?? "3001", 10);
+
+const STUDIO_VERSION = studioVersion(import.meta.dir);
 const STUDIO_CWD = resolveProjectRoot(process.cwd());
 const { PLAN_ROUTE, PLAN_NEXT_ROUTE, COMPETE_LIST_ROUTE, COMPETE_SCAN_ROUTE } =
   createPlanCompeteRoutes(STUDIO_CWD);
 
-const applyProjectEnvIsolation = (): void => {
+const applyProjectEnvIsolation = (): Readonly<Record<string, string | undefined>> => {
   const repoRoot = process.cwd();
   const repoEnv = loadEnvLocal(repoRoot);
-  const projectEnv = loadEnvLocal(STUDIO_CWD);
+  // Bun auto-loaded the Studio package's own .env.local (repoRoot). When
+  // Studio is bound to another project, drop those values first so they
+  // neither leak into the project nor count as shell env below.
   if (STUDIO_CWD !== repoRoot) {
     for (const [key, value] of Object.entries(repoEnv)) {
-      if (projectEnv[key] === undefined && process.env[key] === value) {
-        delete process.env[key];
-      }
+      if (process.env[key] === value) delete process.env[key];
     }
   }
-  for (const [key, value] of Object.entries(projectEnv)) {
-    process.env[key] = value;
+  // The project's .env.local is repository input, not operator config: apply
+  // the CLI's rule so it cannot turn off auth or redirect a shell secret, and
+  // never let it override the shell (the launcher's precedence).
+  const projectFile = loadEnvLocal(STUDIO_CWD);
+  const shellEnv = { ...process.env };
+  for (const [key, value] of Object.entries(projectFile)) {
+    if (!isEnvLocalKeyAllowed(key, projectFile, shellEnv)) continue;
+    if (process.env[key] === undefined) process.env[key] = value;
   }
+  return shellEnv;
 };
 
-applyProjectEnvIsolation();
+// The operator's env as it was before the project file was applied. POST
+// /api/settings/env checks base URLs against it, as boot does.
+const SHELL_ENV_AT_BOOT = applyProjectEnvIsolation();
 
 // Studio auth perimeter v1. Generate or load the token
 // before we accept any requests so the very first inbound has a token to
@@ -837,7 +850,7 @@ const server = Bun.serve({
       return json(
         {
           ok: true,
-          version: "0.1.0",
+          version: STUDIO_VERSION,
           ts: new Date().toISOString(),
           subscribers: globalEmitter.size,
         },
@@ -954,6 +967,8 @@ const server = Bun.serve({
               route: "/api/schema?route=/api/activity — fetch one entry",
             },
             headers: {
+              "Authorization: Bearer <token>":
+                "Required on every route except /api/health, /api/schema, /api/help and /api/auth/bootstrap; otherwise 401 UNAUTHORIZED. Token at ~/.mktg/.runtime/studio-token (MKTG_STUDIO_TOKEN_PATH or MKTG_STUDIO_TOKEN_DIR move it)",
               "Accept: application/x-ndjson":
                 "On list GETs, stream rows as NDJSON instead of a JSON envelope",
               "Content-Type: application/json":
@@ -1551,6 +1566,23 @@ const server = Bun.serve({
             `Env var ${k} cannot be set through the studio`,
             400,
             `Allowed keys: ${Array.from(allowedEnvKeys).sort().join(", ")}. Edit .env.local by hand for anything else.`,
+            corsHeaders,
+          );
+        }
+        // Same rule as a project's .env.local: a base URL may not redirect a
+        // key that is still the shell's. Sending the key in the same request
+        // replaces it, so then nothing from the shell goes to the new host.
+        const shellStill = Object.fromEntries(
+          Object.entries(SHELL_ENV_AT_BOOT).filter(
+            ([key, value]) => body.data[key] === undefined && process.env[key] === value,
+          ),
+        );
+        if (!isEnvLocalKeyAllowed(k, body.data, shellStill)) {
+          return errResponse(
+            "BAD_INPUT",
+            `Env var ${k} would send the API key from the shell to a new host`,
+            400,
+            `Send the matching API key in the same request, or set ${k} in the shell that starts Studio.`,
             corsHeaders,
           );
         }

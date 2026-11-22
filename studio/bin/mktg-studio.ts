@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env -S bun --no-env-file
 // bin/mktg-studio -- single-command launch for the marketing studio.
 //
 // Starts the Bun API server (server.ts on STUDIO_PORT, default 3001) and the
@@ -21,6 +21,8 @@ import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { childProcessEnv, nextProcessEnv } from "../lib/child-env.ts";
 import { loadEnvLocal } from "../lib/mktg.ts";
+import { isEnvLocalKeyAllowed } from "../../src/core/env-local.ts";
+import { studioVersion } from "../lib/studio-version.ts";
 
 const __file = fileURLToPath(import.meta.url);
 const REPO_ROOT = resolve(dirname(__file), "..");
@@ -32,14 +34,8 @@ const REPO_ROOT = resolve(dirname(__file), "..");
 const args = process.argv.slice(2);
 
 if (args.includes("--version") || args.includes("-v")) {
-  let version = "unknown";
-  try {
-    const pkg = JSON.parse(readFileSync(resolve(REPO_ROOT, "package.json"), "utf-8")) as { version?: unknown };
-    if (typeof pkg.version === "string" && pkg.version.length > 0) version = pkg.version;
-  } catch {
-    // Keep version probing side-effect free even if package metadata is missing.
-  }
-  console.log(`mktg-studio ${version}`);
+  // Same answer as /api/health: the marketing-cli package Studio ships in.
+  console.log(`mktg-studio ${studioVersion(REPO_ROOT)}`);
   process.exit(0);
 }
 
@@ -98,6 +94,39 @@ function dashboardUrl(): string {
   if (session) params.set("session", session);
   const query = params.toString();
   return `http://localhost:${DASHBOARD_PORT}/dashboard${query ? `?${query}` : ""}`;
+}
+
+// ---------------------------------------------------------------------------
+// Started without --no-env-file (`bun run bin/mktg-studio.ts` from a project,
+// a service file), Bun has already merged the cwd's .env.local into
+// process.env as if it were shell env, before any filtering here could run.
+// Refuse to start when that put a key there the CLI's rule refuses, rather
+// than guess which values came from the shell. A value that uses `$` is
+// treated as from the file, since Bun expands it and it no longer matches.
+// The Studio package's own .env.local (cwd = REPO_ROOT) is not project input.
+// ---------------------------------------------------------------------------
+
+if (!process.execArgv.includes("--no-env-file") && resolve(process.cwd()) !== REPO_ROOT) {
+  const cwdFile = loadEnvLocal(process.cwd());
+  const fromFile = (key: string): boolean => {
+    const value = cwdFile[key];
+    return value !== undefined && process.env[key] !== undefined &&
+      (process.env[key] === value || value.includes("$"));
+  };
+  const shellApprox = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !fromFile(key)),
+  );
+  const planted = Object.keys(cwdFile).filter(
+    (key) => fromFile(key) && !isEnvLocalKeyAllowed(key, cwdFile, shellApprox),
+  );
+  if (planted.length > 0) {
+    console.error(
+      `\n✗ Bun loaded ${planted.join(", ")} from ./.env.local as shell env, and Studio does not take ` +
+        "those from a project's file.\n" +
+        "  Fix:   start Studio with `mktg studio`, or with `bun --no-env-file run <path>/bin/mktg-studio.ts`\n",
+    );
+    process.exit(1);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -176,7 +205,13 @@ if (projectRoot !== REPO_ROOT) {
   }
 }
 
-const env = { ...projectEnvFromFile, ...inheritedEnv }; // shell wins
+// The project's .env.local is repository input; the Studio package's own
+// (REPO_ROOT) is not. Apply the CLI's rule to the project file only.
+const projectEnvAllowed = Object.fromEntries(
+  Object.entries(projectEnvFromFile).filter(([key]) =>
+    isEnvLocalKeyAllowed(key, projectEnvFromFile, inheritedEnv)),
+);
+const env = { ...projectEnvAllowed, ...inheritedEnv }; // shell wins
 
 const STUDIO_PORT = env.STUDIO_PORT ?? "3001";
 const DASHBOARD_PORT = env.DASHBOARD_PORT ?? "3000";
@@ -281,6 +316,10 @@ const nextEnv = nextProcessEnv(baseChildEnv, {
   DASHBOARD_PORT,
   STUDIO_API_BASE: baseChildEnv.STUDIO_API_BASE,
   NEXT_DIST_DIR: baseChildEnv.NEXT_DIST_DIR,
+  // Server components (the root redirect, Settings > Brand health) read the
+  // project's brand/ directly, so Next needs the same root as the API server.
+  MKTG_PROJECT_ROOT: projectRoot,
+  MKTG_BRAND_DIR: baseChildEnv.MKTG_BRAND_DIR,
 });
 
 console.log(`[mktg-studio] starting server (:${STUDIO_PORT}) + dashboard (:${DASHBOARD_PORT})`);
@@ -308,6 +347,31 @@ const next = Bun.spawn({
   stdout: "pipe",
   stderr: "pipe",
 });
+
+// ---------------------------------------------------------------------------
+// Graceful shutdown. Registered right after spawning, so a signal during
+// the (up to 30s) startup wait still stops both children.
+// ---------------------------------------------------------------------------
+
+let shuttingDown = false;
+
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`\n[mktg-studio] received ${signal}, stopping...`);
+  server.kill("SIGINT");
+  next.kill("SIGTERM");
+  await Promise.race([
+    Promise.all([server.exited, next.exited]),
+    Bun.sleep(5_000),
+  ]);
+  if (server.exitCode === null) server.kill("SIGKILL");
+  if (next.exitCode === null) next.kill("SIGKILL");
+  process.exit(0);
+}
+
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 // ---------------------------------------------------------------------------
 // Next.js output filter -- suppress known cold-boot noise (pnpm install
@@ -489,30 +553,6 @@ if (openFlag) {
     // fine -- user can open the URL printed in the banner above manually
   }
 }
-
-// ---------------------------------------------------------------------------
-// Graceful shutdown
-// ---------------------------------------------------------------------------
-
-let shuttingDown = false;
-
-async function shutdown(signal: NodeJS.Signals): Promise<void> {
-  if (shuttingDown) return;
-  shuttingDown = true;
-  console.log(`\n[mktg-studio] received ${signal}, stopping...`);
-  server.kill("SIGINT");
-  next.kill("SIGTERM");
-  await Promise.race([
-    Promise.all([server.exited, next.exited]),
-    Bun.sleep(5_000),
-  ]);
-  if (server.exitCode === null) server.kill("SIGKILL");
-  if (next.exitCode === null) next.kill("SIGKILL");
-  process.exit(0);
-}
-
-process.on("SIGINT", () => void shutdown("SIGINT"));
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
 // ---------------------------------------------------------------------------
 // If either child exits unexpectedly, take the whole thing down

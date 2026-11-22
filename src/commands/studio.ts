@@ -28,7 +28,7 @@
 //     long-running foreground process (axis 4: context window discipline,
 //     axis 6: safety rails — --dry-run always available).
 
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import { spawn as spawnChild } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { ok, type CommandHandler, type CommandSchema } from "../types";
@@ -141,7 +141,15 @@ const resolveBunCommand = (): string => {
 };
 
 const launcherCommand = (binary: string): readonly string[] => {
-  return binary.endsWith(".ts") ? [resolveBunCommand(), "run", binary] : [binary];
+  // The launcher inherits the user's cwd (their project). --no-env-file stops
+  // Bun auto-loading that project's .env.local as if it were shell env; the
+  // launcher reads it itself and filters it. --config points Bun at the
+  // package's own empty config so the project's bunfig.toml `preload` never
+  // runs in the launcher.
+  const config = join(getPackageRoot(), "studio", "bin", "child-bunfig.toml");
+  return binary.endsWith(".ts")
+    ? [resolveBunCommand(), "--no-env-file", `--config=${config}`, "run", binary]
+    : [binary];
 };
 
 const fileExists = (path: string): boolean => {
@@ -202,7 +210,17 @@ export const resolveStudioLauncher = (): ResolvedStudioLauncher | null => {
   }
 
   const pathBinary = Bun.which(STUDIO_BIN, { PATH: process.env.PATH ?? "" });
-  if (pathBinary) return { binary: pathBinary, cmd: [pathBinary] };
+  if (pathBinary) {
+    // A PATH entry that is a link to a .ts launcher gets the same Bun flags
+    // as a local one instead of relying on its shebang.
+    let real = pathBinary;
+    try {
+      real = realpathSync(pathBinary);
+    } catch {
+      // keep the PATH entry as found
+    }
+    return { binary: pathBinary, cmd: real.endsWith(".ts") ? launcherCommand(real) : [pathBinary] };
+  }
 
   return null;
 };

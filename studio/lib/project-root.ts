@@ -1,4 +1,5 @@
-import { join, relative, resolve, sep } from "node:path"
+import { closeSync, constants, fstatSync, lstatSync, openSync, realpathSync, statSync, type Stats } from "node:fs"
+import { dirname, join, relative, resolve, sep } from "node:path"
 
 /**
  * Resolve the target marketing project root that the studio should operate on.
@@ -48,6 +49,8 @@ export function resolveProjectPath(
   if (candidate !== root && !candidate.startsWith(`${root}${sep}`)) {
     return { ok: false, message: "path escapes the project root" }
   }
+  const refusal = realLocationRefusal(candidate, root)
+  if (refusal) return { ok: false, message: refusal }
 
   return {
     ok: true,
@@ -56,3 +59,77 @@ export function resolveProjectPath(
     rel: relative(root, candidate),
   }
 }
+
+/**
+ * Follow symlinks: the deepest existing part of `candidate` (the file, or the
+ * nearest existing parent for a path not yet written) must really live under
+ * the real project root. A root reached through a symlink (/tmp on macOS) is
+ * fine because both sides are resolved. Returns why the path is refused, or
+ * null when it is inside.
+ */
+const SYMLINK_ESCAPE = "path resolves outside the project root through a symbolic link"
+const UNRESOLVABLE = "path is too long or cannot be resolved"
+
+function realLocationRefusal(candidate: string, root: string): string | null {
+  let realRoot: string
+  try {
+    realRoot = realpathSync(root)
+  } catch {
+    return UNRESOLVABLE
+  }
+  let existing = candidate
+  while (true) {
+    try {
+      lstatSync(existing)
+      break
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") return UNRESOLVABLE
+      const parent = dirname(existing)
+      if (parent === existing) return UNRESOLVABLE
+      existing = parent
+    }
+  }
+  let real: string
+  try {
+    real = realpathSync(existing)
+  } catch (error) {
+    // ENOENT here is a dangling symlink, which is refused as an escape.
+    return (error as NodeJS.ErrnoException).code === "ENOENT" ? SYMLINK_ESCAPE : UNRESOLVABLE
+  }
+  return real === realRoot || real.startsWith(`${realRoot}${sep}`) ? null : SYMLINK_ESCAPE
+}
+
+export type OpenedProjectFile =
+  | { ok: true; fd: number; stat: Stats }
+  | { ok: false; missing: boolean; message: string }
+
+/**
+ * Open a path that resolveProjectPath accepted, then confirm the file that was
+ * opened is the one whose real location is inside the root: its path must
+ * still realpath under the real root, to the same device and inode as the
+ * open descriptor. Checking before opening alone loses a race with a process
+ * that swaps the path for a symlink in between. O_NONBLOCK keeps a FIFO from
+ * blocking the open. The caller reads through `fd` and closes it.
+ */
+export function openProjectFile(abs: string, root: string): OpenedProjectFile {
+  let fd: number
+  try {
+    fd = openSync(abs, constants.O_RDONLY | (constants.O_NONBLOCK ?? 0))
+  } catch (error) {
+    const missing = (error as NodeJS.ErrnoException).code === "ENOENT"
+    return { ok: false, missing, message: missing ? "file does not exist" : UNRESOLVABLE }
+  }
+  try {
+    const opened = fstatSync(fd)
+    const realRoot = realpathSync(root)
+    const real = realpathSync(abs)
+    const now = statSync(real)
+    const inside = real === realRoot || real.startsWith(`${realRoot}${sep}`)
+    if (inside && now.dev === opened.dev && now.ino === opened.ino) return { ok: true, fd, stat: opened }
+  } catch {
+    // fall through to the refusal
+  }
+  closeSync(fd)
+  return { ok: false, missing: false, message: SYMLINK_ESCAPE }
+}
+

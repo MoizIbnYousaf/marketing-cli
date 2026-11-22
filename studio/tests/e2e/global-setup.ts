@@ -114,7 +114,7 @@ export default async function globalSetup(): Promise<void> {
 
   const next: ChildProcess = spawn(
     "bun",
-    ["run", "next", "dev", "-p", String(DASHBOARD_PORT)],
+    ["run", "next", "dev", "-H", "127.0.0.1", "-p", String(DASHBOARD_PORT)],
     {
       cwd: REPO_ROOT,
       env: childEnv,
