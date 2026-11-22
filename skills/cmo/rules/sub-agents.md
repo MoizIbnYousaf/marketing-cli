@@ -124,6 +124,7 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 **What /cmo does with the result:**
 - If score ≥ threshold (PASS) → present to user for approval, move on.
 - If score < threshold (FAIL) → go back to the content skill with the specific rewrite recommendations. Don't ship drifted content.
+- The threshold is the one `rules/quality-gate.md` sets for gate 3: `VERDICT: SHIP` (overall ≥ 8/10). `SHIP WITH FIXES` is a fail.
 
 ### `mktg-seo-analyst` — keyword adherence gate
 
@@ -150,6 +151,7 @@ On `/cmo` FIRST RUN — brand files are templates, no real data — spawn **all 
 **What /cmo does with the result:**
 - Surface the score to the user.
 - If specific improvements are worth making → loop back to the content skill with the recommendations.
+- As pre-ship gate 4, an overall score below 8/10 is a fail (`rules/quality-gate.md`): loop back with the keyword-gap recommendations.
 
 ### `mktg-strategy-reviewer` — independent strategy gate
 

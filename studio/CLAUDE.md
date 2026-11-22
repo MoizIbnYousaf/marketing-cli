@@ -259,7 +259,7 @@ Rules: the marketing-cli checkoutskills/cmo/rules/ (14 files, ~1,900 lines)
 - 10 named orchestration playbooks (Full Product Launch, Content Engine, Founder Voice Rebrand, Conversion Audit, Retention Recovery, Visual Identity, Video Content, Email Infrastructure, SEO Authority Build, Newsletter Launch)
 - L0-L4 progressive enhancement ladder (what's possible at each brand completeness level)
 - Error recovery + degraded-mode playbook (what to do when integrations fail)
-- Quality gate pipeline (ai-check → editorial-first-pass → content-reviewer → seo-analyst → distribute)
+- Quality gate pipeline (structural first pass → AI slop audit → content-reviewer → seo-analyst → distribute; `editorial-first-pass` and `ai-check` are optional extras when installed, not shipped)
 - Brand file → dependent skills reverse index (what to re-run when voice-profile.md changes)
 - All 16 mktg CLI commands + when to use each
 - All 7 sub-agents (4 research + 3 review) + spawn protocol
@@ -359,11 +359,11 @@ Manifest: the marketing-cli checkoutskills-manifest.json
 | `launch-strategy` | strategy | GTM plan, Product Hunt, beta launch |
 | `pricing-strategy` | strategy | Van Westendorp, packaging, monetization |
 | `marketing-psychology` | knowledge | Cialdini's 6 principles, cognitive biases |
-| `ai-check` | review | Line-by-line AI slop detection |
-| `editorial-first-pass` | review | Hook, thesis, promise, stakes  -  pass/fail |
 | `ai-seo` | review | Durable AEO/GEO visibility, citation, and accuracy program |
 | `competitor-alternatives` | review | "X vs Y" and "X alternatives" SEO pages |
 | `landscape-scan` | infrastructure | Ecosystem snapshot + Claims Blacklist |
+
+Not in the manifest: `editorial-first-pass` and `ai-check` are external skills, not shipped. When installed they are an optional second opinion for pre-ship gates 1 and 2 (`skills/cmo/rules/quality-gate.md`).
 
 ## 7 Sub-Agents
 

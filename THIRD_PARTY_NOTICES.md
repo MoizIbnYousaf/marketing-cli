@@ -25,6 +25,7 @@ portions of its text, in the skill body or in files under `references/`:
 | `marketing-psychology` | `marketing-psychology` |
 | `direct-response-copy` | `cold-email`, `copy-editing` |
 | `seo-content` | `programmatic-seo` |
+| `cmo` | `marketing-ideas` (`references/ideas-library.md`), `analytics` (earlier `analytics-tracking`; `references/analytics-guide.md`) |
 
 The first nine are the entries marked `"source": "v1"` in `skills-manifest.json`.
 The content has since been rewritten to this project's skill contract (brand
@@ -62,6 +63,125 @@ SOFTWARE.
 `mktg transcribe` ports parts of trx. See
 [src/commands/ATTRIBUTION.md](src/commands/ATTRIBUTION.md) for the file-level
 mapping.
+
+## AXI by Kun Chen
+
+- Source: https://github.com/kunchenguid/axi
+- License: MIT (Copyright (c) 2026 Kun Chen)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `axi` | `.agents/skills/axi` |
+
+## Exa agent skills by Exa Labs
+
+- Source: https://github.com/exa-labs/agent-skills
+- License: MIT (Copyright (c) 2026 Exa Labs, Inc.)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `exa-search` | `skills/exa-search` |
+| `exa-contents` | `skills/exa-contents` |
+| `build-with-exa` | `skills/build-with-exa` |
+| `company-research` | `skills/company-research` |
+| `lead-generation` | `skills/lead-generation` |
+
+## Higgsfield skills by Higgsfield AI
+
+- Source: https://github.com/higgsfield-ai/skills
+- License: MIT (Copyright (c) 2026 Higgsfield AI)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `higgsfield-generate` | `higgsfield-generate` |
+| `higgsfield-product-photoshoot` | `higgsfield-product-photoshoot` |
+| `higgsfield-soul-id` | `higgsfield-soul-id` |
+
+## OpenSEO by Ben Senescu
+
+- Source: https://github.com/every-app/open-seo
+- License: MIT (Copyright (c) 2026 Ben Senescu)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `openseo-project-setup` | `.agents/skills/seo-project-setup` |
+| `openseo-coach` | `.agents/skills/seo-coach` |
+| `openseo-keyword-research` | `.agents/skills/keyword-research` |
+| `openseo-keyword-clustering` | `.agents/skills/keyword-clustering` |
+| `openseo-competitive-landscape` | `.agents/skills/competitive-landscape` |
+| `openseo-competitor-analysis` | `.agents/skills/competitor-analysis` |
+| `openseo-link-prospecting` | `.agents/skills/link-prospecting` |
+
+## Typefully agent skills by Typefully
+
+- Source: https://github.com/typefully/agent-skills
+- License: MIT (Copyright (c) 2025 Typefully)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `typefully` | `skills/typefully` |
+
+## ElevenLabs skills by ElevenLabs
+
+- Source: https://github.com/elevenlabs/skills
+- License: MIT (Copyright (c) 2024 ElevenLabs)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `text-to-speech` | `text-to-speech` |
+
+## Manim skills by Adithya S Kolavi
+
+- Source: https://github.com/adithya-s-k/manim_skill
+- License: MIT (Copyright (c) 2026 Adithya S Kolavi)
+
+The MIT license text is the one reproduced under Marketing Skills above.
+
+| marketing-cli skill | Upstream skill it draws on |
+|---|---|
+| `manim-composer` | `skills/manim-composer` |
+| `manimce-best-practices` | `skills/manimce-best-practices` |
+
+`manimgl-best-practices`, from the same repository, carries its own license
+file (CC BY-NC-SA 4.0); see `skills/manimgl-best-practices/LICENSE.txt`.
+
+## Remotion by Remotion
+
+- Source: https://github.com/remotion-dev/remotion
+- License: Remotion License, a source-available license that is not an
+  open-source license (Copyright © 2026 Remotion). Individuals and companies of
+  up to three people may use Remotion for free; larger for-profit companies need
+  a company license. Full text: https://github.com/remotion-dev/remotion/blob/main/LICENSE.md
+
+| marketing-cli skill | Upstream files it draws on |
+|---|---|
+| `remotion-best-practices` | `.claude/` (mirrored under `references/upstream-internal/`) |
+
+## Remotion skills (no license declared)
+
+- Source: https://github.com/remotion-dev/skills (`skills/remotion/`, the
+  primary source in `skills/remotion-best-practices/upstream.json`)
+- License: none declared. The repository has no license file and no license
+  field; GitHub reports no license. Its `package.json` names
+  `remotion-dev/remotion` (`packages/skills`) as its repository, which is under
+  the Remotion License above, but no license grant for this mirror was found.
+  Redistribution permission has not been established.
+
+| marketing-cli skill | Upstream files it draws on |
+|---|---|
+| `remotion-best-practices` | `skills/remotion/SKILL.md` (adapted), `skills/remotion/rules/` (mirrored verbatim under `rules/`) |
 
 ## Mirrored skills
 

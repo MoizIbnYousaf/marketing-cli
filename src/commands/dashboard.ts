@@ -35,7 +35,7 @@ import {
 import { handler as doctorHandler } from "./doctor";
 import { handler as planHandler } from "./plan";
 import { handler as statusHandler } from "./status";
-import { getRunHistory, isCompletedRecord } from "../core/run-log";
+import { getRunHistory, getRunSummary, isCompletedRecord, isSuccessfulRecord } from "../core/run-log";
 import { loadManifest, getInstallStatus } from "../core/skills";
 import { loadAgentManifest, getAgentInstallStatus } from "../core/agents";
 import { invalidArgs, parseJsonInput, validatePathInput } from "../core/errors";
@@ -312,8 +312,10 @@ const buildBiggestGap = (status: StatusPayload, doctor: DoctorPayload): Dashboar
   };
 };
 
-const buildPublishReadiness = (status: StatusPayload): DashboardReadiness => {
-  const recentSkills = Object.keys(status.recentActivity);
+// Readiness keys off successful completed work only (not status.recentActivity,
+// which also holds loads and partial/failed completions).
+const buildPublishReadiness = (status: StatusPayload, successfulSkills: readonly string[]): DashboardReadiness => {
+  const recentSkills = successfulSkills;
   const hasContent = recentSkills.some((skill) => CONTENT_SKILLS.has(skill));
   const hasDistribution = recentSkills.some((skill) => DISTRIBUTION_SKILLS.has(skill));
 
@@ -405,7 +407,7 @@ const buildSnapshot = async (flags: GlobalFlags): Promise<DashboardSnapshot | Co
     },
     nextActions: buildNextActions(status),
     biggestGap: buildBiggestGap(status, doctor),
-    publishReadiness: buildPublishReadiness(status),
+    publishReadiness: buildPublishReadiness(status, Object.keys(await getRunSummary(flags.cwd, { successfulOnly: true }))),
     brandStudio: {
       available: existsSync(creativeKitPath) || existsSync(playgroundPath),
       summary: existsSync(playgroundPath)
@@ -536,8 +538,9 @@ const buildOutputsResponse = async (flags: GlobalFlags): Promise<DashboardOutput
   }));
   const outputs = await discoverOutputs(flags.cwd);
 
-  // Readiness keys off completed work only — loads never signal readiness.
-  const completedHistory = history.filter(isCompletedRecord);
+  // Readiness keys off successful completed work only — loads and
+  // partial/failed completions never signal readiness.
+  const completedHistory = history.filter(isSuccessfulRecord);
   const hasContentRun = completedHistory.some((record) => CONTENT_SKILLS.has(record.skill));
   const hasDistributionRun = completedHistory.some((record) => DISTRIBUTION_SKILLS.has(record.skill));
   const publishReadiness: DashboardReadiness = hasDistributionRun

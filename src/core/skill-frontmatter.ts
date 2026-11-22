@@ -8,6 +8,7 @@ import type {
   ValidationResult,
 } from "../types";
 import { BRAND_FILES as BRAND_FILE_LIST } from "../types";
+import { readFlowSequence, readSequenceItem, readTopLevelScalar } from "./frontmatter-scalars";
 
 const VALID_CATEGORIES: readonly SkillCategory[] = [
   "foundation", "strategy", "copy-content", "distribution",
@@ -30,61 +31,49 @@ export const CATEGORY_TO_LAYER: Record<string, SkillLayer> = {
 };
 
 export const parseFrontmatter = (content: string): SkillFrontmatter | null => {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  // YAML allows a byte-order mark and CRLF line endings; read both.
+  const text = content.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  const match = text.match(/^---[ \t]*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
   if (!match || !match[1]) return null;
-  const raw = match[1];
+  const lines = match[1].split("\n");
 
   const result: Record<string, string | string[]> = {};
-  let currentKey = "";
-  let currentValue = "";
-  let inArray = false;
-  const arrayValues: string[] = [];
 
-  const flushKey = () => {
-    if (currentKey) {
-      if (inArray) {
-        result[currentKey] = [...arrayValues];
-        arrayValues.length = 0;
-        inArray = false;
-      } else {
-        result[currentKey] = currentValue.trim();
+  let i = 0;
+  while (i < lines.length) {
+    const kvMatch = lines[i]!.match(/^(\w[\w-]*)\s*:(?:\s+(.*))?$/);
+    i += 1;
+    if (!kvMatch) continue;
+    const key = kvMatch[1]!;
+    const inline = kvMatch[2] ?? "";
+    // Block sequence: "key:" followed by "  - value" items
+    let j = i;
+    while (j < lines.length && lines[j]!.trim() === "") j += 1;
+    if (inline.trim() === "" && j < lines.length && /^\s*-(\s+|$)/.test(lines[j]!)) {
+      const items: string[] = [];
+      for (i = j; i < lines.length; i++) {
+        const line = lines[i]!;
+        if (line.trim() === "") continue;
+        const item = line.match(/^\s*-\s+(.*)$/);
+        if (!item) break;
+        items.push(readSequenceItem(item[1]!));
       }
-    }
-  };
-
-  for (const line of raw.split("\n")) {
-    // Array item: "  - value"
-    if (/^\s+-\s+/.test(line) && currentKey) {
-      inArray = true;
-      const arrVal = line.replace(/^\s+-\s+/, "").trim();
-      const arrUnquoted = (arrVal.startsWith('"') && arrVal.endsWith('"')) || (arrVal.startsWith("'") && arrVal.endsWith("'"))
-        ? arrVal.slice(1, -1)
-        : arrVal;
-      arrayValues.push(arrUnquoted);
+      result[key] = items;
       continue;
     }
-
-    // Key-value pair: "key: value" or "key: >"
-    const kvMatch = line.match(/^(\w[\w-]*)\s*:\s*(.*)/);
-    if (kvMatch) {
-      flushKey();
-      currentKey = kvMatch[1]!;
-      const val = kvMatch[2]!.trim();
-      // Strip YAML quotes (single or double)
-      const unquoted = (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))
-        ? val.slice(1, -1)
-        : val;
-      currentValue = unquoted === ">" ? "" : unquoted;
-      inArray = false;
+    // Flow sequence: "key: [a, b]", "key: []", or spread over several lines
+    if (inline.trim().startsWith("[")) {
+      const flow = readFlowSequence(lines, i, inline);
+      if (!flow) return null;
+      result[key] = flow.items;
+      i = flow.next;
       continue;
     }
-
-    // Continuation of multi-line value (indented)
-    if (/^\s+\S/.test(line) && currentKey && !inArray) {
-      currentValue += " " + line.trim();
-    }
+    const scalar = readTopLevelScalar(lines, i, inline);
+    if (!scalar) return null;
+    result[key] = scalar.value;
+    i = scalar.next;
   }
-  flushKey();
 
   if (!result.name || !result.description) return null;
   const name = result.name as string;

@@ -271,3 +271,67 @@ describe("dashboard action contract", () => {
     expect(parsed.command).toBe("mktg doctor --json");
   });
 });
+
+// ==================== Readiness counts only successful work ====================
+// A real .mktg/runs.jsonl (written by the real logRun) with loads and
+// partial/failed completions must not make snapshot or outputs report "ready".
+// HOME is its own temp dir, separate from the project.
+
+describe("dashboard publish readiness ignores loads and failed runs", () => {
+  const cliWithHome = async (args: string[], home: string): Promise<{ stdout: string; exitCode: number }> => {
+    const proc = Bun.spawn(["bun", "run", "src/cli.ts", "--cwd", tempDir, ...args], {
+      cwd: projectRoot,
+      stdout: "pipe",
+      stderr: "pipe",
+      env: { PATH: process.env.PATH ?? "", HOME: home, NO_COLOR: "1" },
+    });
+    const [stdout] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+    return { stdout: stdout.trim(), exitCode: await proc.exited };
+  };
+
+  const readyBrand = async (): Promise<void> => {
+    await scaffoldBrand(tempDir);
+    await Bun.write(join(tempDir, "brand", "voice-profile.md"), "# Voice\nDirect and plain.");
+    await Bun.write(join(tempDir, "brand", "positioning.md"), "# Positioning\nThe CLI agents run.");
+    await Bun.write(join(tempDir, "brand", "audience.md"), "# Audience\nDevelopers shipping alone.");
+  };
+
+  const readiness = async (sub: "snapshot" | "outputs", home: string): Promise<{ state: string }> => {
+    const { stdout, exitCode } = await cliWithHome(["dashboard", sub, "--json"], home);
+    expect(exitCode).toBe(0);
+    const parsed = JSON.parse(stdout);
+    return { state: parsed.publishReadiness.state };
+  };
+
+  const record = (skill: string, event: "loaded" | "completed", result?: "success" | "partial" | "failed") => ({
+    skill,
+    timestamp: new Date().toISOString(),
+    event,
+    ...(result ? { result } : {}),
+    brandFilesChanged: [],
+  });
+
+  test("failed, partial and load-only runs are not ready; successful ones are", async () => {
+    const { logRun } = await import("../../src/core/run-log");
+    const home = await mkdtemp(join(tmpdir(), "mktg-dashboard-home-"));
+    try {
+      await readyBrand();
+      const status = JSON.parse((await cliWithHome(["status", "--json"], home)).stdout);
+      expect(status.health).toBe("ready");
+
+      await logRun(tempDir, record("seo-content", "loaded"));
+      await logRun(tempDir, record("content-atomizer", "loaded"));
+      await logRun(tempDir, record("seo-content", "completed", "failed"));
+      await logRun(tempDir, record("content-atomizer", "completed", "partial"));
+      expect((await readiness("snapshot", home)).state).not.toBe("ready");
+      expect((await readiness("outputs", home)).state).not.toBe("ready");
+
+      await logRun(tempDir, record("seo-content", "completed", "success"));
+      await logRun(tempDir, record("content-atomizer", "completed", "success"));
+      expect((await readiness("snapshot", home)).state).toBe("ready");
+      expect((await readiness("outputs", home)).state).toBe("ready");
+    } finally {
+      await rm(home, { recursive: true, force: true });
+    }
+  }, 120000);
+});
