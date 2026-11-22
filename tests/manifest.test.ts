@@ -198,13 +198,34 @@ describe("Redirect validation", () => {
       expect(manifest.redirects[now]).toBe(manifest.redirects[before]!);
     }
     const derived: Record<string, string> = {
-      competitors: "competitor-alternatives", cro: "page-cro", "free-tools": "free-tool-strategy",
+      cro: "page-cro", "free-tools": "free-tool-strategy",
       launch: "launch-strategy", pricing: "pricing-strategy", referrals: "referral-program",
     };
     for (const [now, skill] of Object.entries(derived)) {
       expect(manifest.redirects[now]).toBe(skill);
       expect(manifest.skills[skill]).toBeDefined();
     }
+  });
+
+  // `mktg route` matches triggers and never reads redirects, so a redirect key
+  // that is also a trigger must point where route sends the same word, or
+  // `skill info <word>` and `route <word>` disagree. `competitors` is a
+  // competitive-intel trigger, so it has no redirect (maintainer decision).
+  // `backlinks` predates this check (redirect off-page-seo, openseo trigger)
+  // and is reported for the maintainer rather than changed here.
+  test("a redirect key that is also a trigger points at that trigger's skill", () => {
+    const known = new Set(["backlinks"]);
+    const bySkill = new Map<string, string[]>();
+    for (const [name, skill] of Object.entries(manifest.skills)) {
+      for (const t of (skill as { triggers?: string[] }).triggers ?? []) {
+        bySkill.set(t.toLowerCase(), [...(bySkill.get(t.toLowerCase()) ?? []), name]);
+      }
+    }
+    const conflicts = Object.entries(manifest.redirects)
+      .filter(([key, target]) => !known.has(key) && bySkill.has(key.toLowerCase()) && !bySkill.get(key.toLowerCase())!.includes(target))
+      .map(([key, target]) => `${key} -> ${target} (trigger of ${bySkill.get(key.toLowerCase())!.join(", ")})`);
+    expect(conflicts).toEqual([]);
+    expect(manifest.redirects.competitors).toBeUndefined();
   });
 });
 
