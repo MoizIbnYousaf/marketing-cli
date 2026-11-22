@@ -135,7 +135,10 @@ const runDiff = async (cwd: string, extra: string[] = []): Promise<{ data: DiffO
     cwd: PROJECT_ROOT,
     stdout: "pipe",
     stderr: "pipe",
-    env: { ...process.env, NO_COLOR: "1", HOME: cwd },
+    // HOME stays the suite's isolated home (tests/preload.ts). Pointing it at
+    // the project would let Bun write its own cache into the tree the
+    // "writes nothing" tests compare.
+    env: { ...process.env, NO_COLOR: "1" },
   });
   const stdout = await new Response(proc.stdout).text();
   return { data: JSON.parse(stdout) as DiffOut, exitCode: await proc.exited };
@@ -234,7 +237,7 @@ describe("mktg brand diff (CLI) — baseline lifecycle", () => {
 
   test("schema for brand diff documents the baseline fields", async () => {
     const proc = Bun.spawn(["bun", "run", "src/cli.ts", "schema", "brand", "diff", "--json"], {
-      cwd: PROJECT_ROOT, stdout: "pipe", stderr: "pipe", env: { ...process.env, HOME: tempDir },
+      cwd: PROJECT_ROOT, stdout: "pipe", stderr: "pipe", env: { ...process.env },
     });
     const schema = JSON.parse(await new Response(proc.stdout).text()) as { description: string; output: Record<string, string> };
     expect(schema.description).toContain("new baseline");
