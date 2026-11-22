@@ -359,11 +359,11 @@ Manifest: the marketing-cli checkoutskills-manifest.json
 | `launch-strategy` | strategy | GTM plan, Product Hunt, beta launch |
 | `pricing-strategy` | strategy | Van Westendorp, packaging, monetization |
 | `marketing-psychology` | knowledge | Cialdini's 6 principles, cognitive biases |
-| `ai-check` | review | Line-by-line AI slop detection (external, not shipped; optional extra for gate 2) |
-| `editorial-first-pass` | review | Hook, thesis, promise, stakes  -  pass/fail (external, not shipped; optional extra for gate 1) |
 | `ai-seo` | review | Durable AEO/GEO visibility, citation, and accuracy program |
 | `competitor-alternatives` | review | "X vs Y" and "X alternatives" SEO pages |
 | `landscape-scan` | infrastructure | Ecosystem snapshot + Claims Blacklist |
+
+Not in the manifest: `editorial-first-pass` and `ai-check` are external skills, not shipped. When installed they are an optional second opinion for pre-ship gates 1 and 2 (`skills/cmo/rules/quality-gate.md`).
 
 ## 7 Sub-Agents
 
