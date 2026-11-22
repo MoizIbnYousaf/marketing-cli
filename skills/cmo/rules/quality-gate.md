@@ -44,10 +44,23 @@ The AI slop audit is one of four gates. Before any content ships (landing page g
 
 | # | Gate | Purpose | How /cmo invokes | Fail behavior |
 |---|---|---|---|---|
-| 1 | `editorial-first-pass` | Structural check — hook, thesis, promise, stakes. Fastest gate; kills obvious misses early. | `/editorial-first-pass <path>` — returns pass/fail + rework recommendations. | On fail: bounce back to the content skill for a second pass. Don't proceed to gate 2. |
-| 2 | `ai-check` + this AI slop audit | Line-by-line pattern detection against the full reference at `references/ai-slop-patterns.md`. | Invoked automatically by content skills in their own post-production; /cmo runs it on batches (e.g., atomizer output). | On fail: rewrite the flagged lines in place. Don't pass slop to a reviewer. |
+| 1 | Structural first pass | Structural check — hook, thesis, promise, stakes. Fastest gate; kills obvious misses early. | /cmo runs the checklist in [Structural first pass](#structural-first-pass) below — pass/fail + rework recommendations. If the user has the external `editorial-first-pass` skill installed, also run `/editorial-first-pass <path>`. | On fail: bounce back to the content skill for a second pass. Don't proceed to gate 2. |
+| 2 | This AI slop audit | Line-by-line pattern detection against the full reference at `references/ai-slop-patterns.md`. | /cmo runs [How to Audit](#how-to-audit) above on every asset, and on batches (e.g., atomizer output). If the user has the external `ai-check` skill installed, also run it. | On fail: rewrite the flagged lines in place. Don't pass slop to a reviewer. |
 | 3 | `mktg-content-reviewer` agent | Voice-profile consistency — does this sound like the brand documented in `brand/voice-profile.md`? | Spawn via Agent tool — see `rules/sub-agents.md` for the pattern. Returns structured score + drift report. | On fail: loop back to the content skill with the specific rewrite recommendations. |
 | 4 | `mktg-seo-analyst` agent (SEO assets only) | Keyword-plan adherence — primary/secondary keywords, search intent match, on-page basics, AI search readiness. | Spawn via Agent tool. Reads `brand/keyword-plan.md` + `brand/audience.md` + `brand/competitors.md`. | On fail: loop back with keyword-gap recommendations. |
+
+Gates 1 and 2 need nothing beyond this package: /cmo runs them from this file. `editorial-first-pass` and `ai-check` are not part of marketing-cli; when they are installed they add a second opinion to gates 1 and 2, and when they are not, the gate still runs. Gates 3 and 4 are the review agents marketing-cli installs to `~/.claude/agents/`.
+
+### Structural first pass
+
+Read the whole asset once, then answer each question with yes or no:
+
+1. **Hook:** does the first line or headline give the reader a reason to keep going?
+2. **Thesis:** can you state the one main claim in a sentence, using the asset's own words?
+3. **Promise:** is it clear what the reader gets (outcome, offer, next step)?
+4. **Stakes:** is it clear why it matters to this reader now, or what it costs to ignore?
+
+Any "no" fails the gate. Return the failed questions with one rework recommendation each.
 
 **Which gates apply to which outputs:**
 
@@ -81,8 +94,8 @@ When /cmo needs to run the full gate chain on one asset:
 PIPELINE: pre-ship-gates
 INPUT:    <file path>
 STEPS:
-  1. /editorial-first-pass <path>   → PASS required
-  2. AI slop audit (this file)      → rewrite in place
+  1. Structural first pass (this file; plus /editorial-first-pass <path> if installed) → PASS required
+  2. AI slop audit (this file; plus ai-check if installed)                              → rewrite in place
   3. Agent: mktg-content-reviewer   → score ≥ threshold required
   4. Agent: mktg-seo-analyst        → score ≥ threshold required (SEO assets only)
 OUTPUT:   ready-to-ship flag + final asset path
