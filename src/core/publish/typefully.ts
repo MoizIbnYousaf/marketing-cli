@@ -6,8 +6,10 @@
 //   - Drafts live under a social set: POST /v2/social-sets/{id}/drafts.
 //   - Content is per platform: { platforms: { x: { enabled, posts: [{ text }] } } }.
 //
-// The API creates DRAFTS unless `publish_at` is supplied, so results are
-// reported as "draft-external" and never as "sent".
+// The API creates DRAFTS unless `publish_at` is supplied. A plain draft is
+// reported as "draft-external". With `publish_at` ("now", "next-free-slot" or
+// a time) the same request publishes or schedules the post, which is a send:
+// it is reported as "sent", and the detail says which.
 
 import { writeStdout } from "../output";
 import { type AdapterResult, type AdapterResultItem, type PublishItem } from "./types";
@@ -103,13 +105,17 @@ const resolveSocialSet = async (apiKey: string, metadata: Metadata): Promise<Soc
 export const unsupportedTypefullyPlatforms = (item: PublishItem): readonly string[] =>
   platformsFor(item.metadata ?? {}).filter((platform) => !POST_PLATFORMS.has(platform));
 
-/** Describe what Typefully will do with the draft, without claiming a send. */
+/** A draft with `publish_at` is published or scheduled by Typefully: a send, not a draft. */
+const successStatus = (item: PublishItem): "draft-external" | "sent" =>
+  firstString((item.metadata ?? {}).publish_at) === undefined ? "draft-external" : "sent";
+
+/** Describe exactly what Typefully was asked to do with the post. */
 const successDetail = (item: PublishItem): string => {
   const publishAt = firstString((item.metadata ?? {}).publish_at);
-  if (publishAt === undefined) return "Draft created on Typefully";
-  if (publishAt === "now") return "Draft created on Typefully; publishing started (asynchronous, not yet confirmed)";
-  if (publishAt === "next-free-slot") return "Draft created on Typefully; queued for the next free slot";
-  return `Draft created on Typefully; scheduled for ${publishAt}`;
+  if (publishAt === undefined) return "Draft created on Typefully (not scheduled, not sent)";
+  if (publishAt === "now") return "Sent to Typefully to publish now; publishing is asynchronous and not yet confirmed";
+  if (publishAt === "next-free-slot") return "Scheduled on Typefully for the next free slot";
+  return `Scheduled on Typefully for ${publishAt}`;
 };
 
 /** A 2xx whose body is not JSON did not confirm a draft: the reason, or null when the body parses. */
@@ -167,7 +173,7 @@ export const publishTypefully = async (
         const malformed = resp.ok ? await malformedAnswer(resp) : null;
         results.push(
           resp.ok && malformed === null
-            ? { item: i, status: "draft-external", detail: successDetail(item) }
+            ? { item: i, status: successStatus(item), detail: successDetail(item) }
             : { item: i, status: "failed", detail: malformed ?? await failureDetail(resp) },
         );
       }

@@ -217,8 +217,10 @@ mktg publish --native-upsert-provider --input '{"identifier":"linkedin","name":"
 mktg publish --adapter mktg-native --list-integrations --json
 mktg publish --adapter mktg-native --dry-run --input '<publish-manifest-json>' --json
 mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' --json
-# Per-item status truth: queued-local (native) | draft-external (typefully,
-# postiz) | sent (resend) | written-file (file) | failed | skipped.
+# Per-item status truth: queued-local (native) | draft-external (typefully
+# without publish_at, postiz) | sent (resend; typefully with metadata.publish_at,
+# which publishes or schedules) | written-file (file) | failed | skipped.
+# Definitions: skills/cmo/rules/publish-index.md "Per-Item Status Truth".
 # A local queue write is never "sent"; an external draft is never "published".
 mktg publish --native-list-posts --json
 # Read-only: --native-list-posts and --list-integrations never write; with no

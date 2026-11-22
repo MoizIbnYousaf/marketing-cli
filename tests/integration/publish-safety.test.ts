@@ -271,3 +271,26 @@ describe("postiz: one create per item", () => {
     }
   }, T);
 });
+
+describe("typefully: a send is reported as a send", () => {
+  test("publish_at now / next-free-slot / a time is sent; no publish_at is a draft", async () => {
+    const t = startTypefully('{"id": 1}', 201);
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([
+        typefullyItem({ publish_at: "now" }),
+        typefullyItem({ publish_at: "next-free-slot" }),
+        typefullyItem({ publish_at: "2026-12-01T10:00:00Z" }),
+        typefullyItem(),
+      ]));
+      const r = await runPublish(sb, ["--adapter", "typefully", "--confirm", "--json"], t.env);
+      const results = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results;
+      expect((t.posts as { publish_at?: string }[]).map((p) => p.publish_at)).toEqual(["now", "next-free-slot", "2026-12-01T10:00:00Z", undefined]);
+      expect(results.map((x) => x.status)).toEqual(["sent", "sent", "sent", "draft-external"]);
+      expect(results[0]!.detail).toContain("publish now");
+      expect(results[1]!.detail).toContain("next free slot");
+      expect(results[2]!.detail).toContain("Scheduled on Typefully for 2026-12-01T10:00:00Z");
+    } finally {
+      t.server.stop(true);
+    }
+  }, T);
+});

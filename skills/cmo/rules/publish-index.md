@@ -20,7 +20,7 @@ mktg catalog info postiz --json --fields configured,missing_envs,resolved_base
 |---|---|---|---|
 | `mktg-native` | Local agent-first publish backend | None | Stores workspace account, providers, queue, history under `.mktg/native-publish/`. This is the current native Studio backend. |
 | `postiz` | External social provider catalog | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` | Creates Postiz drafts through the REST API. Hosted or self-hosted; Docker roots like `http://localhost:4007` are retried through `/api`. |
-| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` (+ `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set) | Creates Typefully drafts through API v2. Best for threads and X-specific workflows. Per item: `metadata.social_set_id`, `metadata.platforms`, `metadata.publish_at`. |
+| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` (+ `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set) | Creates Typefully drafts through API v2; an item with `metadata.publish_at` is published or scheduled (status `sent`). Best for threads and X-specific workflows. Per item: `metadata.social_set_id`, `metadata.platforms`, `metadata.publish_at`. |
 | `resend` | Email send path | `RESEND_API_KEY` | Transactional/email distribution. |
 | `file` | Always-on local export | None | Writes publish artifacts to disk for manual or later posting. |
 
@@ -32,11 +32,14 @@ Every item in `adapters[].results[]` carries a `status` from this enum —
 | Status | Meaning | Adapters |
 |---|---|---|
 | `queued-local` | Written to the local `.mktg/native-publish/` queue. NOT posted anywhere. | `mktg-native` |
-| `draft-external` | Draft created on an external service. NOT scheduled/sent. | `typefully`, `postiz` |
-| `sent` | Confirmed sent/scheduled on an external network. | `resend` |
+| `draft-external` | Draft created on an external service. NOT scheduled/sent. | `typefully` (no `publish_at`), `postiz` |
+| `sent` | Confirmed sent/scheduled on an external network. | `resend`; `typefully` with `metadata.publish_at` (`now` publishes, `next-free-slot` or a time schedules; `detail` says which) |
 | `written-file` | Exported to `.mktg/published/` on disk. | `file` |
 | `failed` | Adapter rejected the item (see `detail`). | all |
 | `skipped` | Dry-run preview or idempotency skip. | all |
+
+This table is the one definition of the status values; `src/types.ts`,
+`CONTEXT.md` and `mktg schema publish` point here.
 
 Anti-pattern: telling the user a post "went out" when the status is
 `queued-local` or `draft-external`. Say "queued locally" or "draft created"

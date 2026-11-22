@@ -48,10 +48,11 @@ export type CommandResult<T = unknown> =
 export type PublishPostType = "draft" | "schedule" | "now" | "update";
 
 /**
- * Per-item publish truth. Every adapter maps its outcome to exactly one:
+ * Per-item publish truth. Every adapter maps its outcome to exactly one.
+ * The canonical table is skills/cmo/rules/publish-index.md ("Per-Item Status Truth"):
  * - "queued-local"   — written to the local mktg-native queue (.mktg/native-publish/)
- * - "draft-external" — draft created on an external service (Typefully, postiz)
- * - "sent"           — confirmed sent/scheduled on an external network (Resend)
+ * - "draft-external" — draft created on an external service, not scheduled or sent (Typefully without publish_at, postiz)
+ * - "sent"           — confirmed sent/scheduled on an external network (Resend; Typefully with metadata.publish_at)
  * - "written-file"   — file adapter output under .mktg/published/
  * - "failed"         — adapter rejected the item (detail carries why)
  * - "skipped"        — dry-run preview or idempotency skip

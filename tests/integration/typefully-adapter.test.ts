@@ -156,14 +156,15 @@ describe("publishTypefully (v2)", () => {
     expect(result.results[0]?.status).toBe("skipped");
     expect(captured).toHaveLength(0);
   });
-  test("a scheduled draft says so instead of reporting a plain draft", async () => {
+  test("a scheduled post is reported as sent, not as a draft", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
     replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
 
     const result = await publishTypefully([social("later", { publish_at: "next-free-slot" })], true, false);
 
-    expect(result.results[0]?.status).toBe("draft-external");
+    expect(result.results[0]?.status).toBe("sent");
     expect(result.results[0]?.detail).toContain("next free slot");
+    expect(result.published).toBe(1);
     expect((captured[0]?.body as { publish_at?: string }).publish_at).toBe("next-free-slot");
   });
 
