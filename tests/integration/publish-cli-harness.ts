@@ -34,7 +34,10 @@ export const runPublish = async (
 ): Promise<CliRun> => {
   const proc = Bun.spawn(["bun", "run", CLI, "publish", ...args], {
     cwd: sb.project,
-    env: { PATH: process.env.PATH ?? "", HOME: sb.home, ...env },
+    // Bun caches transpiled source under $HOME on Linux. That is the runtime's
+    // doing, not the command's, and these tests compare every byte under
+    // HOME, so the cache is switched off for the child.
+    env: { PATH: process.env.PATH ?? "", HOME: sb.home, BUN_RUNTIME_TRANSPILER_CACHE_PATH: "0", ...env },
     stdout: "pipe",
     stderr: "pipe",
   });
