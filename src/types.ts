@@ -48,10 +48,11 @@ export type CommandResult<T = unknown> =
 export type PublishPostType = "draft" | "schedule" | "now" | "update";
 
 /**
- * Per-item publish truth. Every adapter maps its outcome to exactly one:
+ * Per-item publish truth. Every adapter maps its outcome to exactly one.
+ * The canonical table is skills/cmo/rules/publish-index.md ("Per-Item Status Truth"):
  * - "queued-local"   — written to the local mktg-native queue (.mktg/native-publish/)
- * - "draft-external" — draft created on an external service (Typefully, postiz)
- * - "sent"           — confirmed sent/scheduled on an external network (Resend)
+ * - "draft-external" — draft created on an external service, not scheduled or sent (postiz; Typefully when its answer says "draft")
+ * - "sent"           — confirmed sent/scheduled on an external network (Resend; Typefully when its answer says scheduled, publishing or published)
  * - "written-file"   — file adapter output under .mktg/published/
  * - "failed"         — adapter rejected the item (detail carries why)
  * - "skipped"        — dry-run preview or idempotency skip
@@ -59,7 +60,7 @@ export type PublishPostType = "draft" | "schedule" | "now" | "update";
  */
 export type PublishItemStatus = "queued-local" | "draft-external" | "sent" | "written-file" | "failed" | "skipped";
 
-/** Statuses that count as terminal adapter success (drives `published` counts). */
+/** Statuses that count as terminal adapter success. NOT the `published` count, which is "sent" only (src/core/publish/types.ts tallyResults). */
 export const TERMINAL_PUBLISH_STATUSES: readonly PublishItemStatus[] = ["queued-local", "draft-external", "sent", "written-file"];
 
 // Result constructors

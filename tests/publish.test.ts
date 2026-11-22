@@ -66,7 +66,9 @@ describe("mktg publish", () => {
     const { stdout, exitCode } = await run(["publish", "--confirm", "--json", "--cwd", tmp]);
     expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
-    expect(parsed.published).toBe(1);
+    // A written file is staged, not published (published counts sends only).
+    expect(parsed.published).toBe(0);
+    expect(parsed.writtenFiles).toBe(1);
     expect(parsed.dryRun).toBe(false);
     // Verify file was written
     const outFile = Bun.file(join(tmp, ".mktg", "published", "out.txt"));
@@ -203,8 +205,10 @@ describe("publish truth enum", () => {
     };
     await Bun.write(join(tmp, "publish.json"), JSON.stringify(manifest));
     const { stdout, exitCode } = await run(["publish", "--json", "--cwd", tmp]);
-    expect(exitCode).toBe(0);
     const parsed = JSON.parse(stdout);
+    // An item that cannot be planned (typefully without a key) is failed, and
+    // any failed item exits 4 with the full result as data, dry run or not.
+    expect(exitCode).toBe(parsed.failed > 0 ? 4 : 0);
     for (const adapter of parsed.adapters) {
       for (const item of adapter.results) {
         expect(["skipped", "failed"]).toContain(item.status);

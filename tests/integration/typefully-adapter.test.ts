@@ -89,7 +89,8 @@ describe("publishTypefully (v2)", () => {
 
     const result = await publishTypefully([social("ship it")], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(result.failed).toBe(0);
     expect(result.results[0]?.status).toBe("draft-external");
     expect(captured).toHaveLength(1);
@@ -104,7 +105,8 @@ describe("publishTypefully (v2)", () => {
 
     const result = await publishTypefully([social("auto")], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(captured.map((c) => `${c.method} ${c.path}`)).toEqual([
       "GET /v2/social-sets",
       "POST /v2/social-sets/777/drafts",
@@ -124,11 +126,12 @@ describe("publishTypefully (v2)", () => {
 
   test("item metadata overrides the environment social set", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/999/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/999/drafts", { status: 201, body: { id: "d9", status: "draft" } });
 
     const result = await publishTypefully([social("override", { social_set_id: "999" })], true, false);
 
-    expect(result.published).toBe(1);
+    expect(result.published).toBe(0); // a plain draft is staged, not published
+    expect(result.drafts).toBe(1);
     expect(captured[0]?.path).toBe("/v2/social-sets/999/drafts");
   });
 
@@ -156,20 +159,21 @@ describe("publishTypefully (v2)", () => {
     expect(result.results[0]?.status).toBe("skipped");
     expect(captured).toHaveLength(0);
   });
-  test("a scheduled draft says so instead of reporting a plain draft", async () => {
+  test("a scheduled post is reported as sent, not as a draft", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201, body: { id: "d3", status: "scheduled", scheduled_date: null } });
 
     const result = await publishTypefully([social("later", { publish_at: "next-free-slot" })], true, false);
 
-    expect(result.results[0]?.status).toBe("draft-external");
+    expect(result.results[0]?.status).toBe("sent");
     expect(result.results[0]?.detail).toContain("next free slot");
+    expect(result.published).toBe(1);
     expect((captured[0]?.body as { publish_at?: string }).publish_at).toBe("next-free-slot");
   });
 
   test("share is sent as a boolean whether the manifest used a boolean or a string", async () => {
     process.env.TYPEFULLY_SOCIAL_SET_ID = "12345";
-    replies.set("POST /v2/social-sets/12345/drafts", { status: 201 });
+    replies.set("POST /v2/social-sets/12345/drafts", { status: 201, body: { id: "d4", status: "draft" } });
     const asBoolean = { share: true } as unknown as PublishItem["metadata"];
 
     await publishTypefully([social("a", asBoolean), social("b", { share: "true" })], true, false);

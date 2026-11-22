@@ -20,7 +20,7 @@ mktg catalog info postiz --json --fields configured,missing_envs,resolved_base
 |---|---|---|---|
 | `mktg-native` | Local agent-first publish backend | None | Stores workspace account, providers, queue, history under `.mktg/native-publish/`. This is the current native Studio backend. |
 | `postiz` | External social provider catalog | `POSTIZ_API_KEY`, `POSTIZ_API_BASE` | Creates Postiz drafts through the REST API. Hosted or self-hosted; Docker roots like `http://localhost:4007` are retried through `/api`. |
-| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` (+ `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set) | Creates Typefully drafts through API v2. Best for threads and X-specific workflows. Per item: `metadata.social_set_id`, `metadata.platforms`, `metadata.publish_at`. |
+| `typefully` | X/threads specialist and fallback | `TYPEFULLY_API_KEY` (+ `TYPEFULLY_SOCIAL_SET_ID` when the account has more than one social set) | Creates Typefully drafts through API v2; an item with `metadata.publish_at` (`now`, `next-free-slot` or an ISO 8601 time) asks Typefully to publish or schedule it, and the status follows Typefully's answer. Best for threads and X-specific workflows. Per item: `metadata.social_set_id`, `metadata.platforms`, `metadata.publish_at`. |
 | `resend` | Email send path | `RESEND_API_KEY` | Transactional/email distribution. |
 | `file` | Always-on local export | None | Writes publish artifacts to disk for manual or later posting. |
 
@@ -32,11 +32,24 @@ Every item in `adapters[].results[]` carries a `status` from this enum —
 | Status | Meaning | Adapters |
 |---|---|---|
 | `queued-local` | Written to the local `.mktg/native-publish/` queue. NOT posted anywhere. | `mktg-native` |
-| `draft-external` | Draft created on an external service. NOT scheduled/sent. | `typefully`, `postiz` |
-| `sent` | Confirmed sent/scheduled on an external network. | `resend` |
+| `draft-external` | Draft created on an external service. NOT scheduled/sent. | `postiz`; `typefully` when Typefully answers status `draft` (also when `publish_at` was asked for and Typefully did not schedule it; `detail` says so) |
+| `sent` | Confirmed sent/scheduled on an external network. | `resend`; `typefully` when Typefully answers `scheduled`, `publishing` (accepted, publishing now, asynchronous) or `published`; `detail` says which and gives the draft id |
 | `written-file` | Exported to `.mktg/published/` on disk. | `file` |
-| `failed` | Adapter rejected the item (see `detail`). | all |
+| `failed` | Adapter rejected the item (see `detail`). A `detail` that says "not confirmed" or "Unconfirmed" means the provider may have it: check there before re-sending. | all |
 | `skipped` | Dry-run preview or idempotency skip. | all |
+
+This table is the one definition of the status values; `src/types.ts`,
+`CONTEXT.md` and `mktg schema publish` point here.
+
+Counts, top-level and per adapter in `adapters[]`: `published` is the number
+of `sent` items only (actually sent or scheduled). Staged work is counted
+apart and is never "published": `drafts` (`draft-external`), `queuedLocal`
+(`queued-local`), `writtenFiles` (`written-file`). Plus `failed`.
+
+Exit code: any item with status `failed` makes `mktg publish` exit 4, with the
+full result still on stdout as data, in a dry run as well as a confirmed run
+(a dry-run failure is an item that could not be planned, such as a missing
+key). Read `adapters[].results[]` for what did succeed before reporting.
 
 Anti-pattern: telling the user a post "went out" when the status is
 `queued-local` or `draft-external`. Say "queued locally" or "draft created"
@@ -58,6 +71,17 @@ mktg publish --native-upsert-provider --input '{"identifier":"linkedin","name":"
 mktg publish --adapter mktg-native --list-integrations --json
 mktg publish --native-list-posts --json
 ```
+
+Listings (`--native-list-posts`, `--list-integrations`) never write. With no
+account yet they return an empty list and `accountState: "missing"`.
+`--list-integrations` (and `--native-account --dry-run`) also report
+`providersState`; `"unreadable"` means providers.json exists but does not
+parse, so the empty list is not "no providers". In a
+`--native-upsert-provider --dry-run` answer, `idProvisional: true` means the
+provider is new and `provider.id` is a placeholder: a real run assigns another. A dry run
+(no `--confirm`, or `--dry-run`) writes nothing anywhere; `--native-account
+--dry-run` and `--native-upsert-provider --dry-run` report what they would
+create instead.
 
 Native publish manifest shape:
 

@@ -11,7 +11,7 @@ import type { Server } from "bun";
 
 import type { GlobalFlags } from "../../src/types";
 import { handler } from "../../src/commands/publish";
-import { sentMarkerKey, loadSentMarker, persistSentMarker } from "../../src/core/publish/postiz";
+import { sentMarkerKey, readSentMarker, persistSentMarker } from "../../src/core/publish/postiz";
 
 // ─── Test HTTP server (shared across describe blocks) ───
 type RouteResponse = { status: number; body?: unknown; headers?: Record<string, string> };
@@ -103,7 +103,7 @@ describe("sentMarkerKey hash formula", () => {
   });
 });
 
-// ─── loadSentMarker / persistSentMarker ───
+// ─── readSentMarker / persistSentMarker ───
 describe("sent-marker file I/O", () => {
   let tempDir: string;
 
@@ -115,15 +115,17 @@ describe("sent-marker file I/O", () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  test("loadSentMarker returns empty for missing file", async () => {
-    const marker = await loadSentMarker(join(tempDir, "missing.json"), "my-campaign");
-    expect(marker.version).toBe(1);
-    expect(marker.campaign).toBe("my-campaign");
-    expect(marker.catalog).toBe("postiz");
-    expect(marker.sent).toEqual({});
+  test("readSentMarker returns an empty marker for a missing file", async () => {
+    const read = await readSentMarker(join(tempDir, "missing.json"), "my-campaign");
+    expect(read.state).toBe("missing");
+    if (read.state === "corrupt") return;
+    expect(read.marker.version).toBe(1);
+    expect(read.marker.campaign).toBe("my-campaign");
+    expect(read.marker.catalog).toBe("postiz");
+    expect(read.marker.sent).toEqual({});
   });
 
-  test("persistSentMarker then loadSentMarker round-trips", async () => {
+  test("persistSentMarker then readSentMarker round-trips, pending entries included", async () => {
     const path = join(tempDir, "camp.json");
     const original = {
       version: 1 as const,
@@ -131,11 +133,14 @@ describe("sent-marker file I/O", () => {
       catalog: "postiz" as const,
       sent: {
         abc123: { postedAt: "2026-04-15T10:00:00Z", providers: ["linkedin", "bluesky"] },
+        def456: { postedAt: "2026-04-15T10:00:01Z", providers: ["linkedin"], state: "pending" as const },
       },
     };
     await persistSentMarker(path, original);
-    const loaded = await loadSentMarker(path, "camp");
-    expect(loaded).toEqual(original);
+    const read = await readSentMarker(path, "camp");
+    expect(read.state).toBe("present");
+    expect(read.marker).toEqual(original);
+    expect(await readdir(tempDir)).toEqual(["camp.json"]); // no temp file left
   });
 
   test("persistSentMarker creates parent directory", async () => {
@@ -150,50 +155,35 @@ describe("sent-marker file I/O", () => {
     expect(JSON.parse(read).campaign).toBe("c");
   });
 
-  test("corrupted JSON → archived to .corrupt.<ISO>.json, returns fresh empty", async () => {
-    const path = join(tempDir, "camp-postiz.json");
-    await writeFile(path, "{not valid json");
+  const expectCorruptAndUntouched = async (name: string, content: string, campaign: string) => {
+    const path = join(tempDir, name);
+    await writeFile(path, content);
+    const read = await readSentMarker(path, campaign);
+    expect(read.state).toBe("corrupt");
+    expect(read.marker).toBeNull();
+    // Reported, never archived or replaced: the file may record real posts.
+    expect(await readdir(tempDir)).toEqual([name]);
+    expect(await readFile(path, "utf-8")).toBe(content);
+  };
 
-    const marker = await loadSentMarker(path, "camp");
-    expect(marker.sent).toEqual({});
-    expect(marker.campaign).toBe("camp");
-
-    // Original file renamed with .corrupt.<ISO>.json suffix
-    const files = await readdir(tempDir);
-    const corruptFile = files.find((f) => f.includes(".corrupt."));
-    expect(corruptFile).toBeDefined();
-    expect(corruptFile).toMatch(/camp-postiz\.corrupt\.[\d\-T:.Z]+\.json$/);
-
-    // Original path no longer exists
-    const exists = await Bun.file(path).exists();
-    expect(exists).toBe(false);
+  test("corrupted JSON → corrupt, file left in place", async () => {
+    await expectCorruptAndUntouched("camp-postiz.json", "{not valid json", "camp");
   });
 
-  test("wrong shape (missing campaign field) → archived, returns fresh empty", async () => {
-    const path = join(tempDir, "bad.json");
-    await writeFile(path, JSON.stringify({ version: 1, sent: {} }));
-
-    const marker = await loadSentMarker(path, "new-campaign");
-    expect(marker.campaign).toBe("new-campaign");
-    expect(marker.sent).toEqual({});
-
-    const files = await readdir(tempDir);
-    expect(files.some((f) => f.includes(".corrupt."))).toBe(true);
+  test("wrong shape (missing campaign field) → corrupt, file left in place", async () => {
+    await expectCorruptAndUntouched("bad.json", JSON.stringify({ version: 1, sent: {} }), "new-campaign");
   });
 
-  test("wrong catalog field → archived, returns fresh empty", async () => {
-    const path = join(tempDir, "wrong-catalog.json");
-    await writeFile(path, JSON.stringify({
-      version: 1,
-      campaign: "c",
-      catalog: "typefully", // wrong
-      sent: {},
-    }));
+  test("wrong catalog field → corrupt, file left in place", async () => {
+    await expectCorruptAndUntouched("wrong-catalog.json", JSON.stringify({ version: 1, campaign: "c", catalog: "typefully", sent: {} }), "c");
+  });
 
-    const marker = await loadSentMarker(path, "c");
-    expect(marker.sent).toEqual({});
-    const files = await readdir(tempDir);
-    expect(files.some((f) => f.includes(".corrupt."))).toBe(true);
+  test("an unknown entry state → corrupt", async () => {
+    await expectCorruptAndUntouched(
+      "state.json",
+      JSON.stringify({ version: 1, campaign: "c", catalog: "postiz", sent: { k: { postedAt: "x", providers: [], state: "weird" } } }),
+      "c",
+    );
   });
 
   test("campaign mismatch → fresh empty without archiving", async () => {
@@ -205,9 +195,10 @@ describe("sent-marker file I/O", () => {
       sent: { hash1: { postedAt: "2026-04-15T10:00:00Z", providers: ["linkedin"] } },
     });
 
-    const marker = await loadSentMarker(path, "different-campaign");
-    expect(marker.campaign).toBe("different-campaign");
-    expect(marker.sent).toEqual({});
+    const read = await readSentMarker(path, "different-campaign");
+    expect(read.state).toBe("present");
+    expect(read.marker?.campaign).toBe("different-campaign");
+    expect(read.marker?.sent).toEqual({});
 
     // Original file should NOT be archived — campaign mismatch is a clean
     // boundary condition, not corruption.
@@ -362,7 +353,7 @@ describe("publishPostiz idempotency end-to-end", () => {
     }
   });
 
-  test("corrupt marker → fresh POST proceeds, adapter does not crash", async () => {
+  test("corrupt marker → the confirmed run refuses to send and leaves the file as it is", async () => {
     const markerDir = join(tempDir, ".mktg", "publish");
     await mkdir(markerDir, { recursive: true });
     await writeFile(join(markerDir, "recovery-camp-postiz.json"), "{garbage");
@@ -378,12 +369,15 @@ describe("publishPostiz idempotency end-to-end", () => {
       jsonInput: JSON.stringify(makeManifest("recovery-camp", [{ content: "hi", providers: ["linkedin"] }])),
     });
 
-    expect(result.ok).toBe(true);
-    expect(postCount).toBe(1);
+    // Full result as data, exit 4: the item failed because nothing could be
+    // sent safely, not because Postiz rejected it.
+    expect(result.exitCode).toBe(4);
+    expect(postCount).toBe(0);
+    const data = (result as unknown as { data: { failed: number; adapters: Array<{ results: Array<{ status: string; detail: string }> }> } }).data;
+    expect(data.failed).toBe(1);
+    expect(data.adapters[0]!.results[0]!.detail).toContain("unreadable");
 
-    // Corrupt file archived, fresh marker written
-    const files = await readdir(markerDir);
-    expect(files.some((f) => f.includes(".corrupt."))).toBe(true);
-    expect(files.some((f) => f === "recovery-camp-postiz.json")).toBe(true);
+    expect(await readdir(markerDir)).toEqual(["recovery-camp-postiz.json"]);
+    expect(await readFile(join(markerDir, "recovery-camp-postiz.json"), "utf-8")).toBe("{garbage");
   });
 });

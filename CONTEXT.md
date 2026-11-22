@@ -217,10 +217,39 @@ mktg publish --native-upsert-provider --input '{"identifier":"linkedin","name":"
 mktg publish --adapter mktg-native --list-integrations --json
 mktg publish --adapter mktg-native --dry-run --input '<publish-manifest-json>' --json
 mktg publish --adapter mktg-native --confirm --input '<publish-manifest-json>' --json
-# Per-item status truth: queued-local (native) | draft-external (typefully,
-# postiz) | sent (resend) | written-file (file) | failed | skipped.
+# Per-item status truth: queued-local (native) | draft-external (postiz;
+# typefully when Typefully answers status "draft") | sent (resend; typefully
+# when Typefully answers scheduled, publishing or published) | written-file
+# (file) | failed | skipped. Typefully status comes from Typefully's answer,
+# not from metadata.publish_at; an answer without a draft id, or a publish_at
+# request whose answer confirms neither, is failed ("not confirmed"). A
+# publish_at other than now, next-free-slot or an ISO 8601 time, an
+# unsupported platform or a bad social_set_id fails in the dry run too.
+# Definitions: skills/cmo/rules/publish-index.md "Per-Item Status Truth".
 # A local queue write is never "sent"; an external draft is never "published".
+# Counts (top-level and per adapter): published = sent items only;
+# drafts / queuedLocal / writtenFiles count staged work; failed.
+# Any failed item exits 4 with the full result as data (dry runs too: an item
+# that cannot be planned, e.g. a missing key, counts). See docs/EXIT_CODES.md.
 mktg publish --native-list-posts --json
+# Read-only: --native-list-posts and --list-integrations never write; with no
+# account yet they return an empty list and accountState:"missing".
+# --list-integrations and --native-account --dry-run add providersState
+# (present | missing | unreadable); --native-upsert-provider --dry-run adds
+# idProvisional (true: provider.id is a placeholder) and providersState.
+# A publish without --confirm (or with --dry-run) writes nothing anywhere:
+# no native account, no providers.json, no Postiz sent-marker. A corrupt
+# sent-marker or unreadable account.json is reported, not repaired: while
+# account.json is unreadable, every mktg-native item fails (exit 4), in a dry
+# run and a confirmed run, instead of the key being replaced.
+# Postiz exactly-once: each item is recorded "pending" in the sent-marker
+# before its create is sent; a confirmed run holds <marker>.lock. A resumed
+# run skips accepted items and fails a pending one as "Unconfirmed … check
+# Postiz" instead of re-sending it. A corrupt marker, an unwritable marker
+# folder or a second run on the same campaign fails the items (exit 4) and
+# sends nothing.
+# --native-account --dry-run / --native-upsert-provider --dry-run report what
+# they would create (wouldCreate[] / wouldWrite[]) and write nothing.
 
 # Adapter-scoped flags: --list-integrations (mktg-native, postiz) and
 # --diagnose (postiz). Any other --adapter returns UNSUPPORTED_FLAG, exit 2,

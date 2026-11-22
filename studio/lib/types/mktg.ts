@@ -21,7 +21,10 @@ export type MktgError = {
 };
 
 export type CommandResult<T = unknown> =
-  | { readonly ok: true; readonly data: T; readonly exitCode: 0; readonly display?: string }
+  // exitCode 4 with data: the CLI's "full result as data" convention
+  // (docs/EXIT_CODES.md, Findings vs failures), e.g. `mktg publish` with a
+  // failed item. The data says what failed; the exit code is kept.
+  | { readonly ok: true; readonly data: T; readonly exitCode: 0 | 4; readonly display?: string }
   | { readonly ok: false; readonly error: MktgError; readonly exitCode: ExitCode };
 
 // ─── mktg status ───
@@ -228,21 +231,26 @@ export type AdapterItemResult = {
   readonly postType?: "draft" | "schedule" | "now" | "update";
 };
 
-export type AdapterResult = {
+/** Mirrors src/core/publish/types.ts PublishCounts: `published` is sends only. */
+export type PublishCounts = {
+  readonly published: number;
+  readonly drafts: number;
+  readonly queuedLocal: number;
+  readonly writtenFiles: number;
+  readonly failed: number;
+};
+
+export type AdapterResult = PublishCounts & {
   readonly adapter: string;
   readonly items: number;
-  readonly published: number;
-  readonly failed: number;
   readonly errors: readonly string[];
   readonly results: readonly AdapterItemResult[];
 };
 
-export type PublishResult = {
+export type PublishResult = PublishCounts & {
   readonly campaign: string;
   readonly adapters: readonly AdapterResult[];
   readonly totalItems: number;
-  readonly published: number;
-  readonly failed: number;
   readonly dryRun: boolean;
 };
 
@@ -254,6 +262,10 @@ export type PublishAdapter = {
 
 export type IntegrationsData = {
   readonly adapter: string;
+  /** mktg-native only: whether .mktg/native-publish/account.json exists. Listing never creates it. */
+  readonly accountState?: "present" | "missing" | "unreadable";
+  /** mktg-native only: whether providers.json exists and parses; "unreadable" lists as no integrations. */
+  readonly providersState?: "present" | "missing" | "unreadable";
   readonly integrations: readonly {
     readonly id: string;
     readonly identifier: string;
@@ -296,6 +308,8 @@ export type NativeProviderData = {
 
 export type NativePostsData = {
   readonly adapter: "mktg-native";
+  /** Whether .mktg/native-publish/account.json exists. Listing never creates it. */
+  readonly accountState?: "present" | "missing" | "unreadable";
   readonly posts: readonly {
     readonly id: string;
     readonly campaign: string;

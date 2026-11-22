@@ -189,28 +189,50 @@ This is the social-campaign Phase 5 path. You do NOT handle this standalone — 
 
 ## Outputs
 
-The adapter returns the standard `AdapterResult` envelope:
+The adapter returns the standard `AdapterResult` envelope, one `results[]`
+entry per manifest item (an item with several providers is one Postiz post
+across those integrations, with one status):
 
 ```json
 {
   "adapter": "postiz",
   "items": 3,
-  "published": 3,
-  "failed": 0,
-  "errors": [],
+  "published": 0,
+  "drafts": 1,
+  "queuedLocal": 0,
+  "writtenFiles": 0,
+  "failed": 1,
+  "errors": ["Unconnected provider(s): reddit. Connected: bluesky, linkedin. Connect in the postiz UI first."],
   "results": [
-    { "item": 0, "status": "published", "detail": "draft id=abc123 provider=linkedin" },
-    { "item": 0, "status": "published", "detail": "draft id=abc124 provider=reddit" },
-    { "item": 0, "status": "skipped",   "detail": "dedupe: sent-marker match" }
+    { "item": 0, "status": "draft-external", "detail": "draft on postiz → linkedin, bluesky" },
+    { "item": 1, "status": "failed",         "detail": "Unconnected provider(s): reddit. Connected: bluesky, linkedin. Connect in the postiz UI first." },
+    { "item": 2, "status": "skipped",        "detail": "already-sent (sent-marker hit)" }
   ]
 }
 ```
 
-**Per-provider fan-out:** one input item with N providers becomes N entries in `results[]`, each with its own status. A partial failure (Reddit rate-limited, LinkedIn succeeded) does NOT fail the whole item.
+**Statuses and counts:** this adapter creates drafts only, so a created post
+is `draft-external` and is counted in `drafts`, never in `published`
+(`published` counts `sent` items, which Postiz drafts never are). Other
+values: `failed` (see `detail`) and `skipped` (dry-run preview, sent-marker
+hit, or after a hard-stop such as a rate limit). The full status table is
+`skills/cmo/rules/publish-index.md` ("Per-Item Status Truth").
 
-**Exit-code aggregation:** the top-level `publish` command exits **0** whenever at least one item succeeds. Top-level non-zero exit only when ZERO items succeed. This matches how `typefully` and `resend` adapters already behave. Inspect `results[]` for per-item outcomes — a successful publish run can still have failed providers inside it.
+**Exit code:** `mktg publish` exits **4** when any item failed, with this full
+result still on stdout as data, in a dry run as well as a confirmed run; it
+exits 0 only when no item failed. Read `results[]` before reporting: items
+that did go through are listed there, and re-running is safe for them only
+because the sent-marker skips them.
 
-**Sent-marker side-effect:** successful publishes append to `.mktg/publish/<campaign>-postiz.json` with a stable hash key. Re-running the same campaign is a no-op for already-sent items.
+**Sent-marker side-effect:** before each create the item is recorded as
+pending in `.mktg/publish/<campaign>-postiz.json`, and once Postiz accepts it
+the entry is marked sent. Re-running the same campaign skips sent items. An
+item whose answer was never recorded (a crash mid-request, or a 2xx with a
+body that is not JSON) fails with "Unconfirmed" / "not confirmed — check
+Postiz before re-sending" instead of being sent again: check Postiz, then
+remove that entry from the marker only if the draft is not there. A corrupt
+marker, an unwritable `.mktg/publish/` or a second confirmed run on the same
+campaign fails the items and sends nothing.
 
 **Platform coverage table (UI hint):** after a run, render a small confirmation table showing per-provider status, draft ID, and notes.
 
@@ -225,7 +247,7 @@ The adapter returns the standard `AdapterResult` envelope:
 | Translate user-said platform names to identifiers in the adapter | Alias drift: the moment postiz ships a new provider module, any in-adapter alias layer becomes wrong. The adapter does exact-match on `identifier`; aliasing is a SKILL-layer concern. | Handle alias resolution in Step 2b of On Activation (this skill). Pass exact postiz identifiers to the adapter. |
 | Populate `metadata.campaign` in publish items | Redundant: the adapter threads `manifest.name` into sent-marker keys. If you also set `metadata.campaign`, the adapter ignores it — confusion for the agent about which wins. | Use the top-level `manifest.name` field as the campaign identifier. Don't duplicate into `metadata`. |
 | Populate `metadata.mediaPaths` in v1 | v1 is draft-only; the adapter hardcodes images to `[]`. Setting `mediaPaths` silently no-ops and wastes tokens. | Leave `mediaPaths` out of v1 manifests. Image support lands in v2 alongside `schedule` / `now` post types. |
-| Skip dry-run and go straight to `--confirm` | 30 drafts/hour is a tight rate limit; burning quota on broken manifests is wasteful. Dry-run validates providers and env vars without touching the network. | Always dry-run first. |
+| Skip dry-run and go straight to `--confirm` | 30 drafts/hour is a tight rate limit; burning quota on broken manifests is wasteful. Dry-run validates providers and env vars and creates nothing (it only reads `/public/v1/integrations`). | Always dry-run first. |
 | Use this skill for X threads | Typefully owns threads — better UX, per-tweet character validation, and thread-unroll view. Postiz can post to X but thread authoring is weak. | Twitter/X single post OR thread → `typefully`. Everything else → this skill. |
 
 ## Progressive Enhancement

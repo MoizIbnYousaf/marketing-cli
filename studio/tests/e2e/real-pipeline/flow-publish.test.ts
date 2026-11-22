@@ -315,12 +315,14 @@ describe("J2 publish flow (offline)", () => {
  const publish = (await publishRes.json()) as {
  ok: true;
  data: {
- adapters: Array<{ adapter: string; published: number; failed: number }>;
+ adapters: Array<{ adapter: string; published: number; queuedLocal: number; failed: number }>;
  };
  };
  expect(publish.ok).toBe(true);
  expect(publish.data.adapters[0]?.adapter).toBe("mktg-native");
- expect(publish.data.adapters[0]?.published).toBe(1);
+ // A local queue write is staged, never counted as published.
+ expect(publish.data.adapters[0]?.published).toBe(0);
+ expect(publish.data.adapters[0]?.queuedLocal).toBe(1);
 
  const queueRes = await fetch(
  `${baseUrl}/api/publish/scheduled?adapter=mktg-native&startDate=${encodeURIComponent("2026-04-23T00:00:00.000Z")}&endDate=${encodeURIComponent("2026-04-30T00:00:00.000Z")}`,

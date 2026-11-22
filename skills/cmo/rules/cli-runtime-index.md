@@ -56,7 +56,7 @@ Current runtime command set:
 | `transcribe` | Download and transcribe audio/video sources. |
 | `context` | Compile token-budgeted brand context. |
 | `plan` | Get or persist the prioritized execution loop. |
-| `publish` | Route content to native, Postiz, Typefully, Resend, or file adapters. |
+| `publish` | Route content to native, Postiz, Typefully, Resend, or file adapters. Any failed item exits 4 with the full result as data (dry runs too); `published` counts sends only, `drafts`/`queuedLocal`/`writtenFiles` count staged work. |
 | `compete` | Watch, scan, list, and diff competitor pages. Bare `mktg compete` returns the watch list (offline); `scan` is the only network subcommand. |
 | `dashboard` | JSON command-center contracts (snapshot/plan/outputs/publish/system/compete). Bare `mktg dashboard` is deprecated — the canonical human UI is `mktg studio`. |
 | `catalog` | Inspect and sync upstream service catalogs such as Postiz. |

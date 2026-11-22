@@ -55,7 +55,7 @@ export const extractMediaInputs = (item: PublishItem): { readonly paths: readonl
   };
 };
 
-const uploadPostizMediaPath = async (cwd: string, rawPath: string): Promise<PostizResult<PostizMedia>> => {
+const uploadPostizMediaPath = async (cwd: string, rawPath: string, base?: string): Promise<PostizResult<PostizMedia>> => {
   const pathCheck = validatePathInput(cwd, rawPath);
   if (!pathCheck.ok) {
     return { ok: false, error: { kind: "bad-request", msg: pathCheck.message, status: 400 }, status: 400 };
@@ -70,7 +70,7 @@ const uploadPostizMediaPath = async (cwd: string, rawPath: string): Promise<Post
   const form = new FormData();
   const blob = new Blob([await file.arrayBuffer()], { type: imageMimeFromExtension(filePath) });
   form.append("file", blob, basename(filePath));
-  const result = await postizFetch<unknown>("/public/v1/upload", { method: "POST", body: form });
+  const result = await postizFetch<unknown>("/public/v1/upload", { method: "POST", body: form, ...(base ? { base } : {}) });
   if (!result.ok) return result;
   if (!isPostizMedia(result.data)) {
     return { ok: false, error: { kind: "bad-request", msg: "Postiz upload returned an invalid media object", status: result.status }, status: result.status };
@@ -78,7 +78,7 @@ const uploadPostizMediaPath = async (cwd: string, rawPath: string): Promise<Post
   return { ok: true, data: result.data, status: result.status };
 };
 
-const uploadPostizMediaUrl = async (rawUrl: string): Promise<PostizResult<PostizMedia>> => {
+const uploadPostizMediaUrl = async (rawUrl: string, base?: string): Promise<PostizResult<PostizMedia>> => {
   const valid = validatePublicUrl(rawUrl);
   if (!valid.ok) {
     return { ok: false, error: { kind: "bad-request", msg: valid.message, status: 400 }, status: 400 };
@@ -87,6 +87,7 @@ const uploadPostizMediaUrl = async (rawUrl: string): Promise<PostizResult<Postiz
   const result = await postizFetch<unknown>("/public/v1/upload-from-url", {
     method: "POST",
     body: { url: valid.url },
+    ...(base ? { base } : {}),
   });
   if (!result.ok) return result;
   if (!isPostizMedia(result.data)) {
@@ -98,12 +99,13 @@ const uploadPostizMediaUrl = async (rawUrl: string): Promise<PostizResult<Postiz
 export const uploadPostizMedia = async (
   item: PublishItem,
   cwd: string,
+  base?: string,
 ): Promise<{ ok: true; media: readonly PostizMedia[] } | { ok: false; detail: string; hardStop: boolean }> => {
   const inputs = extractMediaInputs(item);
   const media: PostizMedia[] = [];
 
   for (const path of inputs.paths) {
-    const result = await uploadPostizMediaPath(cwd, path);
+    const result = await uploadPostizMediaPath(cwd, path, base);
     if (!result.ok) {
       return {
         ok: false,
@@ -115,7 +117,7 @@ export const uploadPostizMedia = async (
   }
 
   for (const url of inputs.urls) {
-    const result = await uploadPostizMediaUrl(url);
+    const result = await uploadPostizMediaUrl(url, base);
     if (!result.ok) {
       return {
         ok: false,
