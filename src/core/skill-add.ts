@@ -9,7 +9,7 @@ import { parseFrontmatter, detectTriggerConflicts, type TriggerConflict } from "
 
 export type SkillAddResult = {
   readonly name: string;
-  readonly mode: "chain" | "recreate";
+  readonly mode: "chain";
   readonly source_path: string;
   readonly action: "added" | "exists" | "dry-run";
   readonly conflicts: readonly TriggerConflict[];
