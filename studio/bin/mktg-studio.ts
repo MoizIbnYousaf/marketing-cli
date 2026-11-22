@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bun --no-env-file
+#!/usr/bin/env bun
 // bin/mktg-studio -- single-command launch for the marketing studio.
 //
 // Starts the Bun API server (server.ts on STUDIO_PORT, default 3001) and the
