@@ -22,12 +22,14 @@ export type PostizError =
   | { readonly kind: "network"; readonly detail: string };
 
 export type PostizResult<T> =
-  | { readonly ok: true; readonly data: T; readonly status: number }
+  | { readonly ok: true; readonly data: T; readonly status: number; readonly base?: string }
   | { readonly ok: false; readonly error: PostizError; readonly status: number | null };
 
 export type PostizFetchInit = {
   readonly method: "GET" | "POST" | "DELETE" | "PUT";
   readonly headers?: Record<string, string>;
+  /** Send to exactly this base (one a GET already proved), with no self-host fallback. */
+  readonly base?: string;
   readonly body?: Record<string, unknown> | FormData;
 };
 

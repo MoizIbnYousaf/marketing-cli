@@ -52,7 +52,12 @@ export const postizFetch = async <T>(path: string, init: PostizFetchInit): Promi
   }
 
   let lastNetworkError: unknown;
-  const candidates = postizBaseCandidates(base);
+  // A GET is safe to repeat, so it may probe every candidate base. A create is
+  // not: after a 2xx it cannot parse it never moves on to the next candidate
+  // (the first server may have created it), and callers pin it to the base a
+  // GET already proved via init.base.
+  const safeToRepeat = init.method === "GET";
+  const candidates = init.base ? [init.base] : postizBaseCandidates(base);
 
   for (const [index, candidate] of candidates.entries()) {
     const isLast = index === candidates.length - 1;
@@ -78,9 +83,9 @@ export const postizFetch = async <T>(path: string, init: PostizFetchInit): Promi
     if (res.ok) {
       try {
         const data = (await res.json()) as T;
-        return { ok: true, data, status: res.status };
+        return { ok: true, data, status: res.status, base: candidate };
       } catch {
-        if (!isLast) continue;
+        if (!isLast && safeToRepeat) continue;
         return {
           ok: false,
           error: { kind: "bad-request", msg: "Invalid JSON response from Postiz", status: res.status },

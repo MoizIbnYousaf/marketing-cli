@@ -229,3 +229,45 @@ describe("a malformed provider answer is a failure", () => {
     }
   }, T);
 });
+
+describe("postiz: one create per item", () => {
+  const INTEGRATIONS = JSON.stringify([{ id: "int-li", identifier: "linkedin", name: "LI", picture: "", disabled: false, profile: "li" }]);
+  const serve = (route: (method: string, path: string) => Response) => {
+    const seen: string[] = [];
+    const server = Bun.serve({ port: 0, fetch: (req) => { const path = new URL(req.url).pathname; seen.push(`${req.method} ${path}`); return route(req.method, path); } });
+    return { server, seen, env: { POSTIZ_API_KEY: "dummy-not-real", POSTIZ_API_BASE: `http://127.0.0.1:${server.port}` } };
+  };
+
+  test("a 2xx with a body that is not JSON is not re-sent to <base>/api", async () => {
+    const s = serve((method, path) =>
+      method === "GET" && path === "/public/v1/integrations" ? new Response(INTEGRATIONS)
+        : method === "POST" ? new Response('{"truncated": [', { status: 200 })
+          : new Response("nf", { status: 404 }));
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([postizItem], "fv-campaign"));
+      const r = await runPublish(sb, ["--adapter", "postiz", "--confirm", "--json"], s.env);
+      expect(s.seen.filter((x) => x.startsWith("POST"))).toEqual(["POST /public/v1/posts"]);
+      const res = (r.json as { adapters: { results: { status: string; detail: string }[] }[] }).adapters[0]!.results[0]!;
+      expect(res.status).toBe("failed");
+      expect(res.detail).toContain("Invalid JSON response");
+    } finally {
+      s.server.stop(true);
+    }
+  }, T);
+
+  test("self-host: the base is decided by the integrations GET, and the post goes only there", async () => {
+    // The app root answers HTML 200 to everything; the backend lives under /api.
+    const s = serve((method, path) =>
+      path === "/api/public/v1/integrations" ? new Response(INTEGRATIONS)
+        : method === "POST" && path === "/api/public/v1/posts" ? Response.json([{ postId: "p1" }])
+          : new Response("<html>app</html>", { status: 200 }));
+    try {
+      await writeFile(join(sb.project, "publish.json"), manifest([postizItem], "fv-campaign"));
+      const r = await runPublish(sb, ["--adapter", "postiz", "--confirm", "--json"], s.env);
+      expect(s.seen.filter((x) => x.startsWith("POST"))).toEqual(["POST /api/public/v1/posts"]);
+      expect((r.json as { adapters: { results: { status: string }[] }[] }).adapters[0]!.results[0]!.status).toBe("draft-external");
+    } finally {
+      s.server.stop(true);
+    }
+  }, T);
+});

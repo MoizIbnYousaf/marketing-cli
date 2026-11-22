@@ -75,6 +75,8 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     return buildFailAll(mapPostizError(listRes.error));
   }
 
+  // Creates go only to the base that answered this GET (self-host: <base>/api).
+  const provenBase = listRes.base;
   const identifierToId = new Map<string, string>();
   for (const int of listRes.data) {
     if (!int.disabled) identifierToId.set(int.identifier, int.id);
@@ -135,7 +137,7 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
       continue;
     }
 
-    const uploaded = await uploadPostizMedia(item, inp.cwd);
+    const uploaded = await uploadPostizMedia(item, inp.cwd, provenBase);
     if (!uploaded.ok) {
       results.push({ item: i, status: "failed", detail: uploaded.detail });
       failed++;
@@ -145,7 +147,7 @@ export const publishPostiz = async (inp: PublishPostizInput): Promise<AdapterRes
     }
 
     const body = buildCreatePostDraft(item.content, resolved, uploaded.media) as unknown as Record<string, unknown>;
-    const postRes = await postizFetch<unknown>("/public/v1/posts", { method: "POST", body });
+    const postRes = await postizFetch<unknown>("/public/v1/posts", { method: "POST", body, ...(provenBase ? { base: provenBase } : {}) });
     if (!postRes.ok) {
       const detail = mapPostizError(postRes.error);
       results.push({ item: i, status: "failed", detail });
