@@ -61,6 +61,21 @@ describe("unknown --adapter", () => {
     expect(changedPaths(before, await snapshot(sb))).toEqual([]);
   }, T);
 
+  test("--adapter with no value is refused instead of running every adapter", async () => {
+    await writeFile(join(sb.project, "publish.json"), manifest([fileItem]));
+    const before = await snapshot(sb);
+    // Last argument, followed by another flag, and the empty `--adapter=` form.
+    for (const args of [["--confirm", "--json", "--adapter"], ["--adapter", "--confirm", "--json"], ["--adapter=", "--confirm", "--json"]]) {
+      const r = await runPublish(sb, args);
+      expect(r.exitCode).toBe(2);
+      const error = (r.json as { error?: { code: string; message: string } }).error!;
+      expect(error.code).toBe("INVALID_ARGS");
+      expect(error.message).toContain("--adapter needs a value");
+    }
+    // With the flag dropped, the file adapter would have written out.md.
+    expect(changedPaths(before, await snapshot(sb))).toEqual([]);
+  }, T);
+
   test("is refused before a maintenance flag runs", async () => {
     await mkdir(join(sb.project, ".mktg"), { recursive: true });
     const r = await runPublish(sb, ["--adapter", "nope", "--list-integrations", "--json"]);

@@ -23,7 +23,7 @@
   - `published` counted drafts and local queue entries. It now counts only items actually sent or scheduled; `drafts`, `queuedLocal` and `writtenFiles` report staged work.
   - A Typefully item with `publish_at` was sent or scheduled but reported as `draft-external`. The status now comes from Typefully's answer; an answer that does not confirm the request is `failed`.
   - A Postiz run killed part-way re-created accepted items when resumed, and a 2xx answer that could not be parsed was re-sent to `<base>/api`. Each item is now recorded as pending before its request and as sent when accepted; a resumed run skips sent items and reports a pending one as unconfirmed instead of sending it again. A run holds a lock, so two runs on one campaign cannot both send.
-  - An unknown `--adapter` exited 0 with an empty result. It is now refused (exit 2).
+  - An unknown `--adapter` exited 0 with an empty result, and `--adapter` with no value was dropped, so a confirmed run went through every adapter. Both are now refused (exit 2).
   - A confirmed run that failed left a native account or an empty marker behind. It now leaves nothing.
 - **Failed work counted as done.** `mktg run <skill> --complete --result failed` (or `partial`) was treated as completed, so `mktg plan` dropped the skill's task. Only `--result success` advances the plan now; the failed run stays recorded.
 - **The CLI misread 37 of its own skill descriptions.** The frontmatter parser did not understand YAML block text (`description: |`), so descriptions came back starting with `| `. It now reads block scalars, quoted and multi-line values, flow sequences, CRLF and a byte-order mark, and a test compares it with a YAML parser on every shipped skill.

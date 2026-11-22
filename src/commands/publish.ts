@@ -114,6 +114,16 @@ export const handler: CommandHandler<
       2,
     );
   }
+  // `--adapter` as the last argument, or followed by another flag, has no
+  // value. Dropping it would run EVERY adapter, with --confirm for real.
+  if (adapterFlagCount === 1 && (requestedAdapter === undefined || requestedAdapter === "" || requestedAdapter.startsWith("--"))) {
+    return err(
+      "INVALID_ARGS",
+      "--adapter needs a value",
+      [`Valid adapters: ${PRESENTATION_ADAPTER_ORDER.join(", ")}`, "Omit --adapter to run every adapter in the manifest"],
+      2,
+    );
+  }
   if (requestedAdapter !== undefined && !Object.hasOwn(ADAPTERS, requestedAdapter)) {
     return err(
       "INVALID_ARGS",
