@@ -104,7 +104,8 @@ mktg run postiz --strict --json
 ```bash
 mktg run brand-voice --complete --writes brand/voice-profile.md --result success --json
 # --writes paths must exist inside the project (validated, exit 2 otherwise).
-# Only event:"completed" records count as executed work in `mktg plan`.
+# Only event:"completed" records with result "success" count as executed work in `mktg plan`.
+# A --result partial|failed completion is recorded with its result, but the plan keeps the task.
 # History: mktg skill history <skill> --json (shows loaded vs completed events).
 ```
 

@@ -18,6 +18,8 @@ export type RunSummaryEntry = {
 export type RunHistoryFilter = {
   /** Keep only records that represent completed work (see isCompletedRecord). */
   readonly completedOnly?: boolean;
+  /** Keep only completed records whose result is success (see isSuccessfulRecord). */
+  readonly successfulOnly?: boolean;
 };
 
 /**
@@ -29,6 +31,14 @@ export type RunHistoryFilter = {
 export const isCompletedRecord = (record: SkillRunRecord): boolean =>
   record.event === "completed" ||
   (record.event === undefined && record.brandFilesChanged.length > 0);
+
+/**
+ * Completed AND successful. A `partial` or `failed` completion stays in the
+ * log with its result, but it is not finished work: planning keeps the task.
+ * Legacy completed records without a result are treated as success.
+ */
+export const isSuccessfulRecord = (record: SkillRunRecord): boolean =>
+  isCompletedRecord(record) && (record.result ?? "success") === "success";
 
 export const logRun = async (
   cwd: string,
@@ -65,6 +75,7 @@ export const getRunHistory = async (
     let records = parseJsonl(content);
     if (skillName) records = records.filter(r => r.skill === skillName);
     if (filter?.completedOnly) records = records.filter(isCompletedRecord);
+    if (filter?.successfulOnly) records = records.filter(isSuccessfulRecord);
     return records.slice(-limit).reverse(); // Most recent first
   } catch {
     return []; // No log file yet

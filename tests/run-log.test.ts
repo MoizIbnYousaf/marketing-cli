@@ -5,7 +5,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { logRun, getRunHistory, getLastRun, getRunSummary, isCompletedRecord } from "../src/core/run-log";
+import { logRun, getRunHistory, getLastRun, getRunSummary, isCompletedRecord, isSuccessfulRecord } from "../src/core/run-log";
 import type { SkillRunRecord } from "../src/types";
 
 const run = async (args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
@@ -350,5 +350,56 @@ describe("completedOnly filtering", () => {
     expect(summary["seo-content"]!.event).toBe("completed");
     expect(summary["seo-content"]!.result).toBe("success");
     expect(summary["legacy-load"]!.event).toBe("loaded");
+  });
+});
+
+// ==================== Only successful completions are finished work ====================
+
+describe("isSuccessfulRecord", () => {
+  test("completed success counts", () => {
+    expect(isSuccessfulRecord({ skill: "a", timestamp: "t", event: "completed", result: "success", brandFilesChanged: [] })).toBe(true);
+  });
+
+  test("completed partial and failed are recorded completions but not successes", () => {
+    for (const result of ["partial", "failed"] as const) {
+      const record: SkillRunRecord = { skill: "a", timestamp: "t", event: "completed", result, brandFilesChanged: [] };
+      expect(isCompletedRecord(record)).toBe(true);
+      expect(isSuccessfulRecord(record)).toBe(false);
+    }
+  });
+
+  test("a load is never a success", () => {
+    expect(isSuccessfulRecord({ skill: "a", timestamp: "t", event: "loaded", brandFilesChanged: [] })).toBe(false);
+  });
+
+  test("legacy record with brand writes and no result counts as success", () => {
+    expect(isSuccessfulRecord({ skill: "a", timestamp: "t", brandFilesChanged: ["audience.md"] })).toBe(true);
+  });
+});
+
+describe("successfulOnly filtering", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "mktg-runlog-success-"));
+    await logRun(tmpDir, { skill: "seo-content", timestamp: "2026-03-13T10:00:00.000Z", event: "completed", result: "failed", writes: [], brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "lead-magnet", timestamp: "2026-03-13T11:00:00.000Z", event: "completed", result: "partial", writes: [], brandFilesChanged: [] });
+    await logRun(tmpDir, { skill: "creative", timestamp: "2026-03-13T12:00:00.000Z", event: "completed", result: "success", writes: [], brandFilesChanged: [] });
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  test("getRunSummary successfulOnly keeps only the successful skill", async () => {
+    const summary = await getRunSummary(tmpDir, { successfulOnly: true });
+    expect(Object.keys(summary)).toEqual(["creative"]);
+  });
+
+  test("failed and partial completions stay in the log with their result", async () => {
+    const summary = await getRunSummary(tmpDir);
+    expect(summary["seo-content"]!.event).toBe("completed");
+    expect(summary["seo-content"]!.result).toBe("failed");
+    expect(summary["lead-magnet"]!.result).toBe("partial");
   });
 });

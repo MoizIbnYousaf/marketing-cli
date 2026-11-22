@@ -297,3 +297,66 @@ describe("plan OpenSEO backend awareness (S5)", () => {
     await rm(tmp, { recursive: true, force: true });
   });
 });
+
+// ==================== Only successful work advances the plan ====================
+// Real CLI child processes: `mktg run --complete --result <r>` then `mktg plan`.
+// HOME is a fresh temp dir (separate from the project) holding the one
+// installed skill `mktg run` needs.
+
+describe("plan keeps the task after a partial or failed run", () => {
+  const repoRoot = import.meta.dir.replace("/tests", "");
+
+  const cli = async (args: string[], cwd: string, home: string): Promise<{ stdout: string; exitCode: number }> => {
+    const proc = Bun.spawn(["bun", "run", join(repoRoot, "src", "cli.ts"), ...args], {
+      cwd, stdout: "pipe", stderr: "pipe",
+      env: { PATH: process.env.PATH ?? "", HOME: home, NO_COLOR: "1" },
+    });
+    const [stdout] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+    return { stdout: stdout.trim(), exitCode: await proc.exited };
+  };
+
+  const setup = async (): Promise<{ project: string; home: string }> => {
+    const project = await mkdtemp(join(tmpdir(), "mktg-plan-result-proj-"));
+    const home = await mkdtemp(join(tmpdir(), "mktg-plan-result-home-"));
+    await seedBrandTemplates(project);
+    const installed = join(home, ".claude", "skills", "seo-content");
+    await mkdir(installed, { recursive: true });
+    await writeFile(join(installed, "SKILL.md"), await Bun.file(join(repoRoot, "skills", "seo-content", "SKILL.md")).text());
+    return { project, home };
+  };
+
+  const planIds = async (project: string, home: string): Promise<string[]> => {
+    const { stdout, exitCode } = await cli(["plan", "--json"], project, home);
+    expect(exitCode).toBe(0);
+    return JSON.parse(stdout).tasks.map((t: { id: string }) => t.id);
+  };
+
+  for (const result of ["partial", "failed"]) {
+    test(`--result ${result} is recorded and run-seo-content stays`, async () => {
+      const { project, home } = await setup();
+      expect(await planIds(project, home)).toContain("run-seo-content");
+      const done = await cli(["run", "seo-content", "--complete", "--result", result, "--json"], project, home);
+      expect(done.exitCode).toBe(0);
+      expect(JSON.parse(done.stdout).result).toBe(result);
+      const ids = await planIds(project, home);
+      expect(ids).toContain("run-seo-content");
+      expect(ids).not.toContain("distribute-content");
+      const log = (await Bun.file(join(project, ".mktg", "runs.jsonl")).text()).trim().split("\n").map((l) => JSON.parse(l));
+      expect(log.at(-1)).toMatchObject({ skill: "seo-content", event: "completed", result });
+      await rm(project, { recursive: true, force: true });
+      await rm(home, { recursive: true, force: true });
+    }, 120000);
+  }
+
+  test("--result success drops run-seo-content and unlocks distribute", async () => {
+    const { project, home } = await setup();
+    await cli(["run", "seo-content", "--complete", "--result", "failed", "--json"], project, home);
+    const done = await cli(["run", "seo-content", "--complete", "--result", "success", "--json"], project, home);
+    expect(done.exitCode).toBe(0);
+    const ids = await planIds(project, home);
+    expect(ids).not.toContain("run-seo-content");
+    expect(ids).toContain("distribute-content");
+    await rm(project, { recursive: true, force: true });
+    await rm(home, { recursive: true, force: true });
+  }, 120000);
+});
